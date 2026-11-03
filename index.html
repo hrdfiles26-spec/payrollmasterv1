@@ -1454,7 +1454,7 @@ async function enter(){
  if(!SUPER&&MYA&&!MYA.active){alert('Your account is disabled. Please contact the admin.');return logout()}
  const f=applyNav();try{if(typeof tick==='function')tick()}catch(e){}try{sndUI()}catch(e){}
  if(!f)$('main').innerHTML='<h1>No access</h1><p class="sub">You have no pages assigned yet. Please contact the admin.</p>';else go('dash');
- if(can('emp'))loadND().then(()=>loadE(true));if(can('act'))actPoll();setInterval(()=>can('act')&&actPoll(),60000);can('tmk')&&tmNotifSync(true);Promise.all([pdLoad().catch(()=>0),chatLoad()]).then(()=>{chatBadge();liveStart()})}
+ if(can('emp'))loadND().then(()=>loadE(true));if(can('act'))actPoll();setInterval(()=>can('act')&&actPoll(),60000);can('tmk')&&tmNotifSync(true);can('tma')&&tmDecSync(true);Promise.all([pdLoad().catch(()=>0),chatLoad()]).then(()=>{chatBadge();liveStart()})}
 function applyNav(){ADM=can('usr');
  ['req','sub','emp','pay','act','usr'].forEach((k,j)=>$('n'+(j+1)).style.display=can(k)?'':'none');$('n7').style.display=isAdm()?'':'none';['addc','m13'].forEach((k,j)=>{const a=$('n'+(9+j));a.style.display='';a.classList.toggle('lkd',!can(k));a.title=can(k)?'':'Needs permission from the admin'});{const a=$('n11');if(a)a.style.display=can('tmk')?'':'none';}{const a=$('n12');if(a)a.style.display=can('mg')?'':'none';}
  const rl=SUPER||(MYA&&MYA.role==='admin')?'Admin':MYA?(ROLES[MYA.role]||[MYA.role])[0]:'';
@@ -1866,7 +1866,7 @@ function dGo(t,v){if(t==='d'){ef.d=v;ef.f='all'}else{ef.f=v;ef.d='all'}ef.q='';g
 function dReq(k){pendF=k;go('sub')}
 function dEmp(id){pendE=id;go('emp')}
 async function dash(){PG='dash';$('main').innerHTML='<h1>Dashboard</h1><p class="sub">Loading…</p>';const J=[];
- if(can('emp')){J.push(loadND());J.push(api('/rest/v1/hrd_employees?select=*&order=name').then(r=>{E=r;badge()}).catch(()=>{}))}
+ if(can('emp')){J.push(loadND());J.push(api('/rest/v1/hrd_employees?select=*&order=name').then(r=>{E=eVis(r);badge()}).catch(()=>{}))}
  if(can('sub'))J.push(api('/rest/v1/hrd_requests?order=created_at.desc&select=*').then(r=>{R=r;RL=true;$('bd').textContent=R.filter(x=>x.status==='pending').length||''}).catch(()=>{}));
  if(can('act'))J.push(actPoll());
  await Promise.race([Promise.all(J),new Promise(r=>setTimeout(r,5000))]);drawDash();Promise.all(J).then(()=>drawDash())}
@@ -1958,7 +1958,7 @@ async function ndMark(){const a=NCUR;if(!a)return;const k=nkey(a);let ok=false;
  if(!ok){try{localStorage.hrdND=JSON.stringify([...NDONE])}catch(e){}if(confirm('Marked as done on this device only, because the notification table has not been created in Supabase yet.\n\nClick OK to copy the one-time SQL, then paste it in Supabase \u2192 SQL Editor and Run it so "Done" is shared with all users.'))copySql(NSQL)}
  logAct('Notification done','201 Files',a.e.name+' \u2014 '+NLBL[a.t]);toast('Marked as done \u2714');NCUR=null;$('ndov')&&$('ndov').remove();badge();if(PG==='dash')drawDash();else if(PG==='emp'&&EV==='list')drawE()}
 function badge(){const n=new Set(alerts().map(a=>a.i)).size;$('b3').textContent=n||'';b0();return n}
-async function loadE(silent){try{E=await api('/rest/v1/hrd_employees?select=*&order=name');const n=badge();if(!NSEEN)NSEEN=new Set(alerts().map(nkey));if(silent&&n){toast('🔔 '+n+' employee(s) have notifications in 201 Files');ping()}}catch(e){if(!silent)throw e}}
+async function loadE(silent){try{E=eVis(await api('/rest/v1/hrd_employees?select=*&order=name'));const n=badge();if(!NSEEN)NSEEN=new Set(alerts().map(nkey));if(silent&&n){toast('🔔 '+n+' employee(s) have notifications in 201 Files');ping()}}catch(e){if(!silent)throw e}}
 async function emps(){$('main').innerHTML='<h1>201 Files</h1><p class="sub">Loading…</p>';
  try{await loadE()}catch(e){return $('main').innerHTML='<h1>201 Files</h1><p class="empty">'+esc(e.message)+'</p>'}drawE();if(pendE){const k=E.findIndex(x=>x.id===pendE);pendE=null;if(k>=0)formE(k)}}
 const ini=n=>{const p=String(n||'').split(',');const f=(p[0]||'').trim()[0]||'',l=(p[1]||'').trim()[0]||'';return(f+l).toUpperCase()||'•'};
@@ -2052,7 +2052,7 @@ async function atm201Data(){
  const st=Array.isArray(STF)?STF:null,ph=Array.isArray(PH)?PH:null;
  if(st&&ph)return{st,ph};
  if(ATMC&&Date.now()-ATMC.t<60000&&!st&&!ph)return ATMC;
- const S=st||(await api('/rest/v1/hrd_pay_staff?select=id,name,dept,rate&order=name')),H=ph||(await api('/rest/v1/hrd_payroll?select=id,label,data,created_at&order=created_at.desc&limit=500'));
+ const S=st||sVis(await api('/rest/v1/hrd_pay_staff?select=id,name,dept,rate&order=name')),H=ph||hVis(await api('/rest/v1/hrd_payroll?select=id,label,data,created_at&order=created_at.desc&limit=500'));
  ATMC={t:Date.now(),st:S,ph:H};return ATMC}
 function atm201Calc(e,D){
  const k=tmN(e.name);let L=D.st.filter(s=>tmN(s.name)===k);
@@ -2088,7 +2088,7 @@ ${i!=null?'<div id="atm201"><div class="sub" style="margin:14px 0">Loading ATM a
 const docsP=e=>`<div class="panel"><h3>Memos & Documents</h3>${(e.docs||[]).map((d,k)=>`<div class="rq" style="padding:8px 0"><div class="rt"><b>${esc(d.type)}: ${esc(d.title)}</b><small>${esc(d.date||'')} · ${esc(d.name)}</small></div><button class="btn o sm" onclick="openD(${k})">Open</button><button class="btn dl sm" onclick="delD(${k})">Delete</button></div>`).join('')||'<p class="empty" style="padding:10px">No files yet.</p>'}
 <div class="pr" style="margin-top:14px"><label>Type<select id="d_t" class="fi"><option>Memo</option><option>Contract</option><option>Government ID</option><option>Medical</option><option>Other</option></select></label><label>Title<input id="d_ti" class="fi"></label><label>Date<input id="d_d" type="date" class="fi"></label><label>File <small style="display:block;color:#66738a;margin:3px 0">Photos/images: maximum 100 KB after automatic compression. PDF/Word/other files: maximum 10 MB.</small><input id="d_f" type="file" class="fi"></label></div><button class="btn" onclick="addD()">Upload</button></div>`;
 async function saveE(){const v=k=>$('f_'+k).value.trim()||null;if(!v('name'))return toast('Enter the name.');if(!/^[^,]+,\s*[^,\s]+(\s+[^,\s]+)*$/.test(v('name')))return toast('Name format: Surname, Given Name [Middle Name optional]. Example: Dela Cruz, Juan Santos or Dela Cruz, Juan');const dpl=E.filter((x,j)=>j!==ei&&dupKey(x.name)===dupKey(v('name')));if(dpl.length&&!confirm('⚠️ The same name already exists in 201 Files:\n\n'+dpl.map(x=>x.name+' — '+(x.dept||'No Department')).join('\n')+'\n\nAre you sure you still want to save?'))return;if(nd(v('dept'))==='Management'&&v('x_email')&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('x_email')))return toast('Enter a valid email address.');if(!confirm(ei==null?'Are you sure you want to save this new employee?':'Are you sure you want to save the changes to '+E[ei].name+'?'))return;
- const b={},X={};EF.concat(EF2).forEach(([k])=>{if(k.startsWith('x_'))X[k.slice(2)]=v(k);else b[k]=v(k)});if(b.dept)b.dept=nd(b.dept);b.notes=joinN(X,v('notes'));b.emp_status=v('emp_status');const id=ei==null?crypto.randomUUID():E[ei].id;
+ const b={},X={};EF.concat(EF2).forEach(([k])=>{if(k.startsWith('x_'))X[k.slice(2)]=v(k);else b[k]=v(k)});if(b.dept)b.dept=nd(b.dept);if(isMgt(b.dept)&&!can('mge'))return toast('You do not have permission to add or edit Management employees.');b.notes=joinN(X,v('notes'));b.emp_status=v('emp_status');const id=ei==null?crypto.randomUUID():E[ei].id;
  try{const wasNew=ei==null,f=$('f_photo').files[0],oldP=ei==null?null:E[ei].photo;if(f)b.photo=await up(id,f);if(HASAUD()){b.updated_by=ME.email||null;b.updated_at=new Date().toISOString()}
   if(ei==null){b.id=id;b.docs=[];const j=await api('/rest/v1/hrd_employees',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(b)});E.push(j[0]);ei=E.length-1}
   else{const r=await api('/rest/v1/hrd_employees?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(b)});if(!Array.isArray(r)||!r.length)throw new Error('NOT SAVED to the database (no record was updated). You may not have permission, or the record was not found. Try again or refresh the page.');Object.assign(E[ei],b,r[0]);if(f&&oldP)api('/storage/v1/object/files201/'+oldP,{method:'DELETE'}).catch(()=>{})}
@@ -2357,7 +2357,7 @@ const pNew=f=>{const h=(PH||[]).filter(p=>p.data&&pFo(p.data)===f).sort((a,b)=>S
   sm:(h&&h.data&&h.data.sm)?cl(h.data.sm):smDefault(f),la:Object.fromEntries(Object.entries((h&&h.data&&h.data.rows)||{}).filter(([,r])=>r&&r.acct).map(([k,r])=>[k,r.acct])),dirty:false,init:1}};
 const pT=(k,d)=>PP.t&&PP.t[k]!=null?PP.t[k]:d;
 const pTx=(k,d,c)=>`<input class="pi t ${c||''}${PU?' ed':''}"${PU?'':' readonly tabindex="-1"'} value="${esc(pT(k,d))}" oninput="pTset('${k}',this.value)">`;
-const pFolders=()=>[...new Set([...PORD,...PSEED.map(x=>x[0]),...Object.keys(PDS).filter(k=>PDS[k].custom),...(STF||[]).map(s=>s.dept).filter(Boolean)])];
+const pFolders=()=>[...new Set([...PORD,...PSEED.map(x=>x[0]),...Object.keys(PDS).filter(k=>PDS[k].custom&&(can('mgp')||!isMgt(k))),...(STF||[]).map(s=>s.dept).filter(Boolean)])];
 const pGroups=()=>{const G={},ord=PGO[PF]||[],ix=g=>{const k=ord.indexOf(g);return k<0?99:k};(STF||[]).filter(s=>s.dept===PF).sort((a,b)=>a.name.localeCompare(b.name)).forEach(s=>{const g=pGrp(s)||PF;(G[g]=G[g]||[]).push(s)});return Object.entries(G).sort((a,b)=>ix(a[0])-ix(b[0]))};
 function pCalc(){const GT=Object.fromEntries(PKs().map(k=>[k,0]));
  pGroups().forEach(([d,L],gi)=>{const S=Object.fromEntries(PKs().map(k=>[k,0]));
@@ -2373,16 +2373,18 @@ const pTmB=(s,k)=>k==='days'&&PP.tmd&&PP.tmd[s.id]!=null&&pn(pRow(s).days)===PP.
 function pTmApply(){
   if(PV!=='form'||PP.runId||PP.m!=='r'||(PP.hc||[]).includes('days'))return false;
   const L=PTMC[PP.from+'|'+PP.to];if(!L)return false;
-  const by={};L.forEach(o=>{const k=pTmNk(o.emp_name);if(!k||!o.att_date)return;(by[k]=by[k]||new Set()).add(String(o.att_date))});
+  const by={};L.forEach(o=>{const k=pTmNk(o.emp_name);if(!k||!o.att_date)return;const m=(by[k]=by[k]||new Map()),d=String(o.att_date),v=parseFloat(o.days);if(!m.has(d)||v>0)m.set(d,v>0?v:(m.get(d)||1))});
   PP.tmd=PP.tmd||{};let ch=false;
-  (STF||[]).filter(s=>s.dept===PF).forEach(s=>{const n=(by[pTmNk(s.name)]||new Set()).size,r=pRow(s),cur=r.days,auto=PP.tmd[s.id]!=null&&pn(cur)===PP.tmd[s.id];
+  (STF||[]).filter(s=>s.dept===PF).forEach(s=>{const mp=by[pTmNk(s.name)]||new Map(),n=[...mp.values()].reduce((a,b)=>a+b,0),r=(PP.tmn=PP.tmn||{},PP.tmn[s.id]=[...mp.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(e=>e[0].slice(5).replace('-','/')+' = '+e[1]+' day'+(e[1]===1?'':'s')).join('; '),pRow(s)),cur=r.days,auto=PP.tmd[s.id]!=null&&pn(cur)===PP.tmd[s.id];
     if(n>0){if(cur==null||cur===''||auto){if(cur===''||cur==null||pn(cur)!==n){r.days=String(n);ch=true}PP.tmd[s.id]=n}}
     else if(auto){r.days='';delete PP.tmd[s.id];ch=true}});
   return ch}
 async function pTmLoad(){
   if(PV!=='form'||PP.runId||!PP.from||!PP.to)return;
   const key=PP.from+'|'+PP.to;if(PTMC[key]!==undefined)return;PTMC[key]=null;
-  try{PTMC[key]=(await api('/rest/v1/hrd_timemark?select=emp_name,dept,att_date,shot_time&att_date=gte.'+PP.from+'&att_date=lte.'+PP.to+'&limit=5000'))||[]}
+  try{const u='&att_date=gte.'+PP.from+'&att_date=lte.'+PP.to+'&order=created_at.asc&limit=5000';let L;
+    try{L=await api('/rest/v1/hrd_timemark?select=emp_name,dept,att_date,shot_time,days&or=(appr.is.null,appr.eq.true)'+u)}catch(e0){try{L=await api('/rest/v1/hrd_timemark?select=emp_name,dept,att_date,shot_time,days'+u)}catch(e1){L=await api('/rest/v1/hrd_timemark?select=emp_name,dept,att_date,shot_time'+u)}}
+    PTMC[key]=L||[]}
   catch(e){delete PTMC[key];return}
   if(PV==='form'&&!PP.runId&&PP.from+'|'+PP.to===key&&pTmApply())drawForm()}
 const pUns=()=>PV==='form'&&(PP.dirty||!PP.runId);
@@ -2454,7 +2456,7 @@ async function pSeed(){const p=pSeedPlan();if(!p.neu.length&&!p.mv.length)return
  try{for(const [s,d] of p.mv){await api('/rest/v1/hrd_pay_staff?id=eq.'+s.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({dept:d})});s.dept=d}
   for(let i=0;i<p.neu.length;i+=150){const j=await api('/rest/v1/hrd_pay_staff',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(p.neu.slice(i,i+150))});STF.push(...j)}
   logAct('Loaded payroll roster','Payroll',p.neu.length+' added, '+p.mv.length+' moved');drawP();toast('Loaded ✔')}catch(x){alert(x.message);loadS().then(drawP)}}
-async function loadS(){try{STF=await api('/rest/v1/hrd_pay_staff?select=*&order=name');STF=STF.filter(s=>!['Common','Rest House'].includes(s.dept));STF.forEach(s=>{const n=pCanon(s.dept);if(n!==s.dept){s.dept=n;api('/rest/v1/hrd_pay_staff?id=eq.'+s.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({dept:n})}).catch(()=>{})}})}catch(e){STF=null}}
+async function loadS(){try{STF=sVis(await api('/rest/v1/hrd_pay_staff?select=*&order=name'));STF=STF.filter(s=>!['Common','Rest House'].includes(s.dept));STF.forEach(s=>{const n=pCanon(s.dept);if(n!==s.dept){s.dept=n;api('/rest/v1/hrd_pay_staff?id=eq.'+s.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({dept:n})}).catch(()=>{})}})}catch(e){STF=null}}
 async function pays(){PTMC={};pv='main';await pdLoad();pApplyDS();await loadS();await loadH(1);if(!PP.init)PP=pNew(PF);if(!pUns())PV='hist';drawP()}
 // --- edit / delete / history ---
 async function pName(id,el){const s=STF.find(x=>x.id===id),v=el.value.trim();if(!v||v===s.name){el.value=s.name;return}
@@ -2474,14 +2476,16 @@ async function pAdd(){const nm=$('a_n').value.trim(),dp=$('a_d').value.trim(),rt
  if(can('emp')){try{const r=await api('/rest/v1/hrd_employees?select=name');if(Array.isArray(r)){E=E&&E.length?E:r;const k=pNm(nm),sn=pNm(nm.split(',')[0]),L=r.map(x=>String(x.name||''));
   if(!L.some(x=>pNm(x)===k)){const sim=L.filter(x=>pNm(x.split(',')[0])===sn).slice(0,3);
    if(!confirm('No 201 File record was found for "'+nm+'".'+(sim.length?'\n\nSimilar names in 201 Files: '+sim.join('; ')+'.':'')+'\n\nPlease add this employee to 201 Files first so the records match.\n\nPress OK to add to payroll anyway, or Cancel to stop.'))return}}}catch(e){}}
+ if(isMgt(dp)&&!can('mgp'))return toast('You do not have permission to add to the Management payroll.');
  try{const j=await api('/rest/v1/hrd_pay_staff',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({name:nm,dept:dp,rate:rt})});STF.push(j[0]);{const g=$('a_g')&&$('a_g').value;if(g&&g!=='__new'){PDS._grp=PDS._grp||{};PDS._grp[dp+'|'+pNm(nm)]=g;pdSave()}}logAct('Added payroll employee','Payroll',nm+' ('+dp+')');drawP();toast('Added to '+dp+' ✔')}catch(x){alert(x.message)}}
 const pParse=t=>t.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(/^(.+?)[\s,;|]+(\d[\d,]*\.?\d*)$/);return m?{name:m[1].replace(/[\s,;|]+$/,'').trim(),rate:pn(m[2].replace(/,/g,''))}:null});
 async function pImp(){const dp=$('i_d').value.trim(),P=pParse($('i_t').value),bad=P.filter(x=>!x).length,ok=P.filter(x=>x&&x.name);if(!dp)return toast('Enter the department.');if(!ok.length)return toast('No readable name and rate found.');
  const have=new Set(STF.filter(s=>s.dept===dp).map(s=>s.name.toLowerCase())),neu=ok.filter(x=>!have.has(x.name.toLowerCase()));if(!neu.length)return toast('Everyone is already in '+dp+'.');
  if(!confirm('Import '+neu.length+' employees into '+dp+(ok.length-neu.length?', '+(ok.length-neu.length)+' already there (skipped)':'')+(bad?', '+bad+' line(s) could not be read':'')+'?'))return;
+ if(isMgt(dp)&&!can('mgp'))return toast('You do not have permission to import into the Management payroll.');
  try{const j=await api('/rest/v1/hrd_pay_staff',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(neu.map(x=>({name:x.name,dept:dp,rate:x.rate})))});STF.push(...j);if(PF!==dp){PF=dp;PP=pNew(dp)}drawP();toast('Imported ✔')}catch(x){alert(x.message)}}
 // --- saved runs ---
-async function loadH(q){try{PH=await api('/rest/v1/hrd_payroll?select=id,label,data,created_at&order=created_at.desc&limit=500')}catch(e){PH=null}if(!q)drawP()}
+async function loadH(q){try{PH=hVis(await api('/rest/v1/hrd_payroll?select=id,label,data,created_at&order=created_at.desc&limit=500'))}catch(e){PH=null}if(!q)drawP()}
 function drawHist(){
  $('main').innerHTML=`<h1>Payroll</h1><p class="sub">Click <b>+ New Payroll</b> to choose a form and cutoff. Saved payrolls appear in the history below.</p>
 <div class="pz-bar no-print"><button class="btn ok" onclick="pStart()">+ New Payroll</button></div>
@@ -2843,7 +2847,7 @@ function drawForm(){
  pDraftChk();pTmApply();setTimeout(pTmLoad,0);
  if(STF==null)return $('main').innerHTML=`<h1>Payroll</h1><p class="sub">The payroll staff table must be created first.</p><div class="panel" style="max-width:none"><h3>Run this in Supabase → SQL Editor</h3><pre style="white-space:pre-wrap;font-size:12px;background:#f3f5f9;padding:12px;border-radius:8px">${esc(PSQL)}</pre><button class="btn" onclick="pays()">I've run it — reload</button></div>`;
  const G=pGroups(),mo=pMon(),nr=G.reduce((t,[,L])=>t+L.length,0),F=pFolders(),cols=pCols(),NC=cols.length+(PP.m==='g'?2:3),hp=(PH||[]).some(p=>p.data&&pFo(p.data)===PF&&p.data.bals);
- const n=(s,k)=>{const lk=true,tt=k==='coop'?'Locked · edit in ⚙ COOP':k==='vale'?'Locked · edit in 💵 Vale':k==='ded'?(dedTip(s)?dedTip(s)+' · ':'')+'Locked · edit in ➖ Deductions':k==='days'?(pTmB(s,k)?'From Timemark (audited) · ':'')+'Locked · enter in 📅 Days':'Locked · edit in ✏️ Entries';return`<td class="k_${k}"><input class="pi${lk?' plk':''}${pTmB(s,k)}" id="i_${s.id}_${k}" type="number" step="any" onwheel="this.blur()"${lk?` readonly tabindex="-1" title="${esc(tt)}"`:''} value="${esc(pRow(s)[k]??'')}" oninput="pIn('${s.id}','${k}',this.value)"></td>`};
+ const n=(s,k)=>{const lk=true,tt=k==='coop'?'Locked · edit in ⚙ COOP':k==='vale'?'Locked · edit in 💵 Vale':k==='ded'?(dedTip(s)?dedTip(s)+' · ':'')+'Locked · edit in ➖ Deductions':k==='days'?(pTmB(s,k)?'From Timemark (approved'+(PP.tmn&&PP.tmn[s.id]?': '+PP.tmn[s.id]:'')+') · ':'')+'Locked · enter in 📅 Days':'Locked · edit in ✏️ Entries';return`<td class="k_${k}"><input class="pi${lk?' plk':''}${pTmB(s,k)}" id="i_${s.id}_${k}" type="number" step="any" onwheel="this.blur()"${lk?` readonly tabindex="-1" title="${esc(tt)}"`:''} value="${esc(pRow(s)[k]??'')}" oninput="pIn('${s.id}','${k}',this.value)"></td>`};
  const t=(s,k)=>{const v=k==='acct'?pAcctV(s):(pRow(s)[k]??'');return`<td class="k_${k}"><input class="pi t hp plk" readonly tabindex="-1" title="Locked · edit in ✏️ Entries" value="${esc(v)}"><span class="pt" id="pt_${s.id}_${k}">${esc(v)}</span></td>`};
  const gp=s=>{const r=pRow(s),v=pVals(s);return`<td class="k_pay"><input class="pi plk" id="i_${s.id}_pay" type="number" step="any" readonly tabindex="-1" title="Locked · Gross ÷ fixed days × days (enter days in 📅 Days)" value="${esc(v.pay||'')}"></td>`};
  const cv=(s,k,b)=>`<td id="c_${s.id}_${k}" class="cv k_${k}${b?' b':''}">${pf(pVals(s)[k])}</td>`;
@@ -3141,10 +3145,16 @@ function mXlsx(){const M=m13Model();if(!M.D.length)return toast('Nothing to expo
  const bl=m13XlsxBuild(M),a=document.createElement('a');a.href=URL.createObjectURL(bl);
  a.download='13th-Month-Pay-'+MY+(MD!=='all'?'-'+String(MD).replace(/[^A-Za-z0-9]+/g,'_'):'')+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
  logAct('Exported 13th month pay (Excel)','13th Month Pay',MY);toast('Exported \u2714')}
-const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['act','Activity']];
-const ROLES={admin:['Admin','Full access, including Users & Access',['req','sub','emp','pay','addc','m13','mg','tmk','tma','act']],hr:['HR Staff','Requests, 201 Files, Timemark Check, Activity',['req','sub','emp','tmk','act']],payroll:['Payroll','Request Form, Payroll, Additional Compensation, 13th Month Pay and Monthly Gross',['req','pay','addc','m13','mg']],staff:['Staff','Request Form only',['req']]};
+const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['act','Activity']];
+const ROLES={admin:['Admin','Full access, including Users & Access',['req','sub','emp','pay','addc','m13','mg','tmk','tma','tmp','mgp','mge','act']],hr:['HR Staff','Requests, 201 Files, Timemark Check, Activity',['req','sub','emp','tmk','act']],payroll:['Payroll','Request Form, Payroll, Additional Compensation, 13th Month Pay and Monthly Gross',['req','pay','addc','m13','mg']],staff:['Staff','Request Form only',['req']]};
 let MYA=null,ACC=false,UL=null;
 const can0=k=>SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||(k!=='usr'&&(MYA.pages||[]).includes(k))))||(!MYA&&k==='req');const can=k=>k==='mg'?(can0('mg')||can0('pay')):can0(k);
+/* Management department: only users with the special permission can see it (Payroll / 201 Files / Monthly Gross history) */
+const isMgt=d=>/^\s*management(\W|$)/i.test(String(d||''));
+const eVis=L=>Array.isArray(L)?L.filter(e=>can('mge')||!isMgt(e.dept)):L;
+const sVis=L=>Array.isArray(L)?L.filter(x=>can('mgp')||!isMgt(x.dept)):L;
+const hVis=L=>Array.isArray(L)?L.filter(r=>can('mgp')||!isMgt(((r.data||{}).folder)||'')):L;
+const mgVis=L=>can('mgp')||!Array.isArray(L)?L:L.map(r=>{const d=r.data||{};return Array.isArray(d.groups)?{...r,data:{...d,groups:d.groups.filter(g=>!isMgt(g.name))}}:r});
 async function loadAccess(){
  try{const r=await api('/rest/v1/hrd_access?select=*&user_id=eq.'+ME.sub);MYA=r[0]||null;
   if(!MYA){const x=await api('/rest/v1/hrd_access',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({user_id:ME.sub,email:ME.email,full_name:(ME.user_metadata||{}).full_name||'',role:SUPER?'admin':'staff',pages:SUPER?ROLES.admin[2]:['req'],active:true})});MYA=x[0]||null}
@@ -3411,7 +3421,7 @@ function rtStart(){rtStop();PT=false;presReady=false;if(!SES.tok||SB_URL.include
  ws.onmessage=m=>{let d;try{d=JSON.parse(m.data)}catch(e){return}presMsg(d,send);if(d.event==='postgres_changes'&&d.payload&&d.payload.data){const t=d.payload.data.table;clearTimeout(LQ[t]);LQ[t]=setTimeout(()=>liveSync(t),350)}};
  ws.onclose=()=>{clearInterval(RTH);if(RT===ws){RT=null;RTT=setTimeout(rtStart,5000)}}}
 function liveStart(){rtStart();setInterval(livePoll,30000);setInterval(()=>{if(!document.hidden&&SES.tok&&can('tmk')&&PG==='tmk'&&TM.tab==='chk')tmNotifSync()},8000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)livePoll()})}
-function livePoll(){if(document.hidden||!SES.tok)return;liveSync('hrd_access');CON&&liveSync('hrd_chat');can('sub')&&liveSync('hrd_requests');can('emp')&&liveSync('hrd_employees');can('emp')&&ndSync();can('tmk')&&tmNotifSync();if(PG==='pay'&&can('pay')){liveSync('hrd_pay_staff');liveSync('hrd_payroll');PDOK===true&&liveSync('hrd_pay_depts')}}
+function livePoll(){if(document.hidden||!SES.tok)return;liveSync('hrd_access');CON&&liveSync('hrd_chat');can('sub')&&liveSync('hrd_requests');can('emp')&&liveSync('hrd_employees');can('emp')&&ndSync();can('tmk')&&tmNotifSync();can('tma')&&tmDecSync();if(PG==='pay'&&can('pay')){liveSync('hrd_pay_staff');liveSync('hrd_payroll');PDOK===true&&liveSync('hrd_pay_depts')}}
 async function liveSync(t){if(!SES.tok)return;
  try{
   if(t==='hrd_chat')return await chatSync();
@@ -3420,9 +3430,9 @@ async function liveSync(t){if(!SES.tok)return;
   if(t==='hrd_tm_in')return can('tmk')&&await tmNotifSync();
   if(t==='hrd_requests'&&can('sub')){const n=await api('/rest/v1/hrd_requests?order=created_at.desc&select=*');if(JSON.stringify(n)===JSON.stringify(R))return;
    if(PG==='sub'&&typing())return;const pp=R.filter(r=>r.status==='pending').length,np=n.filter(r=>r.status==='pending').length;if(RL&&np>pp){toast('📥 A new request was submitted ('+np+' pending)');ping()};RL=true;R=n;if(PG==='sub')drawSubs();else{$('bd').textContent=np||'';b0();if(PG==='dash')drawDash()}}
-  if(t==='hrd_employees'&&can('emp')){const n=await api('/rest/v1/hrd_employees?select=*&order=name');if(JSON.stringify(n)===JSON.stringify(E))return;
+  if(t==='hrd_employees'&&can('emp')){const n=eVis(await api('/rest/v1/hrd_employees?select=*&order=name'));if(JSON.stringify(n)===JSON.stringify(E))return;
    if(PG==='emp'&&(EV!=='list'||typing()))return;E=n;ntfNew();if(PG==='emp')drawE();else{badge();if(PG==='dash')drawDash()}}
-  if(t==='hrd_pay_staff'&&can('pay')){const n=await api('/rest/v1/hrd_pay_staff?select=*&order=name'),g=a=>(a||[]).map(x=>x.id+'|'+x.name+'|'+x.rate).join(';');
+  if(t==='hrd_pay_staff'&&can('pay')){const n=sVis(await api('/rest/v1/hrd_pay_staff?select=*&order=name')),g=a=>(a||[]).map(x=>x.id+'|'+x.name+'|'+x.rate).join(';');
    if(g(n.filter(x=>!['Common','Rest House'].includes(x.dept)))===g(STF))return;if(PG==='pay'&&typing())return;await loadS();if(PG==='pay'&&pv==='main')drawP()}
   if(t==='hrd_pay_depts'&&can('pay')&&PDOK===true){const o=PDSNAP;await pdLoad();if(PDSNAP!==o){if(document.getElementById('pdm'))pdDraw();if(PG==='pay'&&!typing()){if(PV==='setup')drawSetup();else if(pv==='main')drawP()}}return}
   if(t==='hrd_payroll'&&can('pay')){await loadH(1);if(PG==='pay'&&pv==='main'&&!typing())drawRuns()}
@@ -3716,6 +3726,39 @@ seasonUI();
 
 /* locked payroll columns (COOP / Deductions / Days): changed only in their settings */
 .pi.plk{background:#f1f4f9!important;cursor:not-allowed}
+
+.tmg{background:var(--sf);border:1px solid var(--ln);border-radius:16px;margin:0 0 16px;box-shadow:0 2px 12px #0000000a;overflow:hidden;border-left:5px solid var(--ln2)}
+.tmg.tmg-ok{border-left-color:#2e7d4f}.tmg.tmg-warn{border-left-color:#b8923a}.tmg.tmg-bad{border-left-color:#b3392f}
+.tmg-h{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--ln)}
+.tmg-h .tmg-nm{flex:1 1 230px;min-width:200px;font-weight:700;font-size:15px}.tmg-h .tmg-dp{flex:0 1 190px}
+.tmg-dt{font-weight:700;color:var(--h);white-space:nowrap}
+.tmg-cols{display:grid;grid-template-columns:1fr 1fr;gap:0}.tmg-row{display:flex;flex-wrap:wrap;gap:18px 28px;padding:16px 18px}.tmg-row .tmg-it{margin:0;min-width:210px}
+.tmg-col{padding:14px 18px;min-height:96px}.tmg-col+.tmg-col{border-left:1px solid var(--ln)}
+.tmg-lb{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);margin:0 0 10px}
+.tmg-it{display:flex;gap:12px;align-items:flex-start;margin:0 0 12px}
+.tmg-ph{width:76px;height:76px;object-fit:cover;border-radius:12px;border:1px solid var(--ln2);cursor:zoom-in;flex:none;background:var(--sf2)}
+.tmg-tm{font-size:18px;font-weight:700;color:var(--ink);line-height:1.2;margin:0 0 5px}
+.tmg-del{background:none;border:0;color:#b3392f;font-size:12.5px;cursor:pointer;padding:0;margin-left:8px;text-decoration:underline}
+.tmg-del:disabled{opacity:.4;cursor:not-allowed}
+.tmg-lk{background:none;border:0;color:var(--lk);font-size:12.5px;cursor:pointer;padding:0;margin-left:8px;text-decoration:underline}
+.tmg-empty{border:1.5px dashed var(--ln2);border-radius:12px;padding:16px;color:var(--mu);font-size:13.5px;text-align:center;background:var(--sf2)}
+.tmg-notes{padding:0 18px 12px}.tmg-notes .tm-f{margin:6px 0 0}
+.tmg-f{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--sf2);border-top:1px solid var(--ln)}
+.tmg-days{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink2);font-weight:600}
+.tmg-days small{font-weight:500;color:var(--mu);display:block;font-size:11.5px}
+.tmg-days input{width:84px;padding:8px 10px;border:1.5px solid var(--ln2);border-radius:8px;font-size:16px;font-weight:700;text-align:center;background:var(--sf);color:var(--ink)}
+.tmg-days input:disabled{background:var(--sf2);color:var(--mu)}
+.tmg-act{display:flex;gap:10px;align-items:center}
+.tmg-aud{padding:11px 28px;font-size:15px;font-weight:700;border-radius:10px}
+@media print{body.tm-hp #tmres,body.tm-hp #tminb,body.tm-hp #tmapr,body.tm-hp .tm-tabs,body.tm-hp #tmaudb{display:none!important}}
+.tm-tabs{display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap}
+.tm-tab{display:inline-flex;align-items:center;gap:9px;padding:10px 22px;border:1px solid var(--ln2);background:var(--sf);color:var(--ink2);border-radius:10px;font-weight:600;font-size:14.5px}
+.tm-tab.on{background:var(--g);color:#fff;border-color:var(--g)}
+.tm-tab i{font-style:normal;background:var(--au);color:#fff;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700}
+.tm-ap{color:#1d4ed8;font-weight:600;font-size:12.5px;margin-top:5px;line-height:1.4}
+html[data-theme=dark] .tm-ap{color:#8fb8ff}
+.tm-wait{color:#b0792a;font-weight:600;font-size:12.5px}
+@media(max-width:700px){.tmg-cols{grid-template-columns:1fr}.tmg-col+.tmg-col{border-left:0;border-top:1px solid var(--ln)}}
 .pi.ptm{color:#1d4ed8!important;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}.pi.plk.ptm{background:#e6efff!important}html[data-theme=dark] .pi.ptm{color:#8fb8ff!important}html[data-theme=dark] .pi.plk.ptm{background:#1c2a47!important}
 @media screen{#main .ps td input.pi,#main .ps td input.pi.plk{border-radius:0!important;background:transparent!important;box-shadow:none}#main .ps td input.pi:focus{background:#fff8dc!important;box-shadow:inset 0 0 0 2px #1e4f94!important}#main .ps td{background:#fff}#main .ps tr.gh td{background:#f3ece0}#main .ps tr.stt td{background:#f7f9fc}#main .ps tr.gtt td{background:#eaf0f9}}
 html[data-theme=dark] #main .ps td input.pi.plk{background:transparent!important}html[data-theme=dark] .pi.plk{background:#1a2438!important}
@@ -4093,7 +4136,11 @@ const tmKey=(n,d,t)=>{const nm=String(n||'').toUpperCase().replace(/[^A-Z0-9 ]/g
 const tmSub=d=>{try{const x=d instanceof Date?d:new Date(d);return isNaN(x)?'':x.toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}catch(e){return''}};
 async function tmPost(body){/* saves with shot_key; if the SQL update has not been run yet, saves without it */
   const go=b=>api('/rest/v1/hrd_timemark',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(b)});
-  try{return await go(body)}catch(e){if(/shot_key/i.test(String(e&&e.message||e))&&!/shot_u/i.test(String(e&&e.message||e)))return go(body.map(x=>{const y={...x};delete y.shot_key;return y}));throw e}}
+  try{return await go(body)}catch(e){if(/appr/i.test(String(e&&e.message||e))&&body.some(x=>x.appr===false)){try{navigator.clipboard.writeText(TMAPRSQL)}catch(_){}throw new Error('Nothing was saved. One-time setup needed for the approval step: run the SQL below in Supabase -> SQL Editor (it was copied for you), then audit again.\n\n'+TMAPRSQL)}
+    if(/days/i.test(String(e&&e.message||e))&&body.some(x=>x.days!=null)){const r0=await go(body.map(x=>{const y={...x};delete y.days;return y}));
+      try{navigator.clipboard.writeText('alter table public.hrd_timemark add column if not exists days numeric;')}catch(_){}
+      alert('The records were saved, but the number of days could not be stored yet.\n\nRun this once in Supabase -> SQL Editor (it was copied for you), then audit the next ones again:\n\nalter table public.hrd_timemark add column if not exists days numeric;');return r0}
+    if(/shot_key/i.test(String(e&&e.message||e))&&!/shot_u/i.test(String(e&&e.message||e)))return go(body.map(x=>{const y={...x};delete y.shot_key;return y}));throw e}}
 const tmLD=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 /* ---------- notification when an employee submits a Timemark photo ---------- */
 let TMN=null;
@@ -4241,15 +4288,23 @@ async function tmk(){
   try{if(typeof E!=='undefined'&&!E.length)await loadE(true)}catch(e){}
   tmDraw()}
 function tmTab(t){TM.tab=t;tmDraw()}
-function tmDraw(){const t=TM.tab;
-  $('main').innerHTML=`<div style="max-width:1180px"><h1 class="no-print">Timemark Attendance</h1><p class="sub no-print">Timemarks submitted by employees appear here automatically. The assigned auditor taps <b>Audited</b> (or <b>Delete</b>). An audited Timemark is saved on its own Timemark date and goes to Payroll (days shown in blue). Each employee needs an AM (time in) and a PM (time out) per date; the Remarks column warns you if one is missing or if the Timemark looks edited, old or reused.</p>
-  <div class="tabs no-print"><button class="${t==='chk'?'on':''}" onclick="tmTab('chk')">Submitted</button><button class="${t==='sav'?'on':''}" onclick="tmTab('sav')">Saved records</button></div><div id="tmb"></div></div>`;
-  t==='chk'?tmChk():tmSav()}
+function tmDraw(){const t=TM.tab==='apr'?'apr':'chk',pn=(TM.saved||[]).filter(tmPend).length;TM.tab=t;if(TM.lastTab!==t){TM.audOpen=t==='apr';TM.lastTab=t}TM.sonly=t==='apr'?(x=>!tmPend(x)&&!x.appr_del_at):null;
+  $('main').innerHTML=`<div style="max-width:1180px"><h1 class="no-print">Submitted Timemark</h1><p class="sub no-print">${t==='apr'?'Timemarks already checked by the auditor wait here for the <b>approver</b>. The approver enters the <b>Days to credit</b> and taps <b>Approved</b>; only then is the Timemark counted in Payroll (days in blue, with a note in Remarks).':'Timemarks submitted by employees appear here automatically under the employee\'s name, one card per employee per date. The <b>auditor</b> checks the photos and taps <b>Audited</b> (or <b>Delete</b> on a photo). The audited Timemark then moves to the <b>Approved</b> tab, where the approver enters the days to credit.'}</p>
+  <div class="tm-tabs no-print"><button class="tm-tab${t==='chk'?' on':''}" onclick="tmTab('chk')">Auditor</button><button class="tm-tab${t==='apr'?' on':''}" onclick="tmTab('apr')">Approved<i id="tmaprn" style="display:${pn?'':'none'}">${pn}</i></button></div>
+  <div id="tmb"></div></div>`;
+  t==='apr'?tmApr():tmChk()}
 function tmChk(){
-  $('tmb').innerHTML=`<datalist id="tmEL">${(typeof E!=='undefined'?E:[]).map(e=>`<option value="${esc(e.name)}"></option>`).join('')}</datalist><div id="tminb"></div>
-  <div id="tmres"></div>`;
+  $('tmb').innerHTML=`<datalist id="tmEL">${(typeof E!=='undefined'?E:[]).map(e=>`<option value="${esc(e.name)}"></option>`).join('')}</datalist><div id="tmdec"></div><div id="tminb"></div>
+  <div id="tmres"></div>
+  <div id="tmaudw" style="margin-top:24px"><button class="btn o no-print" id="tmaudb" onclick="tmAudTog()">Show audited records</button><div id="tmaud" style="margin-top:14px"></div></div>`;
   if(TM.inb===null)tmInLoad(true);else tmInDraw();
-  tmRes()}
+  tmDecDraw();tmRes();tmAud()}
+function tmAudTog(){TM.audOpen=!TM.audOpen;tmAud()}
+async function tmAud(){const el=$('tmaud');if(!el)return;if(TM.saved===null){await tmLoadSaved(true);tmRes()}if(!$('tmaud'))return;
+  const bt=$('tmaudb');if(bt)bt.textContent=(TM.audOpen?'Hide':'Show')+(TM.sonly?' approved':' audited')+' history'+(TM.saved?' ('+TM.saved.filter(x=>!tmHidden(x)&&(!TM.sonly||TM.sonly(x))).length+')':'');
+  if(!TM.audOpen){el.innerHTML='';return}
+  if(!TM.on){el.innerHTML='<div class="panel" style="max-width:none"><p class="sub" style="margin:0">The table for audited records is not set up yet.</p><button class="btn o sm" onclick="tmSql()">Show setup SQL</button></div>';return}
+  tmSavDraw()}
 function tmRes(){if($('tslist')&&typeof tsDraw==='function')tsDraw();const el=$('tmres');if(!el||TM.tab!=='chk')return;
   if(tmRes.t)return;
   tmRes.t=setTimeout(()=>{tmRes.t=0;const el=$('tmres');if(!el)return;tmInDraw();
@@ -4258,10 +4313,9 @@ function tmRes(){if($('tslist')&&typeof tsDraw==='function')tsDraw();const el=$(
     const rows=R.slice().sort((a,b)=>(a.dept?di(a.dept):9999)-(b.dept?di(b.dept):9999)||String(a.dept).localeCompare(b.dept)||String(a.emp).localeCompare(b.emp)||String(a.time).localeCompare(b.time));
     const dep=new Map();R.forEach(r=>{if(r.busy)return;const k=r.dept||'(No department)';if(!dep.has(k))dep.set(k,{n:0,ok:0,warn:0,bad:0,names:new Set()});const d=dep.get(k);d.n++;d[r.status]++;if(r.emp)d.names.add(r.emp)});
     const dk=[...dep.keys()].sort((a,b)=>(DEPTS.indexOf(a)<0?999:DEPTS.indexOf(a))-(DEPTS.indexOf(b)<0?999:DEPTS.indexOf(b))||a.localeCompare(b));
-    el.innerHTML=`<div class="tm-chips"><span class="tm-chip">${R.length} photo${R.length>1?'s':''}</span><span class="tm-chip s-ok">${cnt('ok')} OK</span><span class="tm-chip s-warn">${cnt('warn')} Review</span><span class="tm-chip s-bad">${cnt('bad')} Warning</span>${bz?`<span class="tm-chip">${bz} reading...</span>`:''}
-    <span class="no-print" style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">${selN&&can('tma')?`<span class="tm-chip">${selN} selected</span><button class="btn dl sm" onclick="tmInDeleteSel()">Delete selected (${selN})</button>`:''}<button class="btn o sm" onclick="tmSelAll(${allSel?'false':'true'})">${allSel?'Clear selection':'Select all'}</button><button class="btn o sm" onclick="tmCsvNow()">Export CSV</button><button class="btn o sm" onclick="print()">Print</button>${can('tma')?`<button class="btn ok sm" onclick="tmSave()">Audit all</button>`:''}</span></div>
-    <div class="tm-wrap"><table class="tm-t tm-sel"><thead><tr><th class="no-print" style="width:34px"><input type="checkbox" class="tm-ck" title="Select all" ${allSel?'checked':''} onchange="tmSelAll(this.checked)"></th><th>Department</th><th>Name</th><th>Timemark date &amp; time</th><th>Address</th><th>Remarks</th><th class="no-print"></th></tr></thead><tbody>${rows.map(tmRowH).join('')}</tbody></table></div>
-    ${dk.length?`<div class="panel" style="max-width:none;margin:18px 0 0"><h3 style="margin-top:0">Summary by department</h3><table class="tm-t tm-sm"><thead><tr><th>Department</th><th>Employees</th><th>Photos</th><th>OK</th><th>Review</th><th>Warning</th></tr></thead><tbody>${dk.map(k=>{const d=dep.get(k);return`<tr><td><b>${esc(k)}</b></td><td>${d.names.size?esc([...d.names].join('; ')):'<span style="color:var(--mu)">-</span>'}</td><td>${d.n}</td><td>${d.ok}</td><td>${d.warn}</td><td>${d.bad}</td></tr>`}).join('')}</tbody></table></div>`:''}`},300)}
+    el.innerHTML=`<div class="tm-chips">${bz?`<span class="tm-chip">${bz} reading...</span>`:''}
+    <span class="no-print" style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap"><button class="btn ok sm" onclick="tmXlsxNow()">Export Excel</button><button class="btn o sm" onclick="tmCsvNow()">Export CSV</button><button class="btn o sm" onclick="print()">Print</button><button class="btn ok sm" ${can('tma')?'onclick="tmSave()"':'disabled title="Only the assigned auditor can audit" style="opacity:.45;cursor:not-allowed"'}>Audit all</button></span></div>
+    ${tmGridH()}`},300)}
 const tmSlot=t=>{const h=parseInt(String(t||'').slice(0,2),10);return isNaN(h)?'':(h<12?'AM':'PM')};
 const tmNk=n=>String(n||'').trim().toLowerCase().replace(/\s+/g,' ');
 function tmSlots(emp,date,skip){const S={AM:0,PM:0},k=tmNk(emp);if(!k||!date)return S;
@@ -4274,6 +4328,41 @@ function tmPairH(r){if(!r.emp||!r.date||!r.time)return'';const q=tmSlot(r.time);
   if(S[q]>1)return`<div class="tm-f f-warn">There is already another ${q} Timemark for this employee on this date.</div>`;
   if(S.AM&&S.PM)return`<div class="tm-f f-ok">AM and PM complete for this date.</div>`;
   return`<div class="tm-f f-warn">Incomplete: ${S.AM?'AM (time in) only - no PM (time out) yet':'PM (time out) only - no AM (time in) yet'} for this date.</div>`}
+function tmGIds(g){return[...g.am,...g.pm,...g.oth].filter(it=>it.r&&!it.r.busy&&!it.r.err&&it.r.inId).map(it=>it.r.id)}
+function tmGroups(){const G=new Map();
+  const add=(it,emp,date,dept,time)=>{const k=date&&tmNk(emp)?tmNk(emp)+'|'+date:'x'+(it.r?it.r.id:it.x.id);let g=G.get(k);if(!g){g={k,emp,date,dept:'',am:[],pm:[],oth:[]};G.set(k,g)}
+    if(!g.dept&&dept)g.dept=dept;const q=tmSlot(time);(q==='AM'?g.am:q==='PM'?g.pm:g.oth).push(it)};
+  TM.rows.forEach(r=>{if(r.inId)add({r},r.emp||r.typed||'',r.date||'',r.dept,r.time)});
+  (TM.saved||[]).forEach(x=>add({x},x.emp_name,String(x.att_date||''),x._dp||x.dept,x.shot_time));
+  return[...G.values()].filter(g=>[...g.am,...g.pm,...g.oth].some(i=>i.r))}
+function tmGSet(i,k,v){const g=(TM.gl||[])[i];if(!g)return;[...g.am,...g.pm,...g.oth].forEach(it=>{if(it.r)tmSet(it.r.id,k,v)})}
+function tmGD(i,v,q){const g=(TM.gl||[])[i];if(!g)return;const n=parseFloat(v);TM.gd=TM.gd||{};
+  if(!(n>0&&n<=5)){delete TM.gd[g.k];if(!q)toast('Days must be more than 0 and up to 5.');return}TM.gd[g.k]=n}
+const tmDaysOf=r=>{const v=TM.gd&&TM.gd[tmNk(r.emp)+'|'+r.date];return v>0?v:null};
+function tmAN(i,v){const g=(TM.gl||[])[i];if(!g)return;TM.an=TM.an||{};if(String(v).trim())TM.an[g.k]=v;else delete TM.an[g.k]}
+function tmANote(r){const v=String((TM.an||{})[tmNk(r.emp)+'|'+r.date]||'').replace(/\s*\|\s*/g,'/').trim();return v?['Auditor: '+v]:[]}
+function tmGAud(i){const g=(TM.gl||[])[i];if(!g)return;tmSave(tmGIds(g))}
+function tmGridH(){
+  const G=tmGroups().sort((a,b)=>(a.dept?di(a.dept):9999)-(b.dept?di(b.dept):9999)||String(a.dept||'').localeCompare(String(b.dept||''))||String(a.emp).localeCompare(String(b.emp))||String(a.date).localeCompare(String(b.date)));
+  TM.gl=G;if(!G.length)return'';const ok=can('tma'),off=t=>`disabled title="${t}"`;
+  return G.map((g,i)=>{
+    const all=[...g.am,...g.pm,...g.oth].sort((a,b)=>String((a.r||a.x).time||(a.x&&a.x.shot_time)||'').localeCompare(String((b.r||b.x).time||(b.x&&b.x.shot_time)||''))),
+      pend=all.filter(it=>it.r).map(it=>it.r),ids=tmGIds(g),first=pend[0];
+    const dopt=['',...DEPTS.concat(g.dept&&!DEPTS.includes(g.dept)?[g.dept]:[])].map(d=>`<option value="${esc(d)}"${d===g.dept?' selected':''}>${esc(d||'-- choose department --')}</option>`).join('');
+    const cell=it=>{
+      if(it.r){const r=it.r;return`<div class="tmg-it"><img class="tmg-ph" src="${esc(r.thumbData||r.url)}" alt="" onclick="tmDetail(${r.id})" title="Click to enlarge"><div><div class="tmg-tm">${esc(r.busy?'Reading...':(tmFmt('',r.time)||'Not read'))}</div>${r.inId&&!r.busy?`<button class="tmg-del" style="margin-left:0" ${ok?`onclick="tmInDelete(${r.id})"`:off('Only the assigned auditor can delete')}>Delete</button>`:''}</div></div>`}
+      const x=it.x;return`<div class="tmg-it"><div><div class="tmg-tm">${esc(tmFmt('',x.shot_time)||'Not read')}</div><span class="tm-b s-ok">&#10003; Audited</span><button class="tmg-lk" onclick="tmSavPhoto('${esc(x.id)}')">Photo</button></div></div>`};
+    const tOf=it=>String(it.r?it.r.time:(it.x&&it.x.shot_time)||''),col=L=>L.length?L.slice().sort((a,b)=>tOf(a).localeCompare(tOf(b))).map(cell).join(''):'<div class="tmg-empty">Nothing submitted</div>';
+    const N=[];
+    pend.forEach(r=>{if(r.busy)return;r.flags.filter(x=>x.l!=='info').slice(0,2).forEach(x=>N.push([x.l,(r.time?tmFmt('',r.time)+': ':'')+x.t]))});
+    const worst=N.some(n=>n[0]==='bad')?'bad':N.length?'warn':'ok';
+    const dv=TM.gd&&TM.gd[g.k]>0?TM.gd[g.k]:1,dis=!ok;
+    return`<div class="tmg tmg-${worst}"><div class="tmg-h"><input class="tm-in tmg-nm" list="tmEL" value="${esc(g.emp)}" placeholder="Choose / type name" onchange="tmGSet(${i},'emp',this.value)"><select class="tm-in tmg-dp" onchange="tmGSet(${i},'dept',this.value)">${dopt}</select><span class="tmg-dt">${esc(tmFmt(g.date,'')||'Date not read')}</span></div>
+    <div class="tmg-cols"><div class="tmg-col"><div class="tmg-lb">AM &middot; Time in</div>${col(g.am.concat(g.oth))}</div><div class="tmg-col"><div class="tmg-lb">PM &middot; Time out</div>${col(g.pm)}</div></div>
+    ${N.length?`<div class="tmg-notes">${N.map(n=>`<div class="tm-f f-${n[0]}">${esc(n[1])}</div>`).join('')}</div>`:''}
+    <div class="no-print" style="padding:10px 18px;border-top:1px solid var(--ln)"><input class="tm-in" style="width:100%" maxlength="300" placeholder="Remarks for the approver (optional)" value="${esc((TM.an&&TM.an[g.k])||'')}" oninput="tmAN(${i},this.value)" ${ok?'':'disabled'}></div>
+    <div class="tmg-f no-print"><div class="tmg-days"><span>Next step: <b>Approved</b> tab<small>The approver enters the days to credit</small></span></div>
+    <div class="tmg-act"><button class="btn o sm" onclick="tmDetail(${first.id})">Details</button>${ids.length?`<button class="btn ok tmg-aud" ${ok?`onclick="tmGAud(${i})"`:off('Only the assigned auditor can audit')}>Audited</button>`:''}</div></div></div>`}).join('')}
 function tmRowH(r){
   const dopt=['',...DEPTS.concat(r.dept&&!DEPTS.includes(r.dept)?[r.dept]:[])].map(d=>`<option value="${esc(d)}"${d===r.dept?' selected':''}>${esc(d||'-- choose --')}</option>`).join('');
   const bd=r.busy?`<span class="tm-b">${esc(r.msg||'Reading...')}</span>`:`<span class="tm-b s-${r.status}">${r.status==='ok'?'OK':r.status==='warn'?'Review':'WARNING'}</span>`;
@@ -4284,7 +4373,7 @@ function tmRowH(r){
   <td><div class="tm-nm"><img class="tm-th" src="${esc(r.thumbData||r.url)}" alt="" onclick="tmDetail(${r.id})" title="Click to enlarge"><input class="tm-in" list="tmEL" value="${esc(r.emp)}" placeholder="Choose / type name" onchange="tmSet(${r.id},'emp',this.value)"></div>${r.inId?`<div class="tm-f" style="color:var(--mu);margin-top:4px">Typed name: &quot;${esc(r.typed)}&quot;</div>`:''}</td>
   <td><div style="font-size:11.5px;font-weight:700;color:var(--mu);margin:0 0 3px">Timemark date &amp; time</div>${r.inId?`<div style="font-weight:700;font-size:14px;color:var(--ink)">${esc(tmFmt(r.date,r.time)||'Not read')}</div><div style="font-size:11.5px;color:var(--mu);margin-top:2px">Locked - cannot be edited</div>`:`<input type="date" class="tm-in" value="${esc(r.date)}" onchange="tmSet(${r.id},'date',this.value)"><input type="time" class="tm-in" style="margin-top:4px" value="${esc(r.time)}" onchange="tmSet(${r.id},'time',this.value)">`}${r.sentAt?`<div style="font-size:12px;color:var(--mu);margin-top:7px;line-height:1.4"><b>Submitted</b><br>${esc(tmSub(r.sentAt))}</div>`:''}</td>
   <td><textarea class="tm-in" rows="3" onchange="tmSet(${r.id},'addr',this.value)">${esc(r.addr)}</textarea></td>
-  <td>${bd}${fl}${pw}${more}</td><td class="no-print">${r.inId&&!r.busy&&!r.err&&can('tma')?`<button class="btn ok sm" onclick="tmSave([${r.id}])">Audited</button> `:''}<button class="btn o sm" onclick="tmDetail(${r.id})">Details</button> ${r.inId&&!r.busy&&can('tma')?`<button class="btn dl sm" onclick="tmInDelete(${r.id})">Delete</button> `:''}${r.inId?'':`<button class="btn o sm" onclick="tmDel(${r.id})" title="Remove" aria-label="Remove">&times;</button>`}</td></tr>`}
+  <td>${bd}${fl}${pw}${more}</td><td class="no-print">${r.inId&&!r.busy&&!r.err?`<button class="btn ok sm" ${can('tma')?`onclick="tmSave([${r.id}])"`:'disabled title="Only the assigned auditor can audit" style="opacity:.45;cursor:not-allowed"'}>Audited</button> `:''}<button class="btn o sm" onclick="tmDetail(${r.id})">Details</button> ${r.inId&&!r.busy?`<button class="btn dl sm" ${can('tma')?`onclick="tmInDelete(${r.id})"`:'disabled title="Only the assigned auditor can delete" style="opacity:.45;cursor:not-allowed"'}>Delete</button> `:''}${r.inId?'':`<button class="btn o sm" onclick="tmDel(${r.id})" title="Remove" aria-label="Remove">&times;</button>`}</td></tr>`}
 /* ---------- details ---------- */
 function tmDetail(id){const r=TM.rows.find(x=>x.id===id);if(!r)return;const ex=r.ex||{};
   let d=$('tmdet');if(!d){d=document.createElement('div');d.id='tmdet';d.className='tm-ov no-print';d.onclick=e=>{if(e.target===d)d.remove()};document.body.appendChild(d)}
@@ -4320,17 +4409,177 @@ async function tmSave(ids){if(!can('tma'))return toast('Only the assigned audito
   {const seen=new Set((TM.saved||[]).map(x=>tmKey(x.emp_name,x.att_date,x.shot_time)).filter(Boolean)),dd=[];
    R2.forEach(r=>{const k=tmKey(r.emp,r.date,r.time);if(!k)return;if(seen.has(k))dd.push(r);else seen.add(k)});
    if(dd.length)return alert(dd.length+' photo(s) have the same Timemark date and time as another photo of the same employee:\n\n'+dd.map(r=>'- '+r.emp+' ('+tmFmt(r.date,r.time)+')').join('\n')+'\n\nThe same time cannot be submitted twice. Click Reject on the extra photo(s), or correct the date/time, then save again.')}
-  {const inc=R2.filter(r=>tmPairMsg(r));if(inc.length&&!confirm(inc.length+' Timemark(s) have no AM/PM pair for their date (AM = time in, PM = time out):\n\n'+inc.slice(0,12).map(r=>'- '+r.emp+' ('+tmFmt(r.date,r.time)+'): '+tmPairMsg(r)).join('\n')+'\n\nAudit anyway? Payroll still counts 1 day for an AM or a PM.'))return}
-  const body=R2.map(r=>({created_by:ME.email||null,att_date:r.date||null,shot_time:r.time||null,shot_key:tmKey(r.emp,r.date,r.time)||null,emp_name:r.emp,dept:r.dept||null,address:r.addr||null,lat:r.lat!=null?r.lat:(r.ex&&r.ex.lat!=null?r.ex.lat:null),lon:r.lon!=null?r.lon:(r.ex&&r.ex.lon!=null?r.ex.lon:null),status:r.status,flags:r.flags.filter(x=>x.l!=='info').map(x=>x.t).join(' | ')||null,sha:r.sha||null,phash:r.ph||null,file_name:r.file.name,thumb:r.thumbData||null}));
+  const body=R2.map(r=>({created_by:ME.email||null,att_date:r.date||null,shot_time:r.time||null,shot_key:tmKey(r.emp,r.date,r.time)||null,emp_name:r.emp,dept:r.dept||null,address:r.addr||null,lat:r.lat!=null?r.lat:(r.ex&&r.ex.lat!=null?r.ex.lat:null),lon:r.lon!=null?r.lon:(r.ex&&r.ex.lon!=null?r.ex.lon:null),status:r.status,flags:r.flags.filter(x=>x.l!=='info').map(x=>x.t).concat(tmANote(r)).join(' | ')||null,sha:r.sha||null,phash:r.ph||null,file_name:r.file.name,thumb:r.thumbData||null,appr:false}));
   const bad=R2.filter(r=>r.status==='bad').length;
   if(bad&&!confirm(bad+' photo(s) have a WARNING. They will be marked as reviewed and saved with the warning in the Remarks, so there is a record. Continue?'))return;
   try{await tmPost(body);
     logAct('Saved Timemark attendance','Timemark',R2.length+' photo(s), '+bad+' warning(s), date '+TM.date);
-    R2.forEach(r=>{try{URL.revokeObjectURL(r.url)}catch(e){}});TM.rows=TM.rows.filter(r=>!R2.includes(r));tmInMark(R2,'approved');TM.saved=null;PTMC={};toast('Audited. '+R2.length+' record(s) saved on their Timemark date and sent to Payroll.');tmRes();tmLoadSaved(true)}
+    R2.forEach(r=>{try{URL.revokeObjectURL(r.url)}catch(e){}});TM.rows=TM.rows.filter(r=>!R2.includes(r));tmInMark(R2,'approved');R2.forEach(r=>{if(TM.an)delete TM.an[tmNk(r.emp)+'|'+r.date]});TM.saved=null;PTMC={};toast('Audited. '+R2.length+' record(s) sent to the Approved tab for the approver.');tmRes();tmLoadSaved(true).then(()=>{tmAud();tmRes()})}
   catch(e){if(tmMissing(e)){TM.on=false;tmSql()}else if(/shot_u/i.test(String(e.message||e)))alert('One of these photos has the same Timemark date and time as a record that was already saved for that employee. Reload the list and try again.');else if(/duplicate|23505|409/i.test(String(e.message||e)+(e.status||'')))alert('One of these photos was already saved before. Reload the list and try again.');else alert('Could not save: '+(e.message||e))}}
+const TMAPRSQL=`-- Timemark approval step (run once in Supabase -> SQL Editor; safe to run again)
+alter table public.hrd_timemark add column if not exists days numeric;
+alter table public.hrd_timemark add column if not exists appr boolean;
+alter table public.hrd_timemark add column if not exists appr_by text;
+alter table public.hrd_timemark add column if not exists appr_at timestamptz;
+drop policy if exists "tm approve" on public.hrd_timemark;
+create policy "tm approve" on public.hrd_timemark for update to authenticated
+  using (public.hrd_can('tmp')) with check (public.hrd_can('tmp'));
+-- The approver's Delete only hides the record from the approver's own list (the auditor's copy stays).
+alter table public.hrd_timemark add column if not exists appr_del_at timestamptz;
+alter table public.hrd_timemark add column if not exists appr_del_by text;
+-- the approver can no longer erase an audited record for good
+drop policy if exists "tm approver del" on public.hrd_timemark;
+
+-- The auditor's Delete only hides the record from the auditor's own list (the approver's copy stays).
+alter table public.hrd_timemark add column if not exists aud_del_at timestamptz;
+alter table public.hrd_timemark add column if not exists aud_del_by text;
+drop policy if exists "tm aud hide" on public.hrd_timemark;
+create policy "tm aud hide" on public.hrd_timemark for update to authenticated
+  using (public.hrd_can('tma') and created_by=(auth.jwt()->>'email'))
+  with check (public.hrd_can('tma') and created_by=(auth.jwt()->>'email'));
+-- who may change what: the auditor only the auditor-list flag; the approver everything except that flag
+create or replace function public.hrd_tm_lock() returns trigger language plpgsql as $$
+begin
+  if auth.uid() is null or public.hrd_is_admin() then return new; end if;
+  if (to_jsonb(new)-'aud_del_at'-'aud_del_by') is not distinct from (to_jsonb(old)-'aud_del_at'-'aud_del_by') then
+    if not public.hrd_can('tma') then raise exception 'Only the auditor can delete from the auditor list'; end if;
+    return new;
+  end if;
+  if not public.hrd_can('tmp') then raise exception 'Only the approver can change this record'; end if;
+  if new.aud_del_at is distinct from old.aud_del_at or new.aud_del_by is distinct from old.aud_del_by then raise exception 'The approver cannot change the auditor list'; end if;
+  return new;
+end $$;
+drop trigger if exists hrd_tm_lock on public.hrd_timemark;
+create trigger hrd_tm_lock before update on public.hrd_timemark for each row execute function public.hrd_tm_lock();`;
+/* ---------- the auditor is told when the approver approves / rejects / deletes what the auditor audited ---------- */
+let TMDEC=[];
+const tmDecKey=()=>'hrd_tm_dseen_'+String(ME&&ME.email||'').toLowerCase();
+const tmDecSeen=()=>{try{return parseInt(localStorage.getItem(tmDecKey()),10)||0}catch(e){return 0}};
+const tmDecSetSeen=v=>{try{localStorage.setItem(tmDecKey(),String(v))}catch(e){}};
+const tmDecT=x=>Math.max(Date.parse(x.appr_at||'')||0,Date.parse(x.appr_del_at||'')||0);
+const tmDecKind=x=>(x.appr_del_at&&(Date.parse(x.appr_del_at)||0)>=(Date.parse(x.appr_at||'')||0))?'deleted':(x.appr===true?'approved':'rejected');
+async function tmDecSync(first){
+  if(!SES.tok||!can('tma')||!ME||!ME.email)return;
+  const me=encodeURIComponent(ME.email),mine=String(ME.email).toLowerCase();
+  try{
+    let seen=tmDecSeen();
+    if(!seen){/* first time on this device: only what happens from now on is news */
+      let L;try{L=await api('/rest/v1/hrd_timemark?created_by=eq.'+me+'&select=appr_at,appr_del_at&or=(appr_at.not.is.null,appr_del_at.not.is.null)&limit=2000')}
+      catch(e){L=await api('/rest/v1/hrd_timemark?created_by=eq.'+me+'&select=appr_at&appr_at=not.is.null&limit=2000')}
+      tmDecSetSeen(Math.max(1,...(L||[]).map(tmDecT)));return tmDecDraw()}
+    const iso=encodeURIComponent(new Date(seen).toISOString()),sel='id,emp_name,att_date,shot_time,appr,days,appr_by,appr_at,appr_del_at,appr_del_by,flags';
+    let L;try{L=await api('/rest/v1/hrd_timemark?created_by=eq.'+me+'&select='+sel+'&or=(appr_at.gt.'+iso+',appr_del_at.gt.'+iso+')&limit=500')}
+    catch(e){L=await api('/rest/v1/hrd_timemark?created_by=eq.'+me+'&select='+sel.replace(',appr_del_at,appr_del_by','')+'&appr_at=gt.'+iso+'&limit=500')}
+    L=(L||[]).filter(x=>tmDecT(x)>seen&&String((tmDecKind(x)==='deleted'?x.appr_del_by:x.appr_by)||'').toLowerCase()!==mine);
+    const old=new Set(TMDEC.map(x=>x.id)),fresh=L.filter(x=>!old.has(x.id));TMDEC=L;
+    if(first&&L.length){toast('\u{1F514} '+L.length+' update(s) from the approver on your audited Timemark');ping()}
+    else if(fresh.length){const k=[...new Set(fresh.map(tmDecKind))].map(v=>({approved:'approved',rejected:'rejected',deleted:'deleted'})[v]).join(' / '),txt=fresh.length+' of your audited Timemark '+(fresh.length>1?'records were ':'record was ')+k+' by the approver.';
+      toast('\u{1F514} '+txt);ping();tmNotifPop('Approver update',txt)}
+    if(PG==='tmk')tmDecDraw()}
+  catch(e){}}
+function tmDecGroups(){const G=new Map();
+  TMDEC.forEach(x=>{const k=tmDecKind(x),key=tmNk(x.emp_name)+'|'+x.att_date+'|'+k;let o=G.get(key);
+    if(!o){o={k,emp:x.emp_name,date:x.att_date,n:0,days:x.days,by:k==='deleted'?x.appr_del_by:x.appr_by,why:'',t:0};G.set(key,o)}
+    o.n++;o.t=Math.max(o.t,tmDecT(x));
+    if(k==='rejected'&&!o.why){const m=String(x.flags||'').split(' | ').find(t=>/^Rejected: /.test(t));if(m)o.why=m.slice(10).replace(/\s*\(by [^)]*\)\s*$/,'')}});
+  return[...G.values()].sort((a,b)=>b.t-a.t)}
+function tmDecDraw(){const el=$('tmdec');if(!el)return;const G=tmDecGroups();if(!G.length){el.innerHTML='';return}
+  const ic={approved:'\u2714',rejected:'\u2716',deleted:'\u{1F5D1}'},lb={approved:'Approved',rejected:'Rejected',deleted:'Deleted'},col={approved:'#1d6b49',rejected:'#a3302a',deleted:'#b0792a'};
+  el.innerHTML=`<div class="panel no-print" style="max-width:none;margin:0 0 16px"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><h3 style="margin:0">\u{1F514} Updates from the approver</h3><button class="btn o sm" style="margin-left:auto" onclick="tmDecRead()">Mark all as read</button></div>${G.map(g=>`<div style="padding:8px 0;border-top:1px solid var(--ln);font-size:14px"><b style="color:${col[g.k]}">${ic[g.k]} ${lb[g.k]}</b> \u00b7 <b>${esc(g.emp)}</b> \u00b7 ${esc(tmFmt(g.date,'')||g.date||'')}${g.n>1?' ('+g.n+' photos)':''}${g.k==='approved'&&g.days!=null?' \u00b7 '+esc(g.days)+' day(s)':''}${g.by?'<small style="display:block;color:var(--mu)">by '+esc(g.by)+(g.why?' \u2014 '+esc(g.why):'')+'</small>':''}</div>`).join('')}</div>`}
+function tmDecRead(){tmDecSetSeen(Math.max(tmDecSeen(),...TMDEC.map(tmDecT)));TMDEC=[];tmDecDraw()}
+/* ---------- Approved tab: the approver enters the days; only approved Timemarks count in Payroll ---------- */
+function tmPend(x){return x.appr===false&&!x.appr_at&&!x.appr_del_at}
+/* two separate copies: the Approved tab hides what the approver deleted; the Auditor tab hides what the auditor deleted */
+const tmHidden=x=>TM.sonly?!!x.appr_del_at:!!x.aud_del_at;
+const tmIsAdm=()=>!!(SUPER||(MYA&&MYA.active&&MYA.role==='admin'));
+function tmAprBadge(){const n=(TM.saved||[]).filter(tmPend).length,b=$('tmaprn');if(b){b.textContent=n;b.style.display=n?'':'none'}}
+function tmAprGroups(){const G=new Map();
+  (TM.saved||[]).filter(tmPend).forEach(x=>{const d=String(x.att_date||''),k=tmNk(x.emp_name)+'|'+d;let g=G.get(k);if(!g){g={k,emp:x.emp_name||'',date:d,dept:x._dp||x.dept||'',items:[]};G.set(k,g)}g.items.push(x)});
+  const dk=g=>g.dept?di(g.dept):9999;
+  return[...G.values()].sort((a,b)=>dk(a)-dk(b)||String(a.dept||'').localeCompare(String(b.dept||''))||String(a.emp).localeCompare(String(b.emp))||String(a.date).localeCompare(String(b.date)))}
+async function tmApr(){
+  $('tmb').innerHTML='<p class="sub">Loading...</p>';
+  await tmLoadSaved(false);if(!TM.on)return tmSql();
+  if(TM.tab!=='apr'||!$('tmb'))return;
+  $('tmb').innerHTML=`<div id="tmapr"></div><div id="tmaudw" style="margin-top:24px"><button class="btn o no-print" id="tmaudb" onclick="tmAudTog()">Show approved history</button><div id="tmaud" style="margin-top:14px"></div></div>`;
+  tmAprDraw();tmAud()}
+function tmAD(i,v){const g=(TM.agl||[])[i];if(!g)return;const n=parseFloat(v);TM.ad=TM.ad||{};if(n>0&&n<=5)TM.ad[g.k]=n;else delete TM.ad[g.k]}
+function tmAprDraw(){const el=$('tmapr');if(!el)return;
+  const G=tmAprGroups();TM.agl=G;TM.ad=TM.ad||{};const ok=can('tmp'),off='disabled title="Only the assigned approver can approve" style="opacity:.45;cursor:not-allowed"';
+  const cell=x=>`<div class="tmg-it"><img class="tmg-ph tm-sth" data-sid="${esc(x.id)}" alt="" onclick="tmSavPhoto('${esc(x.id)}')" title="Click to enlarge" style="${TM.thc&&TM.thc[x.id]?'':'visibility:hidden'}"${TM.thc&&TM.thc[x.id]?` src="${esc(TM.thc[x.id])}"`:''}><div><div class="tmg-tm">${esc(tmFmt('',x.shot_time)||'Not read')}</div><span class="tm-b s-ok">&#10003; Audited</span>${x.created_by?`<div style="font-size:11.5px;color:var(--mu);margin-top:3px">by ${esc(x.created_by)}</div>`:''}</div></div>`;
+  const col=L=>L.length?L.slice().sort((a,b)=>String(a.shot_time||'').localeCompare(String(b.shot_time||''))).map(cell).join(''):'<div class="tmg-empty">Nothing submitted</div>';
+  const cards=G.map((g,i)=>{
+    const am=g.items.filter(x=>tmSlot(x.shot_time)!=='PM'),pm=g.items.filter(x=>tmSlot(x.shot_time)==='PM'),
+      worst=g.items.some(x=>x._st==='bad')?'bad':g.items.some(x=>x._st==='warn')?'warn':'ok',
+      N=[...new Set(g.items.flatMap(x=>(x._fl||[]).map(f=>f.l+'|'+f.t)))].slice(0,3).map(t=>t.split('|')),
+      dv=TM.ad[g.k]>0?TM.ad[g.k]:1;
+    return`<div class="tmg tmg-${worst}"><div class="tmg-h"><div class="tm-in tmg-nm" style="display:flex;align-items:center;font-weight:700">${esc(g.emp)}</div><div class="tm-in tmg-dp" style="display:flex;align-items:center">${esc(g.dept||'No department')}</div><span class="tmg-dt">${esc(tmFmt(g.date,'')||'Date not read')}</span></div>
+    <div class="tmg-cols"><div class="tmg-col"><div class="tmg-lb">AM &middot; Time in</div>${col(am)}</div><div class="tmg-col"><div class="tmg-lb">PM &middot; Time out</div>${col(pm)}</div></div>
+    ${N.length?`<div class="tmg-notes">${N.map(n=>`<div class="tm-f f-${esc(n[0])}">${esc(n.slice(1).join('|'))}</div>`).join('')}</div>`:''}
+    ${(()=>{const a=[...new Set(g.items.flatMap(x=>x._an||[]))];return a.length?`<div class="tmg-notes"><div class="tm-ap" style="font-size:13.5px">Auditor's remarks: ${a.map(esc).join(' / ')}</div></div>`:''})()}
+    <div class="tmg-f no-print"><label class="tmg-days"><span>Days to credit<small>To be filled up by the approver</small></span><input type="number" id="tmad${i}" min="0.5" max="5" step="0.5" value="${dv}" ${ok?'':'disabled'} oninput="tmAD(${i},this.value)"></label>
+    <div class="tmg-act"><button class="btn o sm" ${ok?`onclick="tmAprDelete(${i})"`:off}>Delete</button><button class="btn dl sm" ${ok?`onclick="tmReject(${i})"`:off}>Reject</button><button class="btn ok tmg-aud" ${ok?`onclick="tmApproveGroups([${i}])"`:off}>Approved</button></div></div></div>`}).join('');
+  el.innerHTML=`<div class="tm-chips no-print"><span class="tm-chip">${G.length} waiting for approval</span><span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap"><button class="btn ok sm" ${ok&&G.length?'onclick="tmApproveGroups(null)"':'disabled style="opacity:.45;cursor:not-allowed"'}>Approve all</button></span></div>
+  ${cards||'<div class="panel" style="max-width:none"><p class="sub" style="margin:0">Nothing is waiting for approval. Timemarks appear here after the auditor taps Audited.</p></div>'}`;
+  tmSavThumbs()}
+async function tmReject(i){
+  if(!can('tmp'))return toast('Only the assigned approver can do this.');
+  const g=(TM.agl||[])[i];if(!g)return;
+  const why=prompt('Reject the Timemark of '+g.emp+' ('+tmFmt(g.date,'')+')?\nIt will NOT be counted in Payroll.\n\nReason (optional):','');
+  if(why===null)return;
+  const when=new Date().toISOString(),me=ME.email||null,note='Rejected: '+(why.trim()?why.trim().replace(/\s*\|\s*/g,'/'):'No reason given')+(me?' (by '+me+')':'');
+  try{await Promise.all(g.items.map(async x=>{
+    const fl=String(x.flags||'').split(' | ').filter(t=>t&&!/^(Approved|Rejected): /.test(t));fl.push(note);const flags=fl.join(' | ');
+    const r=await api('/rest/v1/hrd_timemark?id=eq.'+encodeURIComponent(x.id)+'&appr=eq.false&appr_at=is.null',{method:'PATCH',_noQueue:true,headers:{Prefer:'return=representation'},body:JSON.stringify({appr:false,days:null,appr_by:me,appr_at:when,flags})});
+    if(!r||!r.length)throw new Error('Not allowed, or it was already decided.');
+    x.appr=false;x.days=null;x.appr_by=me;x.appr_at=when;x.flags=flags}))}
+  catch(e){await tmLoadSaved(true);tmAprDraw();tmAud();return alert('Could not reject: '+(e.message||e)+'\n\nIf this is the first time, run this once in Supabase -> SQL Editor (copied for you):\n\n'+TMAPRSQL+(()=>{try{navigator.clipboard.writeText(TMAPRSQL)}catch(_){}return''})())}
+  tmSavAnn();PTMC={};
+  try{logAct('Rejected Timemark','Timemark',g.emp+' '+g.date+(why.trim()?' - '+why.trim():''))}catch(e){}
+  toast('Rejected. It will not be counted in Payroll.');tmAprDraw();tmAprBadge();TM.audOpen&&tmAud()}
+async function tmAprDelete(i){
+  if(!can('tmp'))return toast('Only the assigned approver can do this.');
+  const g=(TM.agl||[])[i];if(!g)return;
+  if(!confirm('Delete the Timemark of '+g.emp+' ('+tmFmt(g.date,'')+') from YOUR list?\n\nThe auditor\'s copy is NOT deleted. It stays in the auditor\'s records, and the auditor will be notified that you deleted it.\nUse Reject instead if you want to give the auditor a reason.'))return;
+  const when=new Date().toISOString(),me=ME.email||null;
+  try{await Promise.all(g.items.map(async x=>{
+    const r=await api('/rest/v1/hrd_timemark?id=eq.'+encodeURIComponent(x.id)+'&appr=eq.false&appr_at=is.null&appr_del_at=is.null',{method:'PATCH',_noQueue:true,headers:{Prefer:'return=representation'},body:JSON.stringify({appr_del_at:when,appr_del_by:me})});
+    if(!r||!r.length)throw new Error('Not allowed, or it was already decided.');
+    x.appr_del_at=when;x.appr_del_by=me}))}
+  catch(e){await tmLoadSaved(true);tmAprDraw();tmAprBadge();return alert('Could not delete: '+(e.message||e)+'\n\nIf this is the first time, run this once in Supabase -> SQL Editor (copied for you):\n\n'+TMAPRSQL+(()=>{try{navigator.clipboard.writeText(TMAPRSQL)}catch(_){}return''})())}
+  tmSavAnn();PTMC={};
+  try{logAct('Deleted Timemark from approver list','Timemark',g.emp+' '+g.date)}catch(e){}
+  toast('Deleted from your list. The auditor keeps a copy and was notified.');tmAprDraw();tmAprBadge();TM.audOpen&&tmAud()}
+async function tmApproveGroups(idxs){
+  if(!can('tmp'))return toast('Only the assigned approver can do this.');
+  const G=(TM.agl||[]).map((g,i)=>({g,i})).filter(o=>!idxs||idxs.includes(o.i));if(!G.length)return;
+  const todo=[];
+  for(const {g,i} of G){const el=$('tmad'+i),n=el?parseFloat(el.value):(TM.ad&&TM.ad[g.k]);
+    if(!(n>0&&n<=5))return toast('Enter the days for '+g.emp+' first (more than 0, up to 5).');todo.push({g,n})}
+  if(todo.some(t=>t.g.items.some(x=>x._st==='bad'))&&!confirm('Some of these records have a WARNING from the checks. Approve anyway?'))return;
+  if(todo.length>1&&!confirm('Approve '+todo.length+' Timemark card(s) with the days shown? They will be counted in Payroll.'))return;
+  const when=new Date().toISOString(),me=ME.email||null,done=[];
+  try{
+    for(const {g,n} of todo){
+      const note='Approved: Timemark of '+tmFmt(g.date,'')+' - '+n+' day'+(n===1?'':'s')+' credited in the payroll that covers this date'+(me?' (approved by '+me+')':'');
+      await Promise.all(g.items.map(async x=>{
+        const fl=String(x.flags||'').split(' | ').filter(t=>t&&!/^Approved: /.test(t));fl.push(note);const flags=fl.join(' | ');
+        const r=await api('/rest/v1/hrd_timemark?id=eq.'+encodeURIComponent(x.id)+'&appr=eq.false&appr_at=is.null',{method:'PATCH',_noQueue:true,headers:{Prefer:'return=representation'},body:JSON.stringify({appr:true,days:n,appr_by:me,appr_at:when,flags})});
+        if(!r||!r.length)throw new Error('Not allowed, or it was already approved.');
+        x.appr=true;x.days=n;x.appr_by=me;x.appr_at=when;x.flags=flags}));
+      done.push(g)}
+  }catch(e){
+    await tmLoadSaved(true);tmAprDraw();tmAud();
+    return alert('Could not approve'+(done.length?' (the first '+done.length+' card(s) were approved)':'')+': '+(e.message||e)+'\n\nIf this is the first time, run this once in Supabase -> SQL Editor (copied for you):\n\n'+TMAPRSQL+(()=>{try{navigator.clipboard.writeText(TMAPRSQL)}catch(_){}return''})())}
+  tmSavAnn();PTMC={};
+  try{logAct('Approved Timemark','Timemark',todo.map(t=>t.g.emp+' '+t.g.date+' = '+t.n+'d').join(', '))}catch(e){}
+  toast('Approved. '+todo.length+' Timemark card(s) are now counted in Payroll.');
+  tmAprDraw();tmAprBadge();TM.audOpen&&tmAud()}
 function tmSql(){$('tmb').innerHTML=`<div class="panel" style="max-width:none"><h3 style="margin-top:0">One-time setup: run this in Supabase -> SQL Editor</h3><p class="sub" style="font-size:14px;margin:0 0 10px">The table for saved Timemark records has not been created yet. Your photos in the list are still here -- nothing is lost.</p><pre style="white-space:pre-wrap;font-size:12px;background:var(--sf2);padding:12px;border-radius:8px;max-height:320px;overflow:auto">${esc(TMSQL)}</pre><button class="btn" onclick="try{navigator.clipboard.writeText(TMSQL);toast('SQL copied')}catch(e){}">Copy SQL</button> <button class="btn o" onclick="TM.on=true;TM.saved=null;tmTab('chk')">I've run it -- go back</button></div>`}
 async function tmLoadSaved(quiet){
-  try{TM.saved=await api('/rest/v1/hrd_timemark?select=id,created_at,created_by,att_date,shot_time,emp_name,dept,address,lat,lon,status,flags,sha,phash,file_name&order=created_at.desc&limit=2000');TM.on=true;tmSavAnn()}
+  try{const Q='id,created_at,created_by,att_date,shot_time,emp_name,dept,address,lat,lon,status,flags,sha,phash,file_name';
+    try{TM.saved=await api('/rest/v1/hrd_timemark?select='+Q+',days,appr,appr_by,appr_at,appr_del_at,appr_del_by,aud_del_at,aud_del_by&order=created_at.desc&limit=2000')}catch(eN){try{TM.saved=await api('/rest/v1/hrd_timemark?select='+Q+',days,appr,appr_by,appr_at&order=created_at.desc&limit=2000')}catch(e0){try{TM.saved=await api('/rest/v1/hrd_timemark?select='+Q+',days&order=created_at.desc&limit=2000')}catch(e1){TM.saved=await api('/rest/v1/hrd_timemark?select='+Q+'&order=created_at.desc&limit=2000')}}}
+    TM.on=true;tmSavAnn();tmAprBadge()}
   catch(e){TM.saved=[];if(tmMissing(e))TM.on=false;else if(!quiet)toast('Could not load saved records.')}}
 /* ---------- saved records tab ---------- */
 async function tmSav(){
@@ -4338,20 +4587,20 @@ async function tmSav(){
   await tmLoadSaved(false);if(!TM.on)return tmSql();tmSavDraw()}
 const tmDeptOf=n=>{const e=tmEmpBy(n);return e?nd(e.dept||''):''};
 function tmSavAnn(){const L=TM.saved||[];
-  L.forEach(x=>{x._fl=String(x.flags||'').split(' | ').filter(Boolean).map(t=>({l:x.status==='bad'?'bad':'warn',t}));x._dp=x.dept||tmDeptOf(x.emp_name);
+  L.forEach(x=>{const P=String(x.flags||'').split(' | ').filter(Boolean);x._ap=P.filter(t=>/^(Approved|Rejected): /.test(t)).map(t=>/^Rejected/.test(t)?t:t.slice(10));x._an=P.filter(t=>/^Auditor: /.test(t)).map(t=>t.slice(9));x._fl=P.filter(t=>!/^(Approved|Rejected|Auditor): /.test(t)).map(t=>({l:x.status==='bad'?'bad':'warn',t}));x._dp=x.dept||tmDeptOf(x.emp_name);
   });
   for(let i=0;i<L.length;i++){const a=L[i];if(!a.phash)continue;for(let j=i+1;j<L.length;j++){const b=L[j];if(!b.phash||tmHam(a.phash,b.phash)>5)continue;
     if(String(a.emp_name||'').trim().toLowerCase()!==String(b.emp_name||'').trim().toLowerCase()){a._fl.push({l:'bad',t:'Looks like the same photo as '+b.emp_name+' ('+b.att_date+') -- possible buddy punching.'});b._fl.push({l:'bad',t:'Looks like the same photo as '+a.emp_name+' ('+a.att_date+') -- possible buddy punching.'})}
     else if(String(a.att_date)!==String(b.att_date)){a._fl.push({l:'warn',t:'Very similar to this employee\'s photo of '+b.att_date+'.'});b._fl.push({l:'warn',t:'Very similar to this employee\'s photo of '+a.att_date+'.'})}}}
-  L.forEach(x=>{x._st=x._fl.some(f=>f.l==='bad')?'bad':x._fl.length?'warn':'ok'})}
+  L.forEach(x=>{x._st=x._fl.some(f=>f.l==='bad')?'bad':x._fl.length?'warn':'ok';x._as=x.appr_del_at?'deleted':x.appr===false?(x.appr_at?'rejected':'pending'):'approved'})}
 const tmSavCmp=(a,b)=>{const s=TM.sort||'date_desc',nm=(x,y)=>String(x.emp_name||'').localeCompare(String(y.emp_name||''),undefined,{sensitivity:'base'}),dt=x=>String(x.att_date||'')+' '+String(x.shot_time||'').slice(0,5);
   if(s==='date_asc')return dt(a).localeCompare(dt(b))||nm(a,b);
   if(s==='name_asc')return nm(a,b)||dt(b).localeCompare(dt(a));
   if(s==='name_desc')return nm(b,a)||dt(b).localeCompare(dt(a));
-  if(s==='dept')return String(a._dp||'~').localeCompare(String(b._dp||'~'))||nm(a,b)||dt(b).localeCompare(dt(a));
+  if(s==='dept'||s==='dept_asc'||s==='dept_desc'){const da=a._dp?di(a._dp):9999,db=b._dp?di(b._dp):9999,c=(da-db)||String(a._dp||'~').localeCompare(String(b._dp||'~'));return (s==='dept_desc'?-c:c)||nm(a,b)||dt(b).localeCompare(dt(a))}
   return dt(b).localeCompare(dt(a))||nm(a,b)};
 function tmSortBy(k){const c=TM.sort||'date_desc';TM.sort=c===k+'_asc'?k+'_desc':k+'_asc';tmSavDraw()}
-const tmSavF=()=>{const F=TM.fl,nm=String(F.n||'').trim().toLowerCase();return(TM.saved||[]).filter(x=>(!F.d||String(x.att_date)>=F.d)&&(!F.d2||String(x.att_date)<=F.d2)&&(!nm||String(x.emp_name||'').trim().toLowerCase()===nm)&&(!F.s||x._st===F.s)&&(!F.q||((x.emp_name||'')+' '+(x._dp||'')+' '+(x.address||'')).toLowerCase().includes(F.q.toLowerCase()))).sort(tmSavCmp)};
+const tmSavF=()=>{const F=TM.fl,nm=String(F.n||'').trim().toLowerCase();return(TM.saved||[]).filter(x=>!tmHidden(x)&&(!TM.sonly||TM.sonly(x))&&(!F.d||String(x.att_date)>=F.d)&&(!F.d2||String(x.att_date)<=F.d2)&&(!nm||String(x.emp_name||'').trim().toLowerCase()===nm)&&(!F.s||(TM.sonly?x._as===F.s:x._st===F.s))&&(!F.q||((x.emp_name||'')+' '+(x._dp||'')+' '+(x.address||'')).toLowerCase().includes(F.q.toLowerCase()))).sort(tmSavCmp)};
 const tmSavSel=()=>TM.ssel||(TM.ssel=new Set());
 /* What is printed / exported = the ticked rows of the list on the screen. If nothing is ticked, the whole list on the screen. */
 function tmSavOut(){const L=tmSavF(),S=tmSavSel(),P=L.filter(x=>S.has(x.id));return{L,P:P.length?P:L,picked:P.length}}
@@ -4363,33 +4612,33 @@ function tmSavAll(on){const S=tmSavSel();tmSavF().forEach(x=>{on?S.add(x.id):S.d
 function tmSavClr(){tmSavSel().clear();tmSavKeep(tmSavDraw)}
 function tmSavFrom(v){TM.fl.d=v;if(v&&(!TM.fl.d2||TM.fl.d2<v))TM.fl.d2=v;tmSavDraw()}
 function tmSavTo(v){TM.fl.d2=v;if(v&&TM.fl.d&&TM.fl.d>v)TM.fl.d=v;tmSavDraw()}
-function tmSavPrint(){const o=tmSavOut();if(!o.P.length)return toast('Nothing to print.');print()}
+function tmSavPrint(){const o=tmSavOut();if(!o.P.length)return toast('Nothing to print.');const b=document.body;b.classList.add('tm-hp');const done=()=>{b.classList.remove('tm-hp');removeEventListener('afterprint',done)};addEventListener('afterprint',done);setTimeout(()=>{try{print()}catch(e){done()}},50)}
 async function tmSavThumbs(){TM.thc=TM.thc||{};const ids=[...document.querySelectorAll('img.tm-sth[data-sid]')].map(i=>i.dataset.sid).filter(id=>!(id in TM.thc));
   for(let i=0;i<ids.length;i+=15){const b=ids.slice(i,i+15);
    try{const r=await api('/rest/v1/hrd_timemark?id=in.('+b.map(encodeURIComponent).join(',')+')&select=id,thumb');b.forEach(id=>TM.thc[id]='');(r||[]).forEach(x=>{TM.thc[x.id]=x.thumb||''})}catch(e){b.forEach(id=>TM.thc[id]='');}
-   if(TM.tab!=='sav')return;
+   if(!$('tmaud')&&!$('tmapr')&&TM.tab!=='sav')return;
    b.forEach(id=>{const im=document.querySelector('img.tm-sth[data-sid="'+id+'"]');if(im&&TM.thc[id]){im.src=TM.thc[id];im.style.visibility='visible'}})}}
 function tmSavDraw(){const F=TM.fl,{L,P,picked}=tmSavOut(),S=tmSavSel(),D=tmSavDesc(),inP=new Set(P.map(x=>x.id)),n=P.length,cnt=s=>P.filter(x=>x._st===s).length,
   allOn=L.length>0&&L.every(x=>S.has(x.id)),
   names=[...new Set((TM.saved||[]).map(x=>String(x.emp_name||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'})),
   lbl=picked?' ('+n+')':'';
-  $('tmb').innerHTML=`<div class="tm-chips no-print"><input class="tm-in" style="max-width:220px" placeholder="Search name, department, address" value="${esc(F.q)}" onchange="TM.fl.q=this.value;tmSavDraw()"><label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--mu)">From<input type="date" class="tm-in" style="max-width:150px" value="${esc(F.d||'')}" onchange="tmSavFrom(this.value)"></label><label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--mu)">To<input type="date" class="tm-in" style="max-width:150px" value="${esc(F.d2||'')}" onchange="tmSavTo(this.value)"></label><select class="tm-in" style="max-width:200px" onchange="TM.fl.n=this.value;tmSavDraw()"><option value="">All names</option>${names.map(m=>`<option value="${esc(m)}"${String(F.n||'').trim().toLowerCase()===m.toLowerCase()?' selected':''}>${esc(m)}</option>`).join('')}</select><select class="tm-in" style="max-width:130px" onchange="TM.fl.s=this.value;tmSavDraw()"><option value="">All status</option><option value="ok"${F.s==='ok'?' selected':''}>OK</option><option value="warn"${F.s==='warn'?' selected':''}>Review</option><option value="bad"${F.s==='bad'?' selected':''}>Warning</option></select><select class="tm-in" style="max-width:200px" onchange="TM.sort=this.value;tmSavDraw()">${[['date_desc','Sort: Date (newest first)'],['date_asc','Sort: Date (oldest first)'],['name_asc','Sort: Name (A-Z)'],['name_desc','Sort: Name (Z-A)'],['dept','Sort: Department']].map(o=>`<option value="${o[0]}"${(TM.sort||'date_desc')===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select><button class="btn o sm" onclick="TM.fl={q:'',d:'',d2:'',n:'',s:''};tmSavDraw()">Clear filters</button></div>
-  <div class="tm-chips no-print"><span class="tm-chip">${picked?picked+' of '+L.length+' selected':'No row selected: all '+L.length+' will be used'}</span>${picked?`<button class="btn o sm" onclick="tmSavClr()">Clear selection</button>`:''}<span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap"><button class="btn o sm" onclick="tmSavPrint()"${n?'':' disabled'}>Print${lbl}</button><button class="btn ok sm" onclick="tmSavXlsx()"${n?'':' disabled'}>Export Excel${lbl}</button><button class="btn o sm" onclick="tmCsvSaved()"${n?'':' disabled'}>Export CSV${lbl}</button></span></div>
-  <div class="tm-ttl"><h2 style="margin:0 0 2px;font-family:Georgia,serif;color:var(--h)">Timemark Saved Records</h2><p class="sub" style="margin:0 0 8px;font-size:13.5px">Date: <b>${esc(D.dt)}</b> &middot; Name: <b>${esc(D.nm)}</b>${D.st?' &middot; Status: <b>'+esc(D.st)+'</b>':''}${D.q?' &middot; Search: <b>'+esc(D.q)+'</b>':''}</p><div class="tm-chips" style="margin-bottom:10px"><span class="tm-chip">${n} record${n===1?'':'s'}</span><span class="tm-chip s-ok">${cnt('ok')} OK</span><span class="tm-chip s-warn">${cnt('warn')} Review</span><span class="tm-chip s-bad">${cnt('bad')} Warning</span></div></div>
-  ${L.length?`<div class="tm-wrap"><table class="tm-t tm-sel tm-sv2"><thead><tr><th class="no-print" style="width:34px"><input type="checkbox" class="tm-ck" title="Select all in this list" ${allOn?'checked':''} onchange="tmSavAll(this.checked)"></th><th>Department</th><th style="cursor:pointer" onclick="tmSortBy('name')" title="Sort by name">Name${(TM.sort||'')==='name_asc'?' \u25B2':TM.sort==='name_desc'?' \u25BC':''}</th><th style="cursor:pointer" onclick="tmSortBy('date')" title="Sort by date">Timemark date &amp; time${(TM.sort||'date_desc')==='date_asc'?' \u25B2':(TM.sort||'date_desc')==='date_desc'?' \u25BC':''}</th><th>Address</th><th>Remarks</th><th class="no-print"></th></tr></thead><tbody>${L.map(x=>`<tr class="tm-r r-${esc(x._st)}${inP.has(x.id)?'':' no-print'}"><td class="no-print"><input type="checkbox" class="tm-ck" ${S.has(x.id)?'checked':''} onchange="tmSavTick('${esc(x.id)}',this.checked)"></td><td><b>${esc(x._dp||'')}</b></td><td><div class="tm-nm"><img class="tm-th tm-sth" data-sid="${esc(x.id)}" alt="" onclick="tmSavPhoto('${esc(x.id)}')" title="Click to enlarge" style="${TM.thc&&TM.thc[x.id]?'':'visibility:hidden'}"${TM.thc&&TM.thc[x.id]?` src="${esc(TM.thc[x.id])}"`:''}><span>${esc(x.emp_name)}</span></div></td><td>${esc(tmFmt(x.att_date,x.shot_time)||'Not read')}<div style="font-size:12px;color:var(--mu);margin-top:4px;line-height:1.4"><b>Reviewed</b><br>${esc(tmSub(x.created_at))}${x.created_by?'<br>'+esc(x.created_by):''}</div></td><td>${esc(x.address||'')}</td><td><span class="tm-b s-${esc(x._st)}">${tmSt(x._st)}</span>${x._fl.length?x._fl.slice(0,4).map(f=>`<div class="tm-f f-${f.l}">${esc(f.t)}</div>`).join(''):'<div class="tm-f f-ok">No sign of editing found.</div>'}</td><td class="no-print"><button class="btn o sm" onclick="tmSavPhoto('${esc(x.id)}')">Photo</button> ${isAdm()?`<button class="btn o sm" onclick="tmDelSaved('${esc(x.id)}')">Delete</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<p class="sub">No saved records match.</p>'}`;tmSavThumbs()}
+  ($('tmaud')||$('tmb')).innerHTML=`<div class="tm-chips no-print"><input class="tm-in" style="max-width:220px" placeholder="Search name, department, address" value="${esc(F.q)}" onchange="TM.fl.q=this.value;tmSavDraw()"><label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--mu)">From<input type="date" class="tm-in" style="max-width:150px" value="${esc(F.d||'')}" onchange="tmSavFrom(this.value)"></label><label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--mu)">To<input type="date" class="tm-in" style="max-width:150px" value="${esc(F.d2||'')}" onchange="tmSavTo(this.value)"></label><select class="tm-in" style="max-width:200px" onchange="TM.fl.n=this.value;tmSavDraw()"><option value="">All names</option>${names.map(m=>`<option value="${esc(m)}"${String(F.n||'').trim().toLowerCase()===m.toLowerCase()?' selected':''}>${esc(m)}</option>`).join('')}</select><select class="tm-in" style="max-width:130px" onchange="TM.fl.s=this.value;tmSavDraw()"><option value="">All status</option>${TM.sonly?`<option value="approved"${F.s==='approved'?' selected':''}>Approved</option><option value="rejected"${F.s==='rejected'?' selected':''}>Rejected</option>`:`<option value="ok"${F.s==='ok'?' selected':''}>OK</option><option value="warn"${F.s==='warn'?' selected':''}>Review</option><option value="bad"${F.s==='bad'?' selected':''}>Warning</option>`}</select><select class="tm-in" style="max-width:200px" onchange="TM.sort=this.value;tmSavDraw()">${[['date_desc','Sort: Date (newest first)'],['date_asc','Sort: Date (oldest first)'],['name_asc','Sort: Name (A-Z)'],['name_desc','Sort: Name (Z-A)'],['dept_asc','Sort: Department (A-Z)'],['dept_desc','Sort: Department (Z-A)']].map(o=>`<option value="${o[0]}"${(TM.sort||'date_desc')===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select><button class="btn o sm" onclick="TM.fl={q:'',d:'',d2:'',n:'',s:''};tmSavDraw()">Clear filters</button></div>
+  <div class="tm-chips no-print"><span class="tm-chip">${picked?picked+' of '+L.length+' selected':'No row selected: all '+L.length+' will be used'}</span>${TM.sonly&&can('tmp')?`<button class="btn o sm" onclick="tmSavAll(true)">Mark all</button>`:''}${picked?`<button class="btn o sm" onclick="tmSavClr()">${TM.sonly?'Unmark all':'Clear selection'}</button>`:''}${picked&&TM.sonly&&can('tmp')?`<button class="btn dl sm" onclick="tmAprDelHist()">Delete selected (${picked})</button>`:''}<span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap"><button class="btn o sm" onclick="tmSavPrint()"${n?'':' disabled'}>Print history${lbl}</button><button class="btn ok sm" onclick="tmSavXlsx()"${n?'':' disabled'}>Export Excel${lbl}</button><button class="btn o sm" onclick="tmCsvSaved()"${n?'':' disabled'}>Export CSV${lbl}</button></span></div>
+  <div class="tm-ttl"><h2 style="margin:0 0 2px;font-family:Georgia,serif;color:var(--h)">${TM.sonly?'Approved':'Audited'} Timemark Records</h2><p class="sub" style="margin:0 0 8px;font-size:13.5px">Date: <b>${esc(D.dt)}</b> &middot; Name: <b>${esc(D.nm)}</b>${D.st?' &middot; Status: <b>'+esc(D.st)+'</b>':''}${D.q?' &middot; Search: <b>'+esc(D.q)+'</b>':''}</p><div class="tm-chips" style="margin-bottom:10px"><span class="tm-chip">${n} record${n===1?'':'s'}</span>${TM.sonly?`<span class="tm-chip s-ok">${P.filter(x=>x._as!=='rejected').length} Approved</span><span class="tm-chip s-bad">${P.filter(x=>x._as==='rejected').length} Rejected</span>`:`<span class="tm-chip s-ok">${cnt('ok')} OK</span><span class="tm-chip s-warn">${cnt('warn')} Review</span><span class="tm-chip s-bad">${cnt('bad')} Warning</span>`}</div></div>
+  ${L.length?`<div class="tm-wrap"><table class="tm-t tm-sel tm-sv2"><thead><tr><th class="no-print" style="width:34px"><input type="checkbox" class="tm-ck" title="Select all in this list" ${allOn?'checked':''} onchange="tmSavAll(this.checked)"></th><th style="cursor:pointer" onclick="tmSortBy('dept')" title="Sort by department">Department${(TM.sort||'')==='dept_asc'||TM.sort==='dept'?' \u25B2':TM.sort==='dept_desc'?' \u25BC':''}</th><th style="cursor:pointer" onclick="tmSortBy('name')" title="Sort by name">Name${(TM.sort||'')==='name_asc'?' \u25B2':TM.sort==='name_desc'?' \u25BC':''}</th><th style="cursor:pointer" onclick="tmSortBy('date')" title="Sort by date">Timemark date &amp; time${(TM.sort||'date_desc')==='date_asc'?' \u25B2':(TM.sort||'date_desc')==='date_desc'?' \u25BC':''}</th><th>Address</th><th>Remarks</th><th class="no-print"></th></tr></thead><tbody>${L.map(x=>`<tr class="tm-r r-${esc(TM.sonly?(x._as==='rejected'?'bad':'ok'):x._st)}${inP.has(x.id)?'':' no-print'}"><td class="no-print"><input type="checkbox" class="tm-ck" ${S.has(x.id)?'checked':''} onchange="tmSavTick('${esc(x.id)}',this.checked)"></td><td><b>${esc(x._dp||'')}</b></td><td><div class="tm-nm"><img class="tm-th tm-sth" data-sid="${esc(x.id)}" alt="" onclick="tmSavPhoto('${esc(x.id)}')" title="Click to enlarge" style="${TM.thc&&TM.thc[x.id]?'':'visibility:hidden'}"${TM.thc&&TM.thc[x.id]?` src="${esc(TM.thc[x.id])}"`:''}><span>${esc(x.emp_name)}</span></div></td><td>${esc(tmFmt(x.att_date,x.shot_time)||'Not read')}<div style="font-size:12px;color:var(--mu);margin-top:4px;line-height:1.4"><b>Audited</b><br>${esc(tmSub(x.created_at))}${x.created_by?'<br>by '+esc(x.created_by):''}${x.appr_del_at?'<br><span class="tm-wait" style="color:#b0792a">Deleted by approver'+(x.appr_del_by?' ('+esc(x.appr_del_by)+')':'')+'</span>':x.appr===false?(x.appr_at?'<br><span class="tm-wait" style="color:#a3302a">Rejected'+(x.appr_by?' by '+esc(x.appr_by):'')+'</span>':'<br><span class="tm-wait">Waiting for approval</span>'):(x.days!=null?'<br><span class="tm-ap">Approved: <b>'+esc(x.days)+'</b> day(s)'+(x.appr_by?' by '+esc(x.appr_by):'')+'</span>':'')}</div></td><td>${esc(x.address||'')}</td><td>${TM.sonly?`<span class="tm-b s-${x._as==='rejected'?'bad':'ok'}">${x._as==='rejected'?'Rejected':'Approved'}</span>`:`<span class="tm-b s-${esc(x._st)}">${tmSt(x._st)}</span>`}${x._fl.length?x._fl.slice(0,4).map(f=>`<div class="tm-f f-${f.l}">${esc(f.t)}</div>`).join(''):'<div class="tm-f f-ok">No sign of editing found.</div>'}${(x._an||[]).map(t=>`<div class="tm-ap">Auditor: ${esc(t)}</div>`).join('')}${(x._ap||[]).map(t=>`<div class="tm-ap">${esc(t)}</div>`).join('')}</td><td class="no-print"><button class="btn o sm" onclick="tmSavPhoto('${esc(x.id)}')">Photo</button> ${(!TM.sonly&&can('tma')&&(tmIsAdm()||String(x.created_by||'').toLowerCase()===String(ME.email||'').toLowerCase()))?`<button class="btn dl sm" onclick="tmDelSaved('${esc(x.id)}')">Delete</button>`:''}${(TM.sonly&&can('tmp'))?`<button class="btn dl sm" onclick="tmAprDelHist('${esc(x.id)}')">Delete</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<p class="sub">No saved records match.</p>'}`;tmSavThumbs()}
 async function tmSavPhoto(id){let d=$('tmdet');if(!d){d=document.createElement('div');d.id='tmdet';d.className='tm-ov no-print';d.onclick=e=>{if(e.target===d)d.remove()};document.body.appendChild(d)}
   d.innerHTML='<div class="tm-card"><p class="sub">Loading photo...</p></div>';
   try{const r=await api('/rest/v1/hrd_timemark?id=eq.'+encodeURIComponent(id)+'&select=thumb,emp_name,flags');const x=(r&&r[0])||{};
     d.innerHTML=`<div class="tm-card" style="max-width:720px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2 style="margin:0">${esc(x.emp_name||'Photo')}</h2><button class="btn o sm" onclick="$('tmdet').remove()">Close</button></div>${x.thumb?`<img src="${esc(x.thumb)}" style="max-width:100%;max-height:70vh;border-radius:8px;display:block;margin:12px auto 0">`:'<p class="sub">No photo copy was kept for this record (it was saved before photo copies were kept for all records).</p>'}<p style="font-size:12.5px;color:var(--mu)">A reduced copy of the photo is kept with every saved record. Older records saved before this update may have no copy.</p></div>`}
   catch(e){d.remove();toast('Could not load the photo.')}}
 function tmCsvSaved(){const L=tmSavOut().P;if(!L.length)return toast('Nothing to export.');
-  tmCsv([['Department','Name','Timemark date','Timemark time','Reviewed','Address','Status','Remarks','File'],...L.map(x=>[x._dp,x.emp_name,x.att_date,x.shot_time,tmSub(x.created_at),x.address,tmSt(x._st),x._fl.map(f=>f.t).join(' | '),x.file_name])],'timemark-records.csv')}
+  tmCsv([['Department','Name','Timemark date','Timemark time','Audited','Address','Status','Remarks','Approval','Days credited','Approved by','Auditor remarks','File'],...L.map(x=>[x._dp,x.emp_name,x.att_date,x.shot_time,tmSub(x.created_at),x.address,(TM.sonly?(x._as==='rejected'?'Rejected':'Approved'):tmSt(x._st)),x._fl.map(f=>f.t).join(' | '),x.appr===false?(x.appr_at?'Rejected':'Waiting for approval'):'Approved',x.appr===false||x.days==null?'':x.days,x.appr_by||'',(x._an||[]).join(' | '),x.file_name])],(TM.sonly?'timemark-approved':'timemark-audited')+'.csv')}
 /* ===== Export the saved Timemark records to Excel (.xlsx): same columns, colours and text as the preview ===== */
 function tmXlsxBuild(L,D){
  const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',RT='http://schemas.openxmlformats.org/officeDocument/2006/relationships',
   x=v=>String(v??'').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'),
   NAVY='FF12305C',INK='FF1A2233',MU='FF66738A',SF2='FFF8F9FC',GRID='FFE3E7EF',GRID2='FFD3D9E6',
-  SC={ok:'FF1D6B49',warn:'FF8A6410',bad:'FFA3302A'},SB={ok:'FF2E7D4F',warn:'FFB8923A',bad:'FFB3392F'},NC=5,
+  SC={ok:'FF1D6B49',warn:'FF8A6410',bad:'FFA3302A'},SB={ok:'FF2E7D4F',warn:'FFB8923A',bad:'FFB3392F'},NC=6,
   fonts=[],fills=['none','gray125'],bords=[],xfs=[],idx=(a,k)=>{let i=a.indexOf(k);if(i<0){i=a.length;a.push(k)}return i},
   g4=['thin:'+GRID,'thin:'+GRID,'thin:'+GRID,'thin:'+GRID],
   BD={g:g4,h:['','','','thin:'+GRID2],n:['','','',''],ok:['thick:'+SB.ok,'thin:'+GRID,'thin:'+GRID,'thin:'+GRID],warn:['thick:'+SB.warn,'thin:'+GRID,'thin:'+GRID,'thin:'+GRID],bad:['thick:'+SB.bad,'thin:'+GRID,'thin:'+GRID,'thin:'+GRID]};
@@ -4400,21 +4649,21 @@ function tmXlsxBuild(L,D){
  const row=(cells,ht)=>{R++;rows.push({r:R,cells,ht});return R};
  const span=(c1,c2,v,s)=>{const o={};for(let c=c1;c<=c2;c++)o[c]={v:c===c1?v:undefined,s};if(c2>c1)merges.push([c1,c2,R+1]);return o};
  const n=L.length,cnt=s=>L.filter(r=>r._st===s).length;
- row(span(1,NC,'Timemark Saved Records',st({fn:'Georgia',sz:20,b:1,col:NAVY,v:'center'})),30);
+ row(span(1,NC,(D.title||'Timemark Saved Records'),st({fn:'Georgia',sz:20,b:1,col:NAVY,v:'center'})),30);
  row(span(1,NC,'Date: '+D.dt+'   \u00B7   Name: '+D.nm+(D.st?'   \u00B7   Status: '+D.st:'')+(D.q?'   \u00B7   Search: '+D.q:''),st({sz:10,col:MU,v:'center'})),18);
- row(span(1,NC,n+' record'+(n===1?'':'s')+'     '+cnt('ok')+' OK     '+cnt('warn')+' Review     '+cnt('bad')+' Warning',st({sz:11,b:1,col:NAVY,v:'center'})),22);
+ row(span(1,NC,(D.apr?n+' record'+(n===1?'':'s')+'     '+L.filter(r=>r._as!=='rejected').length+' Approved     '+L.filter(r=>r._as==='rejected').length+' Rejected':n+' record'+(n===1?'':'s')+'     '+cnt('ok')+' OK     '+cnt('warn')+' Review     '+cnt('bad')+' Warning'),st({sz:11,b:1,col:NAVY,v:'center'})),22);
  row({},8);
  const HD=st({b:1,sz:9,col:MU,fill:SF2,bd:'h',v:'center',wrap:1}),
-  hr=row({1:{v:'DEPARTMENT',s:HD},2:{v:'NAME',s:HD},3:{v:'TIMEMARK DATE & TIME',s:HD},4:{v:'ADDRESS',s:HD},5:{v:'REMARKS',s:HD}},24);
- const wd=[22,28,26,40,52],ln=(t,w)=>Math.max(1,Math.ceil(String(t||'').length/w));
+  hr=row({1:{v:'DEPARTMENT',s:HD},2:{v:'NAME',s:HD},3:{v:'TIMEMARK DATE & TIME',s:HD},4:{v:'ADDRESS',s:HD},5:{v:'REMARKS',s:HD},6:{v:'AUDIT & APPROVAL',s:HD}},24);
+ const wd=[22,28,26,40,48,44],ln=(t,w)=>Math.max(1,Math.ceil(String(t||'').length/w));
  L.forEach(r=>{
   const sd=st({b:1,bd:r._st,wrap:1}),sN=st({bd:'g',wrap:1}),sT=st({bd:'g',wrap:1}),sA=st({bd:'g',wrap:1}),sR=st({bd:'g',wrap:1}),
-   when=tmFmt(r.att_date,r.shot_time)||'Not read',sub=tmSub(r.created_at),
-   dt=[{t:when,sz:10,col:INK},{t:'\nReviewed',sz:9,b:1,col:MU},{t:'\n'+sub,sz:9,col:MU}].concat(r.created_by?[{t:'\n'+r.created_by,sz:9,col:MU}]:[]),
+   when=tmFmt(r.att_date,r.shot_time)||'Not read',sub=r.created_at?tmSub(r.created_at):'',
+   dt=[{t:when,sz:10,col:INK},{t:r._pend?'\nSubmitted':'\nReviewed',sz:9,b:1,col:MU},{t:'\n'+sub,sz:9,col:MU}].concat(r.created_by?[{t:'\n'+r.created_by,sz:9,col:MU}]:[]),
    fl=r._fl.slice(0,4),
-   rm=[{t:tmSt(r._st),sz:10,b:1,col:SC[r._st]||INK}].concat(fl.length?fl.map(f=>({t:'\n'+f.t,sz:9,col:f.l==='bad'?SC.bad:SC.warn})):[{t:'\nNo sign of editing found.',sz:9,col:SC.ok}]),
-   lines=Math.max(r.created_by?4:3,1+(fl.length?fl.reduce((a,f)=>a+ln(f.t,56),0):1),ln(r.address,40),ln(r.emp_name,28),ln(r._dp,22));
-  row({1:{v:r._dp||'',s:sd},2:{v:r.emp_name||'',s:sN},3:{rt:dt,s:sT},4:{v:r.address||'',s:sA},5:{rt:rm,s:sR}},Math.max(20,lines*13+6))});
+   rm=[{t:D.apr?(r._as==='rejected'?'Rejected':'Approved'):tmSt(r._st),sz:10,b:1,col:D.apr?(r._as==='rejected'?SC.bad:SC.ok):(SC[r._st]||INK)}].concat(fl.length?fl.map(f=>({t:'\n'+f.t,sz:9,col:f.l==='bad'?SC.bad:SC.warn})):[{t:'\nNo sign of editing found.',sz:9,col:SC.ok}]),
+   ap=tmAprCell(r),sP=st({bd:'g',wrap:1}),lines=Math.max(ap.reduce((a,q)=>a+ln(q.t,40),1),r.created_by?4:3,1+(fl.length?fl.reduce((a,f)=>a+ln(f.t,56),0):1),ln(r.address,40),ln(r.emp_name,28),ln(r._dp,22));
+  row({1:{v:r._dp||'',s:sd},2:{v:r.emp_name||'',s:sN},3:{rt:dt,s:sT},4:{v:r.address||'',s:sA},5:{rt:rm,s:sR},6:{rt:ap,s:sP}},Math.max(20,lines*13+6))});
  const LAST=R;
  const fontX=fonts.map(k=>{const [nn,z,b,i,c]=k.split('|');return`<font>${+b?'<b/>':''}${+i?'<i/>':''}<sz val="${z}"/><color rgb="${c}"/><name val="${nn}"/></font>`}).join(''),
   fillX=fills.map((f,i)=>i<2?`<fill><patternFill patternType="${f}"/></fill>`:`<fill><patternFill patternType="solid"><fgColor rgb="${f}"/><bgColor indexed="64"/></patternFill></fill>`).join(''),
@@ -4427,20 +4676,62 @@ function tmXlsxBuild(L,D){
     if(z.rt)return`<c r="${ref}" s="${z.s}" t="inlineStr"><is>${z.rt.map(run).join('')}</is></c>`;
     return z.v===undefined||z.v===null||z.v===''?`<c r="${ref}" s="${z.s}"/>`:typeof z.v==='number'?`<c r="${ref}" s="${z.s}"><v>${z.v}</v></c>`:`<c r="${ref}" s="${z.s}" t="inlineStr"><is><t xml:space="preserve">${x(z.v)}</t></is></c>`}).join('');
    return`<row r="${o.r}"${o.ht?` ht="${o.ht}" customHeight="1"`:''}>${cs}</row>`}).join(''),
-  sheet=H+`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${RT}"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:E${LAST}"/><sheetViews><sheetView showGridLines="0" workbookViewId="0"><pane ySplit="${hr}" topLeftCell="A${hr+1}" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="16"/><cols>${wd.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${rowsX}</sheetData><mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${pColL(m[0])}${m[2]}:${pColL(m[1])}${m[2]}"/>`).join('')}</mergeCells><printOptions horizontalCentered="1"/><pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.2" footer="0.2"/><pageSetup paperSize="14" orientation="landscape" fitToWidth="1" fitToHeight="0"/><headerFooter><oddFooter>&amp;LTimemark Saved Records&amp;RPage &amp;P of &amp;N</oddFooter></headerFooter></worksheet>`,
+  sheet=H+`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${RT}"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:F${LAST}"/><sheetViews><sheetView showGridLines="0" workbookViewId="0"><pane ySplit="${hr}" topLeftCell="A${hr+1}" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="16"/><cols>${wd.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${rowsX}</sheetData><mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${pColL(m[0])}${m[2]}:${pColL(m[1])}${m[2]}"/>`).join('')}</mergeCells><printOptions horizontalCentered="1"/><pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.2" footer="0.2"/><pageSetup paperSize="14" orientation="landscape" fitToWidth="1" fitToHeight="0"/><headerFooter><oddFooter>&amp;LTimemark Saved Records&amp;RPage &amp;P of &amp;N</oddFooter></headerFooter></worksheet>`,
   files=[{name:'[Content_Types].xml',data:H+`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
   {name:'_rels/.rels',data:H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${RT}/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
   {name:'xl/workbook.xml',data:H+`<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${RT}"><sheets><sheet name="Timemark Records" sheetId="1" r:id="rId1"/></sheets><definedNames><definedName name="_xlnm.Print_Titles" localSheetId="0">'Timemark Records'!$${hr}:$${hr}</definedName></definedNames></workbook>`},
   {name:'xl/_rels/workbook.xml.rels',data:H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${RT}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${RT}/styles" Target="styles.xml"/></Relationships>`},
   {name:'xl/styles.xml',data:styles},{name:'xl/worksheets/sheet1.xml',data:sheet}];
  return pZip(files)}
+function tmAprCell(r){const B='FF1D4ED8',W='FFB0792A',M='FF66738A',o=[];
+  if(r._pend)o.push({t:'Waiting for audit',sz:10,b:1,col:W});
+  else if(r.appr===false&&r.appr_at){o.push({t:'Rejected',sz:10,b:1,col:'FFA3302A'});if(r.appr_by)o.push({t:'\nby '+r.appr_by,sz:9,col:M})}
+  else if(r.appr===false)o.push({t:'Waiting for approval',sz:10,b:1,col:W});
+  else if(r.days!=null){o.push({t:'Approved: '+r.days+' day'+(+r.days===1?'':'s'),sz:10,b:1,col:B});if(r.appr_by)o.push({t:'\nby '+r.appr_by,sz:9,col:M});if(r.appr_at)o.push({t:'\n'+tmSub(r.appr_at),sz:9,col:M})}
+  else o.push({t:'Approved',sz:10,b:1,col:B});
+  (r._an||[]).forEach(t=>o.push({t:'\nAuditor: '+t,sz:9,col:B}));
+  return o}
+function tmXlsxDl(L,D,nm,lg){const bl=tmXlsxBuild(L,D),a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  try{logAct('Exported Timemark (Excel, '+lg+')','Timemark',L.length+' record(s)')}catch(e){}toast('Exported \u2714')}
+/* Auditor side: photos still waiting to be audited */
+function tmXlsxNow(){const R=TM.rows.filter(r=>!r.busy);if(!R.length)return toast('Nothing to export yet.');
+  const L=R.map(r=>({_pend:1,_dp:r.dept,emp_name:r.emp,att_date:r.date,shot_time:r.time,created_at:r.sentAt,address:r.addr,_st:r.status,_an:[],_fl:r.flags.filter(x=>x.l!=='info').map(x=>({l:x.l,t:x.t}))}))
+    .sort((a,b)=>(a._dp?di(a._dp):9999)-(b._dp?di(b._dp):9999)||String(a._dp||'').localeCompare(String(b._dp||''))||String(a.emp_name).localeCompare(String(b.emp_name))||String(a.att_date).localeCompare(String(b.att_date)));
+  tmXlsxDl(L,{title:'Timemark - Waiting for Audit',dt:'As of '+tmFmt(tmToday(),''),nm:'All names',st:'',q:''},'timemark-waiting-audit_'+tmToday()+'.xlsx','waiting for audit')}
+/* Approver side: audited cards waiting for the approver */
+function tmAprXlsx(){const L=(TM.saved||[]).filter(tmPend).sort(tmSavCmp);if(!L.length)return toast('Nothing is waiting for approval.');
+  tmXlsxDl(L,{title:'Timemark - Waiting for Approval',dt:'As of '+tmFmt(tmToday(),''),nm:'All names',st:'',q:''},'timemark-waiting-approval_'+tmToday()+'.xlsx','waiting for approval')}
 function tmSavXlsx(){const L=tmSavOut().P;if(!L.length)return toast('Nothing to export.');
- const D=tmSavDesc(),F=TM.fl,slug=v=>String(v||'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,''),
-  nm='timemark-records'+(F.d||F.d2?'_'+(F.d||'start')+(F.d2&&F.d2!==F.d?'_to_'+F.d2:''):'')+(F.n?'_'+slug(F.n):'')+'.xlsx',
+ const D=Object.assign(tmSavDesc(),{apr:!!TM.sonly,title:TM.sonly?'Timemark - Approved Records':'Timemark - Audited Records'}),F=TM.fl,slug=v=>String(v||'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,''),
+  nm=(TM.sonly?'timemark-approved':'timemark-audited')+(F.d||F.d2?'_'+(F.d||'start')+(F.d2&&F.d2!==F.d?'_to_'+F.d2:''):'')+(F.n?'_'+slug(F.n):'')+'.xlsx',
   bl=tmXlsxBuild(L,D),a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
  try{logAct('Exported Timemark records (Excel)','Timemark',L.length+' record(s), '+D.dt+', '+D.nm)}catch(e){}toast('Exported \u2714')}
-async function tmDelSaved(id){if(!isAdm())return;if(!confirm('Delete this saved record?'))return;
-  try{await api('/rest/v1/hrd_timemark?id=eq.'+encodeURIComponent(id),{method:'DELETE'});TM.saved=(TM.saved||[]).filter(x=>x.id!==id);tmSavDraw();toast('Deleted')}catch(e){alert('Could not delete: '+(e.message||e))}}
+async function tmDelSaved(id){
+  const x=(TM.saved||[]).find(r=>String(r.id)===String(id));if(!x)return;
+  const mine=String(x.created_by||'').toLowerCase()===String(ME.email||'').toLowerCase();
+  if(!can('tma')||!(mine||tmIsAdm()))return toast('Only the auditor who submitted this record can delete it from the Auditor list.');
+  if(!confirm('Delete this record from YOUR audited list?\n\nIt was already submitted, so the approver still keeps it (waiting, approved or rejected). Only your copy is removed.'))return;
+  const when=new Date().toISOString(),me=ME.email||null;
+  try{const r=await api('/rest/v1/hrd_timemark?id=eq.'+encodeURIComponent(x.id),{method:'PATCH',_noQueue:true,headers:{Prefer:'return=representation'},body:JSON.stringify({aud_del_at:when,aud_del_by:me})});
+    if(!r||!r.length)throw new Error('Not allowed.');
+    x.aud_del_at=when;x.aud_del_by=me}
+  catch(e){return alert('Could not delete: '+(e.message||e)+'\n\nIf this is the first time, run this once in Supabase -> SQL Editor (copied for you):\n\n'+TMAPRSQL+(()=>{try{navigator.clipboard.writeText(TMAPRSQL)}catch(_){}return''})())}
+  try{logAct('Deleted Timemark from auditor list','Timemark',(x.emp_name||'')+' '+(x.att_date||''))}catch(e){}
+  tmSavSel().delete(x.id);tmSavDraw();toast('Deleted from your list. The approver still has it.')}
+/* approver: delete records from the approved history (own copy only; the auditor keeps hers and is notified) */
+async function tmAprDelHist(one){
+  if(!can('tmp'))return toast('Only the assigned approver can do this.');
+  const S=tmSavSel(),L=tmSavOut().L.filter(x=>(one?String(x.id)===String(one):S.has(x.id))&&!x.appr_del_at&&!tmPend(x));
+  if(!L.length)return toast('Tick the records to delete first.');
+  if(!confirm('Delete '+L.length+' record'+(L.length>1?'s':'')+' from YOUR approved history?\n\nThe auditor keeps a copy and will be notified. Approved records stay credited in Payroll.'))return;
+  const when=new Date().toISOString(),me=ME.email||null,ids=L.map(x=>encodeURIComponent(x.id)).join(',');
+  try{const r=await api('/rest/v1/hrd_timemark?id=in.('+ids+')&appr_del_at=is.null',{method:'PATCH',_noQueue:true,headers:{Prefer:'return=representation'},body:JSON.stringify({appr_del_at:when,appr_del_by:me})});
+    if(!Array.isArray(r)||r.length<L.length)throw new Error('Not everything could be deleted.');
+    L.forEach(x=>{x.appr_del_at=when;x.appr_del_by=me;S.delete(x.id)})}
+  catch(e){await tmLoadSaved(true);tmSavAnn();tmSavDraw();return alert('Could not delete: '+(e.message||e)+'\n\nIf this is the first time, run this once in Supabase -> SQL Editor (copied for you):\n\n'+TMAPRSQL+(()=>{try{navigator.clipboard.writeText(TMAPRSQL)}catch(_){}return''})())}
+  tmSavAnn();
+  try{logAct('Deleted Timemark from approved history','Timemark',L.length+' record(s)')}catch(e){}
+  toast('Deleted '+L.length+' record'+(L.length>1?'s':'')+' from your history. The auditor keeps a copy and was notified.');tmSavDraw();tmAprBadge();TM.audOpen&&tmAud()}
 
 </script>
 <script>
@@ -4917,7 +5208,7 @@ create policy "perm mg" on public.hrd_mg for all to authenticated using (public.
 const MGH={list:null,ok:null,open:null,sel:{},id:null,busy:false};
 const mgMissing=e=>/hrd_mg|does not exist|PGRST20[45]|42P01|schema cache/i.test(String(e&&e.message||e));
 async function mgHLoad(){
- try{MGH.list=await api('/rest/v1/hrd_mg?select=id,title,period,data,updated_by,created_at,updated_at&order=created_at.desc');MGH.ok=true}
+ try{MGH.list=mgVis(await api('/rest/v1/hrd_mg?select=id,title,period,data,updated_by,created_at,updated_at&order=created_at.desc'));MGH.ok=true}
  catch(e){MGH.list=[];if(mgMissing(e))MGH.ok=false;else{MGH.ok=true;toast('Could not load the Monthly Gross history.')}}}
 function mgSnap(){
  const cp=(L,gk)=>L.map(e=>({name:e.name,gross:e.gross,rate:e.rate,sss:e.sss,phic:e.phic,hdmf:e.hdmf,total:e.total,from:e.from||null,fromAmt:e.fromAmt||null,rem:(MG.rem||{})[gk+'|'+e.key]||''}));
