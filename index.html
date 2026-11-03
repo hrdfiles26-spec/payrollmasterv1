@@ -3285,17 +3285,34 @@ create or replace function public.hrd_chat_mark_read(p_ids bigint[]) returns voi
   where id=any(p_ids) and from_id<>auth.uid() and (to_id is null or to_id=auth.uid()) and not (auth.uid()=any(read_by)) $$;
 revoke all on function public.hrd_chat_mark_read(bigint[]) from public, anon;
 grant execute on function public.hrd_chat_mark_read(bigint[]) to authenticated;
+alter table public.hrd_chat add column if not exists hidden_by uuid[] not null default '{}';
+create or replace function public.hrd_chat_clear(p_ids bigint[]) returns void
+  language sql security definer set search_path=public as $$
+  update public.hrd_chat set hidden_by=array_append(hidden_by,auth.uid())
+  where id=any(p_ids) and (to_id is null or to_id=auth.uid() or from_id=auth.uid()) and not (auth.uid()=any(hidden_by)) $$;
+revoke all on function public.hrd_chat_clear(bigint[]) from public, anon;
+grant execute on function public.hrd_chat_clear(bigint[]) to authenticated;
 do $$ begin alter publication supabase_realtime add table public.hrd_chat;
 exception when duplicate_object then null; end $$;`;
-let CW=false,CU=[],CM=[],CP='all',CON=null,CERR='',CRB=false,CNEW=new Set(),CTMP=0;
+let CW=false,CU=[],CM=[],CP='all',CON=null,CERR='',CRB=false,CHD=false,CNEW=new Set(),CTMP=0;
 const CSL={online:['#2e9e5b','Online'],busy:['#d9962b','Busy'],offline:['#9aa5b8','Offline']};
 const stat=()=>{try{return localStorage.hrd_st==='busy'?'busy':'online'}catch(e){return'online'}};
 const cBase=()=>{try{const k='hrd_cb_'+ME.sub;return localStorage[k]||(localStorage[k]=new Date().toISOString())}catch(e){return new Date().toISOString()}};
 const cSeen=()=>{try{return JSON.parse(localStorage['hrd_cs_'+ME.sub]||'{}')}catch(e){return{}}};
-const cRaw=k=>k==='all'?CM.filter(m=>!m.to_id):CM.filter(m=>m.to_id&&((m.from_id===ME.sub&&m.to_id===k)||(m.from_id===k&&m.to_id===ME.sub)));
-const cClr=()=>{try{return JSON.parse(localStorage['hrd_cc_'+ME.sub]||'{}')}catch(e){return{}}};
-const cMsgs=k=>{const t=cClr()[k],r=cRaw(k);if(!t)return r;const x=Date.parse(t);return r.filter(m=>m.tmp||Date.parse(m.created_at)>x)};
-function chatClear(){const raw=cRaw(CP).filter(m=>!m.tmp);if(!cMsgs(CP).length)return toast('Nothing to clear.');if(!confirm('Clear this chat from your view?\n\nOther people keep their messages. This clears it on this browser/device only.'))return;const c=cClr();c[CP]=raw.length?raw[raw.length-1].created_at:new Date().toISOString();try{localStorage['hrd_cc_'+ME.sub]=JSON.stringify(c)}catch(e){return toast('Could not clear chat on this browser.')}markSeen(CP);CNEW=new Set();drawList();drawMsgs();chatBadge();toast('Chat cleared \u2714')}
+const cMsgs=k=>(k==='all'?CM.filter(m=>!m.to_id):CM.filter(m=>m.to_id&&((m.from_id===ME.sub&&m.to_id===k)||(m.from_id===k&&m.to_id===ME.sub)))).filter(m=>!(m.hidden_by||[]).includes(ME.sub));
+async function chatClear(){
+ if(!CHD)return toast('Clear chat needs a one-time database update. Ask the admin to open Chat and run the SQL.');
+ const L=cMsgs(CP).filter(m=>!m.tmp);if(!L.length)return toast('Nothing to clear.');
+ if(!confirm('Clear this chat from your account?\n\nIt disappears on all your devices. Other people keep their messages.'))return;
+ const ids=L.map(m=>m.id);chatRead(CP);
+ L.forEach(m=>m.hidden_by=[...(m.hidden_by||[]),ME.sub]);
+ markSeen(CP);CNEW=new Set();drawList();drawMsgs();chatBadge();
+ try{await api('/rest/v1/rpc/hrd_chat_clear',{method:'POST',body:JSON.stringify({p_ids:ids})});toast('Chat cleared \u2714')}
+ catch(e){L.forEach(m=>m.hidden_by=(m.hidden_by||[]).filter(u=>u!==ME.sub));drawList();drawMsgs();chatBadge();toast('Could not clear chat: '+(e.message||e))}}
+async function chatRefreshHB(){if(!CHD||!CM.length)return false;
+ const lo=Math.min(...CM.filter(m=>!m.tmp).map(m=>m.id));if(!isFinite(lo))return false;
+ const r=await api('/rest/v1/hrd_chat?select=id&id=gte.'+lo+'&hidden_by=cs.'+encodeURIComponent('{'+ME.sub+'}')),set=new Set(r.map(x=>x.id));let ch=false;
+ CM.forEach(m=>{if(m.tmp)return;const h=(m.hidden_by||[]).includes(ME.sub);if(set.has(m.id)&&!h){m.hidden_by=[...(m.hidden_by||[]),ME.sub];ch=true}else if(!set.has(m.id)&&h){m.hidden_by=m.hidden_by.filter(u=>u!==ME.sub);ch=true}});return ch}
 const cUnreadIds=k=>CRB?cMsgs(k).filter(m=>m.from_id!==ME.sub&&!m.tmp&&!(m.read_by||[]).includes(ME.sub)).map(m=>m.id):(()=>{const t=Date.parse(cSeen()[k]||cBase());return cMsgs(k).filter(m=>m.from_id!==ME.sub&&Date.parse(m.created_at)>t).map(m=>m.id)})();
 const cUnread=k=>cUnreadIds(k).length;
 function chatRead(k){const ids=cUnreadIds(k);if(!ids.length)return;const ms=CM.filter(m=>ids.includes(m.id));ms.forEach(m=>m.read_by=[...(m.read_by||[]),ME.sub]);
@@ -3304,7 +3321,7 @@ function markSeen(k){const s=cSeen(),l=cMsgs(k).slice(-1)[0];s[k]=l?l.created_at
 const cname=id=>{if(id==='all')return'Team chat';const u=CU.find(x=>x.user_id===id);return u?dn(u.full_name,u.email):'User'};
 const cst=id=>id===ME.sub?stat():PRES[id]?(((PRES[id].metas||[]).slice(-1)[0]||{}).st==='busy'?'busy':'online'):'offline';
 function chatBadge(){const el=$('b8');const n=['all',...CU.filter(u=>u.user_id!==ME.sub).map(u=>u.user_id)].reduce((t,k)=>t+cUnread(k),0);if(el)el.textContent=n||'';const f=$('b9');if(f)f.textContent=n||'';if(!chatBadge.t0)chatBadge.t0=document.title.replace(/^\(\d+\)\s*/,'');document.title=(n?'('+n+') ':'')+chatBadge.t0}
-async function chatLoad(){try{CU=await api('/rest/v1/rpc/hrd_chat_users',{method:'POST',body:'{}'});const fresh=(await api('/rest/v1/hrd_chat?select=*&order=id.desc&limit=500')).reverse();CM=fresh.concat(CM.filter(m=>m.tmp));CON=true;CERR='';try{await api('/rest/v1/hrd_chat?select=read_by&limit=1');CRB=true}catch(e){CRB=false}}catch(e){CON=false;CERR=e.message}}
+async function chatLoad(){try{CU=await api('/rest/v1/rpc/hrd_chat_users',{method:'POST',body:'{}'});const fresh=(await api('/rest/v1/hrd_chat?select=*&order=id.desc&limit=500')).reverse();CM=fresh.concat(CM.filter(m=>m.tmp));CON=true;CERR='';try{await api('/rest/v1/hrd_chat?select=read_by&limit=1');CRB=true}catch(e){CRB=false}try{await api('/rest/v1/hrd_chat?select=hidden_by&limit=1');CHD=true}catch(e){CHD=false}}catch(e){CON=false;CERR=e.message}}
 async function chatReload(){await chatLoad();if(CON)rtStart();chatClose();chatOpen()}
 function chatNotify(t,b){try{if(document.hidden&&window.Notification&&Notification.permission==='granted'){const n=new Notification(t,{body:b,tag:'hrd-chat'});n.onclick=()=>{window.focus();n.close()}}}catch(e){}}
 async function chatRefreshRB(){if(!CRB)return false;const tot=CU.filter(u=>u.user_id!==ME.sub).length;
@@ -3318,6 +3335,7 @@ async function chatSync(){if(!CON)return;try{const l=Math.max(0,...CM.filter(m=>
   if(inc.length){ping();const x=inc[inc.length-1],here=vis&&conv(x)===CP,pv=String(x.body).replace(/\s+/g,' ').slice(0,60),who=cname(x.from_id)+(x.to_id?'':' (Team chat)');
    if(!here)toast('\u{1F4AC} '+who+': '+pv);chatNotify('New message from '+who,pv)}}
  if(await chatRefreshRB())ch=true;
+ if(await chatRefreshHB())ch=true;
  if(ch&&CW){drawList();drawMsgs()}
  chatBadge()}catch(e){}}
 function setStat(v){try{localStorage.hrd_st=v}catch(e){}
@@ -3353,8 +3371,8 @@ function chatToggle(){CW?chatClose():chatOpen()}
 function chatClose(){CW=false;const w=$('cw');w&&w.remove()}
 async function chatOpen(){if(CW)return;CW=true;try{if(window.Notification&&Notification.permission==='default')Notification.requestPermission()}catch(e){}
  const w=document.createElement('div');w.id='cw';w.className='no-print';
- w.innerHTML=`<div class="cwh"><b>Chat</b><label>My status <select id="cst" onchange="setStat(this.value)" style="font:inherit;padding:5px 9px;border:1px solid var(--ln2);border-radius:8px;background:var(--sf);color:var(--ink)"><option value="online">Online</option><option value="busy">Busy</option></select></label><button class="btn o sm" onclick="chatClose()">Close</button></div><div id="crb" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;background:#fff6dd;color:#7a5a00;font-size:13px;border-bottom:1px solid var(--ln)"><span style="flex:1">Seen / Unread tracking needs a one-time database update.</span><button class="btn o sm" onclick="copySql(CSQL)">📋 Copy SQL</button><button class="btn sm" onclick="chatReload()">I've run it — reload</button></div><div id="cwb" class="cwb"><p class="sub" style="padding:8px">Loading\u2026</p></div>`;
- document.body.appendChild(w);$('cst').value=stat();await chatLoad();if(!CW)return;const B=$('cwb');{const bn=$('crb');if(bn)bn.style.display=(CON&&!CRB&&isAdm())?'flex':'none'}
+ w.innerHTML=`<div class="cwh"><b>Chat</b><label>My status <select id="cst" onchange="setStat(this.value)" style="font:inherit;padding:5px 9px;border:1px solid var(--ln2);border-radius:8px;background:var(--sf);color:var(--ink)"><option value="online">Online</option><option value="busy">Busy</option></select></label><button class="btn o sm" onclick="chatClose()">Close</button></div><div id="crb" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;background:#fff6dd;color:#7a5a00;font-size:13px;border-bottom:1px solid var(--ln)"><span style="flex:1">One-time database update needed (Seen/Unread tracking and account-wide Clear chat).</span><button class="btn o sm" onclick="copySql(CSQL)">📋 Copy SQL</button><button class="btn sm" onclick="chatReload()">I've run it — reload</button></div><div id="cwb" class="cwb"><p class="sub" style="padding:8px">Loading\u2026</p></div>`;
+ document.body.appendChild(w);$('cst').value=stat();await chatLoad();if(!CW)return;const B=$('cwb');{const bn=$('crb');if(bn)bn.style.display=(CON&&(!CRB||!CHD)&&isAdm())?'flex':'none'}
  if(!CON){B.style.display='block';return B.innerHTML=`<p class="sub">The chat table must be created first.</p><div class="panel" style="max-width:none"><h3>Run this in Supabase \u2192 SQL Editor</h3><pre style="white-space:pre-wrap;font-size:12px;background:#f3f5f9;padding:12px;border-radius:8px;max-height:260px;overflow:auto">${esc(CSQL)}</pre>${CERR?`<p class="sub" style="font-size:12px">Last error: ${esc(CERR)}</p>`:''}<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn o" onclick="copySql(CSQL)">\u{1F4CB} Copy SQL</button><button class="btn" onclick="chatReload()">I've run it \u2014 reload</button></div></div>`}
  B.innerHTML=`<div class="chat"><div id="cl" class="cl"></div><div class="cp"><div id="ch" class="chd"></div><div id="cm" class="cms"></div><div class="cin"><textarea id="cin" rows="1" maxlength="2000" placeholder="Type a message\u2026 (Enter to send)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend()}"></textarea><button class="btn" onclick="chatSend()">Send</button></div></div></div>`;
  if(CP!=='all'&&!CU.some(u=>u.user_id===CP))CP='all';CNEW=new Set(cUnreadIds(CP));markSeen(CP);drawList();drawHead();drawMsgs();chatBadge()}
