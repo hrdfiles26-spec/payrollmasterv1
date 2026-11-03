@@ -23,5 +23,13 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "id": "./",
+  "orientation": "any",
+  "lang": "en",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "description": "HRD Files - requests, 201 files and payroll"
 }

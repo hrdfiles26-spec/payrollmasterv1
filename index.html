@@ -3292,7 +3292,10 @@ const CSL={online:['#2e9e5b','Online'],busy:['#d9962b','Busy'],offline:['#9aa5b8
 const stat=()=>{try{return localStorage.hrd_st==='busy'?'busy':'online'}catch(e){return'online'}};
 const cBase=()=>{try{const k='hrd_cb_'+ME.sub;return localStorage[k]||(localStorage[k]=new Date().toISOString())}catch(e){return new Date().toISOString()}};
 const cSeen=()=>{try{return JSON.parse(localStorage['hrd_cs_'+ME.sub]||'{}')}catch(e){return{}}};
-const cMsgs=k=>k==='all'?CM.filter(m=>!m.to_id):CM.filter(m=>m.to_id&&((m.from_id===ME.sub&&m.to_id===k)||(m.from_id===k&&m.to_id===ME.sub)));
+const cRaw=k=>k==='all'?CM.filter(m=>!m.to_id):CM.filter(m=>m.to_id&&((m.from_id===ME.sub&&m.to_id===k)||(m.from_id===k&&m.to_id===ME.sub)));
+const cClr=()=>{try{return JSON.parse(localStorage['hrd_cc_'+ME.sub]||'{}')}catch(e){return{}}};
+const cMsgs=k=>{const t=cClr()[k],r=cRaw(k);if(!t)return r;const x=Date.parse(t);return r.filter(m=>m.tmp||Date.parse(m.created_at)>x)};
+function chatClear(){const raw=cRaw(CP).filter(m=>!m.tmp);if(!cMsgs(CP).length)return toast('Nothing to clear.');if(!confirm('Clear this chat from your view?\n\nOther people keep their messages. This clears it on this browser/device only.'))return;const c=cClr();c[CP]=raw.length?raw[raw.length-1].created_at:new Date().toISOString();try{localStorage['hrd_cc_'+ME.sub]=JSON.stringify(c)}catch(e){return toast('Could not clear chat on this browser.')}markSeen(CP);CNEW=new Set();drawList();drawMsgs();chatBadge();toast('Chat cleared \u2714')}
 const cUnreadIds=k=>CRB?cMsgs(k).filter(m=>m.from_id!==ME.sub&&!m.tmp&&!(m.read_by||[]).includes(ME.sub)).map(m=>m.id):(()=>{const t=Date.parse(cSeen()[k]||cBase());return cMsgs(k).filter(m=>m.from_id!==ME.sub&&Date.parse(m.created_at)>t).map(m=>m.id)})();
 const cUnread=k=>cUnreadIds(k).length;
 function chatRead(k){const ids=cUnreadIds(k);if(!ids.length)return;const ms=CM.filter(m=>ids.includes(m.id));ms.forEach(m=>m.read_by=[...(m.read_by||[]),ME.sub]);
@@ -3325,7 +3328,7 @@ function drawList(){const el=$('cl');if(!el)return;const o={online:0,busy:1,offl
  const row=(id,n,s)=>{const c=CSL[s]||['#2e9e5b'],u=cUnread(id),lm=cMsgs(id).slice(-1)[0],pv=lm?(lm.from_id===ME.sub?'You: ':(id==='all'?cname(lm.from_id)+': ':''))+String(lm.body).replace(/\s+/g,' ').slice(0,44):(s?c[1]:'Everyone');return `<div class="cr${id===CP?' on':''}${u?' un':''}" onclick="chatPick('${id}')"><span class="cd" style="background:${c[0]}" title="${s?c[1]:''}"></span><div style="flex:1;min-width:0"><b>${esc(n)}</b><br><small class="pv"${u?' style="font-weight:700;color:var(--ink)"':''}>${esc(pv)}</small></div>${u?`<i class="cb" title="Unread messages">${u}</i>`:''}</div>`};
  el.innerHTML=row('all','Team chat','')+L.map(u=>row(u.id,u.n,u.s)).join('')}
 function drawHead(){const el=$('ch');if(!el)return;const s=CP==='all'?'':cst(CP),c=CSL[s];
- el.innerHTML=`<b style="font-size:16px">${esc(cname(CP))}</b>${s?`<span class="cd" style="background:${c[0]}"></span><small>${c[1]}</small>`:'<small>All registered users</small>'}`}
+ el.innerHTML=`<b style="font-size:16px">${esc(cname(CP))}</b>${s?`<span class="cd" style="background:${c[0]}"></span><small>${c[1]}</small>`:'<small>All registered users</small>'}<button class="btn o sm" style="margin-left:auto" onclick="chatClear()">Clear chat</button>`}
 function cSt(m){if(m.tmp)return m.fail?`<span class="cs fail">\u26A0 Failed to send \u00b7 <a onclick="chatRetry('${m.id}')">Retry</a> \u00b7 <a onclick="chatDiscard('${m.id}')">Delete</a></span>`:'<span class="cs">Sending\u2026</span>';
  if(!CRB)return'<span class="cs">\u2713 Sent</span>';
  if(m.to_id)return(m.read_by||[]).includes(m.to_id)?'<span class="cs seen">\u2713\u2713 Seen</span>':'<span class="cs">\u2713 Sent</span>';
@@ -4075,7 +4078,7 @@ function tmInDraw(){const el=$('tminb');if(!el||TM.tab!=='chk')return;
   if(TM.inErr){const setup=TM.inErr==='setup';
     el.innerHTML=box(`<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">Submitted by employees</h3><div class="sub" style="font-size:13.5px;margin:2px 0 0">${setup?'The inbox is not set up yet.':'Could not load the inbox: '+esc(TM.inErr)}</div></div><span style="margin-left:auto;display:flex;gap:8px"><button class="btn o sm" onclick="TM.inSql=true;tmInDraw()">Show setup SQL</button><button class="btn o sm" onclick="tmInLoad()">Try again</button></span></div>`);return}
   const wait=(TM.inb||[]).filter(x=>!TM.rows.some(r=>r.inId===x.id)),loaded=TM.rows.filter(r=>r.inId).length;
-  el.innerHTML=box(`<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">Submitted by employees</h3><div class="sub" style="font-size:13.5px;margin:2px 0 0">${loaded?loaded+' photo'+(loaded>1?'s':'')+' from employees in the list below. ':''}${wait.length?wait.length+' more waiting.':(loaded?'':'Nothing waiting for review.')}</div></div><span style="margin-left:auto;display:flex;gap:8px"><button class="btn o sm" onclick="tmInLoad()">Refresh</button>${isAdm()?`<button class="btn o sm" onclick="TM.fixSql=true;tmInDraw()" title="Run once if staff cannot see the photos">Photo access fix</button>`:''}${wait.length?`<button class="btn sm" onclick="tmInPull(10)">Load next ${Math.min(10,wait.length)}</button>`:''}</span></div>`)}
+  el.innerHTML=box(`<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">Submitted by employees</h3><div class="sub" style="font-size:13.5px;margin:2px 0 0">${loaded?loaded+' photo'+(loaded>1?'s':'')+' from employees in the list below. ':''}${wait.length?wait.length+' more waiting.':(loaded?'':'Nothing waiting for review.')}</div></div><span style="margin-left:auto;display:flex;gap:8px"><button class="btn o sm" onclick="tmInLoad()">Refresh</button>${wait.length?`<button class="btn sm" onclick="tmInPull(10)">Load next ${Math.min(10,wait.length)}</button>`:''}</span></div>`)}
 async function tmGetObj(path){
   const go=()=>fetch(SB_URL+'/storage/v1/object/authenticated/timemark/'+path,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SES.tok}});
   let r=await go();if(r.status===401&&await refreshTok())r=await go();
@@ -4093,7 +4096,7 @@ async function tmInPull(max){
   let ix=0;
   const dl=async()=>{while(ix<added.length){const r=added[ix++];
     try{const b=await tmGetObj(r.inPath);r.file=new File([b],r._nm||'photo.jpg',{type:b.type||'image/jpeg'});r.url=URL.createObjectURL(r.file);r.msg='Waiting...';TM.q.push(r)}
-    catch(e){r.err='Could not download the photo from the inbox ('+(e.message||e)+'). If this happens only for non-admin users, ask the admin to open Timemark Check -> Photo access fix and run the SQL.';r.busy=false}
+    catch(e){r.err='Could not download the photo from the inbox ('+(e.message||e)+'). If this happens only for non-admin users, ask the admin to check the Timemark photo access setting in Supabase.';r.busy=false}
     tmAll();tmPump()}};
   await Promise.all([dl(),dl(),dl()]);
   tmPump()}
@@ -4909,6 +4912,40 @@ function mgHistHtml(){
   ${H.length?`<div class="cx-tw"><table class="cx-t" style="min-width:0"><thead><tr><th>Period</th><th>Departments</th><th class="n">People</th><th class="n">Total</th><th>Saved</th><th></th></tr></thead><tbody>${H.map(r=>{const x=st(r),op=String(MGH.open)===String(r.id),id=esc(String(r.id));
    return`<tr><td><b>${esc(r.period||'-')}</b></td><td>${esc(r.title||'')} <small style="color:var(--mu)">(${x.d})</small></td><td class="n">${x.p}</td><td class="n">${mgMoney(x.t)}</td><td>${esc(dt(r.updated_at||r.created_at))}${r.updated_by?'<small style="display:block;color:var(--mu)">'+esc(r.updated_by)+'</small>':''}</td><td class="n" style="white-space:nowrap"><button class="btn sm" onclick="mgHOpen('${id}')">${op?'Close':'Open'}</button> <button class="btn o sm" onclick="mgHExport('${id}')">Export</button> <button class="btn dl sm" onclick="mgHDel('${id}')">Delete</button></td></tr>${op?`<tr><td colspan="6" style="padding:0 0 8px">${detail(r)}</td></tr>`:''}`}).join('')}</tbody></table></div>`:'<div class="mg-empty">Nothing saved yet. Upload the payroll files, then press “Save to History” (it is also saved automatically after you export).</div>'}</div>`}
 
+</script>
+<script>
+(function(){
+  var dp=null,ua=navigator.userAgent||'';
+  var standalone=function(){return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true};
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e});
+  window.addEventListener('appinstalled',function(){dp=null;var r=document.getElementById('hrdInst');if(r)r.remove()});
+  function steps(){
+    var iOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),
+        and=/Android/i.test(ua),inApp=/FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|Viber|Snapchat|MicroMessenger|; wv\)/i.test(ua),
+        saf=iOS&&!/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua),sam=/SamsungBrowser/i.test(ua),ff=/Firefox/i.test(ua)&&!iOS;
+    if(inApp)return['This is an in-app browser, which cannot install apps.','Tap the menu (\u22EE or \u2026) and choose \u201COpen in browser\u201D / \u201COpen in Chrome\u201D (Safari on iPhone/iPad).','Then come back to this page and tap Install again.'];
+    if(iOS&&!saf)return['On iPhone/iPad, apps can only be installed from Safari.','Open this same link in Safari.','Tap the Share icon (square with an arrow), then \u201CAdd to Home Screen\u201D, then \u201CAdd\u201D.'];
+    if(iOS)return['Tap the Share icon (square with an arrow up) in Safari.','Scroll down and tap \u201CAdd to Home Screen\u201D.','Tap \u201CAdd\u201D. HRD appears on your home screen.'];
+    if(sam)return['Tap the menu (\u2630) at the bottom right.','Tap \u201CAdd page to\u201D, then \u201CHome screen\u201D (or \u201CInstall app\u201D if shown).','Tap \u201CAdd\u201D.'];
+    if(ff)return['Tap the menu (\u22EE).','Tap \u201CInstall\u201D (or \u201CAdd to Home screen\u201D).','Confirm. For the best result, use Chrome or Edge instead.'];
+    if(and)return['Tap the menu (\u22EE) at the top right of Chrome.','Tap \u201CInstall app\u201D (or \u201CAdd to Home screen\u201D).','Tap \u201CInstall\u201D. HRD appears on your home screen.'];
+    return['In Chrome or Edge, click the install icon at the right end of the address bar,','or open the menu (\u22EE) and choose \u201CInstall HRD\u201D / \u201CApps\u201D > \u201CInstall this site as an app\u201D.','Then click Install.']}
+  function help(){
+    var o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:99999;background:#0009;display:flex;align-items:center;justify-content:center;padding:16px';
+    var L=steps().map(function(t,i){return '<li style="margin:0 0 8px">'+t+'</li>'}).join('');
+    o.innerHTML='<div style="background:#fff;color:#1a2233;max-width:380px;width:100%;border-radius:16px;padding:22px 22px 18px;box-shadow:0 20px 50px #0006;font:14.5px/1.5 \'Segoe UI\',Calibri,Arial,sans-serif"><div style="font:600 19px Georgia,serif;color:#12305c;margin:0 0 10px">Install HRD</div><ol style="margin:0 0 14px;padding-left:20px">'+L+'</ol><button style="width:100%;height:42px;border:0;border-radius:10px;background:#12305c;color:#fff;font:600 14px inherit;cursor:pointer">Got it</button></div>';
+    o.onclick=function(e){if(e.target===o||e.target.tagName==='BUTTON')o.remove()};document.body.appendChild(o)}
+  function click(){
+    if(dp){var p=dp;dp=null;p.prompt();if(p.userChoice)p.userChoice.catch(function(){});return}
+    help()}
+  function add(){
+    if(standalone()||document.getElementById('hrdInst'))return;
+    var card=document.querySelector('#login .lc');if(!card)return;
+    var d=document.createElement('div');d.id='hrdInst';d.style.cssText='text-align:center;margin-top:18px';
+    d.innerHTML='<button type="button" class="lk" style="font-size:13.5px">\uD83D\uDCF2 Install this app on your phone or tablet</button>';
+    d.firstChild.onclick=click;card.appendChild(d)}
+  window.addEventListener('load',function(){add();setTimeout(add,1500)});
+})();
 </script>
 <script>
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){
