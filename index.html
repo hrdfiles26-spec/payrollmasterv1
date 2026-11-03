@@ -2044,26 +2044,27 @@ async function atm201Data(){
  const st=Array.isArray(STF)?STF:null,ph=Array.isArray(PH)?PH:null;
  if(st&&ph)return{st,ph};
  if(ATMC&&Date.now()-ATMC.t<60000&&!st&&!ph)return ATMC;
- const S=st||(await api('/rest/v1/hrd_pay_staff?select=id,name,dept&order=name')),H=ph||(await api('/rest/v1/hrd_payroll?select=id,label,data,created_at&order=created_at.desc&limit=500'));
+ const S=st||(await api('/rest/v1/hrd_pay_staff?select=id,name,dept,rate&order=name')),H=ph||(await api('/rest/v1/hrd_payroll?select=id,label,data,created_at&order=created_at.desc&limit=500'));
  ATMC={t:Date.now(),st:S,ph:H};return ATMC}
 function atm201Calc(e,D){
  const k=tmN(e.name);let L=D.st.filter(s=>tmN(s.name)===k);
  if(!L.length){const t=k.split(' ');const c=D.st.filter(s=>{const u=tmN(s.name).split(' ');return u[0]===t[0]&&u[1]===t[1]});if(c.length===1)L=c}
- if(!L.length)return{linked:false,cur:'',hist:[]};
+ if(!L.length)return{linked:false,cur:'',hist:[],rate:null};
  const ids=L.map(s=>s.id);let seed='';
  try{const x=PIDX[L[0].dept+'|'+pNm(L[0].name)];if(x&&x[2])seed=String(x[2]).trim()}catch(_){}
  const runs=(D.ph||[]).filter(p=>p&&p.data&&p.data.rows).sort((a,b)=>String(a.data.to||a.created_at||'').localeCompare(String(b.data.to||b.created_at||''))||String(a.created_at||'').localeCompare(String(b.created_at||'')));
  let cur=seed;const hist=[];
  runs.forEach(p=>{let a='';for(const id of ids){const r=p.data.rows[id];if(r&&r.acct!=null&&String(r.acct).trim()){a=String(r.acct).trim();break}}
   if(a&&a!==cur){hist.push({from:cur,to:a,period:p.data.to||'',saved:p.created_at||'',label:p.label||p.data.title||''});cur=a}});
- return{linked:true,cur,hist}}
+ return{linked:true,cur,hist,rate:L[0].rate,grs:(((PCFG||{})[L[0].dept])||{}).m==='g'}}
 const atm201D=t=>{if(!t)return '';const d=new Date(/^\d{4}-\d{2}-\d{2}$/.test(t)?t+'T00:00:00':t);return isNaN(d)?String(t):d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})};
 async function atm201Draw(e){
  const box=$('atm201');if(!box||!e||!e.name)return;
  try{
   const R=atm201Calc(e,await atm201Data());if(!$('atm201'))return;
   const rows=R.hist.slice().reverse().map(h=>`<div style="padding:7px 0;border-top:1px solid var(--ln);font-size:13px;line-height:1.5"><b>${esc(atm201D(h.saved||h.period))}</b> — ${h.from?'Changed from <span style="font-family:Consolas,monospace">'+esc(h.from)+'</span> to ':'Account set to '}<b style="font-family:Consolas,monospace">${esc(h.to)}</b><br><small style="color:var(--mu)">Payroll${h.label?': '+esc(h.label):''}${h.period?' · period ending '+esc(atm201D(h.period)):''}</small></div>`).join('');
-  box.innerHTML=`<div style="border:1px solid var(--ln);border-radius:12px;padding:14px 16px;margin:14px 0;background:var(--sf2)"><div style="font-weight:700;color:var(--h);margin-bottom:6px">ATM Account <small style="font-weight:400;color:var(--mu)">(automatic from Payroll)</small></div>${R.linked?(R.cur?`<div style="font-size:18px;font-family:Consolas,monospace;font-weight:700;letter-spacing:.5px">${esc(R.cur)}</div>`:'<div class="sub" style="margin:0">No ATM account in Payroll yet.</div>'):'<div class="sub" style="margin:0">Not linked to a Payroll employee (name not found in Payroll staff).</div>'}<p class="sub" style="margin:6px 0 0;font-size:12.5px">Read-only. To change it, edit the ATM Account in Payroll — it updates here once the payroll is saved.</p>${rows?`<div style="margin-top:10px"><b style="font-size:13px">Remarks — account changes</b>${rows}</div>`:''}</div>`
+  const hasR=R.linked&&R.rate!=null&&+R.rate>0,rf=$('f_x_rate');if(hasR&&rf){rf.value=String(+R.rate);rf.readOnly=true;rf.title='Automatic from Payroll';rf.style.background='var(--sf2)'}
+  box.innerHTML=`<div style="border:1px solid var(--ln);border-radius:12px;padding:14px 16px;margin:14px 0;background:var(--sf2)">${R.linked?`<div style="font-weight:700;color:var(--h);margin-bottom:6px">${R.grs?'Gross Salary':'Rate'} <small style="font-weight:400;color:var(--mu)">(automatic from Payroll)</small></div><div style="font-size:18px;font-weight:700;margin-bottom:14px">${hasR?esc(fm(R.rate))+(R.grs?'':' <small style="font-weight:400;color:var(--mu)">per day</small>'):'<span class="sub" style="font-size:14px;font-weight:400">No rate in Payroll yet.</span>'}</div>`:''}<div style="font-weight:700;color:var(--h);margin-bottom:6px">ATM Account <small style="font-weight:400;color:var(--mu)">(automatic from Payroll)</small></div>${R.linked?(R.cur?`<div style="font-size:18px;font-family:Consolas,monospace;font-weight:700;letter-spacing:.5px">${esc(R.cur)}</div>`:'<div class="sub" style="margin:0">No ATM account in Payroll yet.</div>'):'<div class="sub" style="margin:0">Not linked to a Payroll employee (name not found in Payroll staff).</div>'}<p class="sub" style="margin:6px 0 0;font-size:12.5px">Read-only. Rate and ATM account are edited in Payroll; they update here automatically (the account history appears once the payroll is saved).</p>${rows?`<div style="margin-top:10px"><b style="font-size:13px">Remarks — account changes</b>${rows}</div>`:''}</div>`
  }catch(x){const b=$('atm201');if(b)b.innerHTML='<div class="sub" style="margin:14px 0">ATM Account: payroll data unavailable right now.</div>'}}
 function formE(i){EV='form';ei=i;const e=i==null?{docs:[]}:E[i];const P=splitN(e.notes);
  $('main').innerHTML=`<div class="bar" style="max-width:800px"><button class="btn o" onclick="drawE()">← Back</button><h2>${i==null?'Add Employee':esc(e.name)}</h2>${i!=null?`<span class="st" style="${SC[stage(e)]}">${lb(stage(e))}</span>`:''}</div>
