@@ -3187,16 +3187,20 @@ async function pMailGo(ids){if(PMS)return;PMS=true;
  try{PMB=await pMailBook()}catch(e){}
  if(!ids)ids=pMailRows().filter(r=>r.ok&&!r.sentSame).map(r=>r.x.s.id);
  pMailDraw();let ok=0,bad=0;const L=pSlipList(),per=pPeriod();
- for(const id of ids){const x=L.find(z=>z.s.id===id);if(!x)continue;
+ /* sends several payslips at the same time (4 at once) instead of one after another; saves are queued so they never overwrite each other */
+ let SQ=Promise.resolve();const saveQ=()=>(SQ=SQ.then(pMailSave,pMailSave));
+ async function one(id){const x=L.find(z=>z.s.id===id);if(!x)return;
   const to=pMailFind(PMB,x.s).email,at=new Date().toISOString();let rec;
-  if(!EMRX.test(to)){pMl()[id]={to,st:'fail',at,net:x.v.net,err:to?'Invalid email address in 201 Files':'No email address in 201 Files'};bad++;await pMailSave();pMailDraw();continue}
+  if(!EMRX.test(to)){pMl()[id]={to,st:'fail',at,net:x.v.net,err:to?'Invalid email address in 201 Files':'No email address in 201 Files'};bad++;saveQ();pMailDraw();return}
   PMT[id]='sending';pMailDraw();
   try{const M=pSlipModel(x);let F=null;try{F=pSlipFiles(M)}catch(e){F=null}
    await Promise.race([api('/functions/v1/send-payslip',{method:'POST',_noQueue:true,_quiet:true,body:JSON.stringify({to,name:x.s.name,subject:'Payslip – '+per+' – Rayanton Farms & Livestock Corp.',html:F?pSlipMailHtmlImg(M):pSlipMailHtml(M),text:pSlipMailText(M),png:F&&F.png,filename:'Payslip - '+String(x.s.name).replace(/[\\/:*?"<>|,]+/g,'').trim()+' - '+per.replace(/[\\/:*?"<>|,]+/g,'')})}),
-    new Promise((_,rj)=>setTimeout(()=>rj(new Error('Timed out. Check your internet, then press Resend.')),45000))]);
+    new Promise((_,rj)=>setTimeout(()=>rj(new Error('Timed out. Check your internet, then press Resend.')),25000))]);
    rec={to,st:'sent',at,net:x.v.net};ok++}
   catch(e){rec={to,st:'fail',at,net:x.v.net,err:pMailErr(e)};bad++}
-  delete PMT[id];pMl()[id]=rec;await pMailSave();pMailDraw();pMkBadges()}
+  delete PMT[id];pMl()[id]=rec;saveQ();pMailDraw();pMkBadges()}
+ const Q=ids.slice();await Promise.all(Array.from({length:Math.min(4,Q.length)},async()=>{while(Q.length){await one(Q.shift())}}));
+ await saveQ();
  PMS=false;pMailDraw();pMkBadges();
  if(ok||bad){logAct('Emailed payslips','Payroll',PF+' · '+per+' · '+ok+' sent, '+bad+' failed');toast(bad?ok+' sent, '+bad+' failed. Press Resend on the failed ones.':ok+' payslip'+(ok===1?'':'s')+' sent ✔')}}
 
