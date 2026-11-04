@@ -1101,7 +1101,7 @@ body:has(#app[style*="display:none"]) #fx,body:has(#app[style*="display: none"])
 @media(prefers-reduced-motion:reduce){.fx-p{display:none}#fx-lv .fx-b{animation:none}}
 @media print{#fx,#fx-lv{display:none!important}}
 </style>
-<script>(function(){var L=[["🎆","Bagong Taon"],["💗","Buwan ng Pag-ibig"],["💜","Buwan ng Kababaihan"],["☀️","Tag-araw"],["🌸","Flores de Mayo"],["⭐","Araw ng Kalayaan"],["🥗","Buwan ng Nutrisyon"],["📚","Buwan ng Wika"],["🏮","Simula ng Ber Months"],["🎃","Halloween"],["🕯️","Undas"],["🎄","Pasko"]];var m;
+<script>(function(){var L=[["🎆","New Year"],["💗","Month of Love"],["💜","Women's Month"],["☀️","Summer"],["🌸","Flowers of May"],["⭐","Independence Day"],["🥗","Nutrition Month"],["📚","National Language Month"],["🏮","Ber Months Begin"],["🎃","Halloween"],["🕯️","All Saints' Day"],["🎄","Christmas"]];var m;
 try{m=+new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Manila',month:'numeric'}).format(new Date())}catch(e){m=new Date().getMonth()+1}
 var q;try{q=+new URLSearchParams(location.search).get('season')}catch(e){}
 if(q>=1&&q<=12)m=q;
@@ -1693,6 +1693,9 @@ function actWho(a){const s=String(a.actor||'?'),m=s.match(/^(.*?)\s*<([^>]+)>\s*
 function logAct(action,target,detail){api('/rest/v1/hrd_activity',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({actor:(((MYA&&MYA.full_name)||(ME.user_metadata||{}).full_name||'').trim()?((MYA&&MYA.full_name)||(ME.user_metadata||{}).full_name).trim()+' <'+(ME.email||'?')+'>':(ME.email||'?')),action,target:target||null,detail:detail||null})}).catch(()=>{})}
 const isAdm=()=>SUPER||(MYA&&MYA.role==='admin');
 async function actPoll(){try{ACT=await api('/rest/v1/hrd_activity?select=*&order=at.desc&limit=200')}catch(e){actOn=false;if(PG==='act')drawAct();return}actOn=true;
+ /* v531: Activity keeps only the last 7 days. Older entries are hidden for everyone and permanently deleted automatically (done by an Admin session, at most every 6 hours) */
+ {const cut=new Date(Date.now()-7*864e5);ACT=ACT.filter(a=>new Date(a.at)>=cut);
+  if(isAdm()&&(!window._actPg||Date.now()-window._actPg>216e5)){window._actPg=Date.now();api('/rest/v1/hrd_activity?at=lt.'+encodeURIComponent(cut.toISOString()),{method:'DELETE',headers:{Prefer:'return=minimal'}}).catch(()=>{})}}
  if(!isAdm())ACT=ACT.filter(a=>actKind(a)!=='acc');
  let seen=actSeen();if(!seen){seen=new Date().toISOString();setSeen(seen)}
  let n=ACT.filter(a=>a.at>seen&&actWho(a).em!==ME.email).length;
@@ -1703,7 +1706,7 @@ async function acts(){$('main').innerHTML='<h1>Activity</h1><p class="sub">Loadi
 function drawAct(){
  if(!actOn)return $('main').innerHTML=`<h1>Activity</h1><p class="sub">The activity table must be created first.</p><div class="panel" style="max-width:none"><h3>Run this in Supabase → SQL Editor</h3><pre style="white-space:pre-wrap;font-size:12px;background:#f3f5f9;padding:12px;border-radius:8px">${esc(ASQL)}</pre><button class="btn" onclick="acts()">I've run it — reload</button></div>`;
  if($('actlist'))return actList();
- $('main').innerHTML=`<div style="max-width:920px"><h1>Activity</h1><p class="sub" style="margin-bottom:20px">A record of everything done in HRD Files: who, what and when.</p>
+ $('main').innerHTML=`<div style="max-width:920px"><h1>Activity</h1><p class="sub" style="margin-bottom:20px">A record of everything done in HRD Files: who, what and when. History is kept for 7 days; older entries are cleared automatically.</p>
  <div class="ah"><div class="sbox"><span>⌕</span><input id="actq" placeholder="Search activity, name or email" value="${esc(AF.q)}" oninput="AF.q=this.value;actList()"></div><small id="actn" style="color:#66738a"></small>${isAdm()?'<button class="btn dl sm" style="margin-left:auto" onclick="actClear()">Clear history</button>':''}</div>
  <div class="tabs" id="acttabs" style="margin-bottom:6px"></div><div id="actlist"></div></div>`;actList()}
 let AF={q:'',t:'all'};
@@ -2119,7 +2122,7 @@ function svcLen(e){const s=e.hired||e.training_start||e.probi_start;if(!s)return
 function empRecHtml(e){
   const P=splitN(e.notes).x,PV=probiView(e),F=d=>d?atm201D(d):'',X=v=>esc(String(v==null?'':v).toLocaleUpperCase());
   const pos=[e.position,nd(e.dept)].filter(Boolean).join(' / ');
-  const byD=(a,b)=>String(a.date||'').localeCompare(String(b.date||'')),memos=(e.docs||[]).filter(d=>String(d.type||'').toLowerCase()==='memo').slice().sort(byD),semi=(e.docs||[]).filter(d=>d.rec&&d.type==='Seminar').slice().sort(byD);
+  const byD=(a,b)=>String(a.date||'').localeCompare(String(b.date||'')),memos=(e.docs||[]).filter(d=>/^\s*memo/i.test(String(d.type||''))).slice().sort(byD),semi=(e.docs||[]).filter(d=>/^\s*(seminar|training)/i.test(String(d.type||''))).slice().sort(byD);
   const mrows=Math.max(6,Math.min(memos.length,14));
   const cell=(l,v,wl,wv)=>l?`<td class="l" style="width:${wl}%">${l}</td><td class="u" style="width:${wv}%">${X(v)}</td>`:`<td style="width:${wl+wv}%"></td>`;
   const row=(l1,v1,l2,v2,h)=>`<table class="t"><tr>${h?`<td colspan="2" style="width:50%"></td><td style="width:4%"></td><td colspan="2" class="c">${h}</td>`:`${cell(l1,v1,l1&&l1.length>14?21:14,l1&&l1.length>14?29:36)}<td style="width:4%"></td>${cell(l2,v2,14,36)}`}</tr></table>`;
@@ -2178,6 +2181,38 @@ function dateTypable(root){
   d.addEventListener('change',()=>{t.value=us(VP.get.call(d));t.style.borderColor=''});
   b.onclick=()=>{try{d.showPicker()}catch(x){d.style.pointerEvents='auto';d.focus();d.click()}};
  })}
+/* v533: Print / Export (Word) the Memo & Seminar history summary of one employee */
+function empHistHtml(e){const X=v=>esc(String(v==null?'':v).toLocaleUpperCase()),F=d=>d?atm201D(d):'',dt=d=>d.dd||d.date||'',
+  asc=(a,b)=>String(dt(a)).localeCompare(String(dt(b))),
+  M=(e.docs||[]).filter(d=>/^\s*memo/i.test(String(d.type||''))).slice().sort(asc),S=(e.docs||[]).filter(d=>/^\s*(seminar|training)/i.test(String(d.type||''))).slice().sort(asc);
+  const tb=(h,rows,cols)=>`<table class="s"><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.join('')||`<tr><td colspan="${cols}" class="e">NONE</td></tr>`}</tbody></table>`;
+  const mr=M.map((d,k)=>`<tr><td class="n">${k+1}</td><td class="d">${X(F(dt(d)))}</td><td>${X(d.title||d.name||'')}</td><td>${X(d.penalty||'')}</td></tr>`),
+        sr=S.map((d,k)=>`<tr><td class="n">${k+1}</td><td class="d">${X(F(dt(d)))}</td><td>${X(d.title||d.name||'')}</td></tr>`);
+  const pos=[e.position,nd(e.dept)].filter(Boolean).join(' / ');
+  return `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>Memo and Seminar Summary - ${X(e.name)}</title>
+<style>@page{size:8.5in 13in;margin:.4in .5in}@page Section1{size:8.5in 13in;margin:.4in .5in;mso-page-orientation:portrait}div.Section1{page:Section1}*{box-sizing:border-box}body{font-family:Calibri,Arial,sans-serif;font-size:10.5pt;color:#000;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.title{border:2px solid #000;background:#bcd2ee;text-align:center;font-weight:bold;font-size:17pt;padding:4px 0;margin:0 0 10px}
+.i{width:100%;border-collapse:collapse;margin:0 0 4px}.i td{padding:2px 0;font-size:10.5pt}.i .l{width:17%;font-weight:bold}.i .v{border-bottom:1px solid #000;font-weight:600}
+.bar{border:1px solid #444;text-align:center;font-weight:bold;font-size:11pt;padding:4px 0;margin:12px 0 6px}.b2{background:#fde4d9;color:#e00000}.b3{background:#bcd2ee}
+.s{width:100%;border-collapse:collapse}.s th,.s td{border:1px solid #000;padding:4px 6px;font-size:10pt;vertical-align:top}.s th{background:#e6e6e6;text-transform:uppercase;font-size:9.5pt}.s .n{width:5%;text-align:center}.s .d{width:16%;white-space:nowrap}.s .e{text-align:center;color:#555}
+.t{margin:10px 0 0;font-weight:bold}</style></head><body><div class="Section1">
+<div class="title">MEMO &amp; SEMINAR SUMMARY</div>
+<table class="i"><tr><td class="l">NAME:</td><td class="v" style="width:48%">${X(e.name)}</td><td style="width:3%"></td><td class="l">DATE HIRED:</td><td class="v">${X(F(e.hired))}</td></tr>
+<tr><td class="l">POSITION / DEPT:</td><td class="v">${X(pos)}</td><td></td><td class="l">AS OF:</td><td class="v">${X(F(new Date().toLocaleDateString('en-CA')))}</td></tr></table>
+<div class="bar b2">MEMOS (${M.length})</div>${tb(['No.','Date','Violation','Penalty'],mr,4)}
+<div class="bar b3">SEMINARS ATTENDED (${S.length})</div>${tb(['No.','Date','Seminar'],sr,3)}
+<p class="t">TOTAL MEMOS: ${M.length} &nbsp;&nbsp;|&nbsp;&nbsp; TOTAL SEMINARS: ${S.length}</p>
+</div></body></html>`}
+function empHistPrint(){const e=ei==null?null:E[ei];if(!e)return toast('Save the employee first.');
+  const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);
+  const d=f.contentWindow.document;d.open();d.write(empHistHtml(e));d.close();
+  setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(x){toast('Could not open the print dialog.')}setTimeout(()=>f.remove(),60000)},400);
+  try{logAct('Printed Memo/Seminar summary','201 Files',e.name)}catch(x){}}
+function empHistWord(){const e=ei==null?null:E[ei];if(!e)return toast('Save the employee first.');
+  const b=new Blob(['\ufeff',empHistHtml(e)],{type:'application/msword'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='Memo-Seminar Summary - '+String(e.name).replace(/[\\/:*?"<>|]/g,'')+'.doc';document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast('Exported \u2714');
+  try{logAct('Exported Memo/Seminar summary','201 Files',e.name)}catch(x){}}
 function empRecPrint(){const e=ei==null?null:E[ei];if(!e)return toast('Please click Save first before you can Print or Export this record.');
   const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);
   const d=f.contentWindow.document;d.open();d.write(empRecHtml(e));d.close();
@@ -2225,40 +2260,46 @@ function empDocParse(txt,force){
     r.title=kv(/^(?:title|seminar|training|workshop|topic)\s*[:\-\u2013]\s*(.+)$/i)||(lines.find(l=>/(seminar|training|workshop|webinar)/i.test(l)&&!/certif/i.test(l))||'')||(lines.find(l=>/[a-z]{4,}/i.test(l)&&l.length>8)||'');
   }
   r.title=r.title.slice(0,180);r.penalty=r.penalty.slice(0,180);return r}
-function empHistType(){const t=$('h_t')&&$('h_t').value,l=$('lb_pn');if(l)l.style.display=t==='Memo'?'':'none'}
+function empHistType(){const t=$('h_t')&&$('h_t').value,l=$('lb_pn'),lt=$('lb_ti');if(l)l.style.display=t==='Memo'?'':'none';if(lt&&lt.firstChild)lt.firstChild.textContent=t==='Seminar'?'Seminar title':'Violation'}
 let HDOC='';
-async function empHistUpload(){const f=$('h_f')&&$('h_f').files[0],msg=$('h_msg'),b=$('h_rb');
-  if(!f)return toast('Choose a photo of the memo or seminar first.');
-  if(!$('h_d').value)$('h_d').value=tmLD(new Date());
-  msg.textContent='Reading the photo... (the first time can take a little while)';b.disabled=true;let url='',ok=false;
-  try{url=URL.createObjectURL(f);const img=await tmImg(url),w=await tmLoadOcr();
-    try{await w.setParameters({tessedit_pageseg_mode:'3',tessedit_char_whitelist:''})}catch(_){}
-    const o=await w.recognize(tmCrop(img,0,2000,1)),p=empDocParse((o&&o.data&&o.data.text)||'',$('h_t').value);
-    HDOC=p.date||'';$('h_ti').value=p.title;$('h_pn').value=p.penalty;
-    if(p.title)ok=true;
-    else{$('h_man').style.display='';empHistType();msg.textContent='Could not read the details from this photo (handwriting is hard to read). Type them below, then press Save to history. The photo itself is not saved.'}}
-  catch(x){$('h_man').style.display='';empHistType();msg.textContent='Could not read the photo: '+(x.message||x)+'. You can type the details below.'}
-  finally{if(url)URL.revokeObjectURL(url);b.disabled=false}
-  if(ok)await empHistSave()}
-async function empHistSave(){const e=ei==null?null:E[ei];if(!e)return;
-  const t=$('h_t').value,ti=$('h_ti').value.trim(),d=$('h_d').value||tmLD(new Date()),pn=$('h_pn').value.trim();
-  if(!ti)return toast('Enter the '+(t==='Seminar'?'seminar title':'violation')+'.');
-  const docs=[...(e.docs||[]),{rec:1,type:t,date:d,dd:HDOC||'',title:ti,penalty:t==='Memo'?pn:'',by:ME.email||'',at:new Date().toISOString()}];
-  try{await api('/rest/v1/hrd_employees?id=eq.'+e.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({docs})});e.docs=docs;HDOC='';
-    logAct('Added '+t+' to history','201 Files',e.name+' - '+ti);toast('Saved to history \u2714');const y=scrollY;formE(ei);scrollTo(0,y)}catch(x){alert(x.message)}}
+/* v532: ONE box for Memo / Seminar. Pick the Type, fill in (or let the photo be read), Upload. It is saved in the employee record, listed separately under Memos and Seminars, and goes to Print / Export. */
+async function empHistUpload(){const e=ei==null?null:E[ei];if(!e)return toast('Save the employee first.');
+  const f=$('h_f').files[0],t=$('h_t').value,msg=$('h_msg'),b=$('h_rb');let ti=$('h_ti').value.trim(),pn=$('h_pn').value.trim();
+  if(!f&&!ti)return toast('Choose a file/photo, or type the '+(t==='Seminar'?'seminar title':'violation')+'.');
+  if(f&&f.size>10485760&&!(f.type&&f.type.startsWith('image/')))return toast('PDF/Word/other files: max 10MB. Photos are automatically compressed to 100 KB before upload.');
+  b.disabled=true;msg.textContent='';
+  try{
+    if(!ti&&f&&f.type&&f.type.startsWith('image/')){msg.textContent='Reading the photo... (the first time can take a little while)';let url='';
+      try{url=URL.createObjectURL(f);const img=await tmImg(url),w=await tmLoadOcr();try{await w.setParameters({tessedit_pageseg_mode:'3',tessedit_char_whitelist:''})}catch(_){}
+        const o=await w.recognize(tmCrop(img,0,2000,1)),p=empDocParse((o&&o.data&&o.data.text)||'',t);
+        if(p.title){ti=p.title.toUpperCase();$('h_ti').value=ti}if(t==='Memo'&&p.penalty&&!pn){pn=p.penalty.toUpperCase();$('h_pn').value=pn}if(p.date)$('f_h_d').value=p.date}catch(x){}
+      finally{if(url)URL.revokeObjectURL(url)}}
+    if(!ti){msg.textContent='Could not read the details from the photo. Type the '+(t==='Seminar'?'seminar title':'violation')+' above, then press Upload again.';return}
+    msg.textContent='Saving...';
+    let path='',name='';if(f){path=await up(e.id,f);name=f.name}
+    const d=$('f_h_d').value||tmLD(new Date()),rec={rec:1,type:t,date:d,dd:'',title:ti,penalty:t==='Memo'?pn:'',by:ME.email||'',at:new Date().toISOString()};if(path){rec.path=path;rec.name=name}
+    const docs=[...(e.docs||[]),rec];
+    await api('/rest/v1/hrd_employees?id=eq.'+e.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({docs})});e.docs=docs;
+    logAct('Added '+t,'201 Files',e.name+' - '+ti);toast('Saved \u2714');const y=scrollY;formE(ei);scrollTo(0,y)}
+  catch(x){msg.textContent='';alert(x.message||x)}
+  finally{b.disabled=false}}
 async function delH(k){const e=E[ei],d=e.docs[k];if(!d||!confirm('Delete this '+d.type+' from the history of '+e.name+'?'))return;
   const docs=e.docs.filter((_,j)=>j!==k);
   try{await api('/rest/v1/hrd_employees?id=eq.'+e.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({docs})});e.docs=docs;
     logAct('Deleted '+d.type+' from history','201 Files',e.name+' - '+d.title);const y=scrollY;formE(ei);scrollTo(0,y)}catch(x){alert(x.message)}}
-const docsP=e=>{const D=(e.docs||[]).map((d,k)=>[d,k]),files=D.filter(([d])=>!d.rec),hist=D.filter(([d])=>d.rec).sort((a,b)=>String(b[0].date||'').localeCompare(String(a[0].date||'')));
-  return `<div class="panel"><h3>Memo &amp; Seminar History</h3><p class="sub" style="margin:0 0 10px;font-size:13px">Upload a photo of a memo or seminar certificate: the system reads the details from it, and only a short text summary (date, violation, penalty) is saved here. The photo itself is not stored.</p>
-${hist.map(([d,k])=>`<div class="rq" style="padding:8px 0"><div class="rt"><b>${esc(d.type)}: ${esc(d.title)}</b><small>${d.date?'Uploaded '+esc(atm201D(d.date)):''}${d.dd&&d.dd!==d.date?' \u00b7 Dated '+esc(atm201D(d.dd)):''}${d.penalty?' \u00b7 Penalty: '+esc(d.penalty):''}</small></div><button class="btn dl sm" onclick="delH(${k})">Delete</button></div>`).join('')||'<p class="empty" style="padding:10px">No memo or seminar yet.</p>'}
-<div class="pr" style="margin-top:14px"><label>Type<select id="h_t" class="fi" onchange="empHistType()"><option>Memo</option><option>Seminar</option></select></label><label>Date uploaded<input id="h_d" type="date" class="fi" value="${tmLD(new Date())}"></label></div>
-<label style="display:block;margin-top:12px">Photo (to read the details) <small style="display:block;color:#66738a;margin:3px 0">The photo is only read, not saved.</small><input id="h_f" type="file" accept="image/*" class="fi"></label>
-<div style="margin-top:12px"><button class="btn" id="h_rb" onclick="empHistUpload()">Upload</button> <button class="btn o sm" type="button" onclick="$('h_man').style.display='';empHistType()">Type it myself</button> <span id="h_msg" class="sub" style="font-size:13px"></span></div>
-<div id="h_man" style="display:none"><div class="pr" style="margin-top:12px"><label>Violation / Seminar title<input id="h_ti" class="fi"></label><label id="lb_pn">Penalty / Punishment<input id="h_pn" class="fi"></label></div><button class="btn" style="margin-top:10px" onclick="empHistSave()">Save to history</button></div></div>
-<div class="panel"><h3>Memos &amp; Documents</h3>${files.map(([d,k])=>`<div class="rq" style="padding:8px 0"><div class="rt"><b>${esc(d.type)}: ${esc(d.title)}</b><small>${esc(d.date||'')} · ${esc(d.name)}</small></div><button class="btn o sm" onclick="openD(${k})">Open</button><button class="btn dl sm" onclick="delD(${k})">Delete</button></div>`).join('')||'<p class="empty" style="padding:10px">No files yet.</p>'}
-<div class="pr" style="margin-top:14px"><label>Type<select id="d_t" class="fi"><option>Memo</option><option>Contract</option><option>Government ID</option><option>Medical</option><option>Other</option></select></label><label>Title<input id="d_ti" class="fi"></label><label>Date<input id="d_d" type="date" class="fi"></label><label>File <small style="display:block;color:#66738a;margin:3px 0">Photos/images: maximum 100 KB after automatic compression. PDF/Word/other files: maximum 10 MB.</small><input id="d_f" type="file" class="fi"></label></div><button class="btn" onclick="addD()">Upload</button></div>`};
+const docsP=e=>{const D=(e.docs||[]).map((d,k)=>[d,k]),isM=d=>/^\s*memo/i.test(String(d.type||'')),isS=d=>/^\s*(seminar|training)/i.test(String(d.type||'')),
+  byd=(a,b)=>String(b[0].dd||b[0].date||'').localeCompare(String(a[0].dd||a[0].date||'')),
+  M=D.filter(([d])=>isM(d)).sort(byd),S=D.filter(([d])=>isS(d)).sort(byd),O=D.filter(([d])=>!isM(d)&&!isS(d));
+  const item=([d,k])=>`<div class="rq" style="padding:8px 0"><div class="rt"><b>${esc(String(d.title||d.name||'(no title)').toUpperCase())}</b><small>${d.dd||d.date?esc(atm201D(d.dd||d.date)):''}${d.penalty?' \u00b7 Penalty: '+esc(String(d.penalty).toUpperCase()):''}${d.path&&d.name?' \u00b7 '+esc(d.name):''}</small></div>${d.path?`<button class="btn o sm" onclick="openD(${k})">Open</button>`:''}<button class="btn dl sm" onclick="${d.path?`delD(${k})`:`delH(${k})`}">Delete</button></div>`;
+  const grp=(t,L,em)=>`<h4 style="margin:14px 0 4px;font-size:14px;color:var(--h)">${t} <small style="color:#66738a;font-weight:400">(${L.length})</small></h4>${L.map(item).join('')||`<p class="empty" style="padding:6px 0;margin:0">${em}</p>`}`;
+  return `<div class="panel"><h3>Memo / Seminar</h3><p class="sub" style="margin:0 0 6px;font-size:13px">Choose the Type, then upload. It is saved in this employee's record, listed separately below, and included in Print / Export.</p>
+<div style="margin:8px 0 0"><button class="btn o sm" type="button" onclick="empHistPrint()">Print Summary</button> <button class="btn o sm" type="button" onclick="empHistWord()">Export Summary (Word)</button></div>
+${grp('Memos',M,'No memo yet.')}${grp('Seminars',S,'No seminar yet.')}${O.length?grp('Other documents',O.map(x=>x),''):''}
+<div style="border-top:1px solid var(--ln);margin-top:16px;padding-top:4px"></div>
+<div class="pr" style="margin-top:14px"><label>Type<select id="h_t" class="fi" onchange="empHistType()"><option>Memo</option><option>Seminar</option></select></label><label>Date<input id="f_h_d" type="date" class="fi" value="${tmLD(new Date())}"></label></div>
+<div class="pr" style="margin-top:10px"><label id="lb_ti">Violation<input id="h_ti" class="fi" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></label><label id="lb_pn">Penalty / Punishment<input id="h_pn" class="fi" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></label></div>
+<label style="display:block;margin-top:12px">File / Photo (optional) <small style="display:block;color:#66738a;margin:3px 0">Photos: automatically compressed to 100 KB. PDF/Word/other files: maximum 10 MB. If you attach a photo and leave the details empty, the system will try to read them from the photo.</small><input id="h_f" type="file" class="fi"></label>
+<div style="margin-top:12px"><button class="btn" id="h_rb" onclick="empHistUpload()">Upload</button> <span id="h_msg" class="sub" style="font-size:13px"></span></div></div>`};
 async function saveE(){const v=k=>$('f_'+k).value.trim()||null;if(!v('name'))return toast('Enter the name.');if(!/^[^,]+,\s*[^,\s]+(\s+[^,\s]+)*$/.test(v('name')))return toast('Name format: Surname, Given Name [Middle Name optional]. Example: Dela Cruz, Juan Santos or Dela Cruz, Juan');const dpl=E.filter((x,j)=>j!==ei&&dupKey(x.name)===dupKey(v('name')));if(dpl.length&&(ei==null||dupKey(E[ei].name)!==dupKey(v('name')))){alert('⚠️ DUPLICATE NAME\n\nThe name "'+v('name')+'" already exists in 201 Files:\n\n'+dpl.map(x=>x.name+' — '+(x.dept||'No Department')+(SEP.includes(x.emp_status)?' ('+x.emp_status+')':'')).join('\n')+'\n\nThe same name cannot be added twice, so it was NOT saved. Open the existing record instead, or change the name if this is a different person (for example, add the middle name).');return}if(nd(v('dept'))==='Management'&&v('x_email')&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('x_email')))return toast('Enter a valid email address.');if(!confirm(ei==null?'Are you sure you want to save this new employee?':'Are you sure you want to save the changes to '+E[ei].name+'?'))return;
  const b={},X={};EF.concat(EF2).forEach(([k])=>{if(k.startsWith('x_'))X[k.slice(2)]=v(k);else b[k]=v(k)});if(b.dept)b.dept=nd(b.dept);if(isMgt(b.dept)&&!can('mge'))return toast('You do not have permission to add or edit Management employees.');b.notes=joinN(X,v('notes'));b.emp_status=v('emp_status');const id=ei==null?crypto.randomUUID():E[ei].id;
  try{const wasNew=ei==null,f=$('f_photo').files[0],oldP=ei==null?null:E[ei].photo;if(f)b.photo=await up(id,f);if(HASAUD()){b.updated_by=ME.email||null;b.updated_at=new Date().toISOString()}
