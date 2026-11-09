@@ -1011,6 +1011,17 @@ html[data-theme=dark] .m13b.w{background:#33290f;color:#e3c46f;border-color:#4d3
 .m13hy-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;background:linear-gradient(180deg,var(--sf2),var(--soft));border-bottom:1px solid var(--ln);border-left:4px solid var(--au)}
 .m13hy-y{font:700 24px 'Playfair Display',Georgia,serif;color:var(--h);margin-right:14px}.m13hy-s{font-size:12.5px;color:var(--mu)}
 .m13hy-a{display:flex;gap:8px;align-items:center}.m13hy-b{overflow-x:auto;padding:4px 10px 6px}
+.m13h{border-radius:18px;box-shadow:0 10px 30px #12305c14}
+.m13h-top{align-items:center;padding-bottom:14px;border-bottom:1px solid var(--ln)}
+.m13seg{display:inline-flex;background:var(--soft);border:1px solid var(--ln);border-radius:999px;padding:3px;gap:2px}.m13seg button{border:0;background:transparent;color:var(--h);font:600 12.5px 'DM Sans',sans-serif;padding:6px 14px;border-radius:999px;cursor:pointer}.m13seg button.on{background:var(--g);color:#fff;box-shadow:0 2px 6px #12305c40}
+.m13hbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding:9px 12px;border-radius:12px;background:var(--sf2);border:1px dashed var(--ln2)}.m13hn{font-size:13px;color:var(--mu)}.m13hn b{color:var(--h)}
+.m13hbar .btn[disabled]{opacity:.4;cursor:not-allowed}
+.m13h input.m13hck{width:16px!important;height:16px!important;min-width:0!important;padding:0!important;margin:0 10px 0 0!important;vertical-align:middle;cursor:pointer;accent-color:var(--g);flex:none;box-shadow:none}.m13h .m13hc{width:34px;padding-left:12px;padding-right:0;text-align:center}.m13h .m13hc input.m13hck{margin:0!important}
+.m13hb{display:inline-flex;gap:6px;justify-content:flex-end}
+.btn.dlo{background:#fff;color:#b3392f;border:1px solid #e6c2be}.btn.dlo:hover{background:#b3392f;color:#fff;border-color:#b3392f}
+html[data-theme=dark] .btn.dlo{background:transparent;color:#ff9b92;border-color:#7a3a36}
+.m13hy{border-radius:16px;box-shadow:0 2px 10px #12305c0d}.m13hy-b .cx-t tr.m13hsel td{background:#fff7e3}
+html[data-theme=dark] .m13hy-b .cx-t tr.m13hsel td{background:#2a2414}
 .m13w .m13hy-b .cx-t th:first-child{min-width:0}.m13hy-b .cx-t tbody tr:hover td{background:var(--sf2)}
 .m13g{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .m13gi{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--ln);border-radius:12px;background:var(--sf2)}
@@ -1056,6 +1067,7 @@ html[data-theme=dark] .m13w .cx-t .btn.m13-rb.x:hover{background:#3a2220;border-
 .m13stw b{pointer-events:none;font-weight:700}
 .m13stw select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0;padding:0;border:0}
 .m13stw.s-reg{border:1px dashed var(--ln2);color:var(--mu);font-size:10px}.m13stw.s-con{background:#fde4cc;color:#9a4a05;border:1px solid #f0b987}
+.s-ext{background:#e3f3e6;color:#21683a;border:1px solid #a6d4b1}
 .m13stw.s-pro{background:#dbe8f8;color:#1f4e8c;border:1px solid #a7c4ea}.m13stw.s-no{background:#eceef3;color:#5b6577;border:1px solid #c5cbd8}
 .m13w .cx-t .m13-no input{color:var(--mu)}
 @media(max-width:700px){.m13w .cx-t th:first-child,.m13w .cx-t .m13-nm{min-width:170px}.m13w .cx-t .m13-nm input.m13d{width:160px!important}}
@@ -2400,7 +2412,7 @@ async function ndMark(){const a=NCUR;if(!a)return;const k=nkey(a);let ok=false;
  if(!ok){try{localStorage.hrdND=JSON.stringify([...NDONE])}catch(e){}if(confirm('Marked as done on this device only, because the notification table has not been created in Supabase yet.\n\nClick OK to copy the one-time SQL, then paste it in Supabase \u2192 SQL Editor and Run it so "Done" is shared with all users.'))copySql(NSQL)}
  logAct('Notification done','201 Files',a.e.name+' \u2014 '+NLBL[a.t]);toast('Marked as done \u2714');NCUR=null;$('ndov')&&$('ndov').remove();badge();if(PG==='dash')drawDash();else if(PG==='emp'&&EV==='list')drawE()}
 function badge(){const n=new Set(alerts().map(a=>a.i)).size;$('b3').textContent=n||'';b0();return n}
-async function loadE(silent){try{{const r0=await apiAll('/rest/v1/hrd_employees?select=*&order=name');EALL=Array.isArray(r0)?r0:EALL;E=eVis(r0)}const n=badge();if(!NSEEN)NSEEN=new Set(alerts().map(nkey));if(silent&&n){toast('🔔 '+n+' employee(s) have notifications in 201 Files');ping()}}catch(e){if(!silent)throw e}}
+async function loadE(silent){try{{const r0=await apiAll('/rest/v1/hrd_employees?select=*&order=name');EALL=Array.isArray(r0)?r0:EALL;E=eVis(r0)}const n=badge();if(!NSEEN)NSEEN=new Set(alerts().map(nkey));if(silent&&n){toast('🔔 '+n+' employee(s) have notifications in 201 Files');ping()}if(isAdm()&&!(PG==='emp'&&EV!=='list'))setTimeout(hxAuto,0)}catch(e){if(!silent)throw e}}
 async function emps(){
  if(EALL.length&&Array.isArray(E)&&E.length){drawE();if(pendE){const k=E.findIndex(x=>x.id===pendE);pendE=null;if(k>=0)formE(k)}const bf=JSON.stringify(E);loadE().then(()=>{if(PG==='emp'&&EV==='list'&&!typing()&&JSON.stringify(E)!==bf)drawE()}).catch(()=>{});return}
  $('main').innerHTML='<h1>201 Files</h1><p class="sub">Loading…</p>';
@@ -2462,12 +2474,34 @@ const RSLEG=`<div class="lgd"><div class="lgd-t">Legend</div><div class="lgd-grp
 const isReturnee=e=>e.emp_status==='Returnee';
 const histOf=x=>{try{const a=JSON.parse((x&&x.hist)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}};
 const resEntry=r=>{const o={hired:r[1],resigned:r[2],rsstat:r[3],rsground:r[4],rsrem:r[6],rscash:r[7],rslast:r[8],rsoth:r[9],rsfh:r[10],rscoop:r[11],rsint:r[12],rsrate:r[13],rs13:r[14],rsrel:r[15],rate:r[5]};Object.keys(o).forEach(k=>{if(o[k]==null||o[k]==='')delete o[k]});return o};
+/* v610: History keeps EVERYTHING from the old record (training / probi / regular dates, SSS / Pag-IBIG / PhilHealth / TIN, starting salary, cut off, extension, remarks) */
+const HXC=[['training_start','Training Start','d'],['probi_start','Probationary Start','d'],['regular_date','Regularized','d'],['sss','SSS #'],['pagibig','Pag-IBIG #'],['philhealth','PhilHealth #'],['tin','TIN']];
+const HXX=[['startsal','Starting Salary'],['cutoff','Cut off'],['pend','Probationary End','d'],['extst','Extension Start','d'],['ext','Probation Extension','d'],['remarks','Remarks']];
+function hxGet(o,ox){const r={};HXC.forEach(([k])=>{if(o&&o[k])r[k]=o[k]});HXX.forEach(([k])=>{if(ox&&ox[k])r[k]=ox[k]});return r}
+function hxLine(h){const f=d=>/^\d{4}-\d{2}-\d{2}$/.test(String(d))?new Date(d+'T00:00:00').toLocaleDateString():String(d);const t=HXC.concat(HXX).filter(([k])=>h[k]!=null&&h[k]!=='').map(([k,l,d])=>l+': <b>'+esc(d?f(h[k]):h[k])+'</b>');return t.length?'<br>'+t.join(' \u00b7 '):''}
+function hxEntry(o){const ox=splitN(o.notes).x,en={hired:o.hired||null,resigned:o.status_date||null,sep:o.emp_status,dept:o.dept||null,position:o.position||null,salary:o.salary||null};RSF.forEach(([k])=>{if(ox[k])en[k]=ox[k]});if(ox.rate)en.rate=ox.rate;if(o.docs&&o.docs.length)en.docs=o.docs;Object.assign(en,hxGet(o,ox));Object.keys(en).forEach(k=>{if(en[k]==null||en[k]==='')delete en[k]});return en}
+/* copy the OLD (resigned) record o into Previous Employment (History) of the current record a: adds the entry if it is not there yet, otherwise fills in only what is missing. Nothing is deleted. */
+async function hxSync(o,a){const P=splitN(a.notes),X=P.x,H=histOf(X),en=hxEntry(o),nm=v=>{const n=parseFloat(String(v==null?'':v).replace(/,/g,''));return isNaN(n)?'':String(n)};
+ const h=H.find(h=>(h.hired||'')===(o.hired||'')&&nm(h.rscash)===nm(en.rscash)&&((h.resigned||'')===(o.status_date||'')||!h.resigned||!o.status_date));let ch=false;
+ if(!h){H.push(en);ch=true}else Object.keys(en).forEach(f=>{if(f==='docs'){const have=new Set((h.docs||[]).map(d=>d.path)),nd=en.docs.filter(d=>!have.has(d.path));if(nd.length){h.docs=(h.docs||[]).concat(nd);ch=true}}else if(h[f]==null||h[f]===''){h[f]=en[f];ch=true}});
+ if(!ch)return false;
+ X.hist=JSON.stringify(H);const nt=joinN(X,P.rest),aud=HASAUD()?{updated_by:ME.email||null,updated_at:new Date().toISOString()}:{};
+ await api('/rest/v1/hrd_employees?id=eq.'+a.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({notes:nt,...aud})});
+ a.notes=nt;[E,EALL].forEach(L=>{const t=Array.isArray(L)&&L.find(z=>z&&z.id===a.id);if(t)t.notes=nt});return true}
+const hxBackfill=hxSync;
+/* v611: AUTOMATIC. Every returnee (active record + old resigned record of the same person, still in 201 Files) gets the old record, in full, in Previous Employment (History). Runs by itself after the list loads; admin only; deletes nothing. */
+let HXBUSY=false;
+async function hxAuto(){if(HXBUSY||!isAdm()||!Array.isArray(EALL))return;HXBUSY=true;
+ try{const pr=[],seen=new Set();retGroups().forEach(r=>r.olds.forEach(o=>{if(SEP.includes(o.emp_status))pr.push([o,r.keep])}));histDups().forEach(x=>pr.push([x.o,x.a]));
+  let n=0;for(const [o,a] of pr){const k=o.id+'|'+a.id;if(seen.has(k))continue;seen.add(k);try{if(await hxSync(o,a))n++}catch(e){}}
+  if(n){try{logAct('Returnee history filled automatically','201 Files',n+' record(s)')}catch(e){}toast('\u2714 Previous record added to History of '+n+' returnee(s)');if(PG==='emp'&&EV==='list')drawE()}}
+ catch(e){}finally{HXBUSY=false}}
 const xferOf=x=>{try{const a=JSON.parse((x&&x.xfer)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}};
 function xferHtml(x){const T=xferOf(x);if(!T.length)return'';const fd=d=>{try{return new Date(String(d).slice(0,10)+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'})}catch(e){return d||'—'}},pl=(a,b)=>esc(a||'—')+(b?' · <b>'+esc(b)+'</b>':'');
  return `<details class="panel hsd" open style="max-width:none;margin:0 0 14px;border-left:5px solid #b8923a"><summary><b>Transfer History</b> <span>(${T.length}) — moved to another class / department</span></summary>${T.map((t,i)=>`<div style="padding:8px 0;${i?'border-top:1px solid var(--ln);':''}font-size:14px;line-height:1.6"><b>${esc(fd(t.d))}</b> — ${pl(t.fd,t.fg)} <b>➜</b> ${pl(t.td,t.tg)}${t.nd?'<br><span style="color:var(--mu);font-size:13px">201 Department: '+esc(t.od||'—')+' <b>➜</b> <b>'+esc(t.nd)+'</b></span>':''}${t.by?' <span style="color:var(--mu)">· by '+esc(t.by)+'</span>':''}</div>`).join('')}</details>`}
 function histHtml(x){const H=histOf(x);if(!H.length)return'';
  const fd=d=>d?new Date(d+'T00:00:00').toLocaleDateString():'—';
- return `<details class="panel hsd" style="max-width:none;margin:0 0 14px;border-left:5px solid #0d6b6b"><summary><b>Previous Employment (History)</b> <span>(${H.length}) — click to view</span></summary>${H.map((h,i)=>`<div style="padding:8px 0;${i?'border-top:1px solid var(--ln);':''}font-size:14px;line-height:1.6"><b>${esc(H.length>1?'Stint '+(i+1):'Previous record')}</b>${isAdm()?`<span style="float:right;display:flex;gap:6px"><button type="button" class="btn o sm" onclick="hAddOpen(${i})">Edit</button><button type="button" class="btn dl sm" onclick="hDel(${i})">Delete</button></span>`:''}${h.dept||h.position?' — '+esc([h.dept,h.position].filter(Boolean).join(' / ')):''} — Hired: ${esc(fd(h.hired))} · ${esc(h.sep&&h.sep!=='Resigned'?h.sep:'Resigned')}: ${esc(fd(h.resigned))}${h.rsground?' · Grounds: <b>'+esc(h.rsground)+'</b>':''}${h.rsstat?' · Status: <b>'+esc(h.rsstat)+'</b>':''}${h.rate?' · Rate: '+esc(h.rate):''}${h.salary?' · Salary: '+esc(h.salary):''}<br>${[['rscash','Total Cash'],['rslast','Last Pay'],['rsoth','Others/Tax'],['rsfh','FH'],['rscoop','Coop & Bond'],['rsint','Interest'],['rsrate','Int %'],['rs13','13th/AC']].filter(([k])=>h[k]!=null).map(([k,l])=>l+': '+esc(rsFmt(h[k]))).join(' · ')}${h.rsrem?'<br>Remarks: '+esc(h.rsrem):''}${h.rsrel?'<br>Release: '+esc(h.rsrel):''}${(h.docs&&h.docs.length)?'<br>Memos / Files: '+h.docs.map((d,j)=>'<a href="#" onclick="openHD('+i+','+j+');return false" style="color:var(--lk)">'+esc((d.type||'File')+' — '+(d.title||d.name||''))+(d.date?' ('+esc(d.date)+')':'')+'</a>').join(' · '):''}</div>`).join('')}</details>`}
+ return `<details class="panel hsd" style="max-width:none;margin:0 0 14px;border-left:5px solid #0d6b6b"><summary><b>Previous Employment (History)</b> <span>(${H.length}) — click to view</span></summary>${H.map((h,i)=>`<div style="padding:8px 0;${i?'border-top:1px solid var(--ln);':''}font-size:14px;line-height:1.6"><b>${esc(H.length>1?'Stint '+(i+1):'Previous record')}</b>${isAdm()?`<span style="float:right;display:flex;gap:6px"><button type="button" class="btn o sm" onclick="hAddOpen(${i})">Edit</button><button type="button" class="btn dl sm" onclick="hDel(${i})">Delete</button></span>`:''}${h.dept||h.position?' — '+esc([h.dept,h.position].filter(Boolean).join(' / ')):''} — Hired: ${esc(fd(h.hired))} · ${esc(h.sep&&h.sep!=='Resigned'?h.sep:'Resigned')}: ${esc(fd(h.resigned))}${h.rsground?' · Grounds: <b>'+esc(h.rsground)+'</b>':''}${h.rsstat?' · Status: <b>'+esc(h.rsstat)+'</b>':''}${h.rate?' · Rate: '+esc(h.rate):''}${h.salary?' · Salary: '+esc(h.salary):''}${hxLine(h)}<br>${[['rscash','Total Cash'],['rslast','Last Pay'],['rsoth','Others/Tax'],['rsfh','FH'],['rscoop','Coop & Bond'],['rsint','Interest'],['rsrate','Int %'],['rs13','13th/AC']].filter(([k])=>h[k]!=null).map(([k,l])=>l+': '+esc(rsFmt(h[k]))).join(' · ')}${h.rsrem?'<br>Remarks: '+esc(h.rsrem):''}${h.rsrel?'<br>Release: '+esc(h.rsrel):''}${(h.docs&&h.docs.length)?'<br>Memos / Files: '+h.docs.map((d,j)=>'<a href="#" onclick="openHD('+i+','+j+');return false" style="color:var(--lk)">'+esc((d.type||'File')+' — '+(d.title||d.name||''))+(d.date?' ('+esc(d.date)+')':'')+'</a>').join(' · '):''}</div>`).join('')}</details>`}
 /* v587: add a Previous Employment (History) entry by hand, e.g. the old resignation record of a returnee */
 var HAIX=-1;
 function hAddOpen(ix){if(!isAdm()||ei==null)return;const e=E[ei];hAddClose();HAIX=(typeof ix==='number')?ix:-1;const ED=HAIX>=0,HO=ED?histOf(splitN(e.notes).x)[HAIX]:null;if(ED&&!HO){HAIX=-1;return toast('Entry not found. Reopen this record.')}
@@ -2613,7 +2647,7 @@ async function retMerge(){if(!isAdm())return;const pick=new Set(Array.prototype.
  await retRun(g)}
 async function retRun(g){
  const aud=HASAUD()?{updated_by:ME.email||null,updated_at:new Date().toISOString()}:{};let ok=0,bad=0;
- const mk=(o,ox,own)=>{const en={hired:o.hired||null,resigned:o.status_date||null,sep:o.emp_status,dept:o.dept||null,position:o.position||null,salary:o.salary||null};RSF.forEach(([k])=>{if(ox[k])en[k]=ox[k]});if(!own&&ox.rate)en.rate=ox.rate;if(!own&&o.docs&&o.docs.length)en.docs=o.docs;Object.keys(en).forEach(k=>{if(en[k]==null||en[k]==='')delete en[k]});return en};
+ const mk=(o,ox,own)=>{const en={hired:o.hired||null,resigned:o.status_date||null,sep:o.emp_status,dept:o.dept||null,position:o.position||null,salary:o.salary||null};RSF.forEach(([k])=>{if(ox[k])en[k]=ox[k]});Object.assign(en,hxGet(o,ox));if(!own&&ox.rate)en.rate=ox.rate;if(!own&&o.docs&&o.docs.length)en.docs=o.docs;Object.keys(en).forEach(k=>{if(en[k]==null||en[k]==='')delete en[k]});return en};
  for(const r of g){const keep=r.keep,olds=r.olds.slice().sort((a,b)=>String(a.status_date||'').localeCompare(String(b.status_date||'')));
   const P=splitN(keep.notes),X=P.x,H=histOf(X),patch={};
   /* the same stint can exist in two records: merge it into ONE history entry */
@@ -2657,7 +2691,7 @@ function histDupBanner(){const L=histDups();if(!L.length)return'';
 async function histDupDel(){if(!isAdm())return;const pick=new Set(Array.prototype.map.call(document.querySelectorAll('.hdck:checked'),x=>x.value));if(!pick.size)return toast('Tick at least one name.');
  await loadE(true);const L=histDups().filter(x=>pick.has(x.o.id));if(!L.length)return toast('Nothing to remove.');
  if(!confirm('Remove '+L.length+' old record(s) from 201 Files?\n\nTheir details are already in Previous Employment (History) of the active record. Attached files are not deleted.\n\nThis cannot be undone.'))return;
- let ok=0,bad=0;for(const x of L){try{await api('/rest/v1/hrd_employees?id=eq.'+x.o.id,{method:'DELETE'});ok++}catch(e){bad++}}
+ let ok=0,bad=0;for(const x of L){try{await hxBackfill(x.o,x.a);await api('/rest/v1/hrd_employees?id=eq.'+x.o.id,{method:'DELETE'});ok++}catch(e){bad++}}
  try{logAct('Removed old records already in History','201 Files',ok+' record(s)'+(bad?', '+bad+' failed':''))}catch(e){}
  await loadE(true);toast('Removed '+ok+' old record(s)'+(bad?' ('+bad+' failed)':'')+' ✔');drawE()}
 async function openHD(i,j){const w=window.open('','_blank');try{const d=histOf(splitN(E[ei].notes).x)[i].docs[j];w.location=await sign(d.path)}catch(x){w.close();alert(x.message)}}
@@ -2890,7 +2924,7 @@ function empRecWord(){const e=ei==null?null:E[ei];if(!e)return toast('Please cli
 function formE(i){EV='form';ei=i;window.__pfNew=(i==null);window.__pfAuto=0;const e=i==null?{docs:[]}:E[i];const P=splitN(e.notes);const PV=i!=null?probiView(e):null,PVm=PV?{x_pend:PV.pe,x_extst:PV.es,x_ext:PV.ee}:null;
  $('main').innerHTML=`<div class="bar ebar" style="max-width:800px"><button class="btn o" onclick="drawE()">← Back</button><h2>${i==null?'Add Employee':esc(String(e.name||'').toLocaleUpperCase())}</h2>${i!=null?`<span class="st" style="${SC[stage(e)]}">${lb(stage(e))}</span>`:''}<span class="ebtn"><button class="btn sm" onclick="saveE()">Save</button><button class="btn o sm" onclick="empRecPrint()">Print Employee Record</button><button class="btn o sm" onclick="empRecWord()">Export Word</button>${i!=null&&isAdm()?'<button class="btn o sm" onclick="retManual()" title="This person came back: merge the OLD record that is already in 201 Files into Previous Employment (History)">Merge old record</button><button class="btn o sm" onclick="hAddOpen()" title="Type in the old resignation record of a returnee (it goes to Previous Employment / History)">+ Previous Employment</button>':''}${i!=null?'<button class="btn dl sm" onclick="delE()">Delete</button>':''}</span></div>
 ${i!=null&&dupOf(i).length?`<div class="panel" style="border-left:5px solid #e04444;background:#fff5f5"><b>⚠️ Duplicate name:</b> another record has the same name — ${dupOf(i).map(x=>esc(x.name)+' ('+esc(x.dept||'No Department')+')').join(', ')}</div>`:''}<div class="panel"><h3>Employee Details</h3><div style="display:flex;gap:16px;align-items:center;margin-bottom:14px"><img id="ph" ${i!=null&&e.photo?`onclick="bigPh(${i})" title="Click to enlarge"`:''} src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" style="${i!=null&&e.photo?'cursor:zoom-in;':''}width:90px;height:90px;border-radius:12px;object-fit:cover;background:#eaf0f9"><label style="flex:1">Picture <small style="display:block;color:#66738a;margin:3px 0">Allowed photo size: maximum 100 KB after automatic compression. Larger photos will be compressed before upload.</small><input id="f_photo" type="file" accept="image/*" class="fi"></label>${e.photo?'<button class="btn dl sm" type="button" onclick="delPhoto()">Delete Picture</button>':''}</div>
-<label>Employment Status<select id="f_emp_status" class="fi" onchange="rsToggle()"><option value="">Active (auto: Training → Probationary → Regular)</option>${SEP.map(x=>`<option${e.emp_status===x?' selected':''}>${x}</option>`).join('')}<option value="Returnee"${e.emp_status==='Returnee'?' selected':''}>Returnee (came back — old record goes to History)</option></select></label>
+<label>Employment Status<select id="f_emp_status" class="fi" onchange="rsToggle();rtPick()"><option value="">Active (auto: Training → Probationary → Regular)</option>${SEP.map(x=>`<option${e.emp_status===x?' selected':''}>${x}</option>`).join('')}<option value="Returnee"${e.emp_status==='Returnee'?' selected':''}>Returnee (came back — old record goes to History)</option></select></label>
 <div id="rsbox">${rsHtml(P.x,e.emp_status)}</div>
 <div id="hsbox">${histHtml(P.x)}${xferHtml(P.x)}</div>
 ${i!=null&&svcLen(e)?`<p class="sub" style="margin:0 0 14px"><b>Length of Service:</b> ${esc(svcLen(e))}</p>`:''}<div class="pr">${EF.map(([k,l,t])=>{const v=PVm&&k in PVm?PVm[k]:k.startsWith('x_')?(P.x[k.slice(2)]||(k==='x_rate'&&e.salary?String(e.salary):'')):e[k];if(k==='x_civil'){const CS=['Single','Married','Widowed','Separated','Annulled'];if(v&&!CS.includes(v))CS.push(v);return `<label>${l}<select id="f_${k}" class="fi"><option value="">— Select —</option>${CS.map(c=>`<option${v===c?' selected':''}>${esc(c)}</option>`).join('')}</select></label>`}return `<label${k==='x_email'?` id="lb_email"`:(k==='x_startsal'&&i!=null&&!v?' style="display:none"':'')}>${l}<input id="f_${k}" class="fi" type="${t||'text'}" value="${esc(v||'')}"${k==='dept'?' list="dl"':''}${k==='x_email'?' placeholder="name@company.com" autocomplete="off"':''}></label>`}).join('')}</div>
@@ -2977,6 +3011,20 @@ ${grp('Memos',M,'No memo yet.')}${grp('Seminars',S,'No seminar yet.')}${O.length
 <div style="margin-top:12px"><button class="btn" id="h_rb" onclick="empHistUpload()">Upload</button> <span id="h_msg" class="sub" style="font-size:13px"></span></div></div>`};
 const cvMsg=o=>'RETURNEE\n\n"'+o.name+'" is marked '+(o.emp_status||'Resigned')+(o.status_date?' ('+fdS(o.status_date)+')':'')+'. Saving as active means this person came back, so:\n• the status becomes RETURNEE\n• the old resignation (dates, pay, clearance) moves to Previous Employment (History)\n• the current record stays\n\nAfter saving, type the NEW Date Hired so the Length of Service is correct.\n\nPress OK to continue, or Cancel to go back.';
 const rtMsg=o=>'RETURNEE\n\n"'+o.name+'" is a former employee ('+(o.emp_status||'Resigned')+(o.status_date?' · '+fdS(o.status_date):'')+(o.dept?' · '+o.dept:'')+').\n\nPress OK to register this person as a RETURNEE:\n• the old record is moved to Previous Employment (History)\n• the new details you typed become the current record\n• the status shows Returnee\n\nPress Cancel if this is a different person (then change the name, e.g. add the middle name).';
+/* Picking "Returnee" on a resigned / AWOL / terminated employee: the old record is saved to Previous Employment (History) right away and the form opens blank for the NEW record. */
+async function rtPick(){const sel=$('f_emp_status');if(!sel||sel.value!=='Returnee'||ei==null)return;const old=E[ei];if(!old||!SEP.includes(old.emp_status))return;
+ if(!confirm('RETURNEE\n\n'+old.name+' is marked '+old.emp_status+(old.status_date?' ('+fdS(old.status_date)+')':'')+'.\n\nPress OK to:\n\u2022 save the old record (dates, pay, clearance, documents) to Previous Employment (History)\n\u2022 open a blank form for the NEW record (everything blank except the name)\n\nPress Cancel to go back.')){sel.value=old.emp_status;rsToggle();return}
+ try{const P=splitN(old.notes),X=P.x||{},H=histOf(X),en={hired:old.hired||null,resigned:old.status_date||null,sep:old.emp_status,dept:old.dept||null,position:old.position||null,salary:old.salary||null,sss:old.sss||null,pagibig:old.pagibig||null,philhealth:old.philhealth||null,tin:old.tin||null,photo:old.photo||null};['birth','civil','addr','contact','email','remarks'].forEach(k=>{if(X[k])en['x_'+k]=X[k]});
+  if(old.docs&&old.docs.length)en.docs=old.docs;RSF.forEach(([k])=>{if(X[k])en[k]=X[k]});if(X.rate)en.rate=X.rate;Object.keys(en).forEach(k=>{if(en[k]==null)delete en[k]});H.push(en);
+  RSF.forEach(([k])=>{X[k]=null});['rate','startsal','pend','extst','ext','birth','civil','addr','contact','email','remarks'].forEach(k=>{X[k]=null});X.hist=JSON.stringify(H);
+  const b={notes:joinN(X,''),emp_status:'Returnee',status_date:null,hired:null,training_start:null,probi_start:null,regular_date:null,salary:null,sss:null,pagibig:null,philhealth:null,tin:null,photo:null,docs:[]};
+  if(HASAUD()){b.updated_by=ME.email||null;b.updated_at=new Date().toISOString()}
+  const r=await api('/rest/v1/hrd_employees?id=eq.'+old.id,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(b)});
+  if(!Array.isArray(r)||!r.length)throw new Error('NOT SAVED to the database (no record was updated). You may not have permission. Try again or refresh the page.');
+  Object.assign(old,b,r[0]);try{logAct('Returnee: old record moved to History, new record started','201 Files',old.name)}catch(x){}
+  formE(ei);
+  setTimeout(()=>{EF.concat(EF2).forEach(([k])=>{if(k==='name')return;const el=$('f_'+k);if(el){try{el.value=''}catch(x){}}});toast('Old record saved to History \u2714 Everything is blank except the name. Fill in the NEW record of '+old.name+', then press Save.')},0)
+ }catch(x){alert(x.message);sel.value=old.emp_status;rsToggle()}}
 async function saveE(){const v=k=>$('f_'+k).value.trim()||null;if(!v('name'))return toast('Enter the name.');if(!/^[^,]+,\s*[^,\s]+(\s+[^,\s]+)*$/.test(v('name')))return toast('Name format: Surname, Given Name [Middle Name optional]. Example: Dela Cruz, Juan Santos or Dela Cruz, Juan');const dpl=E.filter((x,j)=>j!==ei&&dupKey(x.name)===dupKey(v('name')));const cv=ei!=null&&SEP.includes(E[ei].emp_status)&&['','Returnee'].includes($('f_emp_status').value),rtc=ei==null?E.filter(x=>SEP.includes(x.emp_status)&&nmLoose(x.name,v('name'))):[],rt=(ei==null&&rtc.length===1&&dpl.every(x=>SEP.includes(x.emp_status)))?rtc[0]:null;if(!rt&&dpl.length&&(ei==null||dupKey(E[ei].name)!==dupKey(v('name')))){alert('⚠️ DUPLICATE NAME\n\nThe name "'+v('name')+'" already exists in 201 Files:\n\n'+dpl.map(x=>x.name+' — '+(x.dept||'No Department')+(SEP.includes(x.emp_status)?' ('+x.emp_status+')':'')).join('\n')+'\n\nThe same name cannot be added twice, so it was NOT saved. Open the existing record instead, or change the name if this is a different person (for example, add the middle name).');return}if(v('x_email')&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('x_email')))return toast('Enter a valid email address.');if(!confirm(rt?rtMsg(rt):cv?cvMsg(E[ei]):(ei==null?'Are you sure you want to save this new employee?':'Are you sure you want to save the changes to '+E[ei].name+'?')))return;
  const b={},X={};EF.concat(EF2).forEach(([k])=>{if(k.startsWith('x_'))X[k.slice(2)]=v(k);else b[k]=v(k)});if(b.dept)b.dept=nd(b.dept);if(isMgt(b.dept)&&!can('mge'))return toast('You do not have permission to add or edit Management employees.');{const ox=ei==null?(rt?splitN(rt.notes).x:{}):splitN(E[ei].notes).x;RSF.forEach(([k])=>{const el=$('f_rs_'+k);X[k]=el?(el.value.trim()||null):(ox[k]||null)});const H=histOf(ox);if(cv){const old=E[ei],has=RSF.some(([k])=>ox[k])||old.status_date;if(SEP.includes(old.emp_status)&&has){const en={hired:old.hired||null,resigned:old.status_date||null,sep:old.emp_status,dept:old.dept||null,position:old.position||null};RSF.forEach(([k])=>{if(ox[k])en[k]=ox[k]});Object.keys(en).forEach(k=>{if(en[k]==null)delete en[k]});H.push(en);RSF.forEach(([k])=>{X[k]=null});b.status_date=null}}
  if(rt){const en={hired:rt.hired||null,resigned:rt.status_date||null,sep:rt.emp_status,dept:rt.dept||null,position:rt.position||null,salary:rt.salary||null};if(rt.docs&&rt.docs.length)en.docs=rt.docs;RSF.forEach(([k])=>{if(ox[k])en[k]=ox[k]});if(ox.rate)en.rate=ox.rate;Object.keys(en).forEach(k=>{if(en[k]==null)delete en[k]});H.push(en);RSF.forEach(([k])=>{X[k]=null});b.status_date=null;b.docs=[];{const q1=nmParts(rt.name),q2=nmParts(b.name);if(q1&&q2&&q1.g.length>q2.g.length)b.name=rt.name}}
@@ -4599,7 +4647,7 @@ function m13Badge(){const e=$('m13st');if(!e||!M13S)return;const S=M13S;
  e.textContent=S.dirty?'● Not saved yet':S.saved?'✔ Saved '+new Date(S.at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})+' '+new Date(S.at).toLocaleTimeString('en-PH',{hour:'numeric',minute:'2-digit'})+(S.by?' · '+S.by:''):'New · not saved yet'}
 async function m13Load(){try{M13H=await api('/rest/v1/hrd_m13?select=year,data,updated_by,updated_at&order=year.desc');M13OK=true}catch(e){M13H=[];if(m13Missing(e))M13OK=false;else{M13OK=true;toast('Could not load saved 13th month history.')}}}
 function m13Open(y){y=String(y);const rec=(M13H||[]).find(r=>String(r.year)===y),d=rec&&rec.data?rec.data:{},cp=o=>JSON.parse(JSON.stringify(o));
- let st={year:y,gen:cp(d.gen||{}),days:cp(d.days||{}),added:cp(d.added||[]),removed:(d.removed||[]).map(String),def:d.def==null?'':d.def,saved:!!rec,at:rec?rec.updated_at:'',by:rec?(rec.updated_by||''):'',dirty:false};
+ let st={year:y,gen:cp(d.gen||{}),days:cp(d.days||{}),added:cp(d.added||[]),removed:(d.removed||[]).map(String),def:d.def==null?'':d.def,hid:cp(d.hid||[]),saved:!!rec,at:rec?rec.updated_at:'',by:rec?(rec.updated_by||''):'',dirty:false};
  if(!rec){const old=cxRead('hrd_m13d_'+y,null);if(old&&Object.keys(old).length){st.days=old;st.dirty=true}}
  const dr=cxRead(m13DK(y),null);
  if(dr&&dr.st){if(confirm('There are unsaved changes for 13th Month Pay '+y+' from '+new Date(dr.at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})+'.\n\nPress OK to restore them, or Cancel to discard them.')){st={...st,gen:dr.st.gen||{},days:dr.st.days||{},added:dr.st.added||[],removed:(dr.st.removed||[]).map(String),def:dr.st.def==null?'':dr.st.def,dirty:true}}else{try{localStorage.removeItem(m13DK(y))}catch(e){}}}
@@ -4616,7 +4664,11 @@ const m13Days=()=>(M13S&&M13S.days)||{};
 const m13Ent=(o,id)=>{const v=o[id];return v==null?{}:typeof v==='object'?v:{d:v}};
 const m13Long=h=>{const d=new Date(h+'T00:00:00');return isNaN(d)?String(h):d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})};
 const m13LateH=L=>L.length?`<div class="cx-note" style="margin-top:12px"><b>Not included in 13th Month Pay ${esc(MY)} — hired / started probationary October onward:</b><br>${L.map(r=>'• '+esc(r.name)+(r.dept?' ('+esc(r.dept)+')':'')+' — Hired / start: '+esc(m13Long(r.hired))).join('<br>')}</div>`:'';
+const m13Reg=e=>{const r=e&&e.regular_date?String(e.regular_date).slice(0,10):'';if(!/^\d{4}-\d\d-\d\d$/.test(r))return false;const d=new Date();const t=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return r<=t};/* already regularized: goes with the regulars */
 const m13Hd=(e,y)=>{if(!e)return'';const c=[e.hired,e.training_start,e.probi_start].map(x=>x?String(x).slice(0,10):'').filter(Boolean);return c.find(x=>x.slice(0,4)===String(y))||c[0]||''};
+/* v613: Start Date + "how many months" remark are ONLY for employees with less than 1 year (hired this year, or hired within the last 12 months). 1 year or more = no Start Date, no remark. */
+const m13U1=(h,yr)=>{const d=new Date(h+'T00:00:00');if(isNaN(d))return false;const t=new Date();t.setHours(0,0,0,0);const l=new Date(t);l.setFullYear(l.getFullYear()-1);return d.getFullYear()<+yr&&d>l&&d<=t};
+const m13U1Rem=(h,yr)=>'12 mos ( Jan.- Dec.)';
 const m13IsLate=(h,yr)=>{const d=new Date(h+'T00:00:00');return !isNaN(d)&&d>=new Date(+yr,9,1)&&d<=new Date(+yr,11,31)};
 function m13Months(h,yr){const st=new Date(h+'T00:00:00'),en=new Date(yr+1,0,1);let m=(en.getFullYear()-st.getFullYear())*12+en.getMonth()-st.getMonth();if(en.getDate()<st.getDate())m--;return Math.max(0,m)}
 const M13SIG={prep:['EG Mesinas','Amelia Talaña'],chk:['Janeth Roncale'],apr:['Nicolette Almario- Raya','Maria Angelica Raya-Ligon']};
@@ -4632,10 +4684,10 @@ function m13Model(){
  T=()=>({p:0,a:0,v:0,n:0}),add=(t,r)=>{if(!r.has)return;t.p+=r.pay;t.a+=r.ar;t.v+=r.vl;t.n+=r.net},fin=t=>{for(const k in t)t[k]=r2(t[k]);return t},
  q=MQ.toLowerCase(),depts=[...new Set(SF.map(s=>s.dept))].sort(),
  mk=s=>{const g=(PCFG[s.dept]||{}).m==='g',rate=pn(s.rate),daily=g&&!pGpdDef(s)?rate/7:rate,e0=m13Ent(raw,s.id),has=e0.d!=null&&e0.d!=='',dys=has?pn(e0.d):0,ar=pn(e0.a),vl=pn(e0.v),e=emp(s),h=m13Hd(e,yr),hd=h?new Date(h+'T00:00:00'):null,
-  isNew=!!hd&&!isNaN(hd)&&hd>=jan&&hd<=dec,mo=isNew?m13Months(h,yr):0,mi=e0.m!=null&&e0.m!==''?pn(e0.m):null,lv=!isNew&&mi!=null&&mi>0&&mi<12,pay=has?r2(isNew?daily*dys/12*mo:(lv?daily*dys/12*mi:daily*dys)):0,net=has?r2(pay-ar-vl):0;
-  return{s,g,rate,daily,has,dys,ar,vl,e,h,isNew,late:isNew&&m13IsLate(h,yr),mo,lv,mi:e0.m!=null?e0.m:'',sd:isNew?m13Long(h):'',pay,net,iA:e0.a!=null?e0.a:'',iV:e0.v!=null?e0.v:'',pos:(e&&e.position)||'',
+  isNew=!!hd&&!isNaN(hd)&&hd>=jan&&hd<=dec,u1=!isNew&&!!h&&m13U1(h,yr),mo=isNew?m13Months(h,yr):0,mi=e0.m!=null&&e0.m!==''?pn(e0.m):null,lv=!isNew&&mi!=null&&mi>0&&mi<12,pay=has?r2(isNew?daily*dys/12*mo:(lv?daily*dys/12*mi:daily*dys)):0,net=has?r2(pay-ar-vl):0;
+  return{s,g,rate,daily,has,dys,ar,vl,e,h,isNew,late:isNew&&m13IsLate(h,yr),mo,lv,mi:e0.m!=null?e0.m:'',sd:isNew||u1?m13Long(h):'',pay,net,iA:e0.a!=null?e0.a:'',iV:e0.v!=null?e0.v:'',pos:(e&&e.position)||'',
    acct:ac[s.id]||String((pIdx(s)||[])[2]||''),
-   rem:isNew?mo+' mos ( '+m13Rng(h,yr)+')':(lv?mi+' mos':(h?'Hired: '+m13Long(h):''))}};
+   rem:isNew?mo+' mos ( '+m13Rng(h,yr)+')':(lv?mi+' mos':(u1?m13U1Rem(h,yr):''))}};
  const G=T(),D=depts.map((d,di)=>({d,di})).filter(x=>MD==='all'||x.d===MD).map(({d,di})=>{
   const all=SF.filter(s=>s.dept===d&&(!q||s.name.toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name)).map(mk),rows=all.filter(r=>!r.late),late=all.filter(r=>r.late),order=PGO[d]||[],gm=new Map();
   rows.filter(r=>!r.isNew).forEach(r=>{const g=pGrp(r.s)||'';if(!gm.has(g))gm.set(g,[]);gm.get(g).push(r)});
@@ -4678,38 +4730,60 @@ function m13HistRows(){
   Object.keys(G).forEach(d=>{const f=G[d];if(!f||!Array.isArray(f.rows))return;const T=gnTot(f);
    rows.push({y:y,d:d,n:T.n,wd:f.rows.filter(r=>gnCalc(r,f).has).length,p:T.pay,net:T.net,rec:rec,dirty:!!st.dirty,gen:true});used.add(d)});
   const M=m13Model();
-  M.D.forEach(x=>{if(used.has(x.d))return;const wd=x.secs.reduce((a,sc)=>a+sc.rows.filter(r=>r.has).length,0);if(!wd)return;
+  const hid=new Set(((rec.data||{}).hid)||[]);
+  M.D.forEach(x=>{if(used.has(x.d)||hid.has(x.d))return;const wd=x.secs.reduce((a,sc)=>a+sc.rows.filter(r=>r.has).length,0);if(!wd)return;
    rows.push({y:y,d:x.d,n:x.n,wd:wd,p:x.t.p,net:x.t.n,rec:rec,dirty:!!st.dirty,gen:false})})
  })}finally{M13S=sv.S;MY=sv.Y;MD=sv.D;MQ=sv.Q}
  return rows}
 let M13HV={by:'y',dir:-1};
-let M13HSEL=new Set();
-function m13HSel(y,on){y=String(y);if(on)M13HSEL.add(y);else M13HSEL.delete(y);mDraw()}
-function m13HAll(on){M13HSEL=new Set();if(on)m13HistRows().forEach(r=>M13HSEL.add(String(r.y)));mDraw()}
-async function m13DelSel(){const Y=[...M13HSEL];if(!Y.length)return;
- if(!confirm('Delete the saved 13th Month Pay of '+Y.join(', ')+' from History? This cannot be undone.'))return;
- try{for(const y of Y){await api('/rest/v1/hrd_m13?year=eq.'+encodeURIComponent(y),{method:'DELETE'});logAct('Deleted saved 13th month pay','13th Month Pay',String(y))}
-  M13HSEL=new Set();await m13Load();
-  if(Y.includes(String(MY))){try{localStorage.removeItem(m13DK(MY))}catch(e){}M13S.saved=false;M13S.dirty=true;M13S.at='';M13S.by=''}
-  mDraw();toast('Deleted')}catch(e){M13HSEL=new Set();await m13Load();mDraw();alert('Could not delete: '+(e.message||e))}}
+let M13HSEL=new Set(),M13HMODE=false;
+const m13Hk=(y,d)=>String(y)+'\u0001'+String(d),m13Hp=k=>k.split('\u0001');
+function m13HSel(y,d,on){const k=m13Hk(y,d);if(on)M13HSEL.add(k);else M13HSEL.delete(k);mDraw()}
+function m13HSelY(y,on){m13HistRows().filter(r=>String(r.y)===String(y)).forEach(r=>{const k=m13Hk(r.y,r.d);if(on)M13HSEL.add(k);else M13HSEL.delete(k)});mDraw()}
+function m13HAll(on){M13HSEL=new Set();M13HMODE=!!on;if(on)m13HistRows().forEach(r=>M13HSEL.add(m13Hk(r.y,r.d)));mDraw()}
+/* Delete one or many saved departments. A year whose departments are all picked is removed completely. */
+async function m13HDel(pairs,ask){if(!pairs.length)return toast('Tick at least one row first.');
+ const by=new Map();pairs.forEach(([y,d])=>{y=String(y);if(!by.has(y))by.set(y,new Set());by.get(y).add(d)});
+ const all=m13HistRows(),tot=y=>new Set(all.filter(r=>String(r.y)===y).map(r=>r.d)),
+  lines=[...by.entries()].map(([y,D])=>{const t=tot(y);return y+': '+(D.size>=t.size?'the whole year ('+t.size+' department'+(t.size===1?'':'s')+')':[...D].join(', '))});
+ if(!confirm((ask||'Delete from the saved 13th Month Pay History?')+'\n\n'+lines.join('\n')+'\n\nThis cannot be undone.'))return;
+ try{for(const [y,D] of by){const t=tot(y);
+   if(D.size>=t.size){await api('/rest/v1/hrd_m13?year=eq.'+encodeURIComponent(y),{method:'DELETE'});logAct('Deleted saved 13th month pay','13th Month Pay',y);
+    if(String(MY)===y){try{localStorage.removeItem(m13DK(MY))}catch(e){}M13S.saved=false;M13S.dirty=true;M13S.at='';M13S.by=''}continue}
+   const rec=(M13H||[]).find(r=>String(r.year)===y);if(!rec)continue;
+   const data=JSON.parse(JSON.stringify(rec.data||{}));data.gen=data.gen||{};
+   for(const d of D){const f=data.gen[d];let T=null;try{if(f)T=gnTot(f)}catch(e){}
+    delete data.gen[d];data.hid=[...new Set([...(data.hid||[]),d])];
+    if(data.sum&&T){const sm=data.sum;sm.cnt=Math.max(0,(+sm.cnt||0)-(T.n||0));sm.p=Math.max(0,Math.round(((+sm.p||0)-(T.pay||0))*100)/100);sm.n=Math.max(0,Math.round(((+sm.n||0)-(T.net||0))*100)/100)}
+    if(String(MY)===y&&M13S){if(M13S.gen)delete M13S.gen[d];M13S.hid=data.hid;if(GD===d)GD='';if(MD===d)MD='all'}}
+   await api('/rest/v1/hrd_m13?on_conflict=year',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({year:+y,data:data,updated_by:m13Who(),updated_at:new Date().toISOString()})});
+   logAct('Deleted department from saved 13th month pay','13th Month Pay',y+' · '+[...D].join(', '))}
+  M13HSEL=new Set();M13HMODE=false;await m13Load();mDraw();toast('Deleted')}catch(e){M13HSEL=new Set();M13HMODE=false;await m13Load();mDraw();alert('Could not delete: '+(e.message||e))}}
+const m13DelDept=(y,d)=>m13HDel([[y,d]],'Delete this department from the saved History?');
+const m13DelYear=y=>m13HDel(m13HistRows().filter(r=>String(r.y)===String(y)).map(r=>[r.y,r.d]),'Delete the whole year from the saved History?');
+const m13DelSel=()=>m13HDel([...M13HSEL].map(m13Hp),'Delete the ticked rows from the saved History?');
 function m13HV(k){M13HV=M13HV.by===k?{by:k,dir:-M13HV.dir}:{by:k,dir:k==='y'?-1:1};mDraw()}
 function m13HistH(){
  const R=m13HistRows();if(!R.length)return'';
  const V=M13HV,fd=r=>new Date(r.rec.updated_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'}),
-  ar=k=>V.by===k?(V.dir>0?' \u25B2':' \u25BC'):'',
-  top=`<div class="m13h-top"><div class="m13h-t"><h3>13th Month Pay History</h3><p>The latest saved copy of each year. Pressing Save again replaces it.</p></div><div class="m13hs"><span>Sort by</span><button class="btn sm${V.by==='y'?'':' o'}" onclick="m13HV('y')">Year${ar('y')}</button><button class="btn sm${V.by==='d'?'':' o'}" onclick="m13HV('d')">Department${ar('d')}</button></div>${V.by==='y'?`<div class="m13hs"><button class="btn o sm" onclick="m13HAll(true)">Mark all</button><button class="btn o sm" onclick="m13HAll(false)">Unmark all</button>${M13HSEL.size?`<button class="btn dl sm" onclick="m13DelSel()">Delete selected (${M13HSEL.size})</button>`:''}</div>`:''}</div>`;
+  ar=k=>V.by===k?(V.dir>0?' ▲':' ▼'):'',nS=R.filter(r=>M13HSEL.has(m13Hk(r.y,r.d))).length,
+  ck=(y,d,t)=>!M13HMODE?'':`<input type="checkbox" class="m13hck" title="${t||'Tick to select'}" ${M13HSEL.has(m13Hk(y,d))?'checked':''} data-y="${esc(y)}" data-d="${esc(d)}" onchange="m13HSel(this.dataset.y,this.dataset.d,this.checked)">`,
+  acts=r=>`<div class="m13hb"><button class="btn sm" data-y="${esc(r.y)}" data-d="${esc(r.d)}" data-g="${r.gen?1:0}" onclick="m13OpenDept(this.dataset.y,this.dataset.d,this.dataset.g==='1')">Open</button><button class="btn dlo sm" title="Delete only ${esc(r.d)} of ${esc(r.y)}" data-y="${esc(r.y)}" data-d="${esc(r.d)}" onclick="m13DelDept(this.dataset.y,this.dataset.d)">Delete</button></div>`,
+  top=`<div class="m13h-top"><div class="m13h-t"><h3>13th Month Pay History</h3><p>The latest saved copy of each year. Pressing Save again replaces it.</p></div><div class="m13hs"><span>Sort by</span><div class="m13seg"><button class="${V.by==='y'?'on':''}" onclick="m13HV('y')">Year${ar('y')}</button><button class="${V.by==='d'?'on':''}" onclick="m13HV('d')">Department${ar('d')}</button></div></div></div>
+  <div class="m13hbar"><span class="m13hn">${M13HMODE?(nS?`<b>${nS}</b> of ${R.length} selected`:'Nothing selected'):'Delete one by one, or mark all to delete several at once'}</span><div class="m13hs">${M13HMODE?`<button class="btn o sm" onclick="m13HAll(true)">Mark all</button><button class="btn o sm" onclick="m13HAll(false)">Unmark all</button><button class="btn dl sm" onclick="m13DelSel()"${nS?'':' disabled'}>Delete selected${nS?' ('+nS+')':''}</button>`:`<button class="btn o sm" onclick="m13HAll(true)">Mark all</button>`}</div></div>`;
  if(V.by==='d'){
   const D=[...new Set(R.map(r=>r.d))].sort((a,b)=>String(a).localeCompare(String(b))*V.dir);
   return `<div class="cx-card no-print m13h">${top}`+D.map(d=>{
    const L=R.filter(r=>r.d===d).sort((a,b)=>String(b.y).localeCompare(String(a.y)));
    return `<div class="m13hy"><div class="m13hy-h"><div><b class="m13hy-y">${esc(d)}</b><span class="m13hy-s">${L.length} saved year${L.length>1?'s':''}</span></div></div>
-   <div class="m13hy-b"><table class="cx-t" style="min-width:0"><thead><tr><th>Year</th><th>Saved</th><th class="n">Employees</th><th class="n">With days</th><th class="n">13th Month Pay</th><th class="n">Net Pay</th><th></th></tr></thead><tbody>${L.map(r=>`<tr><td><b>${esc(r.y)}</b></td><td>${esc(fd(r))}${r.rec.updated_by?'<small class="m13s">'+esc(r.rec.updated_by)+'</small>':''}${r.dirty?' <span class="cx-tag">Unsaved changes</span>':''}</td><td class="n">${r.n}</td><td class="n">${r.wd}/${r.n}</td><td class="n">${fm(r.p)}</td><td class="n">${fm(r.net)}</td><td class="n"><button class="btn sm" data-y="${esc(r.y)}" data-d="${esc(r.d)}" data-g="${r.gen?1:0}" onclick="m13OpenDept(this.dataset.y,this.dataset.d,this.dataset.g==='1')">Open</button></td></tr>`).join('')}</tbody></table></div></div>`}).join('')+`</div>`}
+   <div class="m13hy-b"><table class="cx-t" style="min-width:0"><thead><tr>${M13HMODE?'<th class="m13hc"></th>':''}<th>Year</th><th>Saved</th><th class="n">Employees</th><th class="n">With days</th><th class="n">13th Month Pay</th><th class="n">Net Pay</th><th></th></tr></thead><tbody>${L.map(r=>`<tr class="${M13HSEL.has(m13Hk(r.y,r.d))?'m13hsel':''}">${M13HMODE?`<td class="m13hc">${ck(r.y,r.d)}</td>`:''}<td><b>${esc(r.y)}</b></td><td>${esc(fd(r))}${r.rec.updated_by?'<small class="m13s">'+esc(r.rec.updated_by)+'</small>':''}${r.dirty?' <span class="cx-tag">Unsaved changes</span>':''}</td><td class="n">${r.n}</td><td class="n">${r.wd}/${r.n}</td><td class="n">${fm(r.p)}</td><td class="n">${fm(r.net)}</td><td class="n">${acts(r)}</td></tr>`).join('')}</tbody></table></div></div>`}).join('')+`</div>`}
  const Y=[...new Set(R.map(r=>String(r.y)))].sort((a,b)=>a.localeCompare(b)*V.dir);
  return `<div class="cx-card no-print m13h">${top}`+Y.map(y=>{
   const L=R.filter(r=>String(r.y)===y).sort((a,b)=>String(a.d).localeCompare(String(b.d))),rec=L[0].rec,dirty=L.some(r=>r.dirty),
-   P=r2(L.reduce((a,r)=>a+r.p,0)),N=r2(L.reduce((a,r)=>a+r.net,0)),E=L.reduce((a,r)=>a+r.n,0),W=L.reduce((a,r)=>a+r.wd,0);
-  return `<div class="m13hy"><div class="m13hy-h"><div><input type="checkbox" class="m13hck" title="Select this year" style="width:18px;height:18px;margin:0 10px 0 0;vertical-align:middle;cursor:pointer" ${M13HSEL.has(String(y))?'checked':''} data-y="${esc(y)}" onchange="m13HSel(this.dataset.y,this.checked)"><b class="m13hy-y">${esc(y)}</b><span class="m13hy-s">Saved ${esc(fd(L[0]))}${rec.updated_by?' \u00B7 '+esc(rec.updated_by):''}</span></div><div class="m13hy-a">${dirty?'<span class="cx-tag">Unsaved changes</span>':''}${M13HSEL.has(String(y))?`<button class="btn dl sm" title="Delete the saved record of this year (all departments)" data-y="${esc(y)}" onclick="m13Del(this.dataset.y)">Delete</button>`:''}</div></div>
-  <div class="m13hy-b"><table class="cx-t" style="min-width:0"><thead><tr><th>Department</th><th class="n">Employees</th><th class="n">With days</th><th class="n">13th Month Pay</th><th class="n">Net Pay</th><th></th></tr></thead><tbody>${L.map(r=>`<tr><td><b>${esc(r.d)}</b></td><td class="n">${r.n}</td><td class="n">${r.wd}/${r.n}</td><td class="n">${fm(r.p)}</td><td class="n">${fm(r.net)}</td><td class="n"><button class="btn sm" data-y="${esc(r.y)}" data-d="${esc(r.d)}" data-g="${r.gen?1:0}" onclick="m13OpenDept(this.dataset.y,this.dataset.d,this.dataset.g==='1')">Open</button></td></tr>`).join('')}</tbody><tfoot><tr><td>Total</td><td class="n">${E}</td><td class="n">${W}/${E}</td><td class="n">${fm(P)}</td><td class="n">${fm(N)}</td><td></td></tr></tfoot></table></div></div>`}).join('')+`</div>`}
+   P=r2(L.reduce((a,r)=>a+r.p,0)),N=r2(L.reduce((a,r)=>a+r.net,0)),E=L.reduce((a,r)=>a+r.n,0),W=L.reduce((a,r)=>a+r.wd,0),
+   ns=L.filter(r=>M13HSEL.has(m13Hk(r.y,r.d))).length;
+  return `<div class="m13hy"><div class="m13hy-h"><div>${M13HMODE?`<input type="checkbox" class="m13hck" title="Tick every department of ${esc(y)}" ${ns===L.length?'checked':''} data-y="${esc(y)}" onchange="m13HSelY(this.dataset.y,this.checked)">`:''}<b class="m13hy-y">${esc(y)}</b><span class="m13hy-s">Saved ${esc(fd(L[0]))}${rec.updated_by?' · '+esc(rec.updated_by):''}</span></div><div class="m13hy-a">${dirty?'<span class="cx-tag">Unsaved changes</span>':''}<button class="btn dlo sm" title="Delete the saved record of ${esc(y)} (all departments)" data-y="${esc(y)}" onclick="m13DelYear(this.dataset.y)">Delete year</button></div></div>
+  <div class="m13hy-b"><table class="cx-t" style="min-width:0"><thead><tr>${M13HMODE?'<th class="m13hc"></th>':''}<th>Department</th><th class="n">Employees</th><th class="n">With days</th><th class="n">13th Month Pay</th><th class="n">Net Pay</th><th></th></tr></thead><tbody>${L.map(r=>`<tr class="${M13HSEL.has(m13Hk(r.y,r.d))?'m13hsel':''}">${M13HMODE?`<td class="m13hc">${ck(r.y,r.d)}</td>`:''}<td><b>${esc(r.d)}</b></td><td class="n">${r.n}</td><td class="n">${r.wd}/${r.n}</td><td class="n">${fm(r.p)}</td><td class="n">${fm(r.net)}</td><td class="n">${acts(r)}</td></tr>`).join('')}</tbody><tfoot><tr>${M13HMODE?'<td></td>':''}<td>Total</td><td class="n">${E}</td><td class="n">${W}/${E}</td><td class="n">${fm(P)}</td><td class="n">${fm(N)}</td><td></td></tr></tfoot></table></div></div>`}).join('')+`</div>`}
 function m13OpenDept(y,d,g){y=String(y);if(y!==String(MY)){if(!m13Leave())return;MY=y;m13Open(MY)}GD=(g&&M13S&&M13S.gen&&M13S.gen[d])?d:'';MD=d;MQ='';mDraw();scrollTo(0,0)}
 function mDraw(){if(PG!=='m13')return;return m13Keep(mDraw0)}
 function mDraw0(){gnSync(M13S);
@@ -4794,7 +4868,7 @@ async function m13Save(){const S=M13S;if(!S)return;
  {const bad=[];Object.values(S.gen||{}).forEach(f=>f.rows.forEach(r=>{if(gnStat(r)==='no')return;if(!ACCT13.test(String(r.acct||'')))bad.push('• '+r.name+' ('+f.dept+') — '+(r.acct?'"'+r.acct+'" is not 13 digits':'no account number'))}));if(bad.length)return alert('Cannot save: every employee in the 13th Month Pay needs an account number of exactly 13 digits.\n\n'+bad.slice(0,15).join('\n')+(bad.length>15?'\n…and '+(bad.length-15)+' more':'')+'\n\nType it in the Account No. column or in ATM accounts. Employees marked No 13th MP are not checked.')}
  if(!M.withDays&&!gnHasDays()&&!confirm('No. of Days is still empty for everyone. Save anyway?'))return;
  if(!confirm((S.saved?'Save your changes to':'Save')+' 13th Month Pay '+S.year+'?\n\nThere is one saved record per year. '+(S.saved?'The saved copy will be replaced.':'It will be added to History.')+(()=>{const na=m13NoAcct();return na.length?'\n\n\u26A0 '+na.length+' employee'+(na.length>1?'s have':' has')+' no ATM account yet:\n'+na.slice(0,15).map(x=>'\u2022 '+x.name+' ('+x.dept+')').join('\n')+(na.length>15?'\n\u2026and '+(na.length-15)+' more':'')+'\n\nPress OK to save anyway, or Cancel to add their accounts first (ATM accounts button).':''})()))return;
- Object.values(S.gen||{}).forEach(f=>{f.sv=1});const at=new Date().toISOString(),by=m13Who(),body={year:+S.year,data:{days:S.days,added:S.added||[],removed:S.removed||[],def:S.def,gen:S.gen||{},sum:{cnt:M.cnt,withDays:M.withDays,p:M.G.p,n:M.G.n}},updated_by:by,updated_at:at};
+ Object.values(S.gen||{}).forEach(f=>{f.sv=1});const at=new Date().toISOString(),by=m13Who(),body={year:+S.year,data:{days:S.days,added:S.added||[],removed:S.removed||[],def:S.def,gen:S.gen||{},hid:(S.hid||[]).filter(d=>!(S.gen&&S.gen[d])),sum:{cnt:M.cnt,withDays:M.withDays,p:M.G.p,n:M.G.n}},updated_by:by,updated_at:at};
  try{await api('/rest/v1/hrd_m13?on_conflict=year',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
   await m13Load();S.saved=true;S.dirty=false;S.at=at;S.by=by;m13DraftClear();logAct('Saved 13th month pay','13th Month Pay',S.year+' · '+M.withDays+'/'+M.cnt+' with days · '+fm(M.G.n));toast('Saved ✔ 13th Month Pay '+S.year+' is in History');mDraw()}
  catch(e){if(m13Missing(e)){M13OK=false;mDraw();alert('The table for saving 13th Month Pay is not set up yet.\n\nRun the SQL shown at the top of this page in Supabase (SQL Editor), then press Save again. Your work is still here.');return}alert('Could not save: '+(e.message||e))}}
@@ -4811,17 +4885,17 @@ function m13Extra(noRm,noHist){const S=M13S,rm=noRm?[]:(STF||[]).filter(s=>(S.re
 let GD='';
 const gnAll=()=>{if(!M13S)return{};return M13S.gen=M13S.gen||{}};
 const gnYr=()=>+((M13S&&M13S.year)||MY),gnMo=r=>r.hd?m13Months(r.hd,gnYr()):null;
-const GCP='CONTRACTUAL / PROBATIONARY',GST=[['reg','Regular'],['con','Contractual'],['pro','Probationary'],['no','No 13th MP']],gnStat=r=>r.st||(r.hd?'pro':'reg');
+const GCP='CONTRACTUAL / PROBATIONARY',GST=[['reg','Regular'],['con','Contractual'],['pro','Probationary'],['ext','Extra Regular'],['no','No 13th MP']],gnStat=r=>r.st||(r.hd?'pro':'reg');
 /* Comment column = the employee's status (Probationary, Contractual, No 13th MP). Regular stays blank. A comment typed by the user (r.cmx) wins; clearing it goes back to the status. */
 const gnCmAuto=r=>{const t=gnStat(r);return t==='reg'?'':((GST.find(x=>x[0]===t)||[])[1]||'')},gnCm=r=>(r.cmx&&r.cm)?r.cm:gnCmAuto(r);
-const gnFx=r=>r.fx!=null,gnCalc=(r,f)=>{const fx=gnFx(r),has=gnStat(r)!=='no'&&(fx?r.fx!=='':(r.days!==''&&r.days!=null)),mi=(r.mi===''||r.mi==null)?null:pn(r.mi),k=(mi!=null&&mi>0&&mi<=12)?mi/12:(r.hd?gnMo(r)/12:1),pay=has?(fx?r2(pn(r.fx)):r2(pn(r.rate)*pn(r.days)*k)):0,dd=r2(Object.values(r.d||{}).reduce((a,x)=>a+pn(x),0));return{has,pay,dd,net:has?r2(pay-pn(r.ar)-pn(r.v)-dd):0}};
-function gnGroups(f,raw){const sid=new Map((STF||[]).map(x=>[String(x.id),x])),order=PGO[f.dept]||[],gm=new Map(),SG={con:[],pro:[],no:[]};
+const gnFx=r=>r.fx!=null,gnCalc=(r,f)=>{const fx=gnFx(r),has=gnStat(r)!=='no'&&(fx?r.fx!=='':(r.days!==''&&r.days!=null)),mi=(r.mi===''||r.mi==null)?null:pn(r.mi),k=(mi!=null&&mi>0&&mi<=12)?mi/12:(r.hd&&gnStat(r)!=='reg'?gnMo(r)/12:1),pay=has?(fx?r2(pn(r.fx)):r2((()=>{const g=gnGross(r,f);return g?g.d/7*pn(r.days):pn(r.rate)*pn(r.days)})()*k)):0,dd=r2(Object.values(r.d||{}).reduce((a,x)=>a+pn(x),0));return{has,pay,dd,net:has?r2(pay-pn(r.ar)-pn(r.v)-dd):0}};
+function gnGroups(f,raw){const sid=new Map((STF||[]).map(x=>[String(x.id),x])),order=PGO[f.dept]||[],gm=new Map(),SG={con:[],pro:[],ext:[],no:[]};
  f.rows.forEach(r=>{const s=gnStat(r);if(s!=='reg'){(SG[s]||SG.pro).push(r);return}
   let g=r.grp;if(g==null||g===GCP){const x=sid.get(String(r.id));g=x?(pGrp(x)||''):''}if(!gm.has(g))gm.set(g,[]);gm.get(g).push(r)});
  const ix=g=>g===''?-1:(order.indexOf(g)<0?999:order.indexOf(g)),
   out=[...gm.keys()].sort((a,b)=>ix(a)-ix(b)||a.localeCompare(b)).map((k,i)=>({si:i,title:k,rows:gm.get(k).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))}));
- [['con','Contractual'],['pro','Probationary'],['no','No 13th MP']].forEach(([k,t])=>{if(SG[k].length)out.push({si:out.length,title:t,st:k,rows:SG[k].slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))})});
- if(M13NC&&!raw){const rk={reg:0,con:1,pro:2,no:3};return[{si:0,title:'',rows:f.rows.slice().sort((a,b)=>(rk[gnStat(a)]??0)-(rk[gnStat(b)]??0)||String(a.name).localeCompare(String(b.name)))}]}
+ [['con','Contractual'],['pro','Probationary'],['ext','Extra Regular'],['no','No 13th MP']].forEach(([k,t])=>{if(SG[k].length)out.push({si:out.length,title:t,st:k,rows:SG[k].slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))})});
+ if(M13NC&&!raw){const rk={reg:0,con:1,pro:2,ext:3,no:4};return[{si:0,title:'',rows:f.rows.slice().sort((a,b)=>(rk[gnStat(a)]??0)-(rk[gnStat(b)]??0)||String(a.name).localeCompare(String(b.name)))}]}
  return out}
 function gnTot(f){const R_=f.rows.filter(r=>gnStat(r)!=='no'),t={n:R_.length,pay:0,ar:0,v:0,net:0,d:{}};f.dc.forEach(c=>t.d[c.id]=0);
  R_.forEach(r=>{const c=gnCalc(r,f);t.pay+=c.pay;t.ar+=pn(r.ar);t.v+=pn(r.v);t.net+=c.net;f.dc.forEach(k=>t.d[k.id]+=pn((r.d||{})[k.id]))});
@@ -4836,13 +4910,14 @@ function gnOpen(){
  <label>Department<select id="gn_d" class="fi" onchange="gnCutFill()">${depts.map(x=>`<option value="${esc(x)}"${x===MD?' selected':''}>${esc(x)}</option>`).join('')}</select></label>
  <label>Payroll cutoff (employee names are taken from this)<select id="gn_c" class="fi"></select></label>
  <label>Rate to use<select id="gn_b" class="fi"><option value="latest">Latest rate</option><option value="old">Old rate (before the last adjustment)</option></select></label>
- <label>No. of days<input id="gn_n" class="fi" type="number" min="0" step="any" inputmode="decimal" placeholder="e.g. 26"></label>
+ <label>No. of days / weeks<div style="display:flex;gap:8px"><input id="gn_n" class="fi" style="flex:1;min-width:0" type="number" min="0" step="any" inputmode="decimal" placeholder="e.g. 26"><select id="gn_u" class="fi" style="width:130px;flex:none" onchange="$('gn_n').placeholder=this.value==='w'?'e.g. 4':'e.g. 26'"><option value="d">Days</option><option value="w">Weeks</option></select></div></label>
+ <p class="sub" style="font-size:12.5px;margin:-4px 0 0">Weeks are turned into days per employee: weekly-gross rate = 7 days a week, daily rate = 6 days a week. You can still edit the days of each row.</p>
  <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn" onclick="gnGo()">Generate</button><button class="btn o" onclick="$('gnm').remove()">Cancel</button></div></div>`;gnCutFill()}
 function gnCutFill(){const dp=($('gn_d')||{}).value,el=$('gn_c');if(!el)return;
  const L=(PH||[]).filter(p=>p&&p.data&&p.data.rows&&pFo(p.data)===dp).sort((a,b)=>String(b.data.to||'').localeCompare(String(a.data.to||''))||String(b.created_at).localeCompare(String(a.created_at))),
   lb=p=>{const a=p.data.from?m13Long(String(p.data.from).slice(0,10)):'',b=p.data.to?m13Long(String(p.data.to).slice(0,10)):'';return (a&&b?a+' \u2013 '+b:(b||a||'Saved payroll'))+(p.data.title?' \u00B7 '+p.data.title:'')};
  el.innerHTML=L.map((p,i)=>`<option value="${esc(String(p.id))}">${esc(lb(p))}${i===0?' (latest)':''}</option>`).join('')}
-function gnBuild(dp,bs,dy,runId){
+function gnBuild(dp,bs,dy,runId,un){
  const ph=(runId!=null&&runId!==''?(PH||[]).find(p=>p&&p.data&&String(p.id)===String(runId)&&pFo(p.data)===dp):null)||pLastH(dp);if(!ph||!ph.data||!ph.data.rows)return{err:'There is no saved payroll for '+dp+' yet.'};
  const rw=ph.data.rows,g=(PCFG[dp]||{}).m==='g',
  runs=(PH||[]).filter(p=>p&&p.data&&pFo(p.data)===dp).sort((a,b)=>String(b.data.to||'').localeCompare(String(a.data.to||''))||String(b.created_at).localeCompare(String(a.created_at))),
@@ -4850,26 +4925,33 @@ function gnBuild(dp,bs,dy,runId){
  full=new Map(),part=new Map(),A=(Array.isArray(EALL)&&EALL.length?EALL:E)||[];
  A.forEach(e=>{const n=tmN(e.name);if(n&&!full.has(n))full.set(n,e);const k=nk(e.name);if(!part.has(k))part.set(k,[]);part.get(k).push(e)});
  const emp=s=>{const f=full.get(tmN(s.name));if(f)return f;const L=part.get(nk(s.name))||[];return L.length===1?L[0]:(L.find(e=>nd(e.dept||'')===s.dept)||null)},
- dly=(s,r)=>{r=pn(r);return g&&!pGpdDef(s)?r2(r/7):r2(r)};
+ pdy=s=>{const d=ph.data||{},k=pEk(s),e=d.gpe&&d.gpe[k];if(e!=null)return !!e;const gp=d.gpd;if(gp&&Object.prototype.hasOwnProperty.call(gp,pGKey(s)))return !!gp[pGKey(s)];return !!pGpdDef(s)},
+ dly=(s,r)=>{r=pn(r);return g&&!pdy(s)?r2(r/7):r2(r)};
  let skip=0;const rows=[],late=[];
- (STF||[]).filter(s=>s.dept===dp&&Object.prototype.hasOwnProperty.call(rw,s.id)).sort((a,b)=>a.name.localeCompare(b.name)).forEach(s=>{
+ (STF||[]).filter(s=>{if(s.dept!==dp)return false;if(Object.prototype.hasOwnProperty.call(rw,s.id))return true;const e0=emp(s),h0=e0&&m13Hd(e0,MY);return !!h0&&m13IsLate(h0,MY)&&!(SEP.includes(e0.emp_status)||sepLike(e0))}).sort((a,b)=>a.name.localeCompare(b.name)).forEach(s=>{
   const e=emp(s);if(e&&(SEP.includes(e.emp_status)||sepLike(e))){skip++;return}
   let hd='',nl=0;if(e&&m13Hd(e,MY)){const hh=m13Hd(e,MY);if(m13IsLate(hh,MY)){hd=hh;nl=1}else if(!isNaN(new Date(hh+'T00:00:00'))&&hh.slice(0,4)===String(MY))hd=hh}
   const cur=pn(s.rate);let old=0;for(const p of runs){const v=p.data.rates&&p.data.rates[s.id];if(v!=null&&pn(v)&&pn(v)!==cur){old=pn(v);break}}
   const q=pAtmQ(s),r=rw[s.id]||{},ac=String(q&&q[0]?q[0]:(r.acct!=null?r.acct:((pAtmF(s)||[])[0]||pIdx(s)[2]||''))).trim(),
    rm=q?[q[1]?'ATM: '+q[1]:'',q[2]||''].filter(Boolean).join(' · '):'',lt=dly(s,cur),od=old?dly(s,old):0;
-  rows.push({id:String(s.id),grp:pGrp(s)||'',st:nl?'no':(hd?'pro':'reg'),nl:nl,name:s.name,acct:ac,latest:lt,old:od,rate:bs==='old'&&od&&String(dp).toUpperCase()!=='RENTAL'?od:lt,days:dy,ar:'',v:'',d:{},hd:hd,mi:'',rem:hd&&!nl?m13Months(hd,+MY)+' mos ( '+m13Rng(hd,+MY)+')':'',cm:''});if(String(dp).toUpperCase()==='RENTAL'&&/TUSING/i.test(s.name)&&/JULIET/i.test(s.name))rows[rows.length-1].fx=''});
+  let hs='';if(e&&!hd){const h1=m13Hd(e,MY),d1=new Date(h1+'T00:00:00'),lim=new Date();lim.setFullYear(lim.getFullYear()-1);if(h1&&!isNaN(d1)&&d1>lim)hs=h1}
+  rows.push({id:String(s.id),grp:pGrp(s)||'',st:nl?'no':(hd&&!m13Reg(e)?'pro':'reg'),nl:nl,hs:hs,name:s.name,acct:ac,latest:lt,old:od,rate:bs==='old'&&od&&String(dp).toUpperCase()!=='RENTAL'?od:lt,days:(un==='w'&&dy!=='')?r2(dy*(g&&!pdy(s)?7:6)):dy,pdd:pdy(s)?1:0,...((un==='w'&&dy!=='')?{u:'w',wk:dy}:{}),ar:'',v:'',d:{},hd:hd,mi:'',rem:hd&&!nl?m13Months(hd,+MY)+' mos ( '+m13Rng(hd,+MY)+')':(hs?m13U1Rem(hs,+MY):''),cm:''});if(String(dp).toUpperCase()==='RENTAL'&&/TUSING/i.test(s.name)&&/JULIET/i.test(s.name))rows[rows.length-1].fx=''});
  if(!rows.length)return{err:'No active employees found in the latest payroll of '+dp+'.'};
- return{f:{dept:dp,basis:bs,days:dy,dc:[],rows,late,at:Date.now()},skip}}
-function gnGo(){const dp=$('gn_d').value,bs=$('gn_b').value,dy=$('gn_n').value.trim(),cu=($('gn_c')||{}).value||'';
+ const got=new Set(rows.map(x=>x.id)),miss=[];
+ (STF||[]).filter(s=>s.dept===dp&&!got.has(String(s.id))).forEach(s=>{const e=emp(s),h=e&&m13Hd(e,MY),lt=!!h&&m13IsLate(h,MY),sep=!!e&&(SEP.includes(e.emp_status)||sepLike(e)),inRw=Object.prototype.hasOwnProperty.call(rw,s.id);
+  if(sep){if(lt)miss.push(s.name+' \u2014 marked resigned/separated (or has a status date) in the 201 File')}
+  else if(!inRw)miss.push(s.name+(e?' \u2014 not in the payroll cutoff you chose'+(lt?'':' (and not hired Oct\u2013Dec per 201 File)'):' \u2014 not in the payroll cutoff and no matching 201 File'))});
+ return{f:{dept:dp,basis:bs,days:dy,unit:un==='w'?'w':'d',dc:[],rows,late,at:Date.now()},skip,miss}}
+function gnGo(){const dp=$('gn_d').value,bs=$('gn_b').value,dy=$('gn_n').value.trim(),cu=($('gn_c')||{}).value||'',un=($('gn_u')||{}).value||'d';
  if(dy!==''&&!(+dy>=0))return toast('Enter a valid number of days.');
  const G=gnAll(),old=G[dp],keep=old?old.rows.filter(x=>x.mv):[];if(old&&old.rows.some(x=>!x.mv)&&!confirm('A generated form for '+dp+' '+MY+' already exists.\n\nGenerate again? Your edits to it will be replaced.'))return;
- const r=gnBuild(dp,bs,dy===''?'':r2(dy),cu);if(r.err)return alert(r.err);
+ const r=gnBuild(dp,bs,dy===''?'':r2(dy),cu,un);if(r.err)return alert(r.err);
  {const out=new Set();Object.keys(G).forEach(k=>{if(k!==dp&&G[k]&&G[k].rows)G[k].rows.forEach(x=>{if(x.mv===dp)out.add(x.id)})});
  const kid=new Set(keep.map(x=>x.id));r.f.rows=[...r.f.rows.filter(x=>!out.has(x.id)&&!kid.has(x.id)),...keep].sort((a,b)=>String(a.name).localeCompare(String(b.name)))}
  G[dp]=r.f;m13Mark();$('gnm').remove();GD=dp;mDraw();scrollTo(0,0);
- toast(r.f.rows.length+' employees generated ✔'+(keep.length?' · '+keep.length+' moved-in kept':'')+(r.skip?' · '+r.skip+' resigned/separated left out':''))}
-function gnList(){const G=(M13S&&M13S.gen)||{},k=Object.keys(G).sort();if(!k.length||(M13S.saved&&!M13S.dirty))return'';
+ toast(r.f.rows.length+' employees generated ✔'+(keep.length?' · '+keep.length+' moved-in kept':'')+(r.skip?' · '+r.skip+' resigned/separated left out':''));
+ if(r.miss&&r.miss.length)setTimeout(()=>alert('These employees of '+dp+' are NOT in the generated form:\n\n'+r.miss.slice(0,25).map(x=>'\u2022 '+x).join('\n')+(r.miss.length>25?'\n\u2026and '+(r.miss.length-25)+' more':'')),60)}
+function gnList(){return'';/* "Generated forms" panel removed: forms are opened from the History below */const G=(M13S&&M13S.gen)||{},k=Object.keys(G).sort();if(!k.length||(M13S.saved&&!M13S.dirty))return'';
  return `<div class="cx-card no-print m13h"><div class="m13h-t"><h3>Generated forms ${esc(MY)}</h3><p>Department forms you generated for this year.</p></div><div class="m13g">${k.map(d=>`<div class="m13gi"><div><b>${esc(d)}</b><span>${G[d].rows.length} employees</span></div><div class="m13gb"><button class="btn sm" data-d="${esc(d)}" onclick="gnShow(this.dataset.d)">Open</button><button class="btn o sm" data-d="${esc(d)}" onclick="gnDelForm(this.dataset.d)">Delete</button></div></div>`).join('')}</div></div>`}
 function gnShow(d){GQ='';GD=d;mDraw();scrollTo(0,0)}
 function gnBack(){GQ='';GD='';MD='';mDraw();scrollTo(0,0)}
@@ -4896,8 +4978,10 @@ function gnEntSet(el){const f=((M13S||{}).gen||{})[GD];if(!f)return;const k=el.d
  if(!Object.keys(o).length)delete f.ent[k];
  m13Mark();if(redo)gnEntPaint(f);else gnEntFoot(gnEntM(f))}
 function gnEntReset(){const f=((M13S||{}).gen||{})[GD];if(!f)return;if(!f.ent||!Object.keys(f.ent).length)return toast('Nothing to reset - the entries are automatic.');if(!confirm('Remove all your edits in Entries and go back to the automatic entries?'))return;delete f.ent;m13Mark();gnDraw();toast('Entries reset \u2714')}
-const gnSig=f=>({prep:(f&&f.sig&&f.sig.prep)||M13SIG.prep,chk:(f&&f.sig&&f.sig.chk)||M13SIG.chk,apr:(f&&f.sig&&f.sig.apr)||M13SIG.apr});
-function gnSigSet(el){const f=((M13S||{}).gen||{})[GD];if(!f)return;const g=el.dataset.g,i=+el.dataset.i,cur=gnSig(f);f.sig={prep:cur.prep.slice(),chk:cur.chk.slice(),apr:cur.apr.slice()};f.sig[g][i]=el.value.trim();const sp=el.nextElementSibling;if(sp)sp.textContent=el.value.trim();m13Mark()}
+/* Checked By follows the name on the department's latest saved Payroll, unless it was typed over in this form. */
+const gnPayChk=f=>{try{const h=f&&f.dept?pLastH(f.dept):null,c=String((h&&h.data&&h.data.chk)||'').trim();return c?[c]:null}catch(e){return null}};
+const gnSig=f=>({prep:(f&&f.sig&&f.sig.prep)||M13SIG.prep,chk:(f&&f.sigc&&f.sig&&f.sig.chk)||gnPayChk(f)||(f&&f.sig&&f.sig.chk)||M13SIG.chk,apr:(f&&f.sig&&f.sig.apr)||M13SIG.apr});
+function gnSigSet(el){const f=((M13S||{}).gen||{})[GD];if(!f)return;const g=el.dataset.g,i=+el.dataset.i,cur=gnSig(f);f.sig={prep:cur.prep.slice(),chk:cur.chk.slice(),apr:cur.apr.slice()};f.sig[g][i]=el.value.trim();if(g==='chk')f.sigc=1;const sp=el.nextElementSibling;if(sp)sp.textContent=el.value.trim();m13Mark()}
 
 /* ===== 13th Month Pay: ATM Accounts. The accounts belong to the generated form (a snapshot): later Payroll changes never touch a saved 13th month. ===== */
 let M13ATQ='';
@@ -4910,8 +4994,8 @@ function m13AtmM(f){const secs=gnGroups(f,1).map(g=>({g:g.title||f.dept,rows:g.r
 function m13SlipList(f){const o=[];gnGroups(f,1).forEach(g=>g.rows.forEach(r=>{if(gnStat(r)==='no')return;const c=gnCalc(r,f);if(!c.has)return;o.push({r,c})}));return o.sort((a,b)=>String(a.r.name).localeCompare(String(b.r.name)))}
 function m13SlipM(f,x){const {r,c}=x,v={pay:c.pay,net:c.net,k0:pn(r.ar),k1:pn(r.v)},L={k0:'A/R',k1:'Vale'},lss=['k0','k1'];
  f.dc.forEach(k=>{const a=pn((r.d||{})[k.id]);if(a){v['d'+k.id]=a;L['d'+k.id]=k.l;lss.push('d'+k.id)}});
- const mo=(r.mi!==''&&r.mi!=null&&pn(r.mi)>0&&pn(r.mi)<=12)?pn(r.mi):(r.hd?gnMo(r):null),
-  cm=gnFx(r)?'Fixed amount':(r.days!==''&&r.days!=null?pf(pn(r.rate))+' \u00D7 '+r.days+(mo!=null?' \u00D7 '+mo+'/12':''):'');
+ const mo=(r.mi!==''&&r.mi!=null&&pn(r.mi)>0&&pn(r.mi)<=12)?pn(r.mi):(r.hd&&gnStat(r)!=='reg'?gnMo(r):null),
+  cm=gnFx(r)?'Fixed amount':(r.days!==''&&r.days!=null?(()=>{const g=gnGross(r,f);return g?pf(g.d)+' \u00F7 7 \u00D7 '+r.days:pf(pn(r.rate))+' \u00D7 '+r.days})()+(mo!=null?' \u00D7 '+mo+'/12':''):'');
  return{s:{name:r.name},g:f.dept,v,r:{rem:r.rem||''},lab:k=>L[k]||k,adds:[],lss,gross:c.pay,td:r2(c.pay-c.net),bal:()=>0,rd:null,cm}}
 function m13SlipHm(m){const P=v=>pf(r2(v))||'-';
  return`<div class="p13"><div class="hd"><div class="co">Rayanton Farms &amp; Livestock Corp.</div><div class="yr">13TH MONTH PAY ${esc(MY)}</div></div>
@@ -5004,7 +5088,9 @@ body.m13fv .m13w .cx-t thead input.m13d{font-weight:700!important}
 body.m13fv .m13w input.m13d[data-k="name"]{width:165px!important}
 body.m13fv .m13w input.m13d[data-k="acct"]{width:108px!important}
 body.m13fv .m13w input.m13d[data-k="rate"]{width:64px!important}
-body.m13fv .m13w input.m13d[data-k="days"]{width:50px!important}
+body.m13fv .m13w input.m13d[data-k="days"],body.m13fv .m13w input.m13d[data-k="wk"]{width:50px!important;text-align:center!important}
+body.m13fv .m13w td.m13c{text-align:center!important}
+body.m13fv .m13w td.m13c small{display:block;text-align:center}
 body.m13fv .m13w input.m13d[data-k="fx"]{width:72px!important}
 body.m13fv .m13w input.m13d[data-k="mi"]{width:44px!important}
 body.m13fv .m13w input.m13d[data-k="ar"],body.m13fv .m13w input.m13d[data-k="v"],body.m13fv .m13w input.m13d[data-k="d"]{width:70px!important}
@@ -5122,15 +5208,20 @@ function m13AtmXls(){const F=m13AF();if(!F)return;const M=m13AtmM(F),RT='http://
  logAct('Exported 13th month ATM accounts (Excel)','13th Month Pay',MY+' \u00B7 '+F.dept);toast('Exported \u2714')}
 function gnDraw(){return m13Keep(gnDraw0)}
 /* Sync 13th Month forms with the 201 File: name (if corrected), date hired / started, status & remark follow the 201. Rate and ATM account are NOT touched. */
-function gnSync(S,only){try{if(!S||!S.gen)return;const A=(Array.isArray(EALL)&&EALL.length?EALL:E)||[],byId=new Map(A.map(e=>[String(e.id),e])),full=new Map(),part=new Map(),sid=new Map((STF||[]).map(x=>[String(x.id),x])),
+function gnSync(S,only){try{if(!S||!S.gen)return;
+ /* regular employees: the automatic "10 mos ( Mar.- Dec.)" remark is left blank */
+ const A=(Array.isArray(EALL)&&EALL.length?EALL:E)||[],byId=new Map(A.map(e=>[String(e.id),e])),full=new Map(),part=new Map(),sid=new Map((STF||[]).map(x=>[String(x.id),x])),
  nk=n=>{n=String(n||'');const i=n.indexOf(',');return tmN(i<0?n:n.slice(0,i))+'|'+(tmN(i<0?'':n.slice(i+1)).split(' ')[0]||'')};
  A.forEach(e=>{const n=tmN(e.name);if(n&&!full.has(n))full.set(n,e);const k=nk(e.name);if(!part.has(k))part.set(k,[]);part.get(k).push(e)});
  const find=r=>{let e=r.eid!=null?byId.get(String(r.eid)):null;if(e)return e;const x=sid.get(String(r.id));e=full.get(tmN(r.name))||(x&&full.get(tmN(x.name)))||null;if(!e){const L=part.get(nk(r.name))||[];if(L.length===1)e=L[0]}return e},
  rm=(h,y)=>h&&!m13IsLate(h,y)?m13Months(h,y)+' mos ( '+m13Rng(h,y)+')':'',y=+S.year;
  Object.keys(S.gen).forEach(d=>{const f=S.gen[d];if(only?d!==only:f.sv)return;(f.rows||[]).forEach(r=>{const e=find(r);if(!e)return;r.eid=e.id;const en=String(e.name||'');
   if(r.en0==null)r.en0=en;else if(en&&en!==r.en0){r.name=en;r.en0=en;window._gnN=(window._gnN||0)+1}
-  const hh=m13Hd(e,y),lt=!!hh&&hh.slice(0,4)===String(y)&&m13IsLate(hh,y),ok=hh&&!isNaN(new Date(hh+'T00:00:00'))&&hh.slice(0,4)===String(y)&&!lt,nh=(ok||lt)?hh:'';
-  if((r.hd||'')!==nh){window._gnN=(window._gnN||0)+1;const auto=!r.rem||r.rem===rm(r.hd,y);r.hd=nh;if(auto)r.rem=rm(nh,y);if(!lt&&r.nl&&r.st==='no'){r.st=nh?'pro':'reg';r.nl=0}else if(!lt){if(nh&&(r.st==null||r.st==='reg'))r.st='pro';else if(!nh&&r.st==='pro')r.st='reg'}}if(lt&&r.st!=='no'){r.st='no';r.nl=1;window._gnN=(window._gnN||0)+1}
+  const hh=m13Hd(e,y);{const d1=new Date(hh+'T00:00:00'),lim=new Date();lim.setFullYear(lim.getFullYear()-1);const hs2=(hh&&!isNaN(d1)&&hh.slice(0,4)!==String(y)&&d1>lim)?hh:'';if((r.hs||'')!==hs2){r.hs=hs2;window._gnN=(window._gnN||0)+1}}
+  const lt=!!hh&&hh.slice(0,4)===String(y)&&m13IsLate(hh,y),ok=hh&&!isNaN(new Date(hh+'T00:00:00'))&&hh.slice(0,4)===String(y)&&!lt,nh=(ok||lt)?hh:'';
+  if((r.hd||'')!==nh){window._gnN=(window._gnN||0)+1;const auto=!r.rem||r.rem===rm(r.hd,y);r.hd=nh;if(auto)r.rem=rm(nh,y);if(!lt&&r.nl&&r.st==='no'){r.st=nh?'pro':'reg';r.nl=0}else if(!lt){if(nh&&(r.st==null||r.st==='reg'))r.st='pro';else if(!nh&&r.st==='pro')r.st='reg'}}if(lt&&r.st!=='no'&&!r.nlu&&!r.nl){r.st='no';r.nl=1;window._gnN=(window._gnN||0)+1}
+  if(!lt&&r.st==='pro'&&m13Reg(e)){r.st='reg';window._gnN=(window._gnN||0)+1}
+  {const want=r.hd?rm(r.hd,y):(r.hs?m13U1Rem(r.hs,y):''),cur=String(r.rem||'').trim();if(want!==cur&&(!cur||/^\d+(\.\d+)? mos( \( [^)]*\))?$/.test(cur))){r.rem=want;window._gnN=(window._gnN||0)+1}}
  })})}catch(x){}}
 function gnRefresh(){const S=M13S,f=S&&(S.gen||{})[GD];if(!f)return;window._gnN=0;gnSync(S,GD);f.sv=1;const n=window._gnN||0;if(n)m13Mark();gnDraw();toast(n?n+' change(s) taken from the 201 Files. Press Save to keep it.':'Already up to date with the 201 Files.')}
 function gnDraw0(){const S=M13S;gnSync(S);const f=(S.gen||{})[GD];if(!f){GD='';return mDraw()}
@@ -5139,19 +5230,19 @@ function gnDraw0(){const S=M13S;gnSync(S);const f=(S.gen||{})[GD];if(!f){GD='';r
  txt=(id,k,v,w)=>`<input class="m13d" type="text" style="width:${w}px;text-align:left" value="${esc(v||'')}" data-id="${esc(id)}" data-k="${k}" onchange="gnSet(this)"><span class="m13pv">${esc(v||'')}</span>`,
  tr=r=>{const c=gnCalc(r,f),i=esc(r.id),s_=gnStat(r);return `<tr class="m13-r${s_==='no'?' m13-no':''}"><td class="m13-nm"><div class="m13nmr">${txt(r.id,'name',r.name,230)}<span class="m13stw s-${s_} no-print" title="Status: ${(GST.find(x=>x[0]===s_)||[])[1]}"><b>${({reg:'\u25BE',con:'C',pro:'P',no:'N'})[s_]||'\u25BE'}</b><select data-id="${i}" onchange="gnStSet(this)">${GST.map(x=>`<option value="${x[0]}"${x[0]===s_?' selected':''}>${x[0]==='reg'?'Regular (default)':x[1]}</option>`).join('')}</select></span></div>${r.add?' <span class="cx-tag">Added</span>':''}</td>
  <td>${txt(r.id,'acct',r.acct,128)}${ACCT13.test(String(r.acct||''))?'':'<small class="m13s no-print" style="color:#a3302a">'+(r.acct?'must be exactly 13 digits':'13-digit account no. required')+'</small>'}</td>
- <td class="n">${num(r.id,'rate',r.rate,90)}${r.old&&r.old!==r.latest?`<small class="m13s rh">old ${fm(r.old)} · latest ${fm(r.latest)}</small>`:''}</td>
- <td class="n m13c">${num(r.id,'days',r.days,72)}</td><td class="n" id="gnp_${i}">${gnFx(r)?`<span class="m13fx">${num(r.id,'fx',r.fx,96)}<button class="btn o sm no-print m13-rb" data-id="${i}" title="Back to automatic (Rate × No. of Days)" onclick="gnFxOff(this.dataset.id)">Auto</button></span>`:(c.has?fm(c.pay):'-')+` <button class="btn o sm no-print m13-rb" data-id="${i}" title="Fixed amount: type the 13th Month Pay yourself (not based on days)" onclick="gnFxOn(this.dataset.id)">Fixed</button>`}</td><td class="n m13c">${num(r.id,'mi',r.mi,64)}</td>
+ <td class="n">${(()=>{const g=gnGross(r,f);return num(r.id,'rate',g?g.d:r.rate,90)+(g?'<small class="m13s">weekly gross</small>':'')+(r.old&&r.old!==r.latest?`<small class="m13s rh">old ${fm(g?g.o:r.old)} · latest ${fm(g?g.l:r.latest)}</small>`:'')})()}</td>
+ <td class="n m13c">${r.u==='w'?num(r.id,'wk',r.wk,72)+'<small class="m13s" id="gnwd_'+i+'">'+(r.days===''||r.days==null?'':'= '+esc(String(r.days))+' days')+'</small>':num(r.id,'days',r.days,72)}<select class="no-print" style="display:block;margin:3px 0 0 auto;width:82px;font-size:12px;padding:2px 4px;border:1px solid #cfd9e8;border-radius:6px;background:#fff" title="Follow No. of Days or No. of Weeks for this employee (1 week = ${gnWM(r,f)} days)" data-id="${i}" onchange="gnUnitSet(this)"><option value="d">Days</option><option value="w"${r.u==='w'?' selected':''}>Weeks</option></select></td><td class="n" id="gnp_${i}">${gnFx(r)?`<span class="m13fx">${num(r.id,'fx',r.fx,96)}<button class="btn o sm no-print m13-rb" data-id="${i}" title="Back to automatic (Rate × No. of Days)" onclick="gnFxOff(this.dataset.id)">Auto</button></span>`:(c.has?fm(c.pay):'-')+` <button class="btn o sm no-print m13-rb" data-id="${i}" title="Fixed amount: type the 13th Month Pay yourself (not based on days)" onclick="gnFxOn(this.dataset.id)">Fixed</button>`}</td><td class="n m13c">${num(r.id,'mi',r.mi,64)}</td>
  <td class="n">${num(r.id,'ar',r.ar,92)}</td><td class="n">${num(r.id,'v',r.v,92)}</td>
  ${f.dc.map(k=>`<td class="n">${num(r.id,'d',(r.d||{})[k.id],92,k.id)}</td>`).join('')}
  <td class="n" id="gnn_${i}" style="${c.has&&c.net<0?'color:#c00':''}">${c.has?'<b>'+fm(c.net)+'</b>':'-'}</td>
- <td>${txt(r.id,'rem',r.rem,190)}</td><td style="white-space:nowrap">${r.hd?esc(m13Long(r.hd)):''}</td><td>${txt(r.id,'cm',gnCm(r),170)}</td>${(f.xc||[]).map(k=>`<td>${gnXtxt(r.id,k.id,(r.xv||{})[k.id],130)}</td>`).join('')}<td class="no-print n"><div class="m13-ra"><button class="btn o sm m13-rb" title="Move to another department" data-id="${i}" onclick="gnMoveOpen(this.dataset.id)">Move</button><button class="btn o sm m13-rb x" title="Remove from this form" data-id="${i}" onclick="gnRem(this.dataset.id)">Remove</button></div></td></tr>`};
+ <td>${txt(r.id,'rem',r.rem,190)}</td><td style="white-space:nowrap">${gnDS(r)?esc(m13Long(gnDS(r))):''}</td><td>${txt(r.id,'cm',gnCm(r),170)}</td>${(f.xc||[]).map(k=>`<td>${gnXtxt(r.id,k.id,(r.xv||{})[k.id],130)}</td>`).join('')}<td class="no-print n"><div class="m13-ra"><button class="btn o sm m13-rb" title="Move to another department" data-id="${i}" onclick="gnMoveOpen(this.dataset.id)">Move</button><button class="btn o sm m13-rb x" title="Remove from this form" data-id="${i}" onclick="gnRem(this.dataset.id)">Remove</button></div></td></tr>`};
  $('main').innerHTML=`<section class="cx-wrap m13w${M13HR?' hrh':''}">${M13OK===false?m13SqlH():''}<div class="m13-ph"><img src="${LOGO}" alt=""><div><b>RAYANTON FARMS &amp; LIVESTOCK CORP.</b><span>14 Virgo St., Sierra Vista Sub., Cupang, Antipolo City</span><i>13TH MONTH PAY ${esc(MY)} \u00B7 ${esc(String(f.dept).toUpperCase())}</i></div></div><div class="cx-head"><div><button class="btn o sm no-print" style="margin:0 0 10px" onclick="gnBack()">← Back</button><h1>13th Month Pay ${esc(MY)}</h1><p class="sub"><b>${esc(f.dept)}</b> · active employees of the latest payroll. 13th Month Pay = Rate × No. of Days. Net Pay = 13th Month Pay − A/R − Vale − other deductions.</p></div>
  <div class="cx-sum"><span><b id="gnSp">${fm(T.pay)}</b>13th Month Pay</span><span><b id="gnSn">${fm(T.net)}</b>Net Pay</span><span><b>${T.n}</b>Employees</span></div></div>
  <div class="cx-card"><div class="cx-bar no-print m13-tb"><div class="grow"><label for="gn_q">Search employee</label><input id="gn_q" type="search" autocomplete="off" placeholder="Type a name to find an employee in this form" value="${esc(GQ)}" oninput="gnQ(this.value)"></div><span id="gn_qc" class="m13s" style="max-width:none"></span><span id="m13st" class="m13b n"></span></div>
  <div class="cx-bar no-print m13-ar">${m13Acts('gnExport()','')}<button class="btn o" title="Update date started, status and corrected names of this form from the 201 Files. Rate and ATM are not changed." onclick="gnRefresh()">Update from 201</button></div>
  <div class="cx-bar no-print" style="border-top:1px solid var(--ln);padding-top:14px"><div class="m13-g"><div><label for="gn_rb">Rate to use</label><select id="gn_rb"><option value="latest"${f.basis!=='old'?' selected':''}>Latest rate</option><option value="old"${f.basis==='old'?' selected':''}>Old rate</option></select></div><button class="btn o" onclick="gnRebasis()">Apply rate to all</button></div>
   <div class="m13-g"><div><label for="gn_dy">No. of days</label><input id="gn_dy" type="number" min="0" step="any" inputmode="decimal" style="width:100px" placeholder="e.g. 26" value="${esc(String(f.days==null?'':f.days))}"></div><button class="btn o" onclick="gnDaysAll()">Apply days to all</button></div><div class="m13-g"><div><label for="gn_bs">13th Month Pay</label><select id="gn_bs"><option value="days"${(f.bs==='fx'||(f.rows.length&&f.rows.every(gnFx)))?'':' selected'}>Rate × No. of days</option><option value="fx"${(f.bs==='fx'||(f.rows.length&&f.rows.every(gnFx)))?' selected':''}>Typed amount (not based on days)</option></select></div><button class="btn o" onclick="gnBasisAll()">Apply to all</button></div><div class="m13-g"><button class="btn o" onclick="gnAddDc()">+ Add deduction</button><button class="btn o" onclick="gnAddXc()" title="Add a column you can type in (for example Signature or Date received)">+ Add column</button><button class="btn o" onclick="gnColsOpen()" title="Choose which columns are shown and printed">${(()=>{const n=gnColList(f).filter(c=>(f.hc||[]).includes(c.k)).length;return 'Show / hide columns'+(n?' ('+n+' hidden)':'')})()}</button><button class="btn o" onclick="gnMarkAllNo()" title="Set every employee in this form to No 13th MP">Mark all as No 13th MP</button>${m13AtmBtn(f)}<button class="btn o" onclick="m13Slips()" title="Auto payslips of this form: preview and print">Payslips</button></div></div>
- <div class="cx-bar no-print" style="border-top:1px solid var(--ln);padding-top:14px"><div><label for="gn_an">Add name</label><input id="gn_an" list="gn_al" placeholder="Name" autocomplete="off"><datalist id="gn_al">${[...new Set((E||[]).map(e=>e.name).filter(Boolean))].sort().map(n=>`<option value="${esc(n)}">`).join('')}</datalist></div><div><label for="gn_aa">Account no.</label><input id="gn_aa" style="width:140px" placeholder="13 digits"></div><div><label for="gn_ar">Rate (₱)</label><input id="gn_ar" type="number" min="0" step="any" inputmode="decimal" style="width:110px" placeholder="0.00"></div><div><label for="gn_ac">Class</label><input id="gn_ac" list="gn_acl" style="width:170px" placeholder="Class (optional)" autocomplete="off" title="Pick a class or type a new one. Applies to Add and + Blank row."><datalist id="gn_acl">${[...new Set([...gnGroups(f,1).map(g=>g.title).filter(Boolean),'Regular','Contractual','Probationary','No 13th MP'])].map(n=>`<option value="${esc(n)}">`).join('')}</datalist></div><button class="btn" onclick="gnAddName()">Add</button><button class="btn o" onclick="gnAddRow()" title="Add an empty row, then type the name and the amount in the table">+ Blank row</button><span class="m13s" style="max-width:320px">Names, rates, days and every amount can be edited right in the table. Payroll and 201 Files are not changed.</span></div>
+ <div class="cx-bar no-print" style="border-top:1px solid var(--ln);padding-top:14px"><div><label for="gn_an">Add name</label><input id="gn_an" list="gn_al" placeholder="Name" autocomplete="off" oninput="gnAddFill()" onchange="gnAddFill()"><datalist id="gn_al">${[...new Set((E||[]).map(e=>e.name).filter(Boolean))].sort().map(n=>`<option value="${esc(n)}">`).join('')}</datalist></div><div><label for="gn_aa">Account no.</label><input id="gn_aa" style="width:140px" placeholder="13 digits"></div><div><label for="gn_ar">Rate (₱)</label><input id="gn_ar" type="number" min="0" step="any" inputmode="decimal" style="width:110px" placeholder="0.00"></div><div><label for="gn_ac">Class</label><input id="gn_ac" list="gn_acl" style="width:170px" placeholder="Class (optional)" autocomplete="off" title="Pick a class or type a new one. Applies to Add and + Blank row."><datalist id="gn_acl">${[...new Set([...gnGroups(f,1).map(g=>g.title).filter(Boolean),'Regular','Contractual','Probationary','Extra Regular','No 13th MP'])].map(n=>`<option value="${esc(n)}">`).join('')}</datalist></div><button class="btn" onclick="gnAddName()">Add</button><button class="btn o" onclick="gnAddRow()" title="Add an empty row, then type the name and the amount in the table">+ Blank row</button><span class="m13s" style="max-width:320px">Names, rates, days and every amount can be edited right in the table. Payroll and 201 Files are not changed.</span></div>
  <div class="cx-tw"><table class="cx-t" id="gnMain"><thead><tr><th>Name</th><th>Account No.</th><th class="n">Rate</th><th class="n m13c">No. of Days</th><th class="n">13th Month Pay</th><th class="n m13c" title="Months actually worked. Blank = full 12 months.">Mos. Worked</th><th class="n">A/R</th><th class="n">Vale</th>${f.dc.map(k=>`<th class="n"><input class="m13d" type="text" style="width:110px;font-weight:700;text-align:right" value="${esc(k.l)}" data-dc="${esc(k.id)}" onchange="gnDcLbl(this)"> <button class="btn o sm no-print" data-dc="${esc(k.id)}" onclick="gnDcRem(this.dataset.dc)" title="Remove this deduction column">✕</button></th>`).join('')}<th class="n">Net Pay</th><th>Remarks</th><th>Start Date</th><th>Comment</th>${(f.xc||[]).map(k=>`<th><input class="m13d" type="text" style="width:110px;font-weight:700" value="${esc(k.l)}" data-xc="${esc(k.id)}" onchange="gnXLbl(this)"> <button class="btn o sm no-print" data-xc="${esc(k.id)}" onclick="gnXRem(this.dataset.xc)" title="Remove this column">✕</button></th>`).join('')}<th class="no-print"></th></tr></thead>
  <tbody>${(()=>{const G=gnGroups(f),sub=(g)=>{const t=gnTot({rows:g.rows,dc:f.dc});if(g.st==='no')return `<tr class="m13-sub"><td colspan="${13+f.dc.length+(f.xc||[]).length}"><span class="m13-stk">${esc(g.title)} <small>\u00b7 ${g.rows.length} employee${g.rows.length===1?'':'s'} \u00b7 not counted in the totals</small></span></td></tr>`;return `<tr class="m13-sub"><td colspan="4"><span class="m13-stk">Subtotal${g.title?' \u00b7 '+esc(g.title):''} <small>\u00b7 ${g.rows.length} employee${g.rows.length===1?'':'s'}</small></span></td><td class="n" id="gnS_${g.si}_p">${fm(t.pay)}</td><td></td><td class="n" id="gnS_${g.si}_a">${fm(t.ar)}</td><td class="n" id="gnS_${g.si}_v">${fm(t.v)}</td>${f.dc.map(k=>`<td class="n" id="gnS_${g.si}_d_${esc(k.id)}">${fm(t.d[k.id])}</td>`).join('')}<td class="n" id="gnS_${g.si}_n">${fm(t.net)}</td><td></td><td></td><td></td>${(f.xc||[]).map(()=>'<td></td>').join('')}<td class="no-print"></td></tr>`};
   return G.map(g=>(g.title&&!g.st?`<tr class="m13-sec"><td colspan="${13+f.dc.length+(f.xc||[]).length}"><span class="m13-stk">${esc(g.title)}</span></td></tr>`:'')+g.rows.map(tr).join('')+(G.length>1||g.title?sub(g):'')).join('')})()}</tbody>
@@ -5192,7 +5283,7 @@ function gnXRem(id){const f=((M13S||{}).gen||{})[GD];if(!f)return;const c=(f.xc|
  if(f.rows.some(r=>(r.xv||{})[id])&&!confirm('Remove the "'+c.l+'" column? What you typed in it will be lost.'))return;
  f.xc.forEach(y=>{if(y.after==='x_'+id)y.after=c.after});f.xc=f.xc.filter(x=>x.id!==id);f.rows.forEach(r=>{if(r.xv)delete r.xv[id]});f.hc=(f.hc||[]).filter(k=>k!=='x_'+id);m13Mark();gnDraw()}
 function gnXSet(el){const{r}=gnRow(el.dataset.id);if(!r)return;const v=el.value.trim();r.xv=r.xv||{};if(v==='')delete r.xv[el.dataset.xc];else r.xv[el.dataset.xc]=v;el.value=v;const nx=el.nextElementSibling;if(nx&&nx.classList.contains('m13pv'))nx.textContent=v;m13Mark()}
-function gnClassApply(r,t){t=String(t||'').trim();if(!r||!t)return;const m={regular:'reg',contractual:'con',probationary:'pro','no 13th mp':'no'}[t.toLowerCase()];if(m==='reg'){r.grp='';delete r.st}else if(m)r.st=m;else r.grp=t}
+function gnClassApply(r,t){t=String(t||'').trim();if(!r||!t)return;const m={regular:'reg',contractual:'con',probationary:'pro','extra regular':'ext','no 13th mp':'no'}[t.toLowerCase()];if(m==='reg'){r.grp='';delete r.st}else if(m)r.st=m;else r.grp=t}
 function gnAddRow(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const id='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
  f.rows.push({id:id,name:'New employee',acct:'',latest:0,old:0,rate:0,days:f.days==null?'':f.days,ar:'',v:'',d:{},rem:'',add:1,fx:''});gnClassApply(f.rows[f.rows.length-1],($('gn_ac')||{}).value);m13Mark();gnDraw();toast('Row added — type the name and the 13th Month Pay amount');
  setTimeout(()=>{const i=[...document.querySelectorAll('input.m13d[data-k="name"]')].find(x=>x.dataset.id===id);if(i){try{i.scrollIntoView({block:'center'})}catch(e){}i.focus();i.select()}},0)}
@@ -5202,14 +5293,25 @@ function gnBasisAll(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const v=$('g
  m13Mark();gnDraw();toast(v==='fx'?'Typed amount for everyone ✔ — type each 13th Month Pay in the table':'Back to Rate × No. of Days for everyone ✔')}
 function gnFxOn(id){const{f,r}=gnRow(id);if(!r)return;const c=gnCalc(r,f);r.fx=c.has&&c.pay?c.pay:'';m13Mark();gnDraw();toast(r.name+': type the fixed 13th Month Pay (not based on days)');setTimeout(()=>{const i=[...document.querySelectorAll('.m13d[data-k="fx"]')].find(x=>x.dataset.id===id);if(i){i.focus();i.select()}},0)}
 function gnFxOff(id){const{f,r}=gnRow(id);if(!r)return;delete r.fx;m13Mark();gnDraw();toast(r.name+': back to Rate × No. of Days')}
+const gnDS=r=>{const s=r.hd||r.hs||'';if(!s)return '';/* only employees under 1 year have hd / hs, so only they get a Start Date */try{const A=(Array.isArray(EALL)&&EALL.length?EALL:E)||[];let e=r.eid!=null?A.find(x=>String(x.id)===String(r.eid)):null;if(!e){const n=tmN(r.name);e=A.find(x=>tmN(x.name)===n)}const h=e&&e.hired?String(e.hired).slice(0,10):'';if(/^\d{4}-\d\d-\d\d$/.test(h))return h}catch(x){}return s};/* Start Date column shows the actual date hired (not the probationary start used for the months count) */
+/* Weekly-gross employees: the form computes on the daily rate (gross ÷ 7) but shows the gross rate, like the payroll. */
+function gnGross(r,f){try{if(gnWM(r,f)!==7)return null;const s0=(STF||[]).find(x=>String(x.id)===String(r.id)),cur=s0?pn(s0.rate):0,lt=pn(r.latest),od=pn(r.old);
+ const L=(cur&&r2(cur/7)===lt)?cur:r2(lt*7);let O=0;if(od){for(const p of (PH||[])){const v=p&&p.data&&p.data.rates&&p.data.rates[r.id];if(v!=null&&pn(v)&&r2(pn(v)/7)===od){O=pn(v);break}}if(!O)O=r2(od*7)}
+ const rt=pn(r.rate),D=rt===lt?L:(od&&rt===od?O:r2(rt*7));return{d:D,l:L,o:O}}catch(e){return null}}
+const gnRateD=(r,f)=>{const g=gnGross(r,f);return g?g.d:pn(r.rate)};
+const gnWM=(r,f)=>{const s=(STF||[]).find(x=>String(x.id)===String(r.id));const pd=r.pdd!=null?!!r.pdd:!!(s&&pGpdDef(s));return (PCFG[f.dept]||{}).m==='g'&&!pd?7:6};
+function gnUnitSet(el){const{f,r}=gnRow(el.dataset.id);if(!r)return;
+ if(el.value==='w'){r.u='w';r.wk=(r.days===''||r.days==null)?'':r2(pn(r.days)/gnWM(r,f))}else{delete r.u;delete r.wk}
+ m13Mark();gnDraw()}
 function gnRow(id){const f=((M13S||{}).gen||{})[GD];return f?{f,r:f.rows.find(x=>x.id===id)}:{}}
 function gnSet(el){const{f,r}=gnRow(el.dataset.id);if(!r)return;const k=el.dataset.k,v=el.value;
  if(k==='name'){const n=v.replace(/\s+/g,' ').trim();if(!n){el.value=r.name;return toast('The name cannot be empty.')}r.name=n;el.value=n}
  else if(k==='acct'){const a=v.replace(/\s+/g,'');if(a!==''&&!ACCT13.test(a)){el.value=r.acct||'';return toast('The account number must be exactly 13 digits (numbers only).')}r.acct=a;el.value=a;if(a){const sm=el.closest('td')&&el.closest('td').querySelector('small');if(sm)sm.remove()}}
  else if(k==='cm'){const t=v.trim();if(t&&t!==gnCmAuto(r)){r.cm=t;r.cmx=1}else{r.cm='';delete r.cmx;el.value=gnCmAuto(r)}}
+ else if(k==='wk'){const t=v.trim();if(t!==''&&!(+t>=0)){el.value=r.wk==null?'':r.wk;return toast('Enter a number (0 or more).')}r.wk=t===''?'':r2(t);r.days=t===''?'':r2(r.wk*gnWM(r,f));const sm=$('gnwd_'+r.id);if(sm)sm.textContent=r.days===''?'':'= '+r.days+' days'}
  else if(k==='rem'){r[k]=v.trim()}
  else{const t=v.trim();if(k==='mi'&&t!==''&&+t>12){el.value=r.mi===''||r.mi==null?'':r.mi;return toast('Months worked cannot be more than 12.')}if(t!==''&&!(+t>=0)){el.value=k==='d'?((r.d||{})[el.dataset.dc]??''):(r[k]??'');return toast('Enter a number (0 or more).')}
-  const val=t===''?'':r2(t);if(k==='d'){r.d=r.d||{};if(val==='')delete r.d[el.dataset.dc];else r.d[el.dataset.dc]=val}else r[k]=val}
+  const val=t===''?'':r2(t);if(k==='d'){r.d=r.d||{};if(val==='')delete r.d[el.dataset.dc];else r.d[el.dataset.dc]=val}else if(k==='rate'&&val!==''&&gnGross(r,f))r.rate=r2(val/7);else r[k]=val}
  if(k==='mi'&&!r.hd){const rx=/(\d+(\.\d+)? of 12 mos worked \(long leave \/ SL\)|^\d+(\.\d+)? mos(?! \())( \u00B7 )?/;let rm=String(r.rem||'').replace(rx,'').trim();if(r.mi!==''&&r.mi!=null&&+r.mi>0&&+r.mi<12)rm=(r.mi+' mos'+(rm?' \u00B7 '+rm:''));r.rem=rm;const ri=[...document.querySelectorAll('input[data-k="rem"]')].find(i=>i.dataset.id===r.id);if(ri){ri.value=rm;if(ri.nextElementSibling)ri.nextElementSibling.textContent=rm}}
  {const nx=el.nextElementSibling;if(nx&&nx.classList.contains('m13pv'))nx.textContent=el.value}
  m13Mark();gnPaint()}
@@ -5222,7 +5324,7 @@ function gnMarkAllNo(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const n=f.r
  if(!n)return toast('Everyone in this form is already marked No 13th MP.');
  if(!confirm('Mark all '+n+' employee'+(n===1?'':'s')+' in this form as No 13th MP?\n\nThey will move to the bottom and will not be counted in the totals. You can change any of them back with the status button beside the name.'))return;
  f.rows.forEach(r=>{r.st='no'});m13Mark();gnDraw();toast(n+' employee'+(n===1?'':'s')+' marked No 13th MP \u2714')}
-function gnStSet(el){const{f,r}=gnRow(el.dataset.id);if(!r)return;const v=el.value,nm=(GST.find(x=>x[0]===v)||[])[1]||v;r.st=v;m13Mark();
+function gnStSet(el){const{f,r}=gnRow(el.dataset.id);if(!r)return;const v=el.value,nm=(GST.find(x=>x[0]===v)||[])[1]||v;r.st=v;r.nlu=1;m13Mark();
  const w=document.querySelector('.m13w .cx-tw'),sl=w?w.scrollLeft:0,stp=w?w.scrollTop:0,wy=window.scrollY;gnDraw();
  const w2=document.querySelector('.m13w .cx-tw');if(w2){w2.scrollLeft=sl;w2.scrollTop=stp}window.scrollTo(0,wy);
  toast(r.name+' \u2192 '+nm+(v==='reg'?'':' (moved to the bottom)'))}
@@ -5246,21 +5348,37 @@ function gnRebasis(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const bs=$('g
  f.basis=bs;let n=0;f.rows.forEach(r=>{if(r.add)return;const rn=String(f.dept).toUpperCase()==='RENTAL',v=bs==='old'&&r.old&&!rn?r.old:r.latest;r.rate=v;if(bs==='old'&&!r.old&&!rn)n++});m13Mark();gnDraw();toast('Rate applied ✔'+(n?' · '+n+' employee(s) have no old rate, latest rate kept':''))}
 function gnDaysAll(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const v=$('gn_dy').value.trim();if(v===''||!(+v>=0))return toast('Type the No. of Days first (0 or more).');
  if(f.rows.some(r=>r.days!==''&&r.days!=null&&pn(r.days)!==r2(v))&&!confirm('Set '+r2(v)+' day(s) for all '+f.rows.length+' employees? Days you typed by hand will be replaced.'))return;
- f.days=r2(v);f.rows.forEach(r=>r.days=r2(v));m13Mark();gnDraw();toast('Days applied ✔')}
+ f.days=r2(v);f.rows.forEach(r=>{if(r.u!=='w')r.days=r2(v)});m13Mark();gnDraw();toast('Days applied ✔')}
 function gnAddDc(){const f=((M13S||{}).gen||{})[GD];if(!f)return;f.dc.push({id:'c'+Date.now().toString(36),l:'Deduction '+(f.dc.length+1)});m13Mark();gnDraw();toast('Column added — type its name in the header')}
 function gnDcLbl(el){const f=((M13S||{}).gen||{})[GD];if(!f)return;const c=f.dc.find(x=>x.id===el.dataset.dc);if(!c)return;const v=el.value.trim();if(!v){el.value=c.l;return}c.l=v;m13Mark()}
 function gnDcRem(id){const f=((M13S||{}).gen||{})[GD];if(!f)return;const c=f.dc.find(x=>x.id===id);if(!c)return;
  if(f.rows.some(r=>pn((r.d||{})[id]))&&!confirm('Remove the "'+c.l+'" column? The amounts in it will be lost.'))return;
  (f.xc||[]).forEach(y=>{if(y.after==='d_'+id){const bb=gnBase(f);y.after=bb[bb.indexOf('d_'+id)-1]}});f.dc=f.dc.filter(x=>x.id!==id);f.rows.forEach(r=>{if(r.d)delete r.d[id]});m13Mark();gnDraw()}
+/* Typing / picking a name fills the Account no. and Rate from Payroll when the employee has a record there. */
+function gnPaySt(nm,dept){const P=x=>{const t=String(x||''),i=t.indexOf(',');return{s:pNm(i<0?t:t.slice(0,i)),g:pNm(i<0?'':t.slice(i+1)).split(' ').filter(Boolean)}},n=pNm(nm);if(!n)return null;
+ const L=STF||[];let M=L.filter(x=>pNm(x.name)===n);
+ if(!M.length){const q=P(nm);if(q.s&&q.g.length)M=L.filter(x=>{const o=P(x.name);if(o.s!==q.s||!o.g.length)return false;const a=q.g,b=o.g;return a.every(w=>b.includes(w))||b.every(w=>a.includes(w))||a[0]===b[0]})}
+ if(!M.length)return null;return M.find(x=>x.dept===dept)||M[0]}
+function gnPayInfo(st){const runs=(PH||[]).filter(p=>p&&p.data&&p.data.rows&&p.data.rows[st.id]).sort((x,y)=>String(y.data.to||'').localeCompare(String(x.data.to||''))||String(y.created_at).localeCompare(String(x.created_at))),
+ q=pAtmQ(st);let ac=String(q&&q[0]?q[0]:'').replace(/\s+/g,'');
+ if(!ac)for(const p of runs){const v=String((p.data.rows[st.id]||{}).acct||'').replace(/\s+/g,'');if(v){ac=v;break}}
+ if(!ac)ac=String((pAtmF(st)||[])[0]||pIdx(st)[2]||'').replace(/\s+/g,'');
+ let rt=pn(st.rate);if(!(rt>0))for(const p of runs){const v=pn((p.data.rates||{})[st.id]);if(v>0){rt=v;break}}
+ if(!(rt>0)){const x=pIdx(st);if(pn(x[0])>0)rt=pn(x[0])}
+ return{ac:ac,rt:rt>0?rt:0}}
+function gnAddFill(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const el=$('gn_an'),st=gnPaySt(el.value,f.dept);if(!st){if(String(el.value).trim().length>5)toast('No payroll record found for '+el.value.trim()+' \u2014 type the account and rate');return}
+ const I=gnPayInfo(st);if(I.ac)$('gn_aa').value=I.ac;if(I.rt>0)$('gn_ar').value=I.rt;
+ toast('Payroll record: '+st.name+' ('+st.dept+') \u2014 '+(I.ac||I.rt?[I.ac?'account':'',I.rt?'rate':''].filter(Boolean).join(' and ')+' filled in':'no account or rate saved there yet, please type them'))}
 function gnAddName(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const nm=$('gn_an').value.trim().replace(/\s+/g,' '),ac=$('gn_aa').value.replace(/\s+/g,''),rt=$('gn_ar').value.trim();
  if(!nm)return toast('Enter the name.');if(!ACCT13.test(ac))return toast('Enter the account number: exactly 13 digits (numbers only).');if(!(+rt>0))return toast('Enter the rate (greater than zero).');
  if(f.rows.some(r=>r.name.toLowerCase()===nm.toLowerCase()))return toast(nm+' is already in this form.');
- f.rows.push({id:'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:nm,acct:ac,latest:r2(rt),old:0,rate:r2(rt),days:f.days==null?'':f.days,ar:'',v:'',d:{},rem:'',add:1,...(f.bs==='fx'?{fx:''}:{})});gnClassApply(f.rows[f.rows.length-1],($('gn_ac')||{}).value);m13Mark();gnDraw();toast('Added '+nm+' ✔')}
+ const ps=gnPaySt(nm,f.dept),gr=(PCFG[f.dept]||{}).m==='g'&&!(ps&&pGpdDef(ps)),rv=gr?r2(pn(rt)/7):r2(rt);
+ f.rows.push({id:ps&&!f.rows.some(x=>String(x.id)===String(ps.id))?String(ps.id):'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:nm,acct:ac,latest:rv,old:0,rate:rv,days:f.days==null?'':f.days,ar:'',v:'',d:{},rem:'',add:1,...(ps?{pdd:pGpdDef(ps)?1:0}:{}),...(f.bs==='fx'?{fx:''}:{})});gnClassApply(f.rows[f.rows.length-1],($('gn_ac')||{}).value);m13Mark();gnDraw();toast('Added '+nm+' ✔')}
 function gnExport(){const f=((M13S||{}).gen||{})[GD];if(!f)return;
  try{const bl=gnXlsxBuild(f),a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='13th-Month-Pay-'+MY+'-'+String(f.dept).replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   logAct('Exported 13th month pay form (Excel)','13th Month Pay',MY+' \u00B7 '+f.dept);toast('Exported \u2714')}catch(e){console.error(e);toast('Excel export failed - saved as CSV instead.');gnExportCsv()}}
 function gnExportCsv(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const T=gnTot(f),H=['Name','Account No.','Rate','No. of Days','13th Month Pay','Mos. Worked','A/R','Vale',...f.dc.map(k=>k.l),'Net Pay','Remarks','Start Date','Comment'];
- const L=[];gnGroups(f).forEach(g=>{const G1=gnGroups(f).length>1||g.title;if(g.title)L.push([g.title]);g.rows.forEach(r=>L.push(((r)=>{const c=gnCalc(r,f);return[r.name,r.acct?'="'+r.acct+'"':'',pn(r.rate),r.days===''?'':pn(r.days),c.has?c.pay:'',(r.mi===''||r.mi==null?'':pn(r.mi)),r.ar===''?'':pn(r.ar),r.v===''?'':pn(r.v),...f.dc.map(k=>(r.d||{})[k.id]===undefined?'':pn(r.d[k.id])),c.has?c.net:'',r.rem||'',r.hd?m13Long(r.hd):'',gnCm(r)]})(r)));if(G1){const t=gnTot({rows:g.rows,dc:f.dc});L.push(['Subtotal'+(g.title?' - '+g.title:''),'','','',t.pay,'',t.ar,t.v,...f.dc.map(k=>t.d[k.id]),t.net,'','',''])}});
+ const L=[];gnGroups(f).forEach(g=>{const G1=gnGroups(f).length>1||g.title;if(g.title)L.push([g.title]);g.rows.forEach(r=>L.push(((r)=>{const c=gnCalc(r,f);return[r.name,r.acct?'="'+r.acct+'"':'',gnRateD(r,f),r.days===''?'':pn(r.days),c.has?c.pay:'',(r.mi===''||r.mi==null?'':pn(r.mi)),r.ar===''?'':pn(r.ar),r.v===''?'':pn(r.v),...f.dc.map(k=>(r.d||{})[k.id]===undefined?'':pn(r.d[k.id])),c.has?c.net:'',r.rem||'',gnDS(r)?m13Long(gnDS(r)):'',gnCm(r)]})(r)));if(G1){const t=gnTot({rows:g.rows,dc:f.dc});L.push(['Subtotal'+(g.title?' - '+g.title:''),'','','',t.pay,'',t.ar,t.v,...f.dc.map(k=>t.d[k.id]),t.net,'','',''])}});
  cxCsv('13th-Month-Pay-'+MY+'-'+String(f.dept).replace(/[^A-Za-z0-9]+/g,'_')+'.csv',[['13th Month Pay '+MY+' - '+f.dept],H,...L,['Total','','','',T.pay,'',T.ar,T.v,...f.dc.map(k=>T.d[k.id]),T.net,'','',''],...(()=>{const e=gnEntM(f),X=[[''],['Entries :']];e.ents.forEach(x=>{X.push([x.d,x.lb,'','',pn(x.deb),'',x.rd],...x.cr.map(z=>['',z.l,'','','',pn(z.a),z.rm]),['',x.bl,'','','',pn(x.bank),x.rb])});if(e.ents.length>1)X.push(['Total Bank','','','','',e.bank]);const g=gnSig(f);X.push([''],['Prepared By:','','Checked By:','','Approved By:'],[''],[g.prep[0],'',g.chk[0],'',g.apr[0]],[''],[g.prep[1],'','','',g.apr[1]]);return X})()]);
  logAct('Exported 13th month pay form','13th Month Pay',MY+' · '+f.dept);toast('Exported ✔')}
 function mExport(){const M=m13Model(),L=[];
@@ -5368,10 +5486,10 @@ function gnXlsxBuild(f){
  GG.forEach(g=>{
   if(g.title&&!g.st)row(span(1,NC,g.title,st({b:1,i:1,col:NAVY,bd:'g'})),20);
   g.rows.forEach(r=>{const c=gnCalc(r,f),no=gnStat(r)==='no',cl={};
-   cl[1]={v:r.name,s:sNm};cl[2]={v:r.acct||'-',s:sTx};cl[3]={v:r2(pn(r.rate)),s:sNum};cl[4]=r.days===''||r.days==null?{v:undefined,s:sInt}:{v:pnn(r.days),s:sInt};
+   cl[1]={v:r.name,s:sNm};cl[2]={v:r.acct||'-',s:sTx};cl[3]={v:r2(gnRateD(r,f)),s:sNum};cl[4]=r.days===''||r.days==null?{v:undefined,s:sInt}:{v:pnn(r.days),s:sInt};
    cl[5]=c.has?{v:c.pay,s:sNum}:{v:undefined,s:sNum};cl[6]=r.mi===''||r.mi==null?{v:undefined,s:sInt}:{v:pnn(r.mi),s:sInt};cl[7]=num(r.ar);cl[8]=num(r.v);
    f.dc.forEach((k,x)=>{cl[9+x]=num((r.d||{})[k.id])});cl[9+DC]=c.has?{v:c.net,s:sNumB}:{v:undefined,s:sNum};
-   cl[10+DC]={v:r.rem||undefined,s:sTx};cl[11+DC]={v:r.hd?m13Long(r.hd):undefined,s:sDt};cl[12+DC]={v:gnCm(r)||undefined,s:sTx};row(cl)});
+   cl[10+DC]={v:r.rem||undefined,s:sTx};cl[11+DC]={v:gnDS(r)?m13Long(gnDS(r)):undefined,s:sDt};cl[12+DC]={v:gnCm(r)||undefined,s:sTx};row(cl)});
   if(g.st==='no')row(span(1,NC,g.title+'  \u00B7  '+g.rows.length+' employee'+(g.rows.length===1?'':'s')+'  \u00B7  not counted in the totals',st({b:1,col:NAVY,fill:SF2,bd:'g'})),20);
   else if(GG.length>1||g.title){const t=gnTot({rows:g.rows,dc:f.dc});tot('Subtotal'+(g.title?'  \u00B7  '+g.title:'')+'  \u00B7  '+g.rows.length+' employee'+(g.rows.length===1?'':'s'),t,{fill:SF2,bd:'g'})}});
  tot('Total  \u00B7  '+TT.n+' employee'+(TT.n===1?'':'s'),TT,{bd:'t'});
@@ -7963,7 +8081,7 @@ body.m13fv #xmasfx,body.m13fv #xmaslt{display:none!important}
 </script>
 <script>
 /* build 599: one-time clean of old service-worker caches so the new files are used */
-(function(){try{var B='609';if(localStorage.getItem('hrd_build')===B)return;localStorage.setItem('hrd_build',B);if(localStorage.getItem('hrd_build')!==B)return;
+(function(){try{var B='614';if(localStorage.getItem('hrd_build')===B)return;localStorage.setItem('hrd_build',B);if(localStorage.getItem('hrd_build')!==B)return;
 var p=[];if(window.caches&&caches.keys)p.push(caches.keys().then(function(k){return Promise.all(k.map(function(n){return caches.delete(n)}))}));
 if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}));
 Promise.all(p).then(function(){if(p.length)location.reload()}).catch(function(){})}catch(e){}})();
