@@ -2039,7 +2039,8 @@ async function actPoll(){try{ACT=await api('/rest/v1/hrd_activity?select=*&order
  if(PG==='act'){if(ACT[0])setSeen(ACT[0].at);n=0}
  $('b5').textContent=n||'';if(n>actPrev){toast('🔔 '+(n-actPrev)+' new activity — see Activity');ping()}actPrev=n;
  if(PG==='act')drawAct()}
-async function acts(){$('main').innerHTML='<h1>Activity</h1><p class="sub">Loading…</p>';await actPoll();drawAct()}
+async function acts(){if(Array.isArray(ACT)&&ACT.length){drawAct();actPoll().then(()=>{if(PG==='act')drawAct()}).catch(()=>{});return}
+ $('main').innerHTML='<h1>Activity</h1><p class="sub">Loading…</p>';await actPoll();if(PG==='act')drawAct()}
 function drawAct(){
  if(!actOn)return $('main').innerHTML=`<h1>Activity</h1><p class="sub">The activity table must be created first.</p><div class="panel" style="max-width:none"><h3>Run this in Supabase → SQL Editor</h3><pre style="white-space:pre-wrap;font-size:12px;background:#f3f5f9;padding:12px;border-radius:8px">${esc(ASQL)}</pre><button class="btn" onclick="acts()">I've run it — reload</button></div>`;
  if($('actlist'))return actList();
@@ -2165,6 +2166,7 @@ async function bkRestore(){if(!isAdm()||!BKF)return;
  alert((res.length?'Restored:\n'+res.join('\n'):'')+(fail.length?'\n\nNot restored:\n'+fail.join('\n'):''));toast(fail.length?'Some items were not restored':'Restore done ✔');backups()}
 // ===== ADMIN: SUBMITTED REQUESTS =====
 async function subs(){
+ if(RL&&Array.isArray(R)){if(pendF){fld=pendF;flt='pending';pendF=null}drawSubs();api('/rest/v1/hrd_requests?order=created_at.desc&select=*').then(r=>{if(Array.isArray(r)&&JSON.stringify(r)!==JSON.stringify(R)){R=r;if(PG==='sub'&&!typing())drawSubs()}}).catch(()=>{});return}
  $('main').innerHTML='<h1>Submitted Requests</h1><p class="sub">Loading…</p>';
  try{R=await api('/rest/v1/hrd_requests?order=created_at.desc&select=*');fld=null;RL=true;if(pendF){fld=pendF;flt='pending';pendF=null}}catch(e){return $('main').innerHTML='<h1>Submitted Requests</h1><p class="empty">'+esc(e.message)+'</p>'}
  drawSubs()}
@@ -2389,7 +2391,9 @@ async function ndMark(){const a=NCUR;if(!a)return;const k=nkey(a);let ok=false;
  logAct('Notification done','201 Files',a.e.name+' \u2014 '+NLBL[a.t]);toast('Marked as done \u2714');NCUR=null;$('ndov')&&$('ndov').remove();badge();if(PG==='dash')drawDash();else if(PG==='emp'&&EV==='list')drawE()}
 function badge(){const n=new Set(alerts().map(a=>a.i)).size;$('b3').textContent=n||'';b0();return n}
 async function loadE(silent){try{{const r0=await apiAll('/rest/v1/hrd_employees?select=*&order=name');EALL=Array.isArray(r0)?r0:EALL;E=eVis(r0)}const n=badge();if(!NSEEN)NSEEN=new Set(alerts().map(nkey));if(silent&&n){toast('🔔 '+n+' employee(s) have notifications in 201 Files');ping()}}catch(e){if(!silent)throw e}}
-async function emps(){$('main').innerHTML='<h1>201 Files</h1><p class="sub">Loading…</p>';
+async function emps(){
+ if(EALL.length&&Array.isArray(E)&&E.length){drawE();if(pendE){const k=E.findIndex(x=>x.id===pendE);pendE=null;if(k>=0)formE(k)}const bf=JSON.stringify(E);loadE().then(()=>{if(PG==='emp'&&EV==='list'&&!typing()&&JSON.stringify(E)!==bf)drawE()}).catch(()=>{});return}
+ $('main').innerHTML='<h1>201 Files</h1><p class="sub">Loading…</p>';
  try{await loadE()}catch(e){return $('main').innerHTML='<h1>201 Files</h1><p class="empty">'+esc(e.message)+'</p>'}drawE();if(pendE){const k=E.findIndex(x=>x.id===pendE);pendE=null;if(k>=0)formE(k)}}
 const ini=n=>{const p=String(n||'').split(',');const f=(p[0]||'').trim()[0]||'',l=(p[1]||'').trim()[0]||'';return(f+l).toUpperCase()||'•'};
 const nm=n=>{const i=String(n).indexOf(',');return i<0?esc(n):`${esc(n.slice(0,i))}<span>,${esc(n.slice(i+1))}</span>`};
@@ -3646,7 +3650,9 @@ async function pSeed(){const p=pSeedPlan();if(!p.neu.length&&!p.mv.length)return
   for(let i=0;i<p.neu.length;i+=150){const j=await api('/rest/v1/hrd_pay_staff',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(p.neu.slice(i,i+150))});STF.push(...j)}
   try{if(p.mv.length){pdSave();const q=window._xq||[];window._xq=[];await pXferBatch(q)}}catch(e){}logAct('Loaded payroll roster','Payroll',p.neu.length+' added, '+p.mv.length+' moved');drawP();toast('Loaded ✔')}catch(x){alert(x.message);loadS().then(drawP)}}
 async function loadS(){try{STF=sVis(await api('/rest/v1/hrd_pay_staff?select=*&order=name'));STF=STF.filter(s=>!['Common','Rest House'].includes(s.dept));STF=STF.filter(s=>!(isMg(s.dept)&&PMEX.has(pNm(s.name))));STF.forEach(s=>{const n=pCanon(s.dept);if(n!==s.dept){s.dept=n;api('/rest/v1/hrd_pay_staff?id=eq.'+s.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({dept:n})}).catch(()=>{})}})}catch(e){STF=null}}
-async function pays(){PTMC={};pv='main';PQS='';await pdLoad();if(PG!=='pay')return;pApplyDS();await loadS();if(PG!=='pay')return;pApplyDS();await loadH(1);if(PG!=='pay')return;if(!PP.init)PP=pNew(PF);if(!pUns())PV='hist';drawP()}
+async function pays(){PTMC={};pv='main';PQS='';
+ if(window.__payWarm&&Array.isArray(STF)&&PH){pApplyDS();if(!PP.init)PP=pNew(PF);if(!pUns())PV='hist';drawP();pdLoad().catch(()=>{});loadH(true).then(()=>{if(PG==='pay'&&PV==='hist'&&!pUns()&&!typing())drawP()}).catch(()=>{});return}
+ await pdLoad();if(PG!=='pay')return;pApplyDS();await loadS();if(PG!=='pay')return;pApplyDS();await loadH(1);if(PG!=='pay')return;if(!PP.init)PP=pNew(PF);if(!pUns())PV='hist';window.__payWarm=1;drawP()}
 // --- edit / delete / history ---
 async function pName(id,el){const s=STF.find(x=>x.id===id);if(!s)return;const v=String(el.value||'').replace(/\s+/g,' ').trim();if(!v||v===s.name){el.value=s.name;return}
  if(STF.some(x=>x.id!==id&&x.dept===s.dept&&pNm(x.name)===pNm(v))&&!confirm('Another employee in '+s.dept+' already has the name "'+v+'". Rename anyway?')){el.value=s.name;return}
@@ -4589,6 +4595,7 @@ function m13Open(y){y=String(y);const rec=(M13H||[]).find(r=>String(r.year)===y)
  if(dr&&dr.st){if(confirm('There are unsaved changes for 13th Month Pay '+y+' from '+new Date(dr.at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})+'.\n\nPress OK to restore them, or Cancel to discard them.')){st={...st,gen:dr.st.gen||{},days:dr.st.days||{},added:dr.st.added||[],removed:(dr.st.removed||[]).map(String),def:dr.st.def==null?'':dr.st.def,dirty:true}}else{try{localStorage.removeItem(m13DK(y))}catch(e){}}}
  M13S=st}
 async function m13(){GD='';if(M13S&&M13S.dirty&&String(M13S.year)===String(MY)&&PG==='m13'&&typeof mDraw==='function'&&STF&&PH)return mDraw();
+ if(M13S&&String(M13S.year)===String(MY)&&Array.isArray(M13H)&&STF&&PH&&typeof mDraw==='function')return mDraw();
  await loadS();if(PG!=='m13')return;await loadH(1);if(PG!=='m13')return;try{await loadE()}catch(e){}if(PG!=='m13')return;await m13Load();if(PG!=='m13')return;m13Open(MY);mDraw()}
 function m13View(y){GD='';y=String(y);if(y!==String(MY)){if(!m13Leave())return;MY=y;m13Open(MY)}MD='all';MQ='';mDraw();scrollTo(0,0)}
 function m13Back(){GD='';MD='';MQ='';mDraw();scrollTo(0,0)}
@@ -5029,7 +5036,10 @@ let BQ='',BD='',BS='act',BM=false;
 const BENF=[['sss','SSS'],['philhealth','PhilHealth'],['pagibig','Pag-IBIG'],['tin','TIN']],BENR=['sss','philhealth','pagibig'];
 const benMiss=e=>BENR.filter(k=>reqBlank(e[k])).map(k=>(BENF.find(x=>x[0]===k)||[])[1]);
 const benRows=()=>E.map((e,i)=>({e,i})).filter(({e})=>{if(BS==='act'&&sepLike(e))return false;if(BS==='sep'&&!sepLike(e))return false;if(BD&&e.dept!==BD)return false;if(BQ&&String(e.name||'').toLowerCase().indexOf(BQ.toLowerCase())<0)return false;if(BM&&!benMiss(e).length)return false;return true}).sort((a,b)=>String(a.e.name).localeCompare(String(b.e.name)));
-async function ben(){$('main').innerHTML='<h1>Employee Benefits</h1><p class="sub">Loading…</p>';
+async function ben(){
+ /* show the list right away from the employees already in memory, then refresh quietly (redraw only if something changed) */
+ if(Array.isArray(E)&&E.length&&EALL.length){benDraw();const bf=JSON.stringify(E);loadE().then(()=>{if(PG==='ben'&&JSON.stringify(E)!==bf)benDraw()}).catch(()=>{});return}
+ $('main').innerHTML='<h1>Employee Benefits</h1><p class="sub">Loading…</p>';
  try{await loadE()}catch(e){return $('main').innerHTML='<h1>Employee Benefits</h1><p class="empty">'+esc(e.message)+'</p>'}
  if(PG==='ben')benDraw()}
 function benBody(){const R=benRows(),cell=(e,k)=>reqBlank(e[k])?(BENR.indexOf(k)>=0?'<span style="color:#a3302a">missing</span>':'<span style="color:var(--mu)">\u2014</span>'):esc(String(e[k]).trim());
@@ -5702,6 +5712,7 @@ async function liveAcc(){
  if(PG==='usr'&&can('usr')){try{const n=await api('/rest/v1/hrd_access?select=*&order=email');if(JSON.stringify(n)===JSON.stringify(UL))return;
   if(uDirty||typing()){const k=JSON.stringify(n);if(k!==uNote){uNote=k;toast('The user list has new updates. Save your current changes first.')}return}UL=n;drawU()}catch(e){}}}
 async function users(){
+ if(Array.isArray(UL)&&UL.length){drawU();api('/rest/v1/hrd_access?select=*&order=email').then(r=>{if(Array.isArray(r)&&JSON.stringify(r)!==JSON.stringify(UL)){UL=r;if(PG==='usr'&&!typing())drawU()}}).catch(()=>{});return}
  $('main').innerHTML='<h1>Users &amp; Access</h1><p class="sub">Loading…</p>';
  try{UL=await api('/rest/v1/hrd_access?select=*&order=email')}catch(e){UL=null}drawU()}
 const UI={
