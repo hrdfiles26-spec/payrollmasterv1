@@ -2261,7 +2261,17 @@ async function dash(){PG='dash';$('main').innerHTML='<h1>Dashboard</h1><p class=
  if(can('sub'))J.push(api('/rest/v1/hrd_requests?order=created_at.desc&select=*').then(r=>{R=r;RL=true;$('bd').textContent=R.filter(x=>x.status==='pending').length||''}).catch(()=>{}));
  if(can('act'))J.push(actPoll());
  /* show the dashboard right away from the data already in memory, then refresh it when the new data arrives (no more waiting on a Loading screen) */
- if(EALL.length&&(!can('pay')||Array.isArray(PH)))drawDash();else{await Promise.race([Promise.all(J),new Promise(r=>setTimeout(r,5000))]);drawDash()}Promise.all(J).then(()=>drawDash())}
+ if(EALL.length&&(!can('pay')||Array.isArray(PH)))drawDash();else{await Promise.race([Promise.all(J),new Promise(r=>setTimeout(r,5000))]);drawDash()}Promise.all(J).then(()=>{drawDash();warmAll()})}
+/* background preload: once the dashboard data is in, quietly load what the other tabs need so they open instantly */
+let WARM=0;
+function warmAll(){if(WARM)return;WARM=1;setTimeout(async()=>{const t=async f=>{try{await f()}catch(e){}};
+ if((can('emp')||can('pay'))&&!Array.isArray(STF))await t(loadS);
+ if(can('pay')&&!PH)await t(()=>loadH(true));
+ if(can('pay')&&!window.__payWarm&&Array.isArray(STF)&&PH)await t(async()=>{await pdLoad();pApplyDS();window.__payWarm=1});
+ if(can('m13')&&M13H==null)await t(m13Load);
+ if(isAdm()&&!(Array.isArray(UL)&&UL.length))await t(async()=>{UL=await api('/rest/v1/hrd_access?select=*&order=email')});
+ if(can('emp')&&!(EALL.length&&E.length))await t(()=>loadE(true));
+},400)}
 const hic=d=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const HI={on:hic('<circle cx="12" cy="12" r="2.2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/>'),
  emp:hic('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>'),
@@ -4589,13 +4599,13 @@ function m13Badge(){const e=$('m13st');if(!e||!M13S)return;const S=M13S;
  e.textContent=S.dirty?'● Not saved yet':S.saved?'✔ Saved '+new Date(S.at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})+' '+new Date(S.at).toLocaleTimeString('en-PH',{hour:'numeric',minute:'2-digit'})+(S.by?' · '+S.by:''):'New · not saved yet'}
 async function m13Load(){try{M13H=await api('/rest/v1/hrd_m13?select=year,data,updated_by,updated_at&order=year.desc');M13OK=true}catch(e){M13H=[];if(m13Missing(e))M13OK=false;else{M13OK=true;toast('Could not load saved 13th month history.')}}}
 function m13Open(y){y=String(y);const rec=(M13H||[]).find(r=>String(r.year)===y),d=rec&&rec.data?rec.data:{},cp=o=>JSON.parse(JSON.stringify(o));
- let st={year:y,gen:cp(d.gen||{}),days:cp(d.days||{}),added:cp(d.added||[]),removed:(d.removed||[]).map(String),def:d.def==null?'':d.def,saved:!!rec,at:rec?rec.updated_at:'',by:rec?(rec.updated_by||''):'',dirty:false};
+ let st={year:y,snap:cp(d.snap||{}),gen:cp(d.gen||{}),days:cp(d.days||{}),added:cp(d.added||[]),removed:(d.removed||[]).map(String),def:d.def==null?'':d.def,saved:!!rec,at:rec?rec.updated_at:'',by:rec?(rec.updated_by||''):'',dirty:false};
  if(!rec){const old=cxRead('hrd_m13d_'+y,null);if(old&&Object.keys(old).length){st.days=old;st.dirty=true}}
  const dr=cxRead(m13DK(y),null);
  if(dr&&dr.st){if(confirm('There are unsaved changes for 13th Month Pay '+y+' from '+new Date(dr.at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})+'.\n\nPress OK to restore them, or Cancel to discard them.')){st={...st,gen:dr.st.gen||{},days:dr.st.days||{},added:dr.st.added||[],removed:(dr.st.removed||[]).map(String),def:dr.st.def==null?'':dr.st.def,dirty:true}}else{try{localStorage.removeItem(m13DK(y))}catch(e){}}}
  M13S=st}
 async function m13(){GD='';if(M13S&&M13S.dirty&&String(M13S.year)===String(MY)&&PG==='m13'&&typeof mDraw==='function'&&STF&&PH)return mDraw();
- if(M13S&&String(M13S.year)===String(MY)&&Array.isArray(M13H)&&STF&&PH&&typeof mDraw==='function')return mDraw();
+ if(Array.isArray(M13H)&&Array.isArray(STF)&&PH&&Array.isArray(E)&&typeof mDraw==='function'){if(!M13S||String(M13S.year)!==String(MY))m13Open(MY);return mDraw()}
  await loadS();if(PG!=='m13')return;await loadH(1);if(PG!=='m13')return;try{await loadE()}catch(e){}if(PG!=='m13')return;await m13Load();if(PG!=='m13')return;m13Open(MY);mDraw()}
 function m13View(y){GD='';y=String(y);if(y!==String(MY)){if(!m13Leave())return;MY=y;m13Open(MY)}MD='all';MQ='';mDraw();scrollTo(0,0)}
 function m13Back(){GD='';MD='';MQ='';mDraw();scrollTo(0,0)}
@@ -4613,16 +4623,16 @@ function m13SigH(f){const G=f?gnSig(f):M13SIG,c=(l,a,g)=>`<div><b class="l">${l}
 const m13MN=['Jan.','Feb.','Mar.','Apr.','May','June','July','Aug.','Sept.','Oct.','Nov.','Dec.'];
 function m13Rng(h,yr){const d=new Date(h+'T00:00:00');if(isNaN(d))return '';const m=d.getDate()===1?d.getMonth():d.getMonth()+1;return m13MN[Math.min(m,11)]+'- Dec.'}
 function m13Model(){
- const SF=m13Staff(),raw=m13Days(),ac={},yr=+MY,jan=new Date(yr,0,1),dec=new Date(yr,11,31),byFull=new Map(),byKey=new Map(),
+ const SF=m13Staff(),raw=m13Days(),SN=(M13S&&M13S.snap)||{},ac={},yr=+MY,jan=new Date(yr,0,1),dec=new Date(yr,11,31),byFull=new Map(),byKey=new Map(),
  nk=n=>{n=String(n||'');const i=n.indexOf(',');return tmN(i<0?n:n.slice(0,i))+'|'+(tmN(i<0?'':n.slice(i+1)).split(' ')[0]||'')};
  (PH||[]).forEach(p=>{const rw=(p.data||{}).rows||{};Object.keys(rw).forEach(k=>{if(!ac[k]&&rw[k]&&rw[k].acct)ac[k]=String(rw[k].acct).trim()})});
  (E||[]).forEach(e=>{const n=tmN(e.name);if(n&&!byFull.has(n))byFull.set(n,e);const k=nk(e.name);if(!byKey.has(k))byKey.set(k,[]);byKey.get(k).push(e)});
  const emp=s=>{const f=byFull.get(tmN(s.name));if(f)return f;const L=byKey.get(nk(s.name))||[];return L.length===1?L[0]:(L.find(e=>nd(e.dept||'')===s.dept)||null)},
  T=()=>({p:0,a:0,v:0,n:0}),add=(t,r)=>{if(!r.has)return;t.p+=r.pay;t.a+=r.ar;t.v+=r.vl;t.n+=r.net},fin=t=>{for(const k in t)t[k]=r2(t[k]);return t},
  q=MQ.toLowerCase(),depts=[...new Set(SF.map(s=>s.dept))].sort(),
- mk=s=>{const g=(PCFG[s.dept]||{}).m==='g',rate=pn(s.rate),daily=g&&!pGpdDef(s)?rate/7:rate,e0=m13Ent(raw,s.id),has=e0.d!=null&&e0.d!=='',dys=has?pn(e0.d):0,ar=pn(e0.a),vl=pn(e0.v),e=emp(s),h=e&&e.hired?String(e.hired).slice(0,10):'',hd=h?new Date(h+'T00:00:00'):null,
+ mk=s=>{const g=(PCFG[s.dept]||{}).m==='g',rate=pn(s.rate),daily=g&&!pGpdDef(s)?rate/7:rate,e0=m13Ent(raw,s.id),has=e0.d!=null&&e0.d!=='',dys=has?pn(e0.d):0,ar=pn(e0.a),vl=pn(e0.v),e=emp(s),sq=SN[String(s.id)],h=sq&&sq.h!=null?sq.h:(e&&e.hired?String(e.hired).slice(0,10):''),hd=h?new Date(h+'T00:00:00'):null,
   isNew=!!hd&&!isNaN(hd)&&hd>=jan&&hd<=dec,mo=isNew?m13Months(h,yr):0,mi=e0.m!=null&&e0.m!==''?pn(e0.m):null,lv=!isNew&&mi!=null&&mi>0&&mi<12,pay=has?r2(isNew?daily*dys/12*mo:(lv?daily*dys/12*mi:daily*dys)):0,net=has?r2(pay-ar-vl):0;
-  return{s,g,rate,daily,has,dys,ar,vl,e,h,isNew,late:isNew&&m13IsLate(h,yr),mo,lv,mi:e0.m!=null?e0.m:'',sd:isNew?m13Long(h):'',pay,net,iA:e0.a!=null?e0.a:'',iV:e0.v!=null?e0.v:'',pos:(e&&e.position)||'',
+  return{s,g,rate,daily,has,dys,ar,vl,e,h,isNew,late:isNew&&m13IsLate(h,yr),mo,lv,mi:e0.m!=null?e0.m:'',sd:isNew?m13Long(h):'',pay,net,iA:e0.a!=null?e0.a:'',iV:e0.v!=null?e0.v:'',pos:sq&&sq.p!=null?sq.p:((e&&e.position)||''),nm:sq&&sq.n?sq.n:s.name,
    acct:ac[s.id]||String((pIdx(s)||[])[2]||''),
    rem:isNew?mo+' mos ( '+m13Rng(h,yr)+')':(lv?mi+' mos':(h?'Hired: '+m13Long(h):''))}};
  const G=T(),D=depts.map((d,di)=>({d,di})).filter(x=>MD==='all'||x.d===MD).map(({d,di})=>{
@@ -4661,7 +4671,7 @@ function m13HistRows(){
   const rec=(M13H||[]).find(r=>String(r.year)===y);let st;
   if(!rec)return;
   if(sv.S&&String(sv.S.year)===y)st=sv.S;
-  else{const d=rec.data||{};st={year:y,gen:cp(d.gen||{}),days:cp(d.days||{}),added:cp(d.added||[]),removed:(d.removed||[]).map(String),def:d.def==null?'':d.def,saved:true}}
+  else{const d=rec.data||{};st={year:y,snap:cp(d.snap||{}),gen:cp(d.gen||{}),days:cp(d.days||{}),added:cp(d.added||[]),removed:(d.removed||[]).map(String),def:d.def==null?'':d.def,saved:true}}
   M13S=st;MY=y;MD='all';MQ='';
   const G=st.gen||{},used=new Set();
   Object.keys(G).forEach(d=>{const f=G[d];if(!f||!Array.isArray(f.rows))return;const T=gnTot(f);
@@ -4699,7 +4709,7 @@ function mDraw0(){
  yrs=[...new Set([MY,String(new Date().getFullYear()),...PH.map(p=>String((p.data||{}).from||'').slice(0,4)).filter(y=>/^\d{4}$/.test(y)),...(M13H||[]).map(r=>String(r.year))])].sort().reverse(),
  op=(v,l,s)=>`<option value="${esc(v)}"${s?' selected':''}>${esc(l)}</option>`,
  inp=(k,id,v,w)=>`<input class="m13d" type="number" min="0" step="any" inputmode="decimal" style="width:${w}px" value="${v===''||v==null?'':esc(String(v))}" data-id="${id}" data-k="${k}" onchange="mSetD(this)" onkeydown="m13Key(event)">`,
- tr=r=>{const k=esc(String(r.s.id));return `<tr class="m13-r"><td class="m13-nm"><b>${esc(r.s.name)}</b>${r.s._add?' <span class="cx-tag">Added</span>':''}${r.e&&SEP.includes(r.e.emp_status)?` <span class="cx-tag">${esc(lb(r.e.emp_status))}</span>`:''}</td>
+ tr=r=>{const k=esc(String(r.s.id));return `<tr class="m13-r"><td class="m13-nm"><b>${esc(r.nm)}</b>${r.s._add?' <span class="cx-tag">Added</span>':''}${r.e&&SEP.includes(r.e.emp_status)?` <span class="cx-tag">${esc(lb(r.e.emp_status))}</span>`:''}</td>
  <td>${esc(r.pos)||'-'}</td><td>${r.acct?esc(r.acct):'-'}</td>
  <td class="n">${fm(r.rate)}${r.g?`<small class="m13s">weekly gross &divide; 7 = ${fm(r.daily)}/day</small>`:''}</td>
  <td class="n m13c">${inp('d',k,r.has?r.dys:'',78)}</td>
@@ -4712,7 +4722,7 @@ function mDraw0(){
  body=M.D.map(x=>`<tr class="m13-dh"><td colspan="13"><span class="m13-stk">${esc(x.d)} <small>· 13th Month Pay ${esc(MY)} · ${x.n} employee${x.n>1?'s':''}</small></span></td></tr>`+
   x.secs.map(sc=>(sc.title?`<tr class="m13-sec"><td colspan="13"><span class="m13-stk">${esc(sc.title)}${sc.nw?` <small>· hired in ${esc(MY)}: Rate × Days ÷ 12 × months worked</small>`:''}</span></td></tr>`:'')+sc.rows.map(tr).join('')+tot(M13NC?'Total · '+esc(x.d):'Subtotal'+(sc.title?' · '+esc(sc.title):''),'m13S_'+x.di+'_'+sc.si,sc.t,'m13-sub')).join('')+
   (x.secs.length>1?tot('Total · '+esc(x.d),'m13D_'+x.di,x.t,'m13-sub m13-dt'):'')).join(''),
- lateH=m13LateH(M.D.flatMap(x=>x.late.map(r=>({name:r.s.name,dept:x.d,hired:r.h})))),
+ lateH=m13LateH(M.D.flatMap(x=>x.late.map(r=>({name:r.nm,dept:x.d,hired:r.h})))),
  ER=(d,id,v)=>`<tr><td style="min-width:130px">${d}</td><td>13th month</td><td class="n" id="${id}">${fm(v)}</td><td></td></tr>`,
  EK=(id,v)=>`<tr><td></td><td class="n" style="text-align:right">Bank</td><td></td><td class="n" id="${id}">${fm(v)}</td></tr>`,
  EH='<thead><tr><th>Department</th><th>Account</th><th class="n">Debit</th><th class="n">Credit</th></tr></thead>',
@@ -4769,18 +4779,19 @@ function m13Add(){const nm=$('a13n').value.trim().replace(/\s+/g,' '),dp=$('a13d
 async function m13Save(){const S=M13S;if(!S)return;
  const sv=[MD,MQ];MD='all';MQ='';let M,R;try{M=m13Model();R=[];M.D.forEach(x=>x.secs.forEach(sc=>sc.rows.forEach(r=>R.push(r))))}finally{MD=sv[0];MQ=sv[1]}
  const neg=R.filter(r=>r.has&&r.net<0);
- if(neg.length)return alert('Cannot save: Net Pay cannot be negative.\n\n'+neg.slice(0,15).map(r=>'• '+r.s.name+' — Net Pay '+fm(r.net)+' (13th Month '+fm(r.pay)+', A/R '+fm(r.ar)+', Vale '+fm(r.vl)+')').join('\n')+(neg.length>15?'\n…and '+(neg.length-15)+' more':'')+'\n\nPlease fix the A/R or Vale of the employee(s) listed above.');
+ if(neg.length)return alert('Cannot save: Net Pay cannot be negative.\n\n'+neg.slice(0,15).map(r=>'• '+r.nm+' — Net Pay '+fm(r.net)+' (13th Month '+fm(r.pay)+', A/R '+fm(r.ar)+', Vale '+fm(r.vl)+')').join('\n')+(neg.length>15?'\n…and '+(neg.length-15)+' more':'')+'\n\nPlease fix the A/R or Vale of the employee(s) listed above.');
  {const gneg=[];Object.values(S.gen||{}).forEach(f=>f.rows.forEach(r=>{const c=gnCalc(r,f);if(c.has&&c.net<0)gneg.push('• '+r.name+' ('+f.dept+') — Net Pay '+fm(c.net))}));if(gneg.length)return alert('Cannot save: Net Pay cannot be negative.\n\n'+gneg.slice(0,15).join('\n')+(gneg.length>15?'\n…and '+(gneg.length-15)+' more':'')+'\n\nPlease fix the deductions of the employee(s) listed above.')}
  {const bad=[];Object.values(S.gen||{}).forEach(f=>f.rows.forEach(r=>{if(gnStat(r)==='no')return;if(!ACCT13.test(String(r.acct||'')))bad.push('• '+r.name+' ('+f.dept+') — '+(r.acct?'"'+r.acct+'" is not 13 digits':'no account number'))}));if(bad.length)return alert('Cannot save: every employee in the 13th Month Pay needs an account number of exactly 13 digits.\n\n'+bad.slice(0,15).join('\n')+(bad.length>15?'\n…and '+(bad.length-15)+' more':'')+'\n\nType it in the Account No. column or in ATM accounts. Employees marked No 13th MP are not checked.')}
  if(!M.withDays&&!gnHasDays()&&!confirm('No. of Days is still empty for everyone. Save anyway?'))return;
  if(!confirm((S.saved?'Save your changes to':'Save')+' 13th Month Pay '+S.year+'?\n\nThere is one saved record per year. '+(S.saved?'The saved copy will be replaced.':'It will be added to History.')+(()=>{const na=m13NoAcct();return na.length?'\n\n\u26A0 '+na.length+' employee'+(na.length>1?'s have':' has')+' no ATM account yet:\n'+na.slice(0,15).map(x=>'\u2022 '+x.name+' ('+x.dept+')').join('\n')+(na.length>15?'\n\u2026and '+(na.length-15)+' more':'')+'\n\nPress OK to save anyway, or Cancel to add their accounts first (ATM accounts button).':''})()))return;
- const at=new Date().toISOString(),by=m13Who(),body={year:+S.year,data:{days:S.days,added:S.added||[],removed:S.removed||[],def:S.def,gen:S.gen||{},sum:{cnt:M.cnt,withDays:M.withDays,p:M.G.p,n:M.G.n}},updated_by:by,updated_at:at};
+ {const SNP=S.snap=S.snap||{};R.concat(M.D.flatMap(x=>x.late||[])).forEach(r=>{const k=String(r.s.id);if(!SNP[k])SNP[k]={n:r.nm||r.s.name,h:r.h||'',p:r.pos||''}})}
+ const at=new Date().toISOString(),by=m13Who(),body={year:+S.year,data:{snap:S.snap||{},days:S.days,added:S.added||[],removed:S.removed||[],def:S.def,gen:S.gen||{},sum:{cnt:M.cnt,withDays:M.withDays,p:M.G.p,n:M.G.n}},updated_by:by,updated_at:at};
  try{await api('/rest/v1/hrd_m13?on_conflict=year',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
   await m13Load();S.saved=true;S.dirty=false;S.at=at;S.by=by;m13DraftClear();logAct('Saved 13th month pay','13th Month Pay',S.year+' · '+M.withDays+'/'+M.cnt+' with days · '+fm(M.G.n));toast('Saved ✔ 13th Month Pay '+S.year+' is in History');mDraw()}
  catch(e){if(m13Missing(e)){M13OK=false;mDraw();alert('The table for saving 13th Month Pay is not set up yet.\n\nRun the SQL shown at the top of this page in Supabase (SQL Editor), then press Save again. Your work is still here.');return}alert('Could not save: '+(e.message||e))}}
 async function m13Del(y){if(!confirm('Delete the saved 13th Month Pay '+y+' from History? This cannot be undone.'))return;
  try{await api('/rest/v1/hrd_m13?year=eq.'+encodeURIComponent(y),{method:'DELETE'});logAct('Deleted saved 13th month pay','13th Month Pay',String(y));await m13Load();
-  if(String(MY)===String(y)){try{localStorage.removeItem(m13DK(y))}catch(e){}M13S.saved=false;M13S.dirty=true;M13S.at='';M13S.by=''}mDraw();toast('Deleted')}catch(e){alert('Could not delete: '+(e.message||e))}}
+  if(String(MY)===String(y)){try{localStorage.removeItem(m13DK(y))}catch(e){}M13S.saved=false;M13S.dirty=true;M13S.snap={};M13S.at='';M13S.by=''}mDraw();toast('Deleted')}catch(e){alert('Could not delete: '+(e.message||e))}}
 const m13SqlH=()=>`<div class="cx-card no-print"><h3 style="margin:0 0 6px">One-time setup: run this in Supabase → SQL Editor</h3><p class="sub" style="font-size:14px;margin:0 0 10px">The table for saved 13th Month Pay (History) has not been created yet, so Save cannot work. What you type here is kept as a draft in this browser.</p><pre style="white-space:pre-wrap;font-size:12px;background:var(--sf2);padding:12px;border-radius:8px;max-height:240px;overflow:auto">${esc(M13SQL)}</pre><button class="btn" onclick="try{navigator.clipboard.writeText(M13SQL);toast('SQL copied')}catch(e){}">Copy SQL</button> <button class="btn o" onclick="m13Recheck()">I've run it</button></div>`;
 async function m13Recheck(){await m13Load();if(M13OK===false)toast('The table is still not found.');else{const y=M13S.year,k=M13S.dirty;m13Open(y);if(k)M13S.dirty=true;toast('Ready — you can Save now ✔')}mDraw()}
 function m13Extra(noRm,noHist){const S=M13S,rm=noRm?[]:(STF||[]).filter(s=>(S.removed||[]).includes(String(s.id))),H=M13H||[];
@@ -5232,7 +5243,7 @@ function gnExportCsv(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const T=gnT
  cxCsv('13th-Month-Pay-'+MY+'-'+String(f.dept).replace(/[^A-Za-z0-9]+/g,'_')+'.csv',[['13th Month Pay '+MY+' - '+f.dept],H,...L,['Total','','','',T.pay,'',T.ar,T.v,...f.dc.map(k=>T.d[k.id]),T.net,'','',''],...(()=>{const e=gnEntM(f),X=[[''],['Entries :']];e.ents.forEach(x=>{X.push([x.d,x.lb,'','',pn(x.deb),'',x.rd],...x.cr.map(z=>['',z.l,'','','',pn(z.a),z.rm]),['',x.bl,'','','',pn(x.bank),x.rb])});if(e.ents.length>1)X.push(['Total Bank','','','','',e.bank]);const g=gnSig(f);X.push([''],['Prepared By:','','Checked By:','','Approved By:'],[''],[g.prep[0],'',g.chk[0],'',g.apr[0]],[''],[g.prep[1],'','','',g.apr[1]]);return X})()]);
  logAct('Exported 13th month pay form','13th Month Pay',MY+' · '+f.dept);toast('Exported ✔')}
 function mExport(){const M=m13Model(),L=[];
- M.D.forEach(x=>x.secs.forEach(sc=>sc.rows.filter(r=>r.has).forEach(r=>L.push([x.d,sc.title,r.s.name,r.pos,r.acct?'="'+r.acct+'"':'',r.rate,r.dys,r.pay,r.ar,r.vl,r.net,r.rem]))));
+ M.D.forEach(x=>x.secs.forEach(sc=>sc.rows.filter(r=>r.has).forEach(r=>L.push([x.d,sc.title,r.nm,r.pos,r.acct?'="'+r.acct+'"':'',r.rate,r.dys,r.pay,r.ar,r.vl,r.net,r.rem]))));
  if(!L.length)return toast('Fill in the days first.');
  const sm=i=>r2(L.reduce((a,r)=>a+(+r[i]||0),0));
  cxCsv('13th-Month-Pay-'+MY+'.csv',[['Department','Section','Employee','Position','Account','Rate','No. of Days','13th Month Pay','A/R','Vale','Net Pay','Remarks'],...L,['','','','','','','Total',sm(7),sm(8),sm(9),sm(10),'']]);
@@ -5273,12 +5284,12 @@ function m13XlsxBuild(M){
     const tag=r.e&&typeof SEP!=='undefined'&&SEP.includes(r.e.emp_status)?'  ['+lb(r.e.emp_status)+']':'',
      rate=r.g?{v:fm(r.rate)+'\nweekly gross \u00F7 7 = '+fm(r.daily)+'/day',s:sRateS}:{v:r2(r.rate),s:sNum},
      num=v=>v===''||v==null?{v:undefined,s:sNum}:{v:+v,s:sNum};
-    row({1:{v:r.s.name+tag,s:sNm},2:{v:r.pos||'-',s:sTx},3:{v:r.acct||'-',s:sTx},4:rate,5:r.has?{v:r.dys,s:sCtr}:{v:undefined,s:sCtr},
+    row({1:{v:r.nm+tag,s:sNm},2:{v:r.pos||'-',s:sTx},3:{v:r.acct||'-',s:sTx},4:rate,5:r.has?{v:r.dys,s:sCtr}:{v:undefined,s:sCtr},
      6:r.has?{v:r.pay,s:sNum}:{v:'-',s:sNum},7:r.isNew?{v:r.mo,s:sCtr}:(r.mi===''||r.mi==null?{v:undefined,s:sCtr}:{v:+r.mi,s:sCtr}),8:num(r.iA),9:num(r.iV),10:r.has?{v:r.net,s:sNumB}:{v:'-',s:sNum},11:{v:(r.isNew?'New \u00B7 ':'')+r.rem,s:sTxR},12:{v:r.sd||undefined,s:sDays}},r.g?30:undefined)});
    tot(M13NC?'Total \u00B7 '+d.d:'Subtotal'+(sc.title?' \u00B7 '+sc.title:''),sc.t,{fill:SF2,bd:'g'})});
   if(d.secs.length>1)tot('Total \u00B7 '+d.d,d.t,{fill:SOFT,bd:'g'})});
  tot('Grand total',M.G,{bd:'t'});
- {const LT=[];M.D.forEach(d=>(d.late||[]).forEach(r=>LT.push([d.d,r])));if(LT.length){row({},10);row(span(1,NC,'Not included in 13th Month Pay '+MY+' (hired / started probationary October onward):',st({b:1,col:NAVY})),20);LT.forEach(([dn,r])=>row(span(1,NC,'\u2022 '+r.s.name+' ('+dn+') \u2014 Hired / start: '+m13Long(r.h),st({col:INK})),18))}}
+ {const LT=[];M.D.forEach(d=>(d.late||[]).forEach(r=>LT.push([d.d,r])));if(LT.length){row({},10);row(span(1,NC,'Not included in 13th Month Pay '+MY+' (hired / started probationary October onward):',st({b:1,col:NAVY})),20);LT.forEach(([dn,r])=>row(span(1,NC,'\u2022 '+r.nm+' ('+dn+') \u2014 Hired / start: '+m13Long(r.h),st({col:INK})),18))}}
  {const eh=st({b:1,col:NAVY,fill:SOFT,bd:'h'}),ehr=st({b:1,col:NAVY,fill:SOFT,bd:'h',h:'right'}),ec=st({bd:'g'}),ecr=st({bd:'g',h:'right'}),en_=st({bd:'g',nf:MONEY,h:'right'}),eb=st({bd:'g',nf:MONEY,h:'right',b:1}),
   blk=(title,L,tb)=>{row({},10);row(span(1,4,'Entries \u00B7 '+title,st({b:1,sz:11,col:NAVY})),20);
    {const hc={};hc[1]={v:'Department',s:eh};hc[2]={v:'Account',s:eh};hc[3]={v:'Debit',s:ehr};hc[4]={v:'Credit',s:ehr};row(hc,20)}
