@@ -2361,7 +2361,7 @@ function dReq(k){pendF=k;go('sub')}
 function dEmp(id){pendE=id;go('emp')}
 async function dash(){PG='dash';$('main').innerHTML='<h1>Dashboard</h1><p class="sub">Loading…</p>';const J=[];
  if(can('emp')){J.push(loadND());J.push(apiAll('/rest/v1/hrd_employees?select=*&order=name').then(r=>{EALL=Array.isArray(r)?r:[];E=eVis(r);badge()}).catch(()=>{}))}
- if((can('emp')||can('pay'))&&!Array.isArray(STF))J.push(loadS());
+ if(can('emp')||can('pay'))J.push(loadS());/* always re-read the payroll names so the dashboard shows the latest (renamed) names */
  if(can('pay'))J.push(loadH(true));
  if(can('sub'))J.push(api('/rest/v1/hrd_requests?order=created_at.desc&select=*').then(r=>{R=r;RL=true;$('bd').textContent=R.filter(x=>x.status==='pending').length||''}).catch(()=>{}));
  if(can('act'))J.push(actPoll());
