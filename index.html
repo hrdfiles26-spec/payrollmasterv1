@@ -1150,6 +1150,50 @@ html[data-theme=dark] .m13w .cx-t .btn.m13-rb.x:hover{background:#3a2220;border-
 #main .phist.athist .hl th:nth-child(n){width:auto}
 #main .phist.athist .hl th.atc,#main .phist.athist .hl td.atc{width:46px;padding-left:18px;padding-right:0;text-align:center}
 #main .phist.athist .hl th:nth-child(n):last-child{width:1%}
+
+/* ===== Attendance list: refined card-row design ===== */
+#main .panel.phist.athist{padding:30px 32px 22px;border-radius:22px;background:linear-gradient(180deg,var(--sf) 0,var(--sf) 70%,var(--sf2) 100%);box-shadow:0 1px 2px #12305c0d,0 28px 50px -30px #12305c55;position:relative;overflow:hidden}
+#main .panel.phist.athist::before{content:"";position:absolute;left:32px;top:0;width:84px;height:3px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,var(--au),color-mix(in srgb,var(--au) 25%,transparent))}
+.athist .phf{align-items:center!important;padding-bottom:22px!important;margin-bottom:10px!important;border-bottom:0!important;position:relative}
+.athist .phf::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,var(--ln2),var(--ln) 60%,transparent)}
+.athist .phf h3{font-size:30px!important;letter-spacing:-.4px!important}
+.athist .phf h3 span{display:inline-grid!important;place-items:center;min-width:28px;height:26px;padding:0 9px;border-radius:999px;background:var(--soft);color:var(--h)!important;font-size:13px!important;font-weight:700!important;vertical-align:middle;margin-left:10px!important;border:1px solid var(--ln)}
+.athist .phf label{display:inline-flex;align-items:center;gap:8px;padding:5px 6px 5px 14px;border:1px solid var(--ln);border-radius:999px;background:var(--sf);box-shadow:0 1px 2px #12305c0a;font-size:12px!important;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--mu)!important}
+.athist .phf label .fi{margin:0!important;height:34px;border:0;border-radius:999px;background:var(--soft);font-size:13.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink);cursor:pointer;padding:0 14px}
+.athist .phf .atrdy{border-radius:999px;padding:8px 16px;font-size:12.5px}
+#main .phist.athist .hl{border-collapse:separate;border-spacing:0 12px;margin-top:2px}
+#main .phist.athist .hl th{background:transparent;border:0;border-radius:0;padding:6px 18px 2px;font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mu)}
+#main .phist.athist .hl th:first-child,#main .phist.athist .hl th:last-child{border-radius:0}
+#main .phist.athist .hl td{background:var(--sf);border:0;border-top:1px solid var(--ln);border-bottom:1px solid var(--ln);padding:18px 18px;transition:background .18s,border-color .18s}
+#main .phist.athist .hl td:first-child{border-left:1px solid var(--ln);border-radius:16px 0 0 16px;box-shadow:inset 4px 0 0 var(--ac,var(--ln2))}
+#main .phist.athist .hl td:last-child{border-right:1px solid var(--ln);border-radius:0 16px 16px 0}
+#main .phist.athist .hl tr:first-child td{border-top:1px solid var(--ln)}
+#main .phist.athist .hl tr.atr-wp{--ac:#e0a73a}
+#main .phist.athist .hl tr.atr-dn{--ac:#2e9d68}
+#main .phist.athist .hl tr.atr-lk{--ac:#8b95a8}
+#main .phist.athist .hl tr:hover td{background:var(--sf2);border-color:var(--ln2)}
+#main .phist.athist .hl tr{filter:drop-shadow(0 1px 1px #12305c08)}
+#main .phist.athist .hl tr:hover{filter:drop-shadow(0 10px 14px #12305c1c)}
+#main .phist.athist .hl td.atc{padding-left:20px}
+#main .phist.athist .hl input[type=checkbox]{width:17px;height:17px;accent-color:var(--h);cursor:pointer}
+#main .phist.athist .hl .dp{background:var(--soft);color:var(--h);border:1px solid color-mix(in srgb,var(--h) 12%,transparent);padding:7px 15px 7px 12px;font-size:12px;letter-spacing:1px;text-transform:uppercase;gap:8px}
+#main .phist.athist .hl .dp::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--au);box-shadow:0 0 0 3px color-mix(in srgb,var(--au) 22%,transparent)}
+#main .phist.athist .hl td:nth-child(3) b{font-family:var(--disp);font-size:19px;font-weight:600;letter-spacing:-.2px;color:var(--h)}
+#main .phist.athist .hl .hln{min-width:42px;height:42px;padding:0;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,var(--soft));border:1px solid var(--ln2);font-size:15px;box-shadow:0 1px 2px #12305c14}
+#main .phist.athist .hl .atst{padding:6px 14px;font-size:12.5px;letter-spacing:.2px;box-shadow:0 1px 2px #12305c0f}
+#main .phist.athist .hl .atlkb{margin-top:8px;border-radius:999px;padding:4px 12px}
+#main .phist.athist .hl .hld{font-weight:700;font-size:14.5px}
+#main .phist.athist .hl .hlt{font-size:12.5px;line-height:1.35}
+#main .athist .hlb{gap:7px}
+#main .athist .hlb .btn{min-width:0;padding:9px 17px;font-size:12.5px;font-weight:700;letter-spacing:.2px;border-radius:999px;background:var(--sf);box-shadow:0 1px 2px #12305c0d;transition:transform .15s,box-shadow .15s,background .15s,color .15s}
+#main .athist .hlb .btn:hover{transform:translateY(-1px);box-shadow:0 6px 12px -6px #12305c55}
+#main .athist .hlb .btn.o:first-child{background:linear-gradient(180deg,color-mix(in srgb,var(--h) 90%,#fff),var(--h));color:#fff;border-color:var(--h);padding-left:22px;padding-right:22px}
+#main .athist .hlb .btn.o:first-child:hover{background:var(--h);color:#fff}
+html[data-theme=dark] #main .athist .hlb .btn.o:first-child{color:#0a111f}
+html[data-theme=dark] #main .phist.athist .hl .hln{background:var(--soft)}
+html[data-theme=dark] #main .panel.phist.athist{background:var(--sf)}
+@media(max-width:900px){#main .phist.athist .hl{border-spacing:0 10px}.athist .phf h3{font-size:24px!important}}
+@media print{#main .panel.phist.athist{box-shadow:none}}
 #main .phist.athist .hl td{padding:18px 18px}
 #main .phist.athist .hl input[type=checkbox]{width:17px;height:17px;accent-color:var(--g2);cursor:pointer;vertical-align:middle}
 #main .phist.athist .hl td:nth-child(n) b{font-size:15.5px}
@@ -8562,7 +8606,7 @@ function drawList(){A.v='list';const F=folders(),op=(v,l,c)=>`<option value="${e
 <div class="panel phist athist" style="max-width:none;margin:0"><div class="phf" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px"><h3 style="margin:0;flex:1">Attendance sheets <span style="font-size:13px;color:#888;font-family:inherit">(${L.length})</span></h3>
 ${adm()&&L.filter(x=>x.s.st==='done'&&!x.s.lk).length?`<button class="btn o sm atrdy" onclick="atS('done')" title="Sheets marked Done by staff that are not locked yet">✔ ${L.filter(x=>x.s.st==='done'&&!x.s.lk).length} Done · ready to lock</button>`:''}<label style="font-size:13px">Status <select class="fi" style="width:auto;margin:0 0 0 6px" onchange="atS(this.value)">${op('all','All status',!A.s||A.s==='all')}${op('done','✔ Done',A.s==='done')}${op('wip','⏳ Updating',A.s==='wip')}</select></label>
 <label style="font-size:13px">Department <select class="fi" style="width:auto;margin:0 0 0 6px" onchange="atF(this.value)">${op('all','All departments',A.f==='all')}${used.map(d=>op(d,d,A.f===d)).join('')}</select></label></div>
-${L.length?`<div style="overflow-x:auto"><table class="hl"><tr>${isAdm()?'<th class="atc"><input type="checkbox" id="atsa" onchange="atSelAll(this.checked)" title="Select all"></th>':''}<th>Department</th><th>Cutoff</th><th class="hlc">Employees</th><th>Status</th><th>Last edited</th><th></th></tr>${L.map(({k,s})=>`<tr>${isAdm()?`<td class="atc"><input type="checkbox" class="atsk" data-k="${esc(k)}"${A.sel.has(k)?' checked':''} onchange="atSel(this.dataset.k,this.checked)" aria-label="Select"></td>`:''}<td><span class="dp">${esc(s.dept)}</span>${s.lk?`<div class="atlkb" title="${esc(lkTxt(s))}">🔒 Locked${s.lk.by?' by '+esc(s.lk.by):' by admin'}${s.lk.at?'<small>'+esc(lkWhen(s.lk.at))+'</small>':''}</div>`:''}</td><td><b>${esc(lab(s.from,s.to))}</b></td><td class="hlc"><span class="hln">${s.emps.length}</span></td><td>${stCell(s)}</td><td>${s.upd?`<span class="hld">${new Date(s.upd).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}</span><span class="hlt">${new Date(s.upd).toLocaleTimeString('en-PH',{hour:'numeric',minute:'2-digit'})}</span>${s.by?`<span class="hlt">by ${esc(s.by)}</span>`:''}`:''}</td><td class="hla"><div class="hlb"><button class="btn o sm" data-k="${esc(k)}" onclick="AT_FP=null;atOpen(this.dataset.k)">${s.lk?'View':'Open'}</button>${adm()?`<button class="btn ${s.lk?'no':'o'} sm" data-k="${esc(k)}" onclick="atLock(this.dataset.k,${s.lk?'false':'true'})" title="${s.lk?'Unlock so users can edit again':'Lock so nobody can change it'}">${s.lk?'🔓 Unlock':'🔒 Lock'}</button>`:''}${isAdm()?`<button class="btn o sm" data-k="${esc(k)}" onclick="atSyncPay([this.dataset.k])" title="Send the total days of this cutoff to the matching payroll">⇄ Payroll</button>`:''}<button class="btn dl sm" data-k="${esc(k)}" onclick="atDelSheet(this.dataset.k)"${s.lk?' disabled title="Locked by admin. Cannot be deleted."':''}>${s.lk?'🔒 Delete':'Delete'}</button></div></td></tr>`).join('')}</table></div>`:'<p class="empty" style="padding:8px">No attendance sheets yet. Click + New Attendance to create one.</p>'}</div>`;selUi()}
+${L.length?`<div style="overflow-x:auto"><table class="hl"><tr>${isAdm()?'<th class="atc"><input type="checkbox" id="atsa" onchange="atSelAll(this.checked)" title="Select all"></th>':''}<th>Department</th><th>Cutoff</th><th class="hlc">Employees</th><th>Status</th><th>Last edited</th><th></th></tr>${L.map(({k,s})=>`<tr class=\"atr-${s.lk?'lk':s.st==='done'?'dn':'wp'}\">${isAdm()?`<td class="atc"><input type="checkbox" class="atsk" data-k="${esc(k)}"${A.sel.has(k)?' checked':''} onchange="atSel(this.dataset.k,this.checked)" aria-label="Select"></td>`:''}<td><span class="dp">${esc(s.dept)}</span>${s.lk?`<div class="atlkb" title="${esc(lkTxt(s))}">🔒 Locked${s.lk.by?' by '+esc(s.lk.by):' by admin'}${s.lk.at?'<small>'+esc(lkWhen(s.lk.at))+'</small>':''}</div>`:''}</td><td><b>${esc(lab(s.from,s.to))}</b></td><td class="hlc"><span class="hln">${s.emps.length}</span></td><td>${stCell(s)}</td><td>${s.upd?`<span class="hld">${new Date(s.upd).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}</span><span class="hlt">${new Date(s.upd).toLocaleTimeString('en-PH',{hour:'numeric',minute:'2-digit'})}</span>${s.by?`<span class="hlt">by ${esc(s.by)}</span>`:''}`:''}</td><td class="hla"><div class="hlb"><button class="btn o sm" data-k="${esc(k)}" onclick="AT_FP=null;atOpen(this.dataset.k)">${s.lk?'View':'Open'}</button>${adm()?`<button class="btn ${s.lk?'no':'o'} sm" data-k="${esc(k)}" onclick="atLock(this.dataset.k,${s.lk?'false':'true'})" title="${s.lk?'Unlock so users can edit again':'Lock so nobody can change it'}">${s.lk?'🔓 Unlock':'🔒 Lock'}</button>`:''}${isAdm()?`<button class="btn o sm" data-k="${esc(k)}" onclick="atSyncPay([this.dataset.k])" title="Send the total days of this cutoff to the matching payroll">⇄ Payroll</button>`:''}<button class="btn dl sm" data-k="${esc(k)}" onclick="atDelSheet(this.dataset.k)"${s.lk?' disabled title="Locked by admin. Cannot be deleted."':''}>${s.lk?'🔒 Delete':'Delete'}</button></div></td></tr>`).join('')}</table></div>`:'<p class="empty" style="padding:8px">No attendance sheets yet. Click + New Attendance to create one.</p>'}</div>`;selUi()}
 window.atF=v=>{A.f=v;drawList()};
 function atSqApply(){const q=AT_Q||'';document.querySelectorAll('#atw tr.atrw').forEach(tr=>{tr.style.display=!q.trim()||nzHit(tr.dataset.n,q)?'':'none'})}
 window.atSq=v=>{AT_Q=v;atSqApply()};
