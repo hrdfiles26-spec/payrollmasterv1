@@ -8220,12 +8220,50 @@ function empFrom(s,dept,h,m){const d=h?h.data:null,id=String(s.id);
  if(m==='g'){try{const k=pEk(s),gpd=d&&d.gpd,gpe=d&&d.gpe;pd=d?(!gpd?false:(gpe&&gpe[k]!=null?!!gpe[k]:(Object.prototype.hasOwnProperty.call(gpd,pGKey(s))?!!gpd[pGKey(s)]:!!pGpdDef(s)))):!!pGpdDef(s)}catch(e){pd=false}}
  const rw=d&&d.rows&&d.rows[s.id],fd=pn(rw&&rw.fd)>0?pn(rw.fd):(pn(d&&d.fd)>0?pn(d.fd):7);
  let c='';try{c=pGrp(s)||''}catch(e){}
- return{k:id,n:s.name,r:rate,c:c||dept,pd:pd?1:0,fd}}
+ const o={k:id,n:s.name,r:rate,c:c||dept,pd:pd?1:0,fd};if(/breeder/i.test(String(dept||''))){try{if(typeof xbCls==='function')o.cl=String(xbCls(s)||'')}catch(e){}}return o}
 function buildEmps(dept,have){const h=latestPay(dept),d=h?h.data:null,C=(typeof PCFG!=='undefined'&&PCFG[dept])||{};let m=(d&&d.m)||C.m||'r';if(isMg(dept))m='r';
  let L;if(d&&d.rates)L=Object.keys(d.rates).map(id=>(STF||[]).find(s=>String(s.id)===String(id))).filter(Boolean);else L=(STF||[]).filter(s=>s.dept===dept);
  const ord=(typeof PGO!=='undefined'&&PGO[dept])||[],ix=g=>{const k=ord.indexOf(g);return k<0?99:k};
  let E=L.map(s=>empFrom(s,dept,h,m)).filter(e=>!have||!have.has(e.k));
  E.sort((a,b)=>ix(a.c)-ix(b.c)||a.n.localeCompare(b.n));return{E,m}}
+
+/* ---------- BREEDER / EXTRA BREEDER: Class per employee (e.g. 52TANJM1) + summary per class ---------- */
+const isBr=sh=>/breeder/i.test(String(sh&&sh.dept||''));
+const clDef=e=>{try{const s=(STF||[]).find(x=>String(x.id)===String(e.k));if(s&&typeof xbCls==='function')return String(xbCls(s)||'')}catch(x){}return''};
+const clOf=e=>e.cl!=null?String(e.cl):clDef(e);
+const clBase=()=>{try{return[].concat(typeof XBS!=='undefined'?XBS:[],typeof XBR!=='undefined'?XBR:[],typeof XBL!=='undefined'?XBL:[],typeof XBX!=='undefined'?XBX:[])}catch(x){return[]}};
+const clList=sh=>[...new Set([...clBase(),...sh.emps.map(clOf)].map(x=>String(x||'').trim()).filter(Boolean))];
+const pdOf=e=>e.pd?pn(e.r):pn(e.r)/(e.fd>0?e.fd:7);
+const spList=e=>(e.sp||[]).filter(z=>z&&String(z.c||'').trim()&&pn(z.d)>0);
+const spAmt=(e,z)=>r2(pn(z.d)*pdOf(e));
+/* Same logic as the payroll Class Form: names + amounts per class, Common pools divided equally among the farm's classes, split lines moved to other classes */
+function clModel(sh){const CM=(typeof xbCm==='function')?xbCm():{},fm2=g=>(typeof xbFarm==='function')?xbFarm(g):'',P=Object.keys(CM).map(k=>({k,cl:CM[k]||[],rows:[],t:0})),C={},warn=[];let G=0;
+ const put=(c,grp,name,amt)=>{c=String(c||'').trim();const pp=P.find(z=>z.k===c)||(c===''?P.find(z=>z.k===fm2(grp)):null);if(pp){pp.rows.push([name,amt,'n']);pp.t=r2(pp.t+amt)}else(C[c]=C[c]||[]).push([name,amt])};
+ sh.emps.forEach(e=>{const t=tot(sh,e);G=r2(G+t.amt);if(!t.amt)return;const sp=spList(e),sa=sp.reduce((q,z)=>q+spAmt(e,z),0),sd=sp.reduce((q,z)=>q+pn(z.d),0),left=r2(t.days-sd);
+  if(sp.length&&left<-0.001)warn.push(e.n+': '+nf(sd)+' days divided but only '+nf(t.days)+' days worked');
+  put(clOf(e),e.c,sp.length?e.n+' ('+nf(left)+' days)':e.n,r2(t.amt-sa));
+  sp.forEach(z=>put(z.c,'',e.n+' ('+nf(pn(z.d))+' days)',spAmt(e,z)))});
+ P.forEach(pp=>{if(!pp.rows.length)return;const n=pp.cl.length;if(!n){C[pp.k]=(C[pp.k]||[]).concat(pp.rows.map(r=>[r[0],r[1]]));return}const e=r2(pp.t/n);pp.cl.forEach((c,i)=>(C[c]=C[c]||[]).push([pp.k+' (share)',i<n-1?e:r2(pp.t-e*(n-1))]))});
+ const ord=(typeof XBS!=='undefined'&&XBS)||[],K=Object.keys(C).sort((a,b)=>{if(a==='')return 1;if(b==='')return-1;const x=ord.indexOf(a),y=ord.indexOf(b);return(x<0?99:x)-(y<0?99:y)||a.localeCompare(b)});
+ const B=K.map(c=>({c,rows:C[c],t:r2(C[c].reduce((q,z)=>q+z[1],0))})).filter(b=>b.rows.length);
+ return{B,T:r2(B.reduce((q,b)=>q+b.t,0)),G,warn}}
+function clSumH(sh){if(!isBr(sh)||!sh.emps.length)return'';const M=clModel(sh),d=r2(M.T-M.G),ok=Math.abs(d)<0.005;
+ return`<div style="font-weight:700;margin:18px 0 8px;font-size:15px">Summary per class</div><div class="atcg">${M.B.map(b=>`<table class="atcb"><thead><tr><th colspan="2">${esc(b.c||'(no class)')}</th></tr></thead><tbody>${b.rows.map(z=>`<tr><td>${esc(z[0])}</td><td class="a">${fm(z[1])}</td></tr>`).join('')}<tr class="t"><td>Total</td><td class="a">${fm(b.t)}</td></tr></tbody></table>`).join('')||'<div class="atsm">No amounts yet.</div>'}</div>
+<table class="atcb" style="width:auto;margin-top:10px"><tbody><tr class="t"><td style="background:#dbe8f7;color:#12305c;padding:5px 12px">GRAND TOTAL (all classes)</td><td class="a" style="background:#dbe8f7;color:#12305c;padding:5px 12px;min-width:120px">${fm(M.T)}</td></tr></tbody></table>
+<div class="atck no-print" style="margin-top:8px;font-size:13px;line-height:1.45;${ok?'color:#1e7a46':'background:#fbe9e6;color:#a3302a;border:1px solid #f1cbc5;border-radius:8px;padding:8px 12px;max-width:560px'}">${ok?'✔ Balanced: the total of all classes equals the GRAND TOTAL of the attendance above ('+fm(M.G)+').':'⚠ NOT balanced: classes total '+fm(M.T)+' but the attendance GRAND TOTAL is '+fm(M.G)+' (difference '+fm(Math.abs(d))+').'}</div>${M.warn.map(w=>`<div class="atck no-print" style="margin-top:4px;font-size:13px;color:#a3302a">⚠ ${esc(w)}</div>`).join('')}`}
+/* split dialog: move some of a person's days to other classes */
+window.atSp=i=>{const sh=S();if(!sh||!sh.emps[i])return;ovl('atsp');spDlg(i)};
+function spDlg(i){const sh=S(),e=sh.emps[i],d=$('atsp');if(!d||!e)return;const t=tot(sh,e),sp=e.sp||(e.sp=[]),used=sp.reduce((q,z)=>q+pn(z.d),0),left=r2(t.days-used),pdv2=pdOf(e);
+ d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 2px">Hatiin ang sahod · Split</h3><div class="sub" style="margin:0;font-size:13px">${esc(e.n)} · ${nf(t.days)} days worked · class ${esc(clOf(e)||'(no class)')}</div>
+ ${sp.map((z,k)=>`<div style="display:flex;gap:6px;align-items:center;margin-top:10px"><input class="fi" style="flex:1;margin:0" list="atcll" value="${esc(z.c||'')}" placeholder="Class (e.g. 51TANJM2)" onchange="atSpSet(${i},${k},'c',this.value)"><input class="fi" style="width:84px;margin:0" type="number" step="any" min="0" value="${z.d||''}" placeholder="Days" onchange="atSpSet(${i},${k},'d',this.value)"><span class="atsm" style="min-width:84px;text-align:right">${fm(spAmt(e,z))}</span><button class="btn dl sm" onclick="atSpDel(${i},${k})" title="Remove">✕</button></div>`).join('')}
+ <div style="margin-top:12px;font-size:13px;${left<0?'color:#c0392b':'color:var(--mu)'}">Remaining in ${esc(clOf(e)||'(no class)')}: <b>${nf(left)} days</b> = ${fm(r2(t.amt-sp.reduce((q,z)=>q+spAmt(e,z),0)))}${left<0?' (over-divided)':''}</div>
+ <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px"><button class="btn o sm" onclick="atSpAdd(${i})">+ Class</button><button class="btn ok sm" onclick="atSpDone()">Done</button></div></div>`}
+window.atSpAdd=i=>{const e=S().emps[i];(e.sp=e.sp||[]).push({c:'',d:''});sv();spDlg(i)};
+window.atSpSet=(i,k,f,v)=>{const e=S().emps[i],z=(e.sp||[])[k];if(!z)return;z[f]=f==='c'?String(v||'').trim().toUpperCase():(v===''?'':Math.max(0,pn(v)));sv();upCls();spDlg(i)};
+window.atSpDel=(i,k)=>{const e=S().emps[i];(e.sp||[]).splice(k,1);sv();upCls();spDlg(i)};
+window.atSpDone=()=>{const o=$('atsp');if(o)o.remove();const sh=S();if(sh)sh.emps.forEach(e=>{if(e.sp)e.sp=e.sp.filter(z=>String(z.c||'').trim()||pn(z.d)>0);if(e.sp&&!e.sp.length)delete e.sp});drawSheet()};
+function upCls(){const sh=S(),el=$('atcls');if(sh&&el)el.innerHTML=clSumH(sh)}
+window.atCl=(i,el)=>{const sh=S();if(!sh||!sh.emps[i])return;sh.emps[i].cl=String(el.value||'').trim().toUpperCase();upCls();sv()};
 
 /* ---------- totals (same formula as the payroll form) ---------- */
 function tot(sh,e){let pr=0,vl=0,sl=0,np=0,any=false;const r=sh.d[e.k]||{};Object.keys(r).forEach(dt=>{const c=r[dt];if(!c)return;const v=+c.v||0;if((c.v!==''&&c.v!=null)||c.t)any=true;if(c.t==='VL')vl+=v;else if(c.t==='SL')sl+=v;else if(c.t==='VLN'||c.t==='SLN')np+=v;else pr+=v});
@@ -8274,7 +8312,10 @@ table.at td.atc.tNP{background:rgba(107,114,128,.25)}
 table.at tr.atsub td{background:var(--soft);font-weight:700;color:var(--h)}
 table.at tr.atgt td{background:var(--h);color:#fff;font-size:14.5px}
 table.at tr.atgt .sn{background:var(--h)}
-@media print{table.at .atm,.atq,.atx,.att,.atrmi,table.at tr.atg .btn{display:none!important}.atw{max-height:none;overflow:visible;border:0}
+table.at .sc{min-width:130px}.atcli{width:108px;margin:0;text-transform:uppercase}
+.atcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;align-items:start}
+table.atcb{border-collapse:collapse;width:100%;font-size:13px;color:var(--ink)}table.atcb th{background:var(--h);color:#fff;text-align:left;padding:5px 8px;border:1px solid var(--ln2)}table.atcb td{border:1px solid var(--ln2);padding:4px 8px;background:var(--sf)}table.atcb td.a{text-align:right;white-space:nowrap}table.atcb tr.t td{font-weight:700;background:var(--sf2)}
+@media print{.atcg{grid-template-columns:repeat(3,1fr);gap:8px}table.atcb{break-inside:avoid;page-break-inside:avoid;font-size:11px}table.atcb th,table.atcb td{border-color:#888}.atck{display:none}table.at .atm,.atq,.atx,.att,.atrmi,table.at tr.atg .btn{display:none!important}.atw{max-height:none;overflow:visible;border:0}
 .atpr{display:block;font-size:11px;font-weight:700;line-height:1.2}.atpc{display:block;font-size:9px;font-weight:400;line-height:1.15;word-break:break-word;white-space:normal;color:#000}.atnotes{margin-top:12px;font-size:12px;font-weight:400}.atnotes b{font-weight:700}.atnotes div{margin:2px 0}
 table.at .sn,table.at thead th{position:static}table.at .atv,.at .fi{border:0!important;background:transparent!important}
 .tNP .atpr{color:#4b5563}.tVL .atpr{color:#2563eb}.tSL .atpr{color:#ea580c}
@@ -8342,19 +8383,19 @@ function sumH(sh,i){const e=sh.emps[i],t=tot(sh,e);return[`${t.any?nf(t.days):'-
 function drawSheet(){const sh=S();if(!sh){return drawList()}A.v='sheet';const D=dayList(sh),w=$('atw'),sl=w?w.scrollLeft:0,st=w?w.scrollTop:0;
  const ord=[];const G={};sh.emps.forEach((e,i)=>{(G[e.c]=G[e.c]||[]).push(i)});
  const gk=Object.keys(G),ix=(typeof PGO!=='undefined'&&PGO[sh.dept])||[];gk.sort((a,b)=>{const x=ix.indexOf(a),y=ix.indexOf(b);return(x<0?99:x)-(y<0?99:y)});
- const colN=D.length+5;if(!sh.rm)sh.rm={};
- A.gs=[];const subR=(id,lbl,idx,cls)=>{A.gs.push({id,idx});const z=gsum(sh,idx);return`<tr class="atsub ${cls||''}"><td class="sn" colspan="2"><b>${esc(lbl)}</b></td><td colspan="${D.length}"></td><td class="sd" id="atgd_${id}"><b>${z[0]?nf(z[0]):'-'}</b></td><td class="sa" id="atga_${id}"><b>${z[1]?fm(z[1]):'-'}</b></td><td></td></tr>`};
+ const br=isBr(sh),colN=D.length+5+(br?1:0);if(!sh.rm)sh.rm={};
+ A.gs=[];const subR=(id,lbl,idx,cls)=>{A.gs.push({id,idx});const z=gsum(sh,idx);return`<tr class="atsub ${cls||''}"><td class="sn" colspan="${br?3:2}"><b>${esc(lbl)}</b></td><td colspan="${D.length}"></td><td class="sd" id="atgd_${id}"><b>${z[0]?nf(z[0]):'-'}</b></td><td class="sa" id="atga_${id}"><b>${z[1]?fm(z[1]):'-'}</b></td><td></td></tr>`};
  let body='';gk.forEach((g,gi)=>{body+=`<tr class="atg"><td colspan="${colN}"><div><span>${esc(g)}</span><button class="btn o sm" data-c="${esc(g)}" onclick="atAdd(this.dataset.c)">+ Add employee</button></div></td></tr>`;
   G[g].forEach(i=>{const e=sh.emps[i],s=sumH(sh,i);
    body+=`<tr><td class="sn"><b>${esc(e.n)}</b><br><button class="atq" onclick="atFillRow(${i})" title="Put 1 on every empty day">✓ all days</button> <button class="atq atrm" onclick="atRemove(${i})" title="Remove this employee from this attendance">🗑 Remove</button></td>
-<td class="sr"><input class="atv" style="width:86px" type="number" step="any" min="0" value="${e.r||''}" oninput="atR(${i},this)" aria-label="Rate"><span class="atsm">${e.pd?'per day':'gross ÷ '+(e.fd>0?e.fd:7)}</span></td>${D.map(dt=>cellH(sh,i,dt)).join('')}<td class="sd" id="atd_${i}"><b>${s[0]}</b></td><td class="sa" id="ata_${i}"><b>${s[1]}</b></td><td class="rm"><input style="margin:0;width:100%;min-width:112px" value="${esc(sh.rm[e.k]||'')}" class="fi atrmi" oninput="atRm(${i},this)" placeholder="Remarks" aria-label="Remarks"><div class="atpr" style="font-weight:400" id="atrp_${i}">${esc(sh.rm[e.k]||'')}</div></td></tr>`});body+=subR('g'+gi,'Total · '+g,G[g])});
+<td class="sr"><input class="atv" style="width:86px" type="number" step="any" min="0" value="${e.r||''}" oninput="atR(${i},this)" aria-label="Rate"><span class="atsm">${e.pd?'per day':`gross ÷ <input class="atv" id="atfd_${i}" style="width:44px;padding:2px" type="number" step="any" min="1" value="${e.fd>0?e.fd:7}" oninput="atFd(${i},this)" title="Fixed days (same as Fixed Days in the payroll)" aria-label="Fixed days">`}</span></td>${br?`<td class="sc"><input class="fi atcli" list="atcll" value="${esc(clOf(e))}" oninput="atCl(${i},this)" onchange="this.value=this.value.trim().toUpperCase();atCl(${i},this)" placeholder="Class" aria-label="Class"><button class="atq" onclick="atSp(${i})" title="Hatiin ang sahod sa ibang class">✂ Hatiin</button>${spList(e).map(z=>`<div class="atsm">↳ ${esc(z.c)} · ${nf(pn(z.d))} days</div>`).join('')}</td>`:''}${D.map(dt=>cellH(sh,i,dt)).join('')}<td class="sd" id="atd_${i}"><b>${s[0]}</b></td><td class="sa" id="ata_${i}"><b>${s[1]}</b></td><td class="rm"><input style="margin:0;width:100%;min-width:112px" value="${esc(sh.rm[e.k]||'')}" class="fi atrmi" oninput="atRm(${i},this)" placeholder="Remarks" aria-label="Remarks"><div class="atpr" style="font-weight:400" id="atrp_${i}">${esc(sh.rm[e.k]||'')}</div></td></tr>`});body+=subR('g'+gi,'Total · '+g,G[g])});
  if(gk.length)body+=subR('all','GRAND TOTAL',sh.emps.map((_,i)=>i),'atgt');
  const mg=sh.m==='g';
  $('main').innerHTML=`<div class="atbar no-print"><button class="btn o sm" onclick="atBack()">← Back</button><h1 style="margin:0;font-size:24px">Attendance · ${esc(sh.dept)}</h1><span class="sub" style="margin:0">${esc(lab(sh.from,sh.to))}</span><span style="flex:1"></span><span id="atst" class="sub" style="margin:0;font-size:12.5px">${UNS?'● Unsaved changes':'✔ Saved'}</span><button class="btn ok" id="atsave" onclick="atSave()">💾 Save</button></div>
 <div class="atbar no-print"><button class="btn ok sm" onclick="atAdd('')">+ Add employee</button><button class="btn o sm" onclick="atSyncNames()" title="Add employees that are in the latest payroll but not in this attendance yet">↻ Sync names from payroll</button><button class="btn o sm" onclick="window.print()">🖨 Print</button>
 <label style="font-size:13px;display:inline-flex;gap:6px;align-items:center"><input type="checkbox" ${sh.vp?'checked':''} onchange="atVp(this.checked)"> VL / SL counts as a paid day</label>
 <span class="atl"><span>Legend:</span><i class="a1">1 present</i><i class="a2">VL</i><i class="a3">SL</i><i class="a4">VL / SL no pay (NP)</i><span style="color:var(--mu)">· type a number to edit (½ = 0.5) · 💬 = comment · ✓ on the date = all 1</span></span></div>
-<div class="atpr" style="font-size:16px;margin:0 0 6px">Attendance · ${esc(sh.dept)} · ${esc(lab(sh.from,sh.to))}</div><div class="atw" id="atw"><table class="at"><thead><tr><th class="sn">Name</th><th class="sr">${mg?'Rate / Gross':'Rate'}</th>${D.map(dt=>`<th class="atc">${dh(dt)}<br><button class="atq" onclick="atFillCol('${dt}')" title="Put 1 for everyone who is empty on this day">✓</button></th>`).join('')}<th class="sd">Total days</th><th class="sa">Total amount</th><th class="rm">Remarks</th></tr></thead><tbody>${body||`<tr><td colspan="${colN}" style="padding:24px;text-align:center;color:var(--mu)">No employees yet. Click + Add employee.</td></tr>`}</tbody></table></div><div class="atpr atnotes" id="atnotes"></div>`;upNotes();
+<div class="atpr" style="font-size:16px;margin:0 0 6px">Attendance · ${esc(sh.dept)} · ${esc(lab(sh.from,sh.to))}</div><div class="atw" id="atw"><table class="at"><thead><tr><th class="sn">Name</th><th class="sr">${mg?'Rate / Gross':'Rate'}</th>${br?'<th class="sc">Class</th>':''}${D.map(dt=>`<th class="atc">${dh(dt)}<br><button class="atq" onclick="atFillCol('${dt}')" title="Put 1 for everyone who is empty on this day">✓</button></th>`).join('')}<th class="sd">Total days</th><th class="sa">Total amount</th><th class="rm">Remarks</th></tr></thead><tbody>${body||`<tr><td colspan="${colN}" style="padding:24px;text-align:center;color:var(--mu)">No employees yet. Click + Add employee.</td></tr>`}</tbody></table></div>${br?`<datalist id="atcll">${clList(sh).map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`:''}<div id="atcls">${clSumH(sh)}</div><div class="atpr atnotes" id="atnotes"></div>`;upNotes();
  const w2=$('atw');if(w2){w2.scrollLeft=sl;w2.scrollTop=st}}
 
 /* ---------- cell edits ---------- */
@@ -8363,11 +8404,12 @@ function upNotes(){const sh=S(),el=$('atnotes');if(!sh||!el)return;const L=[];sh
  const R=sh.emps.filter(e=>sh.rm&&sh.rm[e.k]).map(e=>`<div><b>${esc(e.n)}</b>: ${esc(sh.rm[e.k])}</div>`);
  el.innerHTML=(L.length?'<div style="font-weight:700;margin-bottom:2px">Comments</div>'+L.join(''):'')+(R.length&&L.length?'<div style="height:6px"></div>':'')+(R.length?'<div style="font-weight:700;margin-bottom:2px">Remarks</div>'+R.join(''):'')}
 function gsum(sh,idx){let d=0,a=0;idx.forEach(i=>{const t=tot(sh,sh.emps[i]);d+=t.days;a+=t.amt});return[d,r2(a)]}
-function upTot(){const sh=S();if(!sh||!A.gs)return;A.gs.forEach(g=>{const z=gsum(sh,g.idx),d=$('atgd_'+g.id),a=$('atga_'+g.id);if(d)d.innerHTML='<b>'+(z[0]?nf(z[0]):'-')+'</b>';if(a)a.innerHTML='<b>'+(z[1]?fm(z[1]):'-')+'</b>'})}
+function upTot(){const sh=S();if(!sh||!A.gs)return;upCls();A.gs.forEach(g=>{const z=gsum(sh,g.idx),d=$('atgd_'+g.id),a=$('atga_'+g.id);if(d)d.innerHTML='<b>'+(z[0]?nf(z[0]):'-')+'</b>';if(a)a.innerHTML='<b>'+(z[1]?fm(z[1]):'-')+'</b>'})}
 function upRow(i){const sh=S(),s=sumH(sh,i),d=$('atd_'+i),a=$('ata_'+i);if(d)d.innerHTML='<b>'+s[0]+'</b>';if(a)a.innerHTML='<b>'+s[1]+'</b>';upTot()}
 window.atV=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1),v=el.value;c.v=v===''?'':Math.max(0,+v||0);tidy(sh,e.k,dt);upCell(i,dt);sv()};
 window.atT=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1);c.t=el.value;if(c.t&&(c.v===''||c.v==null)){c.v=1;const inp=el.parentNode.querySelector('.atv');if(inp)inp.value=1}tidy(sh,e.k,dt);upCell(i,dt);sv()};
 window.atR=(i,el)=>{const sh=S();sh.emps[i].r=Math.max(0,+el.value||0);upRow(i);sv()};
+window.atFd=(i,el)=>{const sh=S();if(!sh||!sh.emps[i])return;sh.emps[i].fd=Math.max(1,+el.value||7);upRow(i);sv()};
 window.atRm=(i,el)=>{const sh=S();if(!sh.rm)sh.rm={};const k=sh.emps[i].k;if(el.value.trim())sh.rm[k]=el.value;else delete sh.rm[k];const p=$('atrp_'+i);if(p)p.textContent=el.value;upNotes();sv()};
 window.atVp=on=>{const sh=S();sh.vp=on?1:0;sh.emps.forEach((_,i)=>upRow(i));sv()};
 window.atKey=(ev,i,dt)=>{if(ev.key!=='Enter')return;ev.preventDefault();const n=document.querySelector('#atc_'+(i+(ev.shiftKey?-1:1))+'_'+dt+' .atv');if(n){n.focus();n.select()}};
@@ -8387,14 +8429,14 @@ window.atAdd=cls=>{const sh=S(),have=new Set(sh.emps.map(e=>e.k)),pool=(STF||[])
 <label>Existing employee (from any department)<select id="ata_s" class="fi" onchange="atAddPick(this.value)"><option value="">— New employee (type the name below) —</option>${pool.map(s=>`<option value="${esc(s.id)}">${esc(s.name)} — ${esc(s.dept)}</option>`).join('')}</select></label>
 <label>Name<input id="ata_n" class="fi" placeholder="LAST NAME, FIRST NAME"></label>
 <label>Class / group<input id="ata_c" class="fi" list="ata_cl" value="${esc(cls||'')}" placeholder="${esc(sh.dept)}"><datalist id="ata_cl">${cl.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></label>
-<label>Rate type<select id="ata_t" class="fi"><option value="1"${sh.m!=='g'?' selected':''}>Per day (rate × days)</option><option value="0"${sh.m==='g'?' selected':''}>Gross salary (gross ÷ days divisor × days)</option></select></label>
+${isBr(sh)?`<label>Class (e.g. 52TANJM1)<input id="ata_cl2" class="fi" list="ata_cl3" placeholder="52TANJM1"><datalist id="ata_cl3">${clList(sh).map(c=>`<option value="${esc(c)}">`).join('')}</datalist></label>`:''}<label>Rate type<select id="ata_t" class="fi"><option value="1"${sh.m!=='g'?' selected':''}>Per day (rate × days)</option><option value="0"${sh.m==='g'?' selected':''}>Gross salary (gross ÷ days divisor × days)</option></select></label>
 <label>Rate / gross<input id="ata_r" class="fi" type="number" step="any" min="0" placeholder="0.00"></label>
 <label>Days divisor (for gross)<input id="ata_f" class="fi" type="number" step="1" min="1" value="7"></label>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn o sm" onclick="$('atad').remove()">Cancel</button><button class="btn ok sm" onclick="atAddSave()">Add</button></div></div>`};
-window.atAddPick=id=>{if(!id)return;const s=(STF||[]).find(x=>String(x.id)===String(id));if(!s)return;const sh=S(),e=empFrom(s,s.dept,latestPay(s.dept),sh.m);$('ata_n').value=s.name;$('ata_r').value=e.r||'';if(!$('ata_c').value)$('ata_c').value=sh.dept;$('ata_t').value=sh.m==='g'?'0':'1'};
+window.atAddPick=id=>{if(!id)return;const s=(STF||[]).find(x=>String(x.id)===String(id));if(!s)return;const sh=S(),e=empFrom(s,s.dept,latestPay(s.dept),sh.m);$('ata_n').value=s.name;$('ata_r').value=e.r||'';if(!$('ata_c').value)$('ata_c').value=sh.dept;{const q=$('ata_cl2');if(q)q.value=clDef({k:s.id})}$('ata_t').value=sh.m==='g'?'0':'1'};
 window.atAddSave=()=>{const sh=S(),sid=$('ata_s').value,s=sid?(STF||[]).find(x=>String(x.id)===String(sid)):null,n=($('ata_n').value||'').trim();if(!n)return alert('Please enter the employee name.');
  const dup=sh.emps.find(e=>e.n.trim().toUpperCase()===n.toUpperCase());if(dup&&!confirm(n+' is already in this attendance. Add anyway?'))return;
- sh.emps.push({k:s?String(s.id):'x'+Date.now().toString(36),n,r:Math.max(0,+$('ata_r').value||0),c:($('ata_c').value||'').trim()||sh.dept,pd:$('ata_t').value==='1'?1:0,fd:Math.max(1,+$('ata_f').value||7),x:1});
+ sh.emps.push({k:s?String(s.id):'x'+Date.now().toString(36),n,r:Math.max(0,+$('ata_r').value||0),c:($('ata_c').value||'').trim()||sh.dept,pd:$('ata_t').value==='1'?1:0,fd:Math.max(1,+$('ata_f').value||7),x:1,...($('ata_cl2')?{cl:($('ata_cl2').value||'').trim().toUpperCase()}:{})});
  $('atad').remove();drawSheet();sv()};
 })();
 </script>
