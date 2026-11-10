@@ -1092,6 +1092,7 @@ html[data-theme=dark] .m13w .cx-t .btn.m13-rb.x:hover{background:#3a2220;border-
  .m13w .m13-sig{margin:16px 4px 0;gap:120px;font-size:11px}.m13w .m13-sig b.l{margin-bottom:22px}.m13w .m13-sig b.n{margin-bottom:8px}
 }
 .cx-tag{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--lk);background:var(--soft)}
+@media print{.cx-tag{display:none!important}}/* the "Added" / "New" tag is for the screen only, never on paper or PDF */
 .cx-em{padding:34px 10px;text-align:center;color:var(--mu);font-size:14px}
 .cx-note{margin:14px 0 0;font-size:12.5px;color:var(--mu);line-height:1.55}
 @media(max-width:1100px){.cx-form{grid-template-columns:1fr 1fr 1fr}.cx-form .btn{grid-column:1/-1}}
@@ -1391,6 +1392,7 @@ html[data-theme=dark] #main .stat.al-g .si{background:#1f4a31;color:#7fdca4}
  <aside class="side no-print">
   <div class="brand"><img class="lg" alt="Rayanton"><b>Rayanton</b><small>HRD FILES</small></div>
  <a id="n0" tabindex="0" onclick="go('dash')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Dashboard</span><i id="b0"></i></a>
+ <a id="n14" tabindex="0" onclick="go('att')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><path d="M8.5 15l2.2 2.2L15.5 12.5"/></svg><span>Attendance</span></a>
  <a id="n1" tabindex="0" onclick="go('req')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg><span>Request Form</span></a>
  <a id="n2" tabindex="0" onclick="go('sub')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span>Submitted Requests</span><i id="bd"></i></a>
  <a id="n9" tabindex="0" onclick="go('addc')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span>Additional Compensation</span></a>
@@ -1722,7 +1724,7 @@ async function enter(){
  if(!f)$('main').innerHTML='<h1>No access</h1><p class="sub">You have no pages assigned yet. Please contact the admin.</p>';else go('dash');
  if(can('emp'))loadND().then(()=>loadE(true));if(can('act'))actPoll();setInterval(()=>can('act')&&actPoll(),60000);can('tmk')&&tmNotifSync(true);can('tma')&&tmDecSync(true);Promise.all([pdLoad().catch(()=>0),chatLoad()]).then(()=>{chatBadge();liveStart()})}
 function applyNav(){ADM=can('usr');{const a=$('ndel');if(a)a.style.display=SUPER?'none':''}
- ['req','sub','emp','pay','act','usr'].forEach((k,j)=>$('n'+(j+1)).style.display=can(k)?'':'none');$('n7').style.display=isAdm()?'':'none';['addc','m13'].forEach((k,j)=>{const a=$('n'+(9+j));a.style.display='';a.classList.toggle('lkd',!can(k));a.title=can(k)?'':'Needs permission from the admin'});{const a=$('n11');if(a)a.style.display=can('tmk')?'':'none';}{const a=$('n12');if(a)a.style.display=can('mg')?'':'none';}{const a=$('n13');if(a)a.style.display=can('ben')?'':'none';}
+ ['req','sub','emp','pay','act','usr'].forEach((k,j)=>$('n'+(j+1)).style.display=can(k)?'':'none');$('n7').style.display=isAdm()?'':'none';['addc','m13'].forEach((k,j)=>{const a=$('n'+(9+j));a.style.display='';a.classList.toggle('lkd',!can(k));a.title=can(k)?'':'Needs permission from the admin'});{const a=$('n14');if(a)a.style.display=can('att')?'':'none';}{const a=$('n11');if(a)a.style.display=can('tmk')?'':'none';}{const a=$('n12');if(a)a.style.display=can('mg')?'':'none';}{const a=$('n13');if(a)a.style.display=can('ben')?'':'none';}
  const rl=SUPER||(MYA&&MYA.role==='admin')?'Admin':MYA?(ROLES[MYA.role]||[MYA.role])[0]:'';
  {const nk=((MYA&&MYA.full_name)||'').trim();$('who').innerHTML=((nk||rl)?'<b>'+esc(nk||rl)+'</b>':'')+'<small>'+esc(nk&&rl?rl+' · ':'')+esc(ME.email||'')+'</small>'}
  {const nm=((MYA&&MYA.full_name)||ME.email||'?').trim();$('wav').textContent=(nm.includes('@')?nm.slice(0,2):nm.split(/\s+/).map(w=>w[0]).slice(0,2).join('')).toUpperCase()}
@@ -1873,7 +1875,7 @@ const FM={coop:['COOP','Employee savings fund loan','🏦'],leave:['Vacation / S
 const vals=()=>[...$('paper').querySelectorAll('input')].map(i=>i.type==='checkbox'?i.checked:i.value);
 const fill=(d,dis)=>[...$('paper').querySelectorAll('input')].forEach((el,k)=>{if(d){if(el.type==='checkbox')el.checked=!!d[k];else el.value=d[k]||''}el.disabled=dis});
 
-function go(p){if(p==='chat')return chatToggle();if(p!=='dash'&&p!=='chat'&&p!=='addc'&&p!=='m13'&&(p==='bak'?!isAdm():!can(p)))return toast('You do not have access to this page.');if(PG==='pay'&&p!=='pay'){if(!pLeave())return;PV='hist';PU=false}if(PG==='m13'&&p!=='m13'&&!m13Leave())return;PG=p;document.body.setAttribute('data-pg',p);if(p!=='dash')chatClose();$('n0').classList.toggle('on',p==='dash');['req','sub','emp','pay','act','usr','bak','chat'].forEach((k,j)=>$('n'+(j+1)).classList.toggle('on',p===k));$('n9').classList.toggle('on',p==='addc');$('n10').classList.toggle('on',p==='m13');{const a=$('n11');if(a)a.classList.toggle('on',p==='tmk')}{const a=$('n12');if(a)a.classList.toggle('on',p==='mg')}{const a=$('n13');if(a)a.classList.toggle('on',p==='ben')}p==='dash'?dash():p==='req'?pick():p==='sub'?subs():p==='emp'?emps():p==='act'?acts():p==='usr'?users():p==='bak'?backups():p==='chat'?chatOpen():p==='tmk'?tmk():p==='mg'?mg():p==='ben'?ben():p==='addc'?(can('addc')?addc():noAcc('Additional Compensation')):p==='m13'?(can('m13')?m13():noAcc('13th Month Pay')):pays();scrollTo(0,0)}
+function go(p){if(p==='chat')return chatToggle();if(PG==='att'&&p!=='att'&&window.attUns&&attUns()){attLeave(function(){go(p)});return}if(p!=='dash'&&p!=='chat'&&p!=='addc'&&p!=='m13'&&(p==='bak'?!isAdm():!can(p)))return toast('You do not have access to this page.');if(PG==='pay'&&p!=='pay'){if(!pLeave())return;PV='hist';PU=false}if(PG==='m13'&&p!=='m13'&&!m13Leave())return;PG=p;document.body.setAttribute('data-pg',p);if(p!=='dash')chatClose();$('n0').classList.toggle('on',p==='dash');['req','sub','emp','pay','act','usr','bak','chat'].forEach((k,j)=>$('n'+(j+1)).classList.toggle('on',p===k));$('n9').classList.toggle('on',p==='addc');$('n10').classList.toggle('on',p==='m13');{const a=$('n11');if(a)a.classList.toggle('on',p==='tmk')}{const a=$('n12');if(a)a.classList.toggle('on',p==='mg')}{const a=$('n13');if(a)a.classList.toggle('on',p==='ben')}{const a=$('n14');if(a)a.classList.toggle('on',p==='att')}p==='dash'?dash():p==='att'?att():p==='req'?pick():p==='sub'?subs():p==='emp'?emps():p==='act'?acts():p==='usr'?users():p==='bak'?backups():p==='chat'?chatOpen():p==='tmk'?tmk():p==='mg'?mg():p==='ben'?ben():p==='addc'?(can('addc')?addc():noAcc('Additional Compensation')):p==='m13'?(can('m13')?m13():noAcc('13th Month Pay')):pays();scrollTo(0,0)}
 /* ===== PAYROLL DEPARTMENTS: manage, add, auto icons ===== */
 let PDS=(()=>{try{const o=JSON.parse(localStorage.getItem('hrd_pay_depts')||'{}');return o&&typeof o==='object'?o:{}}catch(e){return{}}})(),PDI='';
 let PDOK=null,PDSNAP='{}';
@@ -2564,7 +2566,7 @@ const resHas=r=>r.slice(7).some(v=>v!=null&&v!=='')||r[3]||r[4]||r[6];
 function resPlan(){const all=[],seen=new Set();E.concat(EALL).forEach(e=>{if(e&&!seen.has(e.id)){seen.add(e.id);all.push(e)}});
  const full={},sg={};all.forEach(e=>{const n=resNm(e.name),k=dupKey(n);(full[k]=full[k]||[]).push(e);const p=n.split(','),s=dupKey(p[0])+'|'+dupKey(p[1]||'').split(' ')[0];(sg[s]=sg[s]||[]).push(e)});
  const upd=[],add=[],reh=[];let skip=0;
- RESJ.forEach(r=>{const n=resNm(r[0]),k=dupKey(n);let e=(full[k]||[])[0];
+ RESJ.forEach(r=>{const n=resNm(r[0]),k=dupKey(n);if(NDONE.has('rsx|'+k))return;let e=(full[k]||[])[0];
   if(!e){const p=n.split(','),s=dupKey(p[0])+'|'+dupKey(p[1]||'').split(' ')[0];if(sg[s]&&sg[s].length===1)e=sg[s][0]}
   if(!e)return add.push({r});
   if(isMgt(e.dept)&&!can('mge'))return;
@@ -2596,7 +2598,20 @@ async function pfApply(){const ids=new Set([...document.querySelectorAll('#pfm .
  try{logAct('Set training / probation dates (hired Sept 2026 onward)','201 Files',ok+' updated'+(bad?', '+bad+' failed':''))}catch(e){}
  const m=$('pfm');if(m)m.remove();await loadE(true);toast('Done: '+ok+' updated'+(bad?', '+bad+' failed':'')+' ✔');drawE()}
 function rsBanner(){if(!isAdm())return'';const p=resPlan();if(!p.todo.length)return'';
- return `<div class="panel" style="max-width:none;margin:0 0 20px;border-left:5px solid #9b59c9"><h3>Resigned employees to import</h3><p class="sub" style="margin:0 0 12px;font-size:14px"><b>${p.upd.length}</b> existing employee(s) will be set to <b>Resigned</b> (their department stays), <b>${p.add.length}</b> not yet in 201 Files will be added${p.reh.length?`, and <b>${p.reh.length}</b> who are still active (came back after resigning) will be marked <b>Returnee</b> — their old resignation goes to History and the current record stays`:''}. Includes amounts received, clearance status (D / IP / UC) and dismissal grounds (AWOL, IR, BA, C, US, O).</p><button class="btn" onclick="resImport()">⬆ Import ${p.todo.length} resigned</button></div>`}
+ return `<div class="panel" style="max-width:none;margin:0 0 20px;border-left:5px solid #9b59c9"><h3>Resigned employees to import</h3><p class="sub" style="margin:0 0 12px;font-size:14px"><b>${p.upd.length}</b> existing employee(s) will be set to <b>Resigned</b> (their department stays), <b>${p.add.length}</b> not yet in 201 Files will be added${p.reh.length?`, and <b>${p.reh.length}</b> who are still active (came back after resigning) will be marked <b>Returnee</b> — their old resignation goes to History and the current record stays`:''}. Includes amounts received, clearance status (D / IP / UC) and dismissal grounds (AWOL, IR, BA, C, US, O).</p><button class="btn" onclick="resImport()">⬆ Import ${p.todo.length} resigned</button> <button class="btn o" onclick="rsIgOpen()" title="Skip names you already deleted or handled">Ignore…</button></div>`}
+const rsKey=r=>'rsx|'+dupKey(resNm(r[0]));
+function rsIgOpen(){const p=resPlan(),ig=RESJ.filter(r=>NDONE.has(rsKey(r))),lb=x=>x.rh?'Mark as Returnee':x.e?'Set to Resigned':'Add as new employee',d=ovl('rsig');
+ d.innerHTML=`<div style="${BX};max-width:520px"><h2 style="margin:0 0 4px">Ignore resigned names</h2><p class="sub" style="font-size:13.5px;margin:0 0 12px">An ignored name is skipped by the import and will not show in the banner again. Use it for names you already deleted or handled, for example a wrongly spelled duplicate.</p>
+ ${p.todo.length?`<div style="border:1px solid var(--ln);border-radius:10px;overflow:hidden">${p.todo.map((x,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;${i?'border-top:1px solid var(--ln)':''}"><div style="flex:1;min-width:0"><b>${esc(resNm(x.r[0]))}</b><br><small style="color:var(--mu)">${lb(x)}</small></div><button class="btn o sm" data-k="${esc(rsKey(x.r))}" onclick="rsIgSet([this.dataset.k],true)">Ignore</button></div>`).join('')}</div>${p.todo.length>1?`<div style="margin-top:10px"><button class="btn o sm" onclick="rsIgAllGo()">Ignore all ${p.todo.length}</button></div>`:''}`:'<p class="sub">Nothing left to import.</p>'}
+ ${ig.length?`<h3 style="margin:18px 0 6px;font-size:15px">Ignored (${ig.length})</h3><div style="border:1px solid var(--ln);border-radius:10px;overflow:hidden">${ig.map((r,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;${i?'border-top:1px solid var(--ln)':''}"><div style="flex:1;min-width:0">${esc(resNm(r[0]))}</div><button class="btn o sm" data-k="${esc(rsKey(r))}" onclick="rsIgSet([this.dataset.k],false)">Restore</button></div>`).join('')}</div>`:''}
+ <div style="margin-top:14px"><button class="btn o" onclick="$('rsig').remove()">Close</button></div></div>`}
+function rsIgAllGo(){const p=resPlan();if(!p.todo.length)return;if(!confirm('Ignore all '+p.todo.length+' name(s)? They will not show in the import again.'))return;rsIgSet(p.todo.map(x=>rsKey(x.r)),true)}
+async function rsIgSet(ks,on){if(!isAdm())return;let ok=false;
+ if(NDB!==false){try{if(on)await api('/rest/v1/hrd_notif_done',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(ks.map(k=>({k,done_by:ME.email||''})))});else for(const k of ks)await api('/rest/v1/hrd_notif_done?k=eq.'+encodeURIComponent(k),{method:'DELETE',headers:{Prefer:'return=minimal'}});ok=true;NDB=true}catch(e){NDB=false}}
+ ks.forEach(k=>on?NDONE.add(k):NDONE.delete(k));
+ if(!ok){try{localStorage.hrdND=JSON.stringify([...NDONE])}catch(e){}toast('Saved on this device only (the notification table is not set up in Supabase yet).')}
+ else toast(on?'Ignored \u2714':'Restored \u2714');
+ window.BNC=null;if($('rsig'))rsIgOpen();try{if(PG==='emp'&&EV==='list')drawE()}catch(e){}}
 function resNotes(r,old,rh){const P=splitN(old),X=P.x;if(rh){const H=histOf(X);H.push(resEntry(r));X.hist=JSON.stringify(H);return joinN(X,P.rest)}const set=(k,v)=>{if(v!=null&&v!=='')X[k]=String(v)};
  set('rsstat',r[3]);set('rsground',r[4]);set('rsrem',r[6]);set('rscash',r[7]);set('rslast',r[8]);set('rsoth',r[9]);set('rsfh',r[10]);set('rscoop',r[11]);set('rsint',r[12]);set('rsrate',r[13]);set('rs13',r[14]);set('rsrel',r[15]);
  if(!X.rate&&r[5]!=null)X.rate=String(r[5]);return joinN(X,P.rest)}
@@ -3045,6 +3060,7 @@ async function delE(){const e=E[ei];if(!confirm('Are you sure you want to delete
  try{await api('/rest/v1/hrd_employees?id=eq.'+e.id,{method:'DELETE'});try{if(BRDJ.some(r=>n2Key(r.name)===n2Key(e.name)))await brdSkip([e.name])}catch(z){}[e.photo,...(e.docs||[]).map(d=>d.path)].filter(Boolean).forEach(p=>api('/storage/v1/object/files201/'+p,{method:'DELETE'}).catch(()=>{}));logAct('Deleted employee','201 Files',e.name);E.splice(ei,1);toast('Deleted');drawE()}catch(x){alert(x.message)}}
 // ===== PAYROLL (ADMIN ONLY) — follows the paper payroll format; roster in hrd_pay_staff =====
 const fm=n=>'₱'+(+n||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2}),r2=n=>Math.round((+n||0)*100)/100;
+const fw=n=>'₱'+Math.round(+n||0).toLocaleString('en-PH');
 const pn=v=>+v||0,pf=n=>pn(n)?pn(n).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2}):'-';
 const PORD=['BREEDER','BROILER','EXTRA BREEDER','EXTRA PAYROLL','FMVM','HAULING','LAYERS','MAINTENANCE','MANAGEMENT','PSALES','RENTAL'],POLD={'FM | VM':'FMVM','Psales':'PSALES','VetMed':'FMVM','Feedmill (Production)':'FMVM','Feedmill':'FMVM','Trucking':'HAULING'};
 const pCanon=d=>{const u=String(d||'').trim();if(POLD[u])return POLD[u];const f=PORD.find(p=>p.toLowerCase()===u.toLowerCase());return f||u};
@@ -4664,10 +4680,10 @@ const m13Days=()=>(M13S&&M13S.days)||{};
 const m13Ent=(o,id)=>{const v=o[id];return v==null?{}:typeof v==='object'?v:{d:v}};
 const m13Long=h=>{const d=new Date(h+'T00:00:00');return isNaN(d)?String(h):d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})};
 const m13LateH=L=>L.length?`<div class="cx-note" style="margin-top:12px"><b>Not included in 13th Month Pay ${esc(MY)} — hired / started probationary October onward:</b><br>${L.map(r=>'• '+esc(r.name)+(r.dept?' ('+esc(r.dept)+')':'')+' — Hired / start: '+esc(m13Long(r.hired))).join('<br>')}</div>`:'';
-const m13Reg=e=>{const r=e&&e.regular_date?String(e.regular_date).slice(0,10):'';if(!/^\d{4}-\d\d-\d\d$/.test(r))return false;const d=new Date();const t=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return r<=t};/* already regularized: goes with the regulars */
-const m13Hd=(e,y)=>{if(!e)return'';const c=[e.hired,e.training_start,e.probi_start].map(x=>x?String(x).slice(0,10):'').filter(Boolean);return c.find(x=>x.slice(0,4)===String(y))||c[0]||''};
+const m13Reg=e=>{const r=e&&e.regular_date?String(e.regular_date).slice(0,10):'';if(!/^\d{4}-\d\d-\d\d$/.test(r))return false;const y=/^\d{4}$/.test(String(typeof MY!=='undefined'?MY:''))?String(MY):String(new Date().getFullYear());return r<=y+'-12-31'};/* v619: has a regularization date within the 13th Month year (up to Dec 31) = Regular: no "P", no probationary status */
+const m13Hd=(e,y)=>{if(!e)return'';const c=[e.hired,e.training_start,e.probi_start].map(x=>x?String(x).slice(0,10):'').filter(Boolean);return c[0]||''};/* v616: always the date hired (a later probationary start must not make an old employee look new) */
 /* v613: Start Date + "how many months" remark are ONLY for employees with less than 1 year (hired this year, or hired within the last 12 months). 1 year or more = no Start Date, no remark. */
-const m13U1=(h,yr)=>{const d=new Date(h+'T00:00:00');if(isNaN(d))return false;const t=new Date();t.setHours(0,0,0,0);const l=new Date(t);l.setFullYear(l.getFullYear()-1);return d.getFullYear()<+yr&&d>l&&d<=t};
+const m13U1=(h,yr)=>false;/* hired before the 13th Month year = 1 year or more by Dec 31: nothing to show */
 const m13U1Rem=(h,yr)=>'12 mos ( Jan.- Dec.)';
 const m13IsLate=(h,yr)=>{const d=new Date(h+'T00:00:00');return !isNaN(d)&&d>=new Date(+yr,9,1)&&d<=new Date(+yr,11,31)};
 function m13Months(h,yr){const st=new Date(h+'T00:00:00'),en=new Date(yr+1,0,1);let m=(en.getFullYear()-st.getFullYear())*12+en.getMonth()-st.getMonth();if(en.getDate()<st.getDate())m--;return Math.max(0,m)}
@@ -4681,7 +4697,7 @@ function m13Model(){
  (PH||[]).forEach(p=>{const rw=(p.data||{}).rows||{};Object.keys(rw).forEach(k=>{if(!ac[k]&&rw[k]&&rw[k].acct)ac[k]=String(rw[k].acct).trim()})});
  (E||[]).forEach(e=>{const n=tmN(e.name);if(n&&!byFull.has(n))byFull.set(n,e);const k=nk(e.name);if(!byKey.has(k))byKey.set(k,[]);byKey.get(k).push(e)});
  const emp=s=>{const f=byFull.get(tmN(s.name));if(f)return f;const L=byKey.get(nk(s.name))||[];return L.length===1?L[0]:(L.find(e=>nd(e.dept||'')===s.dept)||null)},
- T=()=>({p:0,a:0,v:0,n:0}),add=(t,r)=>{if(!r.has)return;t.p+=r.pay;t.a+=r.ar;t.v+=r.vl;t.n+=r.net},fin=t=>{for(const k in t)t[k]=r2(t[k]);return t},
+ T=()=>({p:0,a:0,v:0,n:0}),add=(t,r)=>{if(!r.has)return;t.p+=r.pay;t.a+=r.ar;t.v+=r.vl;t.n+=r.net},fin=t=>{for(const k in t){const n=Math.round(r2(t[k]));t[k]=n===0?0:n}return t},
  q=MQ.toLowerCase(),depts=[...new Set(SF.map(s=>s.dept))].sort(),
  mk=s=>{const g=(PCFG[s.dept]||{}).m==='g',rate=pn(s.rate),daily=g&&!pGpdDef(s)?rate/7:rate,e0=m13Ent(raw,s.id),has=e0.d!=null&&e0.d!=='',dys=has?pn(e0.d):0,ar=pn(e0.a),vl=pn(e0.v),e=emp(s),h=m13Hd(e,yr),hd=h?new Date(h+'T00:00:00'):null,
   isNew=!!hd&&!isNaN(hd)&&hd>=jan&&hd<=dec,u1=!isNew&&!!h&&m13U1(h,yr),mo=isNew?m13Months(h,yr):0,mi=e0.m!=null&&e0.m!==''?pn(e0.m):null,lv=!isNew&&mi!=null&&mi>0&&mi<12,pay=has?r2(isNew?daily*dys/12*mo:(lv?daily*dys/12*mi:daily*dys)):0,net=has?r2(pay-ar-vl):0;
@@ -4689,16 +4705,16 @@ function m13Model(){
    acct:ac[s.id]||String((pIdx(s)||[])[2]||''),
    rem:isNew?mo+' mos ( '+m13Rng(h,yr)+')':(lv?mi+' mos':(u1?m13U1Rem(h,yr):''))}};
  const G=T(),D=depts.map((d,di)=>({d,di})).filter(x=>MD==='all'||x.d===MD).map(({d,di})=>{
-  const all=SF.filter(s=>s.dept===d&&(!q||s.name.toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name)).map(mk),rows=all.filter(r=>!r.late),late=all.filter(r=>r.late),order=PGO[d]||[],gm=new Map();
-  rows.filter(r=>!r.isNew).forEach(r=>{const g=pGrp(r.s)||'';if(!gm.has(g))gm.set(g,[]);gm.get(g).push(r)});
+  const all=SF.filter(s=>s.dept===d&&(!q||s.name.toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name)).map(mk),rows=all.filter(r=>!r.late),late=all.filter(r=>r.late),order=gnBrDept(d)?gnBrAll():(PGO[d]||[]),gm=new Map();
+  rows.filter(r=>!r.isNew).forEach(r=>{const g=(gnBrDept(d)?(xbCls(r.s)||pGrp(r.s)):pGrp(r.s))||'';if(!gm.has(g))gm.set(g,[]);gm.get(g).push(r)});
   const ix=g=>g===''?-1:(order.indexOf(g)<0?999:order.indexOf(g)),secs=[...gm.keys()].sort((a,b)=>ix(a)-ix(b)||a.localeCompare(b)).map(k=>({title:k,rows:gm.get(k)}));
-  const nw=rows.filter(r=>r.isNew);if(nw.length)secs.push({title:'CONTRACTUAL / PROBATIONARY',rows:nw,nw:true});
+  const nw=rows.filter(r=>r.isNew).sort((a,b)=>(b.mo||0)-(a.mo||0)||String(a.s.name).localeCompare(String(b.s.name)));if(nw.length)secs.push({title:'CONTRACTUAL / PROBATIONARY',rows:nw,nw:true});
   const dt=T();secs.forEach((sc,si)=>{sc.si=si;sc.t=T();sc.rows.forEach(r=>{add(sc.t,r);add(dt,r);add(G,r)});fin(sc.t)});
   return{d,di,secs,t:fin(dt),n:rows.length,late}}).filter(x=>x.n||x.late.length);
  const fm_=D.find(x=>x.d==='FMVM'),sum=re=>fm_?r2(fm_.secs.filter(sc=>!sc.nw&&re.test(sc.title)).reduce((a,sc)=>a+sc.t.p,0)):0,
  con=fm_?r2(fm_.secs.filter(sc=>sc.nw).reduce((a,sc)=>a+sc.t.p,0)):0;
  const ent=fm_?(()=>{const vet=sum(/VET/i),trk=sum(/TRUCK/i),prod=r2(fm_.t.p-vet-trk);return{vet,prod,trk,bank1:vet,bank2:r2(prod+trk),bank:r2(vet+prod+trk)}})():null;
- if(M13NC)D.forEach(x=>{const by=(a,b)=>String(a.s.name).localeCompare(String(b.s.name)),reg=x.secs.filter(sc=>!sc.nw).flatMap(sc=>sc.rows).sort(by),nw=x.secs.filter(sc=>sc.nw).flatMap(sc=>sc.rows).sort(by);x.secs=[{title:'',rows:[...reg,...nw],si:0,t:x.t}]});
+ if(M13NC)D.forEach(x=>{const by=(a,b)=>String(a.s.name).localeCompare(String(b.s.name)),reg=x.secs.filter(sc=>!sc.nw).flatMap(sc=>sc.rows).sort(by),nw=x.secs.filter(sc=>sc.nw).flatMap(sc=>sc.rows).sort((a,b)=>(b.mo||0)-(a.mo||0)||by(a,b));x.secs=[{title:'',rows:[...reg,...nw],si:0,t:x.t}]});
  return{D,G:fin(G),cnt:D.reduce((a,x)=>a+x.n,0),withDays:D.reduce((a,x)=>a+x.secs.reduce((b,sc)=>b+sc.rows.filter(r=>r.has).length,0),0),ent}}
 let M13SORT={k:'y',d:-1};
 let M13NC=(()=>{try{return localStorage.getItem('hrd_m13nc')==='1'}catch(e){return false}})();
@@ -4776,14 +4792,14 @@ function m13HistH(){
   return `<div class="cx-card no-print m13h">${top}`+D.map(d=>{
    const L=R.filter(r=>r.d===d).sort((a,b)=>String(b.y).localeCompare(String(a.y)));
    return `<div class="m13hy"><div class="m13hy-h"><div><b class="m13hy-y">${esc(d)}</b><span class="m13hy-s">${L.length} saved year${L.length>1?'s':''}</span></div></div>
-   <div class="m13hy-b"><table class="cx-t" style="min-width:0"><thead><tr>${M13HMODE?'<th class="m13hc"></th>':''}<th>Year</th><th>Saved</th><th class="n">Employees</th><th class="n">With days</th><th class="n">13th Month Pay</th><th class="n">Net Pay</th><th></th></tr></thead><tbody>${L.map(r=>`<tr class="${M13HSEL.has(m13Hk(r.y,r.d))?'m13hsel':''}">${M13HMODE?`<td class="m13hc">${ck(r.y,r.d)}</td>`:''}<td><b>${esc(r.y)}</b></td><td>${esc(fd(r))}${r.rec.updated_by?'<small class="m13s">'+esc(r.rec.updated_by)+'</small>':''}${r.dirty?' <span class="cx-tag">Unsaved changes</span>':''}</td><td class="n">${r.n}</td><td class="n">${r.wd}/${r.n}</td><td class="n">${fm(r.p)}</td><td class="n">${fm(r.net)}</td><td class="n">${acts(r)}</td></tr>`).join('')}</tbody></table></div></div>`}).join('')+`</div>`}
+   <div class="m13hy-b"><table class="cx-t" style="min-width:0"><thead><tr>${M13HMODE?'<th class="m13hc"></th>':''}<th>Year</th><th>Saved</th><th class="n">Employees</th><th class="n">With days</th><th class="n">13th Month Pay</th><th class="n">Net Pay</th><th></th></tr></thead><tbody>${L.map(r=>`<tr class="${M13HSEL.has(m13Hk(r.y,r.d))?'m13hsel':''}">${M13HMODE?`<td class="m13hc">${ck(r.y,r.d)}</td>`:''}<td><b>${esc(r.y)}</b></td><td>${esc(fd(r))}${r.rec.updated_by?'<small class="m13s">'+esc(r.rec.updated_by)+'</small>':''}${r.dirty?' <span class="cx-tag">Unsaved changes</span>':''}</td><td class="n">${r.n}</td><td class="n">${r.wd}/${r.n}</td><td class="n">${fw(r.p)}</td><td class="n">${fw(r.net)}</td><td class="n">${acts(r)}</td></tr>`).join('')}</tbody></table></div></div>`}).join('')+`</div>`}
  const Y=[...new Set(R.map(r=>String(r.y)))].sort((a,b)=>a.localeCompare(b)*V.dir);
  return `<div class="cx-card no-print m13h">${top}`+Y.map(y=>{
   const L=R.filter(r=>String(r.y)===y).sort((a,b)=>String(a.d).localeCompare(String(b.d))),rec=L[0].rec,dirty=L.some(r=>r.dirty),
    P=r2(L.reduce((a,r)=>a+r.p,0)),N=r2(L.reduce((a,r)=>a+r.net,0)),E=L.reduce((a,r)=>a+r.n,0),W=L.reduce((a,r)=>a+r.wd,0),
    ns=L.filter(r=>M13HSEL.has(m13Hk(r.y,r.d))).length;
   return `<div class="m13hy"><div class="m13hy-h"><div>${M13HMODE?`<input type="checkbox" class="m13hck" title="Tick every department of ${esc(y)}" ${ns===L.length?'checked':''} data-y="${esc(y)}" onchange="m13HSelY(this.dataset.y,this.checked)">`:''}<b class="m13hy-y">${esc(y)}</b><span class="m13hy-s">Saved ${esc(fd(L[0]))}${rec.updated_by?' · '+esc(rec.updated_by):''}</span></div><div class="m13hy-a">${dirty?'<span class="cx-tag">Unsaved changes</span>':''}<button class="btn dlo sm" title="Delete the saved record of ${esc(y)} (all departments)" data-y="${esc(y)}" onclick="m13DelYear(this.dataset.y)">Delete year</button></div></div>
-  <div class="m13hy-b"><table class="cx-t" style="min-width:0"><thead><tr>${M13HMODE?'<th class="m13hc"></th>':''}<th>Department</th><th class="n">Employees</th><th class="n">With days</th><th class="n">13th Month Pay</th><th class="n">Net Pay</th><th></th></tr></thead><tbody>${L.map(r=>`<tr class="${M13HSEL.has(m13Hk(r.y,r.d))?'m13hsel':''}">${M13HMODE?`<td class="m13hc">${ck(r.y,r.d)}</td>`:''}<td><b>${esc(r.d)}</b></td><td class="n">${r.n}</td><td class="n">${r.wd}/${r.n}</td><td class="n">${fm(r.p)}</td><td class="n">${fm(r.net)}</td><td class="n">${acts(r)}</td></tr>`).join('')}</tbody><tfoot><tr>${M13HMODE?'<td></td>':''}<td>Total</td><td class="n">${E}</td><td class="n">${W}/${E}</td><td class="n">${fm(P)}</td><td class="n">${fm(N)}</td><td></td></tr></tfoot></table></div></div>`}).join('')+`</div>`}
+  <div class="m13hy-b"><table class="cx-t" style="min-width:0"><thead><tr>${M13HMODE?'<th class="m13hc"></th>':''}<th>Department</th><th class="n">Employees</th><th class="n">With days</th><th class="n">13th Month Pay</th><th class="n">Net Pay</th><th></th></tr></thead><tbody>${L.map(r=>`<tr class="${M13HSEL.has(m13Hk(r.y,r.d))?'m13hsel':''}">${M13HMODE?`<td class="m13hc">${ck(r.y,r.d)}</td>`:''}<td><b>${esc(r.d)}</b></td><td class="n">${r.n}</td><td class="n">${r.wd}/${r.n}</td><td class="n">${fw(r.p)}</td><td class="n">${fw(r.net)}</td><td class="n">${acts(r)}</td></tr>`).join('')}</tbody><tfoot><tr>${M13HMODE?'<td></td>':''}<td>Total</td><td class="n">${E}</td><td class="n">${W}/${E}</td><td class="n">${fw(P)}</td><td class="n">${fw(N)}</td><td></td></tr></tfoot></table></div></div>`}).join('')+`</div>`}
 function m13OpenDept(y,d,g){y=String(y);if(y!==String(MY)){if(!m13Leave())return;MY=y;m13Open(MY)}GD=(g&&M13S&&M13S.gen&&M13S.gen[d])?d:'';MD=d;MQ='';mDraw();scrollTo(0,0)}
 function mDraw(){if(PG!=='m13')return;return m13Keep(mDraw0)}
 function mDraw0(){gnSync(M13S);
@@ -4793,28 +4809,28 @@ function mDraw0(){gnSync(M13S);
  yrs=[...new Set([MY,String(new Date().getFullYear()),...PH.map(p=>String((p.data||{}).from||'').slice(0,4)).filter(y=>/^\d{4}$/.test(y)),...(M13H||[]).map(r=>String(r.year))])].sort().reverse(),
  op=(v,l,s)=>`<option value="${esc(v)}"${s?' selected':''}>${esc(l)}</option>`,
  inp=(k,id,v,w)=>`<input class="m13d" type="number" min="0" step="any" inputmode="decimal" style="width:${w}px" value="${v===''||v==null?'':esc(String(v))}" data-id="${id}" data-k="${k}" onchange="mSetD(this)" onkeydown="m13Key(event)">`,
- tr=r=>{const k=esc(String(r.s.id));return `<tr class="m13-r"><td class="m13-nm"><b>${esc(r.s.name)}</b>${r.s._add?' <span class="cx-tag">Added</span>':''}${r.e&&SEP.includes(r.e.emp_status)?` <span class="cx-tag">${esc(lb(r.e.emp_status))}</span>`:''}</td>
+ tr=r=>{const k=esc(String(r.s.id));return `<tr class="m13-r"><td class="m13-nm"><b>${esc(r.s.name)}</b>${r.s._add?' <span class="cx-tag no-print">Added</span>':''}${r.e&&SEP.includes(r.e.emp_status)?` <span class="cx-tag">${esc(lb(r.e.emp_status))}</span>`:''}</td>
  <td>${esc(r.pos)||'-'}</td><td>${r.acct?esc(r.acct):'-'}</td>
  <td class="n">${fm(r.rate)}${r.g?`<small class="m13s">weekly gross &divide; 7 = ${fm(r.daily)}/day</small>`:''}</td>
  <td class="n m13c">${inp('d',k,r.has?r.dys:'',78)}</td>
  <td class="n" id="m13p_${k}">${r.has?fm(r.pay):'-'}</td>
  <td class="n m13c">${r.isNew?'<b>'+r.mo+'</b>':inp('m',k,r.mi,64)}</td>
  <td class="n">${inp('a',k,r.iA,92)}</td><td class="n">${inp('v',k,r.iV,92)}</td>
- <td class="n" id="m13n_${k}">${r.has?'<b>'+fm(r.net)+'</b>':'-'}</td>
+ <td class="n" id="m13n_${k}">${r.has?'<b>'+fw(r.net)+'</b>':'-'}</td>
  <td id="m13r_${k}">${r.isNew?'<span class="cx-tag">New</span> ':''}${esc(r.rem)}</td><td style="white-space:nowrap">${esc(r.sd)}</td><td class="no-print n"><div class="m13-ra"><button class="btn o sm m13-rb x" title="Remove from this year's list" data-id="${k}" onclick="m13Rem(this.dataset.id)">Remove</button></div></td></tr>`},
- tot=(lbl,id,t,cls)=>`<tr class="${cls}"><td colspan="5"><span class="m13-stk">${lbl}</span></td><td class="n" id="${id}_p">${fm(t.p)}</td><td></td><td class="n" id="${id}_a">${fm(t.a)}</td><td class="n" id="${id}_v">${fm(t.v)}</td><td class="n" id="${id}_n">${fm(t.n)}</td><td></td><td></td><td class="no-print"></td></tr>`,
+ tot=(lbl,id,t,cls)=>`<tr class="${cls}"><td colspan="5"><span class="m13-stk">${lbl}</span></td><td class="n" id="${id}_p">${fw(t.p)}</td><td></td><td class="n" id="${id}_a">${fw(t.a)}</td><td class="n" id="${id}_v">${fw(t.v)}</td><td class="n" id="${id}_n">${fw(t.n)}</td><td></td><td></td><td class="no-print"></td></tr>`,
  body=M.D.map(x=>`<tr class="m13-dh"><td colspan="13"><span class="m13-stk">${esc(x.d)} <small>· 13th Month Pay ${esc(MY)} · ${x.n} employee${x.n>1?'s':''}</small></span></td></tr>`+
   x.secs.map(sc=>(sc.title?`<tr class="m13-sec"><td colspan="13"><span class="m13-stk">${esc(sc.title)}${sc.nw?` <small>· hired in ${esc(MY)}: Rate × Days ÷ 12 × months worked</small>`:''}</span></td></tr>`:'')+sc.rows.map(tr).join('')+tot(M13NC?'Total · '+esc(x.d):'Subtotal'+(sc.title?' · '+esc(sc.title):''),'m13S_'+x.di+'_'+sc.si,sc.t,'m13-sub')).join('')+
   (x.secs.length>1?tot('Total · '+esc(x.d),'m13D_'+x.di,x.t,'m13-sub m13-dt'):'')).join(''),
  lateH=m13LateH(M.D.flatMap(x=>x.late.map(r=>({name:r.s.name,dept:x.d,hired:r.h})))),
- ER=(d,id,v)=>`<tr><td style="min-width:130px">${d}</td><td>13th month</td><td class="n" id="${id}">${fm(v)}</td><td></td></tr>`,
+ ER=(d,id,v)=>`<tr><td style="min-width:130px">${d}</td><td>13th month</td><td class="n" id="${id}">${fw(v)}</td><td></td></tr>`,
  EK=(id,v)=>`<tr><td></td><td class="n" style="text-align:right">Bank</td><td></td><td class="n" id="${id}">${fm(v)}</td></tr>`,
  EH='<thead><tr><th>Department</th><th>Account</th><th class="n">Debit</th><th class="n">Credit</th></tr></thead>',
- entX=M.D.filter(x=>x.d!=='FMVM').map(x=>`<div class="cx-card m13-ent" style="margin-top:14px"><h3 style="margin:0 0 8px">Entries \u00B7 ${esc(x.d)}</h3><table class="cx-t" style="min-width:0">${EH}<tbody>${ER(esc(x.d),'m13X_'+x.di+'_d',x.t.p)}${EK('m13X_'+x.di+'_c',x.t.p)}</tbody><tfoot><tr><td colspan="3">Total Bank</td><td class="n" id="m13X_${x.di}_t">${fm(x.t.p)}</td></tr></tfoot></table></div>`).join(''),
- en=M.ent,entH=en?`<div class="cx-card m13-ent" style="margin-top:14px"><h3 style="margin:0 0 8px">Entries \u00B7 FMVM</h3><table class="cx-t" style="min-width:0">${EH}<tbody>${ER('VetMed','m13E_vet',en.vet)}${EK('m13E_b1',en.bank1)}${ER('Feedmill','m13E_fm',en.bank2)}${EK('m13E_b2',en.bank2)}</tbody><tfoot><tr><td colspan="3">Total Bank</td><td class="n" id="m13E_bank">${fm(en.bank)}</td></tr></tfoot></table></div>`:'';
+ entX=M.D.filter(x=>x.d!=='FMVM').map(x=>`<div class="cx-card m13-ent" style="margin-top:14px"><h3 style="margin:0 0 8px">Entries \u00B7 ${esc(x.d)}</h3><table class="cx-t" style="min-width:0">${EH}<tbody>${ER(esc(x.d),'m13X_'+x.di+'_d',x.t.p)}${EK('m13X_'+x.di+'_c',x.t.p)}</tbody><tfoot><tr><td colspan="3">Total Bank</td><td class="n" id="m13X_${x.di}_t">${fw(x.t.p)}</td></tr></tfoot></table></div>`).join(''),
+ en=M.ent,entH=en?`<div class="cx-card m13-ent" style="margin-top:14px"><h3 style="margin:0 0 8px">Entries \u00B7 FMVM</h3><table class="cx-t" style="min-width:0">${EH}<tbody>${ER('VetMed','m13E_vet',en.vet)}${EK('m13E_b1',en.bank1)}${ER('Feedmill','m13E_fm',en.bank2)}${EK('m13E_b2',en.bank2)}</tbody><tfoot><tr><td colspan="3">Total Bank</td><td class="n" id="m13E_bank">${fw(en.bank)}</td></tr></tfoot></table></div>`:'';
  if(MD===''){$('main').innerHTML=`<section class="cx-wrap m13w">${M13OK===false?m13SqlH():''}<div class="cx-head"><div><h1>13th Month Pay ${esc(MY)}</h1><p class="sub">Press Generate to make a department form.</p></div></div>
  ${S.dirty?'<p class="cx-note no-print" style="margin:0 0 12px"><b>You have unsaved changes for '+esc(MY)+'</b> \u2014 open the form, then press Save.</p>':''}<div class="cx-card no-print"><div class="cx-bar"><button class="btn" onclick="gnOpen()">\u26A1 Generate</button><span class="m13s" style="max-width:520px">Generate the 13th Month Pay form of a department. Saved records appear below once you press Save.</span></div></div>${m13HistH()}${gnList()}${m13Extra(1,1)}</section>`;m13Badge();return}
- $('main').innerHTML=`<section class="cx-wrap m13w">${M13OK===false?m13SqlH():''}<div class="m13-ph"><img src="${LOGO}" alt=""><div><b>RAYANTON FARMS &amp; LIVESTOCK CORP.</b><span>14 Virgo St., Sierra Vista Sub., Cupang, Antipolo City</span><i>13TH MONTH PAY ${esc(MY)} \u00B7 ${MD==='all'?'ALL DEPARTMENTS':esc(String(MD).toUpperCase())}</i></div></div><div class="cx-head"><div><button class="btn o sm no-print" style="margin:0 0 10px" onclick="m13Back()">← Back</button><h1>13th Month Pay ${esc(MY)}</h1><p class="sub">13th Month Pay = Rate × No. of Days. Net Pay = 13th Month Pay − A/R − Vale.</p></div><div class="cx-sum"><span><b id="m13Sp">${fm(M.G.p)}</b>13th Month Pay</span><span><b id="m13Sn">${fm(M.G.n)}</b>Net Pay</span><span><b id="m13Sc">${M.withDays}/${M.cnt}</b>With days</span></div></div>
+ $('main').innerHTML=`<section class="cx-wrap m13w">${M13OK===false?m13SqlH():''}<div class="m13-ph"><img src="${LOGO}" alt=""><div><b>RAYANTON FARMS &amp; LIVESTOCK CORP.</b><span>14 Virgo St., Sierra Vista Sub., Cupang, Antipolo City</span><i>13TH MONTH PAY ${esc(MY)} \u00B7 ${MD==='all'?'ALL DEPARTMENTS':esc(String(MD).toUpperCase())}</i></div></div><div class="cx-head"><div><button class="btn o sm no-print" style="margin:0 0 10px" onclick="m13Back()">← Back</button><h1>13th Month Pay ${esc(MY)}</h1><p class="sub">13th Month Pay = Rate × No. of Days. Net Pay = 13th Month Pay − A/R − Vale.</p></div><div class="cx-sum"><span><b id="m13Sp">${fw(M.G.p)}</b>13th Month Pay</span><span><b id="m13Sn">${fw(M.G.n)}</b>Net Pay</span><span><b id="m13Sc">${M.withDays}/${M.cnt}</b>With days</span></div></div>
  <div class="cx-card"><div class="cx-bar">
   <div><label for="my">Year</label><select id="my" onchange="m13Pick(this.value)">${yrs.map(y=>op(y,y+((M13H||[]).some(r=>String(r.year)===y)?' · saved':''),y===MY)).join('')}</select></div>
   <div><label for="md">Department</label><select id="md" onchange="MD=this.value;mDraw()">${op('all','All departments',MD==='all')}${depts.map(d=>op(d,d,MD===d)).join('')}</select></div>
@@ -4828,16 +4844,16 @@ ${MD==='all'?`<div class="cx-bar no-print" style="border-top:1px solid var(--ln)
   <div><label for="a13d">Department</label><input id="a13d" list="a13dl" placeholder="Department" value="${esc(MD)}"><datalist id="a13dl">${depts.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></div>
   <div><label for="a13r">Rate (₱)</label><input id="a13r" type="number" min="0" step="any" inputmode="decimal" style="width:120px" placeholder="0.00"></div>
   <button class="btn" onclick="m13Add()">Add</button><span class="m13s" style="max-width:340px">Add or remove people for this year's 13th month only. Payroll and 201 Files are not changed.</span></div>`}
- <div class="cx-tw">${M.D.length?`<table class="cx-t"><thead><tr><th>Employee</th><th>Position</th><th>Account</th><th class="n">Rate</th><th class="n m13c">No. of Days</th><th class="n">13th Month Pay</th><th class="n m13c" title="Months actually worked in the year. Blank = full 12 months.">Mos. Worked</th><th class="n">A/R</th><th class="n">Vale</th><th class="n">Net Pay</th><th>Remarks</th><th>Start Date</th><th class="no-print"></th></tr></thead><tbody>${body}</tbody><tfoot><tr><td colspan="5"><span class="m13-stk">Grand total</span></td><td class="n" id="m13G_p">${fm(M.G.p)}</td><td></td><td class="n" id="m13G_a">${fm(M.G.a)}</td><td class="n" id="m13G_v">${fm(M.G.v)}</td><td class="n" id="m13G_n">${fm(M.G.n)}</td><td></td><td></td><td class="no-print"></td></tr></tfoot></table>`:`<div class="cx-em">No employees found. Check the department and search, or add employees in Payroll first.</div>`}</div>${lateH}
+ <div class="cx-tw">${M.D.length?`<table class="cx-t"><thead><tr><th>Employee</th><th>Position</th><th>Account</th><th class="n">Rate</th><th class="n m13c">No. of Days</th><th class="n">13th Month Pay</th><th class="n m13c" title="Months actually worked in the year. Blank = full 12 months.">Mos. Worked</th><th class="n">A/R</th><th class="n">Vale</th><th class="n">Net Pay</th><th>Remarks</th><th>Start Date</th><th class="no-print"></th></tr></thead><tbody>${body}</tbody><tfoot><tr><td colspan="5"><span class="m13-stk">Grand total</span></td><td class="n" id="m13G_p">${fw(M.G.p)}</td><td></td><td class="n" id="m13G_a">${fm(M.G.a)}</td><td class="n" id="m13G_v">${fm(M.G.v)}</td><td class="n" id="m13G_n">${fw(M.G.n)}</td><td></td><td></td><td class="no-print"></td></tr></tfoot></table>`:`<div class="cx-em">No employees found. Check the department and search, or add employees in Payroll first.</div>`}</div>${lateH}
  <p class="cx-note">No. of Days, A/R and Vale start blank. Type the days (26 days = one month of pay) and the 13th Month Pay and Net Pay appear; press Enter to go to the next row. Employees hired in ${esc(MY)} are listed under CONTRACTUAL / PROBATIONARY and get Rate × Days ÷ 12 × the full months from the date hired until Dec 31. <b>Mos. Worked</b> (after 13th Month Pay): for a regular employee who did not complete 12 months because of long SL / leave, type the months actually worked and the 13th Month Pay becomes Rate × Days ÷ 12 × months worked; leave it blank for a full year. Hired-in-year employees show their months automatically, with the Start Date at the right. Employees hired from October onward are not included; they are only noted at the bottom with their date hired / start. Departments paid by fixed gross use weekly gross ÷ 7 as the daily rate. Press <b>Save</b> to keep this year in History (one saved record per year); until then your work is only a draft in this browser. Position and date hired come from 201 Files; the account number from the latest saved payroll.</p></div>${entH}${entX}${m13SigH()}${m13Extra(0,1)}</section>`;m13Badge()}
 function mSetD(el){const id=el.dataset.id,k=el.dataset.k,v=el.value.trim(),o=m13Days(),cur=m13Ent(o,id),e={...cur};
  if(v===''||!(+v>=0)){delete e[k];if(v!==''){el.value='';toast('Enter a number (0 or more).')}}else if(k==='m'&&+v>12){delete e[k];el.value='';toast('Months worked cannot be more than 12.')}else e[k]=r2(v);
  if(Object.keys(e).length)o[id]=e;else delete o[id];
  m13Mark();m13Paint()}
-function m13Paint(){const M=m13Model(),set=(i,t)=>{const e=$(i);if(e)e.innerHTML=t},T4=(p,t)=>{set(p+'_p',fm(t.p));set(p+'_a',fm(t.a));set(p+'_v',fm(t.v));set(p+'_n',fm(t.n))};
- M.D.forEach(x=>{x.secs.forEach(sc=>{sc.rows.forEach(r=>{const k=String(r.s.id);set('m13p_'+k,r.has?fm(r.pay):'-');set('m13n_'+k,r.has?'<b>'+fm(r.net)+'</b>':'-');set('m13r_'+k,(r.isNew?'<span class="cx-tag">New</span> ':'')+esc(r.rem))});T4('m13S_'+x.di+'_'+sc.si,sc.t)});T4('m13D_'+x.di,x.t)});
- T4('m13G',M.G);set('m13Sp',fm(M.G.p));set('m13Sn',fm(M.G.n));set('m13Sc',M.withDays+'/'+M.cnt);
- if(M.ent){const n=M.ent;set('m13E_vet',fm(n.vet));set('m13E_b1',fm(n.bank1));set('m13E_fm',fm(n.bank2));set('m13E_b2',fm(n.bank2));set('m13E_bank',fm(n.bank))}M.D.forEach(x=>{if(x.d==='FMVM')return;['d','c','t'].forEach(k=>set('m13X_'+x.di+'_'+k,fm(x.t.p)))})}
+function m13Paint(){const M=m13Model(),set=(i,t)=>{const e=$(i);if(e)e.innerHTML=t},T4=(p,t)=>{set(p+'_p',fw(t.p));set(p+'_a',fw(t.a));set(p+'_v',fw(t.v));set(p+'_n',fw(t.n))};
+ M.D.forEach(x=>{x.secs.forEach(sc=>{sc.rows.forEach(r=>{const k=String(r.s.id);set('m13p_'+k,r.has?fm(r.pay):'-');set('m13n_'+k,r.has?'<b>'+fw(r.net)+'</b>':'-');set('m13r_'+k,(r.isNew?'<span class="cx-tag">New</span> ':'')+esc(r.rem))});T4('m13S_'+x.di+'_'+sc.si,sc.t)});T4('m13D_'+x.di,x.t)});
+ T4('m13G',M.G);set('m13Sp',fw(M.G.p));set('m13Sn',fw(M.G.n));set('m13Sc',M.withDays+'/'+M.cnt);
+ if(M.ent){const n=M.ent;set('m13E_vet',fw(n.vet));set('m13E_b1',fw(n.bank1));set('m13E_fm',fw(n.bank2));set('m13E_b2',fw(n.bank2));set('m13E_bank',fw(n.bank))}M.D.forEach(x=>{if(x.d==='FMVM')return;['d','c','t'].forEach(k=>set('m13X_'+x.di+'_'+k,fw(x.t.p)))})}
 function m13Key(e){if(e.key!=='Enter')return;e.preventDefault();const k=e.target.dataset.k,L=[...document.querySelectorAll('.m13d[data-k="'+k+'"]')],i=L.indexOf(e.target);if(L[i+1]){L[i+1].focus();L[i+1].select()}else e.target.blur()}
 const m13Rows=()=>{const M=m13Model(),L=[];M.D.forEach(x=>x.secs.forEach(sc=>sc.rows.forEach(r=>L.push(r))));return L};
 function m13Apply(blankOnly){const v=$('m13df').value.trim();if(v===''||!(+v>=0))return toast('Type the No. of Days first (0 or more).');
@@ -4885,21 +4901,31 @@ function m13Extra(noRm,noHist){const S=M13S,rm=noRm?[]:(STF||[]).filter(s=>(S.re
 let GD='';
 const gnAll=()=>{if(!M13S)return{};return M13S.gen=M13S.gen||{}};
 const gnYr=()=>+((M13S&&M13S.year)||MY),gnMo=r=>r.hd?m13Months(r.hd,gnYr()):null;
-const GCP='CONTRACTUAL / PROBATIONARY',GST=[['reg','Regular'],['con','Contractual'],['pro','Probationary'],['ext','Extra Regular'],['no','No 13th MP']],gnStat=r=>r.st||(r.hd?'pro':'reg');
+/* v621: Breeder / Extra Breeder 13th Month: the Class is the class used in the Breeder payroll (50TANJM3, 52TANJM1, HATCHERY ...), not the farm group (Paper Clip / John Myr / Tanay) */
+const gnBrDept=d=>/breeder/i.test(String(d||'')),gnBrAll=()=>[...new Set([...XBS,...XBL,...XBR,...XBX])];
+function gnGrpOf(r,x){let g=r.grp;const pg=x?(pGrp(x)||''):'',br=!!x&&gnBrDept(x.dept);if(g==null||g===GCP||(br&&g===pg))g=x?(br?(xbCls(x)||pg):pg):'';return String(g==null?'':g)}
+const GCP='CONTRACTUAL / PROBATIONARY',GST=[['reg','Regular'],['con','Contractual'],['pro','Probationary'],['ext','Extra Regular'],['no','No 13th MP']],gnStat=r=>{const t=r.st||(r.hd?'pro':'reg');return t==='pro'&&gnRegNow(r)?'reg':t};
+/* v620: the status follows the 201 File right away: an employee with a regularization date (or already Regular) is never shown as Probationary ("P"), even in a form saved earlier. */
+let _gnRC=null,_gnRL=-1,_gnRA=null;
+function gnRegNow(r){try{const A=(Array.isArray(EALL)&&EALL.length?EALL:E)||[],k=A.length+'|'+(typeof MY!=='undefined'?MY:'');if(!_gnRC||_gnRL!==k||_gnRA!==A){_gnRA=A;_gnRC={id:new Map(A.map(e=>[String(e.id),e])),nm:new Map()};A.forEach(e=>{const n=tmN(e.name);if(n&&!_gnRC.nm.has(n))_gnRC.nm.set(n,e)});_gnRL=k}
+ const e=(r.eid!=null?_gnRC.id.get(String(r.eid)):null)||_gnRC.nm.get(tmN(r.name));return !!e&&m13Reg(e)}catch(x){return false}}
+
 /* Comment column = the employee's status (Probationary, Contractual, No 13th MP). Regular stays blank. A comment typed by the user (r.cmx) wins; clearing it goes back to the status. */
 const gnCmAuto=r=>{const t=gnStat(r);return t==='reg'?'':((GST.find(x=>x[0]===t)||[])[1]||'')},gnCm=r=>(r.cmx&&r.cm)?r.cm:gnCmAuto(r);
-const gnFx=r=>r.fx!=null,gnCalc=(r,f)=>{const fx=gnFx(r),has=gnStat(r)!=='no'&&(fx?r.fx!=='':(r.days!==''&&r.days!=null)),mi=(r.mi===''||r.mi==null)?null:pn(r.mi),k=(mi!=null&&mi>0&&mi<=12)?mi/12:(r.hd&&gnStat(r)!=='reg'?gnMo(r)/12:1),pay=has?(fx?r2(pn(r.fx)):r2((()=>{const g=gnGross(r,f);return g?g.d/7*pn(r.days):pn(r.rate)*pn(r.days)})()*k)):0,dd=r2(Object.values(r.d||{}).reduce((a,x)=>a+pn(x),0));return{has,pay,dd,net:has?r2(pay-pn(r.ar)-pn(r.v)-dd):0}};
-function gnGroups(f,raw){const sid=new Map((STF||[]).map(x=>[String(x.id),x])),order=PGO[f.dept]||[],gm=new Map(),SG={con:[],pro:[],ext:[],no:[]};
+const gnFx=r=>r.fx!=null,gnCalc=(r,f)=>{const fx=gnFx(r),has=gnStat(r)!=='no'&&(fx?r.fx!=='':(r.days!==''&&r.days!=null)),mi=(r.mi===''||r.mi==null)?null:pn(r.mi),k=(mi!=null&&mi>0&&mi<=12)?mi/12:(r.hd&&gnStat(r)!=='reg'?gnMo(r)/12:1),pay=has?(fx?r2(pn(r.fx)):r2((()=>{const g=gnGross(r,f);return g?g.d/gnDv(r)*pn(r.days):pn(r.rate)*pn(r.days)})()*k)):0,dd=r2(Object.values(r.d||{}).reduce((a,x)=>a+pn(x),0));return{has,pay,dd,net:has?r2(pay-pn(r.ar)-pn(r.v)-dd):0}};
+function gnGroups(f,raw){const sid=new Map((STF||[]).map(x=>[String(x.id),x])),order=gnBrDept(f.dept)?gnBrAll():(PGO[f.dept]||[]),gm=new Map(),SG={con:[],pro:[],ext:[],no:[]},NW=[],mb=(a,b)=>(gnMo(b)||0)-(gnMo(a)||0)||String(a.name).localeCompare(String(b.name));/* v618: under 1 year (has months) = at the bottom, most months first */
  f.rows.forEach(r=>{const s=gnStat(r);if(s!=='reg'){(SG[s]||SG.pro).push(r);return}
-  let g=r.grp;if(g==null||g===GCP){const x=sid.get(String(r.id));g=x?(pGrp(x)||''):''}if(!gm.has(g))gm.set(g,[]);gm.get(g).push(r)});
+  if(r.hd){NW.push(r);return}
+  const g=gnGrpOf(r,sid.get(String(r.id)));if(!gm.has(g))gm.set(g,[]);gm.get(g).push(r)});
  const ix=g=>g===''?-1:(order.indexOf(g)<0?999:order.indexOf(g)),
   out=[...gm.keys()].sort((a,b)=>ix(a)-ix(b)||a.localeCompare(b)).map((k,i)=>({si:i,title:k,rows:gm.get(k).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))}));
- [['con','Contractual'],['pro','Probationary'],['ext','Extra Regular'],['no','No 13th MP']].forEach(([k,t])=>{if(SG[k].length)out.push({si:out.length,title:t,st:k,rows:SG[k].slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))})});
- if(M13NC&&!raw){const rk={reg:0,con:1,pro:2,ext:3,no:4};return[{si:0,title:'',rows:f.rows.slice().sort((a,b)=>(rk[gnStat(a)]??0)-(rk[gnStat(b)]??0)||String(a.name).localeCompare(String(b.name)))}]}
+ if(NW.length)out.push({si:out.length,title:'Less than 1 year',rows:NW.slice().sort(mb)});
+ [['con','Contractual'],['pro','Probationary'],['ext','Extra Regular'],['no','No 13th MP']].forEach(([k,t])=>{if(SG[k].length)out.push({si:out.length,title:t,st:k,rows:SG[k].slice().sort(mb)})});
+ if(M13NC&&!raw){const rk={reg:0,con:1,pro:2,ext:3,no:4};return[{si:0,title:'',rows:f.rows.slice().sort((a,b)=>((rk[gnStat(a)]??0)+(gnStat(a)==='reg'&&a.hd?.5:0))-((rk[gnStat(b)]??0)+(gnStat(b)==='reg'&&b.hd?.5:0))||mb(a,b))}]}
  return out}
 function gnTot(f){const R_=f.rows.filter(r=>gnStat(r)!=='no'),t={n:R_.length,pay:0,ar:0,v:0,net:0,d:{}};f.dc.forEach(c=>t.d[c.id]=0);
  R_.forEach(r=>{const c=gnCalc(r,f);t.pay+=c.pay;t.ar+=pn(r.ar);t.v+=pn(r.v);t.net+=c.net;f.dc.forEach(k=>t.d[k.id]+=pn((r.d||{})[k.id]))});
- t.pay=r2(t.pay);t.ar=r2(t.ar);t.v=r2(t.v);t.net=r2(t.net);f.dc.forEach(c=>t.d[c.id]=r2(t.d[c.id]));return t}
+ /* totals and subtotals are rounded off to the nearest peso (row amounts keep their centavos) */const R0=x=>{const n=Math.round(r2(x));return n===0?0:n};t.pay=R0(t.pay);t.ar=R0(t.ar);t.v=R0(t.v);t.net=R0(t.net);f.dc.forEach(c=>t.d[c.id]=R0(t.d[c.id]));return t}
 const gnHasDays=()=>Object.values((M13S&&M13S.gen)||{}).some(f=>f.rows.some(r=>r.days!==''&&r.days!=null));
 function gnOpen(){
  if(!M13S||STF==null||PH==null)return toast('Payroll data is still loading. Please try again.');
@@ -4934,8 +4960,8 @@ function gnBuild(dp,bs,dy,runId,un){
   const cur=pn(s.rate);let old=0;for(const p of runs){const v=p.data.rates&&p.data.rates[s.id];if(v!=null&&pn(v)&&pn(v)!==cur){old=pn(v);break}}
   const q=pAtmQ(s),r=rw[s.id]||{},ac=String(q&&q[0]?q[0]:(r.acct!=null?r.acct:((pAtmF(s)||[])[0]||pIdx(s)[2]||''))).trim(),
    rm=q?[q[1]?'ATM: '+q[1]:'',q[2]||''].filter(Boolean).join(' · '):'',lt=dly(s,cur),od=old?dly(s,old):0;
-  let hs='';if(e&&!hd){const h1=m13Hd(e,MY),d1=new Date(h1+'T00:00:00'),lim=new Date();lim.setFullYear(lim.getFullYear()-1);if(h1&&!isNaN(d1)&&d1>lim)hs=h1}
-  rows.push({id:String(s.id),grp:pGrp(s)||'',st:nl?'no':(hd&&!m13Reg(e)?'pro':'reg'),nl:nl,hs:hs,name:s.name,acct:ac,latest:lt,old:od,rate:bs==='old'&&od&&String(dp).toUpperCase()!=='RENTAL'?od:lt,days:(un==='w'&&dy!=='')?r2(dy*(g&&!pdy(s)?7:6)):dy,pdd:pdy(s)?1:0,...((un==='w'&&dy!=='')?{u:'w',wk:dy}:{}),ar:'',v:'',d:{},hd:hd,mi:'',rem:hd&&!nl?m13Months(hd,+MY)+' mos ( '+m13Rng(hd,+MY)+')':(hs?m13U1Rem(hs,+MY):''),cm:''});if(String(dp).toUpperCase()==='RENTAL'&&/TUSING/i.test(s.name)&&/JULIET/i.test(s.name))rows[rows.length-1].fx=''});
+  let hs='';if(e&&!hd){const h1=m13Hd(e,MY),d1=new Date(h1+'T00:00:00'),lim=new Date();lim.setFullYear(lim.getFullYear()-1);}
+  rows.push({id:String(s.id),grp:pGrp(s)||'',st:nl?'no':(hd&&!m13Reg(e)?'pro':'reg'),nl:nl,hs:hs,name:s.name,acct:ac,latest:lt,old:od,rate:bs==='old'&&od&&String(dp).toUpperCase()!=='RENTAL'?od:lt,days:(un==='w'&&dy!=='')?r2(dy*(g&&!pdy(s)?7:6)):dy,pdd:pdy(s)?1:0,...((un==='w'&&dy!=='')?{u:'w',wk:dy}:{}),ar:'',v:'',d:{},hd:hd,mi:hd&&!nl?m13Months(hd,+MY):(hs?12:''),rem:hd&&!nl?m13Months(hd,+MY)+' mos ( '+m13Rng(hd,+MY)+')':(hs?m13U1Rem(hs,+MY):''),cm:''});if(String(dp).toUpperCase()==='RENTAL'&&/TUSING/i.test(s.name)&&/JULIET/i.test(s.name))rows[rows.length-1].fx=''});
  if(!rows.length)return{err:'No active employees found in the latest payroll of '+dp+'.'};
  const got=new Set(rows.map(x=>x.id)),miss=[];
  (STF||[]).filter(s=>s.dept===dp&&!got.has(String(s.id))).forEach(s=>{const e=emp(s),h=e&&m13Hd(e,MY),lt=!!h&&m13IsLate(h,MY),sep=!!e&&(SEP.includes(e.emp_status)||sepLike(e)),inRw=Object.prototype.hasOwnProperty.call(rw,s.id);
@@ -4959,7 +4985,7 @@ function gnDelForm(d){if(!confirm('Delete the generated 13th Month form of '+d+'
 const gnNm=n=>{n=String(n||'').trim();const i=n.indexOf(',');let t=n;if(i>=0){const sn=n.slice(0,i).trim(),gv=n.slice(i+1).trim().split(/\s+/).filter(Boolean);if(gv.length>1)gv.pop();t=gv.join(' ')+' '+sn}return t.toLowerCase().replace(/(^|[\s\-.'])([a-z\u00f1])/g,(m,x,y)=>x+y.toUpperCase()).replace(/\s+/g,' ').trim()};
 const gnEF=v=>Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),gnEO=(f,k)=>(f.ent&&f.ent[k])||{},gnHas=v=>v!=null&&v!=='';
 const gnEntLn=(rows,f,i)=>{const o=[];rows.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name))).forEach(r=>{if(gnStat(r)==='no')return;const c=gnCalc(r,f);if(!c.has)return;const n=gnNm(r.name),add=(t,l,a)=>{a=r2(pn(a));if(a)o.push({k:'c'+i+'|'+r.id+'|'+t,l:'Salaries ('+l+' of '+n+')',a:a})};add('ar','A/R',r.ar);add('v','Vale',r.v);f.dc.forEach(k=>add('d'+k.id,k.l,(r.d||{})[k.id]))});return o};
-function gnEntM(f){const O=k=>gnEO(f,k),mk=(d,rs,i)=>{const T=gnTot({rows:rs,dc:f.dc}),od=O('d'+i),ob=O('b'+i),
+function gnEntM(f){const O=k=>gnEO(f,k),mk=(d,rs,i)=>{const T=gnTot({rows:rs,dc:f.dc,dept:f.dept}),od=O('d'+i),ob=O('b'+i),
   cr=gnEntLn(rs,f,i).map(z=>{const o=O(z.k);return{k:z.k,l:gnHas(o.l)?o.l:z.l,a:gnHas(o.a)?o.a:z.a,rm:o.rm||'',ov:gnHas(o.l)||gnHas(o.a)}});
   return{i:i,kd:'d'+i,kb:'b'+i,d:gnHas(od.dn)?od.dn:d,lb:gnHas(od.l)?od.l:'13th month',deb:gnHas(od.a)?od.a:T.pay,rd:od.rm||'',ovd:gnHas(od.dn)||gnHas(od.l)||gnHas(od.a),cr:cr,bl:gnHas(ob.l)?ob.l:'Bank',bank:gnHas(ob.a)?ob.a:T.net,rb:ob.rm||'',ovb:gnHas(ob.l)||gnHas(ob.a)}};let ents;
  if(f.dept==='FMVM'){const G=gnGroups(f,1),vet=G.filter(g=>/VET/i.test(g.title||'')).flatMap(g=>g.rows),vs=new Set(vet.map(r=>r.id));ents=[mk('VetMed',vet,0),mk('Feedmill',f.rows.filter(r=>!vs.has(r.id)),1)]}
@@ -4969,7 +4995,7 @@ const gnEI=(k,fl,v,cls,shown,ov)=>`<input class="m13e${cls?' '+cls:''}${ov?' ov'
 const gnEntBody=e=>e.ents.map(x=>`<tr><td style="min-width:130px">${gnEI(x.kd,'dn',x.d,'',null,x.ovd)}</td><td>${gnEI(x.kd,'l',x.lb,'',null,x.ovd)}</td><td class="n">${gnEI(x.kd,'a',gnEF(x.deb),'r',fm(x.deb),x.ovd)}</td><td></td><td>${gnEI(x.kd,'rm',x.rd)}</td></tr>`+x.cr.map(z=>`<tr><td></td><td>${gnEI(z.k,'l',z.l,'',null,z.ov)}</td><td></td><td class="n">${gnEI(z.k,'a',gnEF(z.a),'r',fm(z.a),z.ov)}</td><td>${gnEI(z.k,'rm',z.rm)}</td></tr>`).join('')+`<tr><td></td><td>${gnEI(x.kb,'l',x.bl,'bk',null,x.ovb)}</td><td></td><td class="n">${gnEI(x.kb,'a',gnEF(x.bank),'r bk',fm(x.bank),x.ovb)}</td><td>${gnEI(x.kb,'rm',x.rb)}</td></tr>`).join('');
 function gnEntH(f){const e=gnEntM(f);
  return `<div class="cx-card m13-ent" style="margin-top:14px"><h3 style="margin:0 0 8px">Entries \u00B7 ${esc(f.dept)}</h3><table class="cx-t" style="min-width:0"><thead><tr><th>Department</th><th>Account</th><th class="n">Debit</th><th class="n">Credit</th><th>Remarks</th></tr></thead><tbody id="gnE_tb">${gnEntBody(e)}</tbody>${e.ents.length>1?`<tfoot><tr><td colspan="3">Total Bank</td><td class="n" id="gnE_bankc">${fm(e.bank)}</td><td></td></tr></tfoot>`:''}</table><div class="no-print" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px"><span id="gnE_chk" class="m13s" style="max-width:none"></span><button class="btn o sm" onclick="gnEntReset()" title="Remove your edits and go back to the automatic entries">Reset entries</button><span class="m13s" style="max-width:none">You can edit the names, amounts and remarks right in the table.</span></div></div>`}
-function gnEntFoot(e){const b=$('gnE_bankc');if(b)b.innerHTML=fm(e.bank);const c=$('gnE_chk');if(c)c.innerHTML=Math.abs(e.diff)>=.01?'<b style="color:#c00">Entries do not balance: Debit \u2212 Credit = '+fm(e.diff)+'</b>':''}
+function gnEntFoot(e){try{gnClsSumChk()}catch(x){}const b=$('gnE_bankc');if(b)b.innerHTML=fm(e.bank);const c=$('gnE_chk');if(c)c.innerHTML=Math.abs(e.diff)>=.01?'<b style="color:#c00">Entries do not balance: Debit \u2212 Credit = '+fm(e.diff)+'</b>':''}
 function gnEntPaint(f,set){const e=gnEntM(f),tb=$('gnE_tb');if(tb)tb.innerHTML=gnEntBody(e);gnEntFoot(e)}
 function gnEntSet(el){const f=((M13S||{}).gen||{})[GD];if(!f)return;const k=el.dataset.k,fl=el.dataset.f,t=el.value.trim();f.ent=f.ent||{};const o=f.ent[k]=f.ent[k]||{};let redo=false;
  if(fl==='a'){if(t===''){delete o.a;redo=true}else{const n=+t.replace(/[\u20B1,\s]/g,'');if(!(n>=0)){toast('Enter a number (0 or more).');if(!Object.keys(o).length)delete f.ent[k];return gnEntPaint(f)}o.a=r2(n);el.value=gnEF(o.a);const sp=el.nextElementSibling;if(sp)sp.textContent=fm(o.a)}}
@@ -4995,7 +5021,7 @@ function m13SlipList(f){const o=[];gnGroups(f,1).forEach(g=>g.rows.forEach(r=>{i
 function m13SlipM(f,x){const {r,c}=x,v={pay:c.pay,net:c.net,k0:pn(r.ar),k1:pn(r.v)},L={k0:'A/R',k1:'Vale'},lss=['k0','k1'];
  f.dc.forEach(k=>{const a=pn((r.d||{})[k.id]);if(a){v['d'+k.id]=a;L['d'+k.id]=k.l;lss.push('d'+k.id)}});
  const mo=(r.mi!==''&&r.mi!=null&&pn(r.mi)>0&&pn(r.mi)<=12)?pn(r.mi):(r.hd&&gnStat(r)!=='reg'?gnMo(r):null),
-  cm=gnFx(r)?'Fixed amount':(r.days!==''&&r.days!=null?(()=>{const g=gnGross(r,f);return g?pf(g.d)+' \u00F7 7 \u00D7 '+r.days:pf(pn(r.rate))+' \u00D7 '+r.days})()+(mo!=null?' \u00D7 '+mo+'/12':''):'');
+  cm=gnFx(r)?'Fixed amount':(r.days!==''&&r.days!=null?(()=>{const g=gnGross(r,f);return g?pf(g.d)+' \u00F7 '+gnDv(r)+' \u00D7 '+r.days:pf(pn(r.rate))+' \u00D7 '+r.days})()+(mo!=null?' \u00D7 '+mo+'/12':''):'');
  return{s:{name:r.name},g:f.dept,v,r:{rem:r.rem||''},lab:k=>L[k]||k,adds:[],lss,gross:c.pay,td:r2(c.pay-c.net),bal:()=>0,rd:null,cm}}
 function m13SlipHm(m){const P=v=>pf(r2(v))||'-';
  return`<div class="p13"><div class="hd"><div class="co">Rayanton Farms &amp; Livestock Corp.</div><div class="yr">13TH MONTH PAY ${esc(MY)}</div></div>
@@ -5217,41 +5243,45 @@ function gnSync(S,only){try{if(!S||!S.gen)return;
  rm=(h,y)=>h&&!m13IsLate(h,y)?m13Months(h,y)+' mos ( '+m13Rng(h,y)+')':'',y=+S.year;
  Object.keys(S.gen).forEach(d=>{const f=S.gen[d];if(only?d!==only:f.sv)return;(f.rows||[]).forEach(r=>{const e=find(r);if(!e)return;r.eid=e.id;const en=String(e.name||'');
   if(r.en0==null)r.en0=en;else if(en&&en!==r.en0){r.name=en;r.en0=en;window._gnN=(window._gnN||0)+1}
-  const hh=m13Hd(e,y);{const d1=new Date(hh+'T00:00:00'),lim=new Date();lim.setFullYear(lim.getFullYear()-1);const hs2=(hh&&!isNaN(d1)&&hh.slice(0,4)!==String(y)&&d1>lim)?hh:'';if((r.hs||'')!==hs2){r.hs=hs2;window._gnN=(window._gnN||0)+1}}
+  const hh=m13Hd(e,y);{const d1=new Date(hh+'T00:00:00'),lim=new Date();lim.setFullYear(lim.getFullYear()-1);const hs2='';if((r.hs||'')!==hs2){r.hs=hs2;window._gnN=(window._gnN||0)+1}}
   const lt=!!hh&&hh.slice(0,4)===String(y)&&m13IsLate(hh,y),ok=hh&&!isNaN(new Date(hh+'T00:00:00'))&&hh.slice(0,4)===String(y)&&!lt,nh=(ok||lt)?hh:'';
-  if((r.hd||'')!==nh){window._gnN=(window._gnN||0)+1;const auto=!r.rem||r.rem===rm(r.hd,y);r.hd=nh;if(auto)r.rem=rm(nh,y);if(!lt&&r.nl&&r.st==='no'){r.st=nh?'pro':'reg';r.nl=0}else if(!lt){if(nh&&(r.st==null||r.st==='reg'))r.st='pro';else if(!nh&&r.st==='pro')r.st='reg'}}if(lt&&r.st!=='no'&&!r.nlu&&!r.nl){r.st='no';r.nl=1;window._gnN=(window._gnN||0)+1}
+  if((r.hd||'')!==nh){window._gnN=(window._gnN||0)+1;const auto=!r.rem||r.rem===rm(r.hd,y);if(r.hd&&!nh&&r.mi!==''&&r.mi!=null&&+r.mi===m13Months(r.hd,y)){r.mi='';delete r.mia}r.hd=nh;if(auto)r.rem=rm(nh,y);if(!lt&&r.nl&&r.st==='no'){r.st=nh?'pro':'reg';r.nl=0}else if(!lt){if(nh&&(r.st==null||r.st==='reg'))r.st='pro';else if(!nh&&r.st==='pro')r.st='reg'}}if(lt&&r.st!=='no'&&!r.nlu&&!r.nl){r.st='no';r.nl=1;window._gnN=(window._gnN||0)+1}
   if(!lt&&r.st==='pro'&&m13Reg(e)){r.st='reg';window._gnN=(window._gnN||0)+1}
   {const want=r.hd?rm(r.hd,y):(r.hs?m13U1Rem(r.hs,y):''),cur=String(r.rem||'').trim();if(want!==cur&&(!cur||/^\d+(\.\d+)? mos( \( [^)]*\))?$/.test(cur))){r.rem=want;window._gnN=(window._gnN||0)+1}}
+  /* v615: "No. of months" (Mos. Worked) = the months in the remark, filled automatically for everyone under 1 year; Rate x Days x months / 12 follows. A different number typed by the user is kept. */
+  {const wm=(r.hd&&!lt)?m13Months(r.hd,y):(r.hs?12:0),cu=(r.mi===''||r.mi==null)?'':+r.mi;
+   if(wm>0){if(cu===''||cu===r.mia||cu===wm){if(cu!==wm){r.mi=wm;window._gnN=(window._gnN||0)+1}r.mia=wm}}
+   else if(r.mia!=null){if(cu!==''&&cu===r.mia){r.mi='';window._gnN=(window._gnN||0)+1}delete r.mia}}
  })})}catch(x){}}
 function gnRefresh(){const S=M13S,f=S&&(S.gen||{})[GD];if(!f)return;window._gnN=0;gnSync(S,GD);f.sv=1;const n=window._gnN||0;if(n)m13Mark();gnDraw();toast(n?n+' change(s) taken from the 201 Files. Press Save to keep it.':'Already up to date with the 201 Files.')}
 function gnDraw0(){const S=M13S;gnSync(S);const f=(S.gen||{})[GD];if(!f){GD='';return mDraw()}
  const T=gnTot(f),nc=4+3+f.dc.length+1;
  const num=(id,k,v,w,dc)=>`<input class="m13d" type="number" min="0" step="any" inputmode="decimal" style="width:${w}px" value="${v===''||v==null?'':esc(String(v))}" data-id="${esc(id)}" data-k="${k}"${dc?' data-dc="'+esc(dc)+'"':''} onchange="gnSet(this)" onkeydown="gnKey(event)"><span class="m13pv">${v===''||v==null?'':esc(String(v))}</span>`,
  txt=(id,k,v,w)=>`<input class="m13d" type="text" style="width:${w}px;text-align:left" value="${esc(v||'')}" data-id="${esc(id)}" data-k="${k}" onchange="gnSet(this)"><span class="m13pv">${esc(v||'')}</span>`,
- tr=r=>{const c=gnCalc(r,f),i=esc(r.id),s_=gnStat(r);return `<tr class="m13-r${s_==='no'?' m13-no':''}"><td class="m13-nm"><div class="m13nmr">${txt(r.id,'name',r.name,230)}<span class="m13stw s-${s_} no-print" title="Status: ${(GST.find(x=>x[0]===s_)||[])[1]}"><b>${({reg:'\u25BE',con:'C',pro:'P',no:'N'})[s_]||'\u25BE'}</b><select data-id="${i}" onchange="gnStSet(this)">${GST.map(x=>`<option value="${x[0]}"${x[0]===s_?' selected':''}>${x[0]==='reg'?'Regular (default)':x[1]}</option>`).join('')}</select></span></div>${r.add?' <span class="cx-tag">Added</span>':''}</td>
+ tr=r=>{const c=gnCalc(r,f),i=esc(r.id),clsTd=gnClsTd(r,f),s_=gnStat(r),nmTd=`<td class="m13-nm"><div class="m13nmr">${txt(r.id,'name',r.name,230)}<span class="m13stw s-${s_} no-print" title="Status: ${(GST.find(x=>x[0]===s_)||[])[1]}"><b>${({reg:'\u25BE',con:'C',pro:'P',no:'N'})[s_]||'\u25BE'}</b><select data-id="${i}" onchange="gnStSet(this)">${GST.map(x=>`<option value="${x[0]}"${x[0]===s_?' selected':''}>${x[0]==='reg'?'Regular (default)':x[1]}</option>`).join('')}</select></span></div>${r.add?' <span class="cx-tag no-print">Added</span>':''}</td>`;/* hired Oct-Dec (no 13th month yet): only the name and the date started are shown */if(s_==='no'&&r.nl)return `<tr class="m13-r m13-no m13-late">${nmTd}${clsTd}<td colspan="${9+f.dc.length}"></td><td style="white-space:nowrap">${gnDS(r)?esc(m13Long(gnDS(r))):''}</td><td colspan="${1+(f.xc||[]).length}"></td><td class="no-print n"><div class="m13-ra"><button class="btn o sm m13-rb" title="Move to another department" data-id="${i}" onclick="gnMoveOpen(this.dataset.id)">Move</button><button class="btn o sm m13-rb x" title="Remove from this form" data-id="${i}" onclick="gnRem(this.dataset.id)">Remove</button></div></td></tr>`;return `<tr class="m13-r${s_==='no'?' m13-no':''}">${nmTd}${clsTd}
  <td>${txt(r.id,'acct',r.acct,128)}${ACCT13.test(String(r.acct||''))?'':'<small class="m13s no-print" style="color:#a3302a">'+(r.acct?'must be exactly 13 digits':'13-digit account no. required')+'</small>'}</td>
- <td class="n">${(()=>{const g=gnGross(r,f);return num(r.id,'rate',g?g.d:r.rate,90)+(g?'<small class="m13s">weekly gross</small>':'')+(r.old&&r.old!==r.latest?`<small class="m13s rh">old ${fm(g?g.o:r.old)} · latest ${fm(g?g.l:r.latest)}</small>`:'')})()}</td>
+ <td class="n">${(()=>{const g=gnGross(r,f),wk=g&&r.u==='w';return num(r.id,'rate',wk?g.d:(g?r2(g.d/gnDv(r)):r.rate),90)+(g?'<small class="m13s">'+(wk?'weekly gross':'per day')+'</small>':'')+(r.old&&r.old!==r.latest?`<small class="m13s rh">old ${fm(wk?g.o:(g?r2(g.o/gnDv(r)):r.old))} · latest ${fm(wk?g.l:(g?r2(g.l/gnDv(r)):r.latest))}</small>`:'')})()}</td>
  <td class="n m13c">${r.u==='w'?num(r.id,'wk',r.wk,72)+'<small class="m13s" id="gnwd_'+i+'">'+(r.days===''||r.days==null?'':'= '+esc(String(r.days))+' days')+'</small>':num(r.id,'days',r.days,72)}<select class="no-print" style="display:block;margin:3px 0 0 auto;width:82px;font-size:12px;padding:2px 4px;border:1px solid #cfd9e8;border-radius:6px;background:#fff" title="Follow No. of Days or No. of Weeks for this employee (1 week = ${gnWM(r,f)} days)" data-id="${i}" onchange="gnUnitSet(this)"><option value="d">Days</option><option value="w"${r.u==='w'?' selected':''}>Weeks</option></select></td><td class="n" id="gnp_${i}">${gnFx(r)?`<span class="m13fx">${num(r.id,'fx',r.fx,96)}<button class="btn o sm no-print m13-rb" data-id="${i}" title="Back to automatic (Rate × No. of Days)" onclick="gnFxOff(this.dataset.id)">Auto</button></span>`:(c.has?fm(c.pay):'-')+` <button class="btn o sm no-print m13-rb" data-id="${i}" title="Fixed amount: type the 13th Month Pay yourself (not based on days)" onclick="gnFxOn(this.dataset.id)">Fixed</button>`}</td><td class="n m13c">${num(r.id,'mi',r.mi,64)}</td>
  <td class="n">${num(r.id,'ar',r.ar,92)}</td><td class="n">${num(r.id,'v',r.v,92)}</td>
  ${f.dc.map(k=>`<td class="n">${num(r.id,'d',(r.d||{})[k.id],92,k.id)}</td>`).join('')}
  <td class="n" id="gnn_${i}" style="${c.has&&c.net<0?'color:#c00':''}">${c.has?'<b>'+fm(c.net)+'</b>':'-'}</td>
  <td>${txt(r.id,'rem',r.rem,190)}</td><td style="white-space:nowrap">${gnDS(r)?esc(m13Long(gnDS(r))):''}</td><td>${txt(r.id,'cm',gnCm(r),170)}</td>${(f.xc||[]).map(k=>`<td>${gnXtxt(r.id,k.id,(r.xv||{})[k.id],130)}</td>`).join('')}<td class="no-print n"><div class="m13-ra"><button class="btn o sm m13-rb" title="Move to another department" data-id="${i}" onclick="gnMoveOpen(this.dataset.id)">Move</button><button class="btn o sm m13-rb x" title="Remove from this form" data-id="${i}" onclick="gnRem(this.dataset.id)">Remove</button></div></td></tr>`};
  $('main').innerHTML=`<section class="cx-wrap m13w${M13HR?' hrh':''}">${M13OK===false?m13SqlH():''}<div class="m13-ph"><img src="${LOGO}" alt=""><div><b>RAYANTON FARMS &amp; LIVESTOCK CORP.</b><span>14 Virgo St., Sierra Vista Sub., Cupang, Antipolo City</span><i>13TH MONTH PAY ${esc(MY)} \u00B7 ${esc(String(f.dept).toUpperCase())}</i></div></div><div class="cx-head"><div><button class="btn o sm no-print" style="margin:0 0 10px" onclick="gnBack()">← Back</button><h1>13th Month Pay ${esc(MY)}</h1><p class="sub"><b>${esc(f.dept)}</b> · active employees of the latest payroll. 13th Month Pay = Rate × No. of Days. Net Pay = 13th Month Pay − A/R − Vale − other deductions.</p></div>
- <div class="cx-sum"><span><b id="gnSp">${fm(T.pay)}</b>13th Month Pay</span><span><b id="gnSn">${fm(T.net)}</b>Net Pay</span><span><b>${T.n}</b>Employees</span></div></div>
+ <div class="cx-sum"><span><b id="gnSp">${fw(T.pay)}</b>13th Month Pay</span><span><b id="gnSn">${fw(T.net)}</b>Net Pay</span><span><b>${T.n}</b>Employees</span></div></div>
  <div class="cx-card"><div class="cx-bar no-print m13-tb"><div class="grow"><label for="gn_q">Search employee</label><input id="gn_q" type="search" autocomplete="off" placeholder="Type a name to find an employee in this form" value="${esc(GQ)}" oninput="gnQ(this.value)"></div><span id="gn_qc" class="m13s" style="max-width:none"></span><span id="m13st" class="m13b n"></span></div>
  <div class="cx-bar no-print m13-ar">${m13Acts('gnExport()','')}<button class="btn o" title="Update date started, status and corrected names of this form from the 201 Files. Rate and ATM are not changed." onclick="gnRefresh()">Update from 201</button></div>
  <div class="cx-bar no-print" style="border-top:1px solid var(--ln);padding-top:14px"><div class="m13-g"><div><label for="gn_rb">Rate to use</label><select id="gn_rb"><option value="latest"${f.basis!=='old'?' selected':''}>Latest rate</option><option value="old"${f.basis==='old'?' selected':''}>Old rate</option></select></div><button class="btn o" onclick="gnRebasis()">Apply rate to all</button></div>
   <div class="m13-g"><div><label for="gn_dy">No. of days</label><input id="gn_dy" type="number" min="0" step="any" inputmode="decimal" style="width:100px" placeholder="e.g. 26" value="${esc(String(f.days==null?'':f.days))}"></div><button class="btn o" onclick="gnDaysAll()">Apply days to all</button></div><div class="m13-g"><div><label for="gn_bs">13th Month Pay</label><select id="gn_bs"><option value="days"${(f.bs==='fx'||(f.rows.length&&f.rows.every(gnFx)))?'':' selected'}>Rate × No. of days</option><option value="fx"${(f.bs==='fx'||(f.rows.length&&f.rows.every(gnFx)))?' selected':''}>Typed amount (not based on days)</option></select></div><button class="btn o" onclick="gnBasisAll()">Apply to all</button></div><div class="m13-g"><button class="btn o" onclick="gnAddDc()">+ Add deduction</button><button class="btn o" onclick="gnAddXc()" title="Add a column you can type in (for example Signature or Date received)">+ Add column</button><button class="btn o" onclick="gnColsOpen()" title="Choose which columns are shown and printed">${(()=>{const n=gnColList(f).filter(c=>(f.hc||[]).includes(c.k)).length;return 'Show / hide columns'+(n?' ('+n+' hidden)':'')})()}</button><button class="btn o" onclick="gnMarkAllNo()" title="Set every employee in this form to No 13th MP">Mark all as No 13th MP</button>${m13AtmBtn(f)}<button class="btn o" onclick="m13Slips()" title="Auto payslips of this form: preview and print">Payslips</button></div></div>
  <div class="cx-bar no-print" style="border-top:1px solid var(--ln);padding-top:14px"><div><label for="gn_an">Add name</label><input id="gn_an" list="gn_al" placeholder="Name" autocomplete="off" oninput="gnAddFill()" onchange="gnAddFill()"><datalist id="gn_al">${[...new Set((E||[]).map(e=>e.name).filter(Boolean))].sort().map(n=>`<option value="${esc(n)}">`).join('')}</datalist></div><div><label for="gn_aa">Account no.</label><input id="gn_aa" style="width:140px" placeholder="13 digits"></div><div><label for="gn_ar">Rate (₱)</label><input id="gn_ar" type="number" min="0" step="any" inputmode="decimal" style="width:110px" placeholder="0.00"></div><div><label for="gn_ac">Class</label><input id="gn_ac" list="gn_acl" style="width:170px" placeholder="Class (optional)" autocomplete="off" title="Pick a class or type a new one. Applies to Add and + Blank row."><datalist id="gn_acl">${[...new Set([...gnGroups(f,1).map(g=>g.title).filter(Boolean),'Regular','Contractual','Probationary','Extra Regular','No 13th MP'])].map(n=>`<option value="${esc(n)}">`).join('')}</datalist></div><button class="btn" onclick="gnAddName()">Add</button><button class="btn o" onclick="gnAddRow()" title="Add an empty row, then type the name and the amount in the table">+ Blank row</button><span class="m13s" style="max-width:320px">Names, rates, days and every amount can be edited right in the table. Payroll and 201 Files are not changed.</span></div>
- <div class="cx-tw"><table class="cx-t" id="gnMain"><thead><tr><th>Name</th><th>Account No.</th><th class="n">Rate</th><th class="n m13c">No. of Days</th><th class="n">13th Month Pay</th><th class="n m13c" title="Months actually worked. Blank = full 12 months.">Mos. Worked</th><th class="n">A/R</th><th class="n">Vale</th>${f.dc.map(k=>`<th class="n"><input class="m13d" type="text" style="width:110px;font-weight:700;text-align:right" value="${esc(k.l)}" data-dc="${esc(k.id)}" onchange="gnDcLbl(this)"> <button class="btn o sm no-print" data-dc="${esc(k.id)}" onclick="gnDcRem(this.dataset.dc)" title="Remove this deduction column">✕</button></th>`).join('')}<th class="n">Net Pay</th><th>Remarks</th><th>Start Date</th><th>Comment</th>${(f.xc||[]).map(k=>`<th><input class="m13d" type="text" style="width:110px;font-weight:700" value="${esc(k.l)}" data-xc="${esc(k.id)}" onchange="gnXLbl(this)"> <button class="btn o sm no-print" data-xc="${esc(k.id)}" onclick="gnXRem(this.dataset.xc)" title="Remove this column">✕</button></th>`).join('')}<th class="no-print"></th></tr></thead>
- <tbody>${(()=>{const G=gnGroups(f),sub=(g)=>{const t=gnTot({rows:g.rows,dc:f.dc});if(g.st==='no')return `<tr class="m13-sub"><td colspan="${13+f.dc.length+(f.xc||[]).length}"><span class="m13-stk">${esc(g.title)} <small>\u00b7 ${g.rows.length} employee${g.rows.length===1?'':'s'} \u00b7 not counted in the totals</small></span></td></tr>`;return `<tr class="m13-sub"><td colspan="4"><span class="m13-stk">Subtotal${g.title?' \u00b7 '+esc(g.title):''} <small>\u00b7 ${g.rows.length} employee${g.rows.length===1?'':'s'}</small></span></td><td class="n" id="gnS_${g.si}_p">${fm(t.pay)}</td><td></td><td class="n" id="gnS_${g.si}_a">${fm(t.ar)}</td><td class="n" id="gnS_${g.si}_v">${fm(t.v)}</td>${f.dc.map(k=>`<td class="n" id="gnS_${g.si}_d_${esc(k.id)}">${fm(t.d[k.id])}</td>`).join('')}<td class="n" id="gnS_${g.si}_n">${fm(t.net)}</td><td></td><td></td><td></td>${(f.xc||[]).map(()=>'<td></td>').join('')}<td class="no-print"></td></tr>`};
-  return G.map(g=>(g.title&&!g.st?`<tr class="m13-sec"><td colspan="${13+f.dc.length+(f.xc||[]).length}"><span class="m13-stk">${esc(g.title)}</span></td></tr>`:'')+g.rows.map(tr).join('')+(G.length>1||g.title?sub(g):'')).join('')})()}</tbody>
- <tfoot><tr><td colspan="4"><span class="m13-stk">Total · ${T.n} employee${T.n===1?'':'s'}</span></td><td class="n" id="gnT_p">${fm(T.pay)}</td><td></td><td class="n" id="gnT_a">${fm(T.ar)}</td><td class="n" id="gnT_v">${fm(T.v)}</td>${f.dc.map(k=>`<td class="n" id="gnT_d_${esc(k.id)}">${fm(T.d[k.id])}</td>`).join('')}<td class="n" id="gnT_n">${fm(T.net)}</td><td></td><td></td><td></td>${(f.xc||[]).map(()=>'<td></td>').join('')}<td class="no-print"></td></tr></tfoot></table></div>${m13LateH(f.late||[])}
- </div>${gnEntH(f)}${m13SigH(f)}</section>`;m13Badge();gnFilter();gnPlace();gnCols()}
+ <div class="cx-tw"><table class="cx-t" id="gnMain"><thead><tr><th>Name</th>${gnIsBr(f)?'<th>Class</th>':''}<th>Account No.</th><th class="n">Rate</th><th class="n m13c">No. of Days</th><th class="n">13th Month Pay</th><th class="n m13c" title="Months actually worked. Blank = full 12 months.">Mos. Worked</th><th class="n">A/R</th><th class="n">Vale</th>${f.dc.map(k=>`<th class="n"><input class="m13d" type="text" style="width:110px;font-weight:700;text-align:right" value="${esc(k.l)}" data-dc="${esc(k.id)}" onchange="gnDcLbl(this)"> <button class="btn o sm no-print" data-dc="${esc(k.id)}" onclick="gnDcRem(this.dataset.dc)" title="Remove this deduction column">✕</button></th>`).join('')}<th class="n">Net Pay</th><th>Remarks</th><th>Start Date</th><th>Comment</th>${(f.xc||[]).map(k=>`<th><input class="m13d" type="text" style="width:110px;font-weight:700" value="${esc(k.l)}" data-xc="${esc(k.id)}" onchange="gnXLbl(this)"> <button class="btn o sm no-print" data-xc="${esc(k.id)}" onclick="gnXRem(this.dataset.xc)" title="Remove this column">✕</button></th>`).join('')}<th class="no-print"></th></tr></thead>
+ <tbody>${(()=>{const G=gnGroups(f),sub=(g)=>{const t=gnTot({rows:g.rows,dc:f.dc,dept:f.dept});if(g.st==='no')return `<tr class="m13-sub"><td colspan="${13+gnBc(f)+f.dc.length+(f.xc||[]).length}"><span class="m13-stk">${esc(g.title)} <small>\u00b7 ${g.rows.length} employee${g.rows.length===1?'':'s'} \u00b7 not counted in the totals</small></span></td></tr>`;return `<tr class="m13-sub"><td colspan="${4+gnBc(f)}"><span class="m13-stk">Subtotal${g.title?' \u00b7 '+esc(g.title):''} <small>\u00b7 ${g.rows.length} employee${g.rows.length===1?'':'s'}</small></span></td><td class="n" id="gnS_${g.si}_p">${fw(t.pay)}</td><td></td><td class="n" id="gnS_${g.si}_a">${fw(t.ar)}</td><td class="n" id="gnS_${g.si}_v">${fw(t.v)}</td>${f.dc.map(k=>`<td class="n" id="gnS_${g.si}_d_${esc(k.id)}">${fw(t.d[k.id])}</td>`).join('')}<td class="n" id="gnS_${g.si}_n">${fw(t.net)}</td><td></td><td></td><td></td>${(f.xc||[]).map(()=>'<td></td>').join('')}<td class="no-print"></td></tr>`};
+  return G.map(g=>(g.title&&!g.st?`<tr class="m13-sec"><td colspan="${13+gnBc(f)+f.dc.length+(f.xc||[]).length}"><span class="m13-stk">${esc(g.title)}</span></td></tr>`:'')+g.rows.map(tr).join('')+(G.length>1||g.title?sub(g):'')).join('')})()}</tbody>
+ <tfoot><tr><td colspan="${4+gnBc(f)}"><span class="m13-stk">Total · ${T.n} employee${T.n===1?'':'s'}</span></td><td class="n" id="gnT_p">${fw(T.pay)}</td><td></td><td class="n" id="gnT_a">${fw(T.ar)}</td><td class="n" id="gnT_v">${fw(T.v)}</td>${f.dc.map(k=>`<td class="n" id="gnT_d_${esc(k.id)}">${fw(T.d[k.id])}</td>`).join('')}<td class="n" id="gnT_n">${fw(T.net)}</td><td></td><td></td><td></td>${(f.xc||[]).map(()=>'<td></td>').join('')}<td class="no-print"></td></tr></tfoot></table></div>${m13LateH(f.late||[])}
+ </div>${gnClsSumH(f)}${gnEntH(f)}${m13SigH(f)}</section>`;m13Badge();gnFilter();gnPlace();gnCols()}
 /* ===== 13th Month Pay generated form: show/hide columns (print too), added text columns, blank row, typed-amount mode for everyone ===== */
-const gnBase=f=>['name','acct','rate','days','pay','mi','ar','v',...(f.dc||[]).map(k=>'d_'+k.id),'net','rem','hd','cm'];
+const gnBase=f=>['name',...(gnIsBr(f)?['cls']:[]),'acct','rate','days','pay','mi','ar','v',...(f.dc||[]).map(k=>'d_'+k.id),'net','rem','hd','cm'];
 function gnOrd(f){const o=gnBase(f);(f.xc||[]).forEach(x=>{let i=o.indexOf(x.after);if(i<0)i=o.length-1;o.splice(i+1,0,'x_'+x.id)});return o}
-const gnColList=f=>{const L={acct:'Account No.',rate:'Rate',days:'No. of Days',pay:'13th Month Pay',mi:'Mos. Worked',ar:'A/R',v:'Vale',net:'Net Pay',rem:'Remarks',hd:'Start Date',cm:'Comment'};(f.dc||[]).forEach(k=>{L['d_'+k.id]=k.l});(f.xc||[]).forEach(k=>{L['x_'+k.id]=k.l});return gnOrd(f).map((k,i)=>({k:k,l:L[k]||k,i:i})).filter(c=>c.k!=='name')};
+const gnColList=f=>{const L={cls:'Class',acct:'Account No.',rate:'Rate',days:'No. of Days',pay:'13th Month Pay',mi:'Mos. Worked',ar:'A/R',v:'Vale',net:'Net Pay',rem:'Remarks',hd:'Start Date',cm:'Comment'};(f.dc||[]).forEach(k=>{L['d_'+k.id]=k.l});(f.xc||[]).forEach(k=>{L['x_'+k.id]=k.l});return gnOrd(f).map((k,i)=>({k:k,l:L[k]||k,i:i})).filter(c=>c.k!=='name')};
 function gnPlace(){const f=((M13S||{}).gen||{})[GD],t=document.getElementById('gnMain');if(!f||!t||!(f.xc||[]).length)return;
  const b=gnBase(f),o=gnOrd(f),NB=b.length,pos={};o.forEach((k,j)=>{pos[k]=j});
  [...t.rows].forEach(tr=>{const cells=[...tr.cells];if(cells.length<3)return;
@@ -5295,30 +5325,34 @@ function gnFxOn(id){const{f,r}=gnRow(id);if(!r)return;const c=gnCalc(r,f);r.fx=c
 function gnFxOff(id){const{f,r}=gnRow(id);if(!r)return;delete r.fx;m13Mark();gnDraw();toast(r.name+': back to Rate × No. of Days')}
 const gnDS=r=>{const s=r.hd||r.hs||'';if(!s)return '';/* only employees under 1 year have hd / hs, so only they get a Start Date */try{const A=(Array.isArray(EALL)&&EALL.length?EALL:E)||[];let e=r.eid!=null?A.find(x=>String(x.id)===String(r.eid)):null;if(!e){const n=tmN(r.name);e=A.find(x=>tmN(x.name)===n)}const h=e&&e.hired?String(e.hired).slice(0,10):'';if(/^\d{4}-\d\d-\d\d$/.test(h))return h}catch(x){}return s};/* Start Date column shows the actual date hired (not the probationary start used for the months count) */
 /* Weekly-gross employees: the form computes on the daily rate (gross ÷ 7) but shows the gross rate, like the payroll. */
-function gnGross(r,f){try{if(gnWM(r,f)!==7)return null;const s0=(STF||[]).find(x=>String(x.id)===String(r.id)),cur=s0?pn(s0.rate):0,lt=pn(r.latest),od=pn(r.old);
+function gnGross(r,f){try{if(!gnIsG(r,f))return null;const s0=(STF||[]).find(x=>String(x.id)===String(r.id)),cur=s0?pn(s0.rate):0,lt=pn(r.latest),od=pn(r.old);
  const L=(cur&&r2(cur/7)===lt)?cur:r2(lt*7);let O=0;if(od){for(const p of (PH||[])){const v=p&&p.data&&p.data.rates&&p.data.rates[r.id];if(v!=null&&pn(v)&&r2(pn(v)/7)===od){O=pn(v);break}}if(!O)O=r2(od*7)}
  const rt=pn(r.rate),D=rt===lt?L:(od&&rt===od?O:r2(rt*7));return{d:D,l:L,o:O}}catch(e){return null}}
-const gnRateD=(r,f)=>{const g=gnGross(r,f);return g?g.d:pn(r.rate)};
-const gnWM=(r,f)=>{const s=(STF||[]).find(x=>String(x.id)===String(r.id));const pd=r.pdd!=null?!!r.pdd:!!(s&&pGpdDef(s));return (PCFG[f.dept]||{}).m==='g'&&!pd?7:6};
+const gnRateD=(r,f)=>{const g=gnGross(r,f);return g?(r.u==='w'?g.d:r2(g.d/gnDv(r))):pn(r.rate)};/* Days selected = per-day rate (from the payroll cutoff); Weeks selected = weekly gross. Pay is still gross ÷ 7 × days. */
+/* Fixed gross employees are paid on gross ÷ 7 (a week = 7 days), except those listed here: gross ÷ 6 (a week = 6 days). Stored rates stay gross ÷ 7; only the per-day rate and the pay use this divisor. */
+const gnDv=r=>/^(manabat jr diosdado|baliguat ronaldo)( |$)/.test(dupKey(r&&r.name))?6:7;
+const gnIsG=(r,f)=>{const s=(STF||[]).find(x=>String(x.id)===String(r.id));const pd=r.pdd!=null?!!r.pdd:!!(s&&pGpdDef(s));return (PCFG[f.dept]||{}).m==='g'&&!pd};
+const gnWM=(r,f)=>gnIsG(r,f)?gnDv(r):6;
 function gnUnitSet(el){const{f,r}=gnRow(el.dataset.id);if(!r)return;
  if(el.value==='w'){r.u='w';r.wk=(r.days===''||r.days==null)?'':r2(pn(r.days)/gnWM(r,f))}else{delete r.u;delete r.wk}
  m13Mark();gnDraw()}
 function gnRow(id){const f=((M13S||{}).gen||{})[GD];return f?{f,r:f.rows.find(x=>x.id===id)}:{}}
 function gnSet(el){const{f,r}=gnRow(el.dataset.id);if(!r)return;const k=el.dataset.k,v=el.value;
+ if(k==='cls')return gnClsSet(el,r);
  if(k==='name'){const n=v.replace(/\s+/g,' ').trim();if(!n){el.value=r.name;return toast('The name cannot be empty.')}r.name=n;el.value=n}
  else if(k==='acct'){const a=v.replace(/\s+/g,'');if(a!==''&&!ACCT13.test(a)){el.value=r.acct||'';return toast('The account number must be exactly 13 digits (numbers only).')}r.acct=a;el.value=a;if(a){const sm=el.closest('td')&&el.closest('td').querySelector('small');if(sm)sm.remove()}}
  else if(k==='cm'){const t=v.trim();if(t&&t!==gnCmAuto(r)){r.cm=t;r.cmx=1}else{r.cm='';delete r.cmx;el.value=gnCmAuto(r)}}
  else if(k==='wk'){const t=v.trim();if(t!==''&&!(+t>=0)){el.value=r.wk==null?'':r.wk;return toast('Enter a number (0 or more).')}r.wk=t===''?'':r2(t);r.days=t===''?'':r2(r.wk*gnWM(r,f));const sm=$('gnwd_'+r.id);if(sm)sm.textContent=r.days===''?'':'= '+r.days+' days'}
  else if(k==='rem'){r[k]=v.trim()}
  else{const t=v.trim();if(k==='mi'&&t!==''&&+t>12){el.value=r.mi===''||r.mi==null?'':r.mi;return toast('Months worked cannot be more than 12.')}if(t!==''&&!(+t>=0)){el.value=k==='d'?((r.d||{})[el.dataset.dc]??''):(r[k]??'');return toast('Enter a number (0 or more).')}
-  const val=t===''?'':r2(t);if(k==='d'){r.d=r.d||{};if(val==='')delete r.d[el.dataset.dc];else r.d[el.dataset.dc]=val}else if(k==='rate'&&val!==''&&gnGross(r,f))r.rate=r2(val/7);else r[k]=val}
- if(k==='mi'&&!r.hd){const rx=/(\d+(\.\d+)? of 12 mos worked \(long leave \/ SL\)|^\d+(\.\d+)? mos(?! \())( \u00B7 )?/;let rm=String(r.rem||'').replace(rx,'').trim();if(r.mi!==''&&r.mi!=null&&+r.mi>0&&+r.mi<12)rm=(r.mi+' mos'+(rm?' \u00B7 '+rm:''));r.rem=rm;const ri=[...document.querySelectorAll('input[data-k="rem"]')].find(i=>i.dataset.id===r.id);if(ri){ri.value=rm;if(ri.nextElementSibling)ri.nextElementSibling.textContent=rm}}
+  const val=t===''?'':r2(t);if(k==='d'){r.d=r.d||{};if(val==='')delete r.d[el.dataset.dc];else r.d[el.dataset.dc]=val}else if(k==='rate'&&val!==''&&gnGross(r,f))r.rate=r2((r.u==='w'?val:val*gnDv(r))/7);else r[k]=val}
+ if(k==='mi'&&!r.hd&&!r.hs){const rx=/(\d+(\.\d+)? of 12 mos worked \(long leave \/ SL\)|^\d+(\.\d+)? mos(?! \())( \u00B7 )?/;let rm=String(r.rem||'').replace(rx,'').trim();if(r.mi!==''&&r.mi!=null&&+r.mi>0&&+r.mi<12)rm=(r.mi+' mos'+(rm?' \u00B7 '+rm:''));r.rem=rm;const ri=[...document.querySelectorAll('input[data-k="rem"]')].find(i=>i.dataset.id===r.id);if(ri){ri.value=rm;if(ri.nextElementSibling)ri.nextElementSibling.textContent=rm}}
  {const nx=el.nextElementSibling;if(nx&&nx.classList.contains('m13pv'))nx.textContent=el.value}
  m13Mark();gnPaint()}
 function gnPaint(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const set=(i,t)=>{const e=$(i);if(e)e.innerHTML=t},T=gnTot(f);
  f.rows.forEach(r=>{const c=gnCalc(r,f);if(!gnFx(r))set('gnp_'+r.id,(c.has?fm(c.pay):'-')+' <button class="btn o sm no-print m13-rb" data-id="'+esc(r.id)+'" title="Fixed amount: type the 13th Month Pay yourself (not based on days)" onclick="gnFxOn(this.dataset.id)">Fixed</button>');set('gnn_'+r.id,c.has?'<b>'+fm(c.net)+'</b>':'-');const e=$('gnn_'+r.id);if(e)e.style.color=c.has&&c.net<0?'#c00':''});
- set('gnT_p',fm(T.pay));set('gnT_a',fm(T.ar));set('gnT_v',fm(T.v));set('gnT_n',fm(T.net));f.dc.forEach(k=>set('gnT_d_'+k.id,fm(T.d[k.id])));set('gnSp',fm(T.pay));set('gnSn',fm(T.net));gnEntPaint(f,set);
- gnGroups(f).forEach(g=>{const t=gnTot({rows:g.rows,dc:f.dc}),i='gnS_'+g.si;set(i+'_p',fm(t.pay));set(i+'_a',fm(t.ar));set(i+'_v',fm(t.v));set(i+'_n',fm(t.net));f.dc.forEach(k=>set(i+'_d_'+k.id,fm(t.d[k.id])))})}
+ set('gnT_p',fw(T.pay));set('gnT_a',fw(T.ar));set('gnT_v',fw(T.v));set('gnT_n',fw(T.net));f.dc.forEach(k=>set('gnT_d_'+k.id,fw(T.d[k.id])));set('gnSp',fw(T.pay));set('gnSn',fw(T.net));gnEntPaint(f,set);gnClsSumPaint(f);
+ gnGroups(f).forEach(g=>{const t=gnTot({rows:g.rows,dc:f.dc,dept:f.dept}),i='gnS_'+g.si;set(i+'_p',fw(t.pay));set(i+'_a',fw(t.ar));set(i+'_v',fw(t.v));set(i+'_n',fw(t.net));f.dc.forEach(k=>set(i+'_d_'+k.id,fw(t.d[k.id])))})}
 function gnKey(e){if(e.key!=='Enter')return;e.preventDefault();const t=e.target,L=[...document.querySelectorAll('.m13d[data-k="'+t.dataset.k+'"]'+(t.dataset.dc?'[data-dc="'+t.dataset.dc+'"]':':not([data-dc])'))],i=L.indexOf(t);if(L[i+1]){L[i+1].focus();L[i+1].select()}else t.blur()}
 function gnMarkAllNo(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const n=f.rows.filter(r=>gnStat(r)!=='no').length;
  if(!n)return toast('Everyone in this form is already marked No 13th MP.');
@@ -5328,20 +5362,59 @@ function gnStSet(el){const{f,r}=gnRow(el.dataset.id);if(!r)return;const v=el.val
  const w=document.querySelector('.m13w .cx-tw'),sl=w?w.scrollLeft:0,stp=w?w.scrollTop:0,wy=window.scrollY;gnDraw();
  const w2=document.querySelector('.m13w .cx-tw');if(w2){w2.scrollLeft=sl;w2.scrollTop=stp}window.scrollTo(0,wy);
  toast(r.name+' \u2192 '+nm+(v==='reg'?'':' (moved to the bottom)'))}
+const GN_STAT_NAMES=['regular','contractual','probationary','extra regular','no 13th mp'];
+
+/* ===== 13th Month Pay (BREEDER forms): Class column after Name + Summary by Class under the table ===== */
+const gnIsBr=f=>!!f&&/breeder/i.test(String(f.dept||'')),gnBc=f=>gnIsBr(f)?1:0;
+/* Class of a row = the group typed in the Class column; if never set, the group from the department's Payroll */
+function gnCls(r){return gnGrpOf(r,(STF||[]).find(y=>String(y.id)===String(r.id)))}
+function gnClsOpts(f){const s=[];const add=g=>{g=String(g||'').trim();if(g&&s.indexOf(g)<0)s.push(g)};if(gnBrDept(f.dept)){gnBrAll().forEach(add);f.rows.forEach(r=>add(gnCls(r)));return s}(PGO[f.dept]||[]).forEach(add);(STF||[]).filter(x=>x.dept===f.dept).forEach(x=>add(pGrp(x)));f.rows.forEach(r=>add(gnCls(r)));return s}
+function gnClsTd(r,f){if(!gnIsBr(f))return'';const v=gnCls(r),i=esc(r.id);
+ return `<td class="m13-cl"><input class="m13d" type="text" list="gn_clsl" autocomplete="off" placeholder="Class" title="Click, then type to search or pick a class from the Payroll" style="width:190px;text-align:left" value="${esc(v)}" data-id="${i}" data-k="cls" onfocus="this.select()" onchange="gnSet(this)" onkeydown="gnKey(event)"><span class="m13pv">${esc(v)}</span></td>`}
+function gnClsSet(el,r){const t=String(el.value||'').replace(/\s+/g,' ').trim();if(t===gnCls(r)){el.value=t;return}
+ r.grp=t;m13Mark();
+ const w=document.querySelector('.m13w .cx-tw'),sl=w?w.scrollLeft:0,stp=w?w.scrollTop:0,wy=window.scrollY;gnDraw();
+ const w2=document.querySelector('.m13w .cx-tw');if(w2){w2.scrollLeft=sl;w2.scrollTop=stp}window.scrollTo(0,wy);
+ toast(r.name+' → '+(t||'no class'))}
+function gnClsSumM(f){const ord=gnBrDept(f.dept)?gnBrAll():(PGO[f.dept]||[]),M=new Map(),R0=x=>{const n=Math.round(r2(x));return n===0?0:n};
+ f.rows.forEach(r=>{if(gnStat(r)==='no')return;const c=gnCalc(r,f);if(!c.has)return;const k=gnCls(r);if(!M.has(k))M.set(k,[]);M.get(k).push({n:r.name,a:c.pay})});
+ const ix=g=>g===''?9998:(ord.indexOf(g)<0?999:ord.indexOf(g));
+ const G=[...M.keys()].sort((a,b)=>ix(a)-ix(b)||a.localeCompare(b)).map(k=>{const L=M.get(k).sort((a,b)=>String(a.n).localeCompare(String(b.n)));return{k:k,L:L,t:R0(L.reduce((a,x)=>a+x.a,0))}});
+ const tot=gnTot(f).pay,deb=r2(gnEntM(f).ents.reduce((a,x)=>a+pn(x.deb),0));
+ return{G:G,tot:tot,deb:deb,n:G.reduce((a,g)=>a+g.L.length,0)}}
+function gnClsSumChkH(m){const ok=Math.abs(m.tot-m.deb)<.01;
+ return ok?`<span style="color:#1b7a3a;font-weight:600">✔ Matches the 13th month Debit in Entries (${fm(m.deb)})</span>`:`<b style="color:#c00">Does not match Entries: Summary total ${fm(m.tot)} ≠ Entries Debit ${fm(m.deb)} (difference ${fm(r2(m.tot-m.deb))})</b>`}
+function gnClsSumInner(f){const m=gnClsSumM(f);
+ if(!m.G.length)return'<p class="m13s" style="max-width:none">No 13th Month Pay amounts yet. Enter the No. of Days and the summary appears here.</p>';
+ return `<table class="cx-t" style="min-width:0;max-width:640px"><thead><tr><th>Class / Name</th><th class="n">Amount</th></tr></thead><tbody>${m.G.map(g=>`<tr class="m13-sec"><td colspan="2"><span class="m13-stk">${esc(g.k||'No class')} <small>· ${g.L.length} employee${g.L.length===1?'':'s'}</small></span></td></tr>${g.L.map(x=>`<tr><td style="padding-left:22px">${esc(x.n)}</td><td class="n">${fm(x.a)}</td></tr>`).join('')}<tr class="m13-sub"><td><span class="m13-stk">Total · ${esc(g.k||'No class')}</span></td><td class="n"><b>${fm(g.t)}</b></td></tr>`).join('')}</tbody><tfoot><tr><td><span class="m13-stk">Total Amount · ${m.n} employee${m.n===1?'':'s'}</span></td><td class="n"><b>${fm(m.tot)}</b></td></tr></tfoot></table><p id="gnCls_chk" class="m13s no-print" style="max-width:none;margin-top:8px">${gnClsSumChkH(m)}</p>`}
+function gnClsSumH(f){if(!gnIsBr(f))return'';
+ return `<datalist id="gn_clsl">${gnClsOpts(f).map(n=>`<option value="${esc(n)}">`).join('')}</datalist><div class="cx-card m13-cls" style="margin-top:14px"><h3 style="margin:0 0 4px">Summary by Class · ${esc(f.dept)}</h3><p class="m13s no-print" style="max-width:none;margin:0 0 10px">13th Month Pay per class. The Class of each employee is set in the Class column of the table.</p><div id="gnCls_b">${gnClsSumInner(f)}</div></div>`}
+function gnClsSumPaint(f){if(!gnIsBr(f))return;const b=$('gnCls_b');if(b)b.innerHTML=gnClsSumInner(f)}
+function gnClsSumChk(){const f=((M13S||{}).gen||{})[GD];if(!f||!gnIsBr(f))return;const c=$('gnCls_chk');if(c)c.innerHTML=gnClsSumChkH(gnClsSumM(f))}
+function gnClsList(dept,G){const s=new Set(),t=G[dept];if(t)gnGroups(t,1).forEach(g=>{if(g.title&&!g.st&&g.title!=='Less than 1 year')s.add(g.title)});else if(gnBrDept(dept)){gnBrAll().forEach(g=>s.add(g))}else{(PGO[dept]||[]).forEach(g=>s.add(g));(STF||[]).filter(x=>x.dept===dept).forEach(x=>{const g=pGrp(x);if(g)s.add(g)})}['Regular','Contractual','Probationary','Extra Regular','No 13th MP'].forEach(n=>s.add(n));return[...s]}
+function gnMvCls(r,t){gnClassApply(r,t);if(GN_STAT_NAMES.indexOf(String(t).trim().toLowerCase())<0)delete r.st}
+function gnMoveDept(){const{f}=gnRow($('gnmv').dataset.id),to=$('gnmv_d').value,G=gnAll(),same=to===f.dept;
+ $('gnmv_l').innerHTML=gnClsList(to,G).map(n=>`<option value="${esc(n)}">`).join('');
+ $('gnmv_h').textContent=same?'Same department: type or pick the new class (required).':'Optional. Leave blank to move without a class.'}
 function gnMoveOpen(id){const{f,r}=gnRow(id);if(!r)return;
- const G=gnAll(),all=[...new Set([...(STF||[]).map(x=>x.dept),...Object.keys(G)])].filter(x=>x&&x!==f.dept).sort();
- if(!all.length)return toast('There is no other department.');
- const d=ovl('gnmv');
- d.innerHTML=`<div style="${BX};max-width:460px"><h2 style="margin:0 0 4px">Move employee</h2><p class="sub" style="font-size:13.5px;margin:0 0 14px"><b>${esc(r.name)}</b> \u00B7 now in ${esc(f.dept)}. The employee leaves this form and goes to the 13th Month form of the department you choose.</p>
- <label>Move to department<select id="gnmv_d" class="fi">${all.map(x=>`<option value="${esc(x)}">${esc(x)}${G[x]?'':' (new form)'}</option>`).join('')}</select></label>
- <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn" data-id="${esc(id)}" onclick="gnMoveGo(this.dataset.id)">Move</button><button class="btn o" onclick="$('gnmv').remove()">Cancel</button></div></div>`}
-function gnMoveGo(id){const{f,r}=gnRow(id);if(!r)return;const to=$('gnmv_d')&&$('gnmv_d').value,G=gnAll();if(!to||to===f.dept)return;
+ const G=gnAll(),all=[...new Set([f.dept,...(STF||[]).map(x=>x.dept),...Object.keys(G)])].filter(Boolean).sort(),
+  st=gnStat(r),cur=st!=='reg'?((GST.find(x=>x[0]===st)||[])[1]||''):(r.grp||(((STF||[]).find(x=>String(x.id)===String(r.id))&&pGrp((STF||[]).find(x=>String(x.id)===String(r.id))))||'')),
+  def=all.find(x=>x!==f.dept)||f.dept;
+ const d=ovl('gnmv');d.dataset.id=id;
+ d.innerHTML=`<div style="${BX};max-width:460px"><h2 style="margin:0 0 4px">Move employee</h2><p class="sub" style="font-size:13.5px;margin:0 0 14px"><b>${esc(r.name)}</b> \u00B7 now in ${esc(f.dept)}${cur?' \u00B7 class: <b>'+esc(cur)+'</b>':''}. Move to another department\u2019s 13th Month form, or stay in ${esc(f.dept)} and change only the class.</p>
+ <label>Move to department<select id="gnmv_d" class="fi" onchange="gnMoveDept()">${all.map(x=>`<option value="${esc(x)}"${x===def?' selected':''}>${esc(x)}${x===f.dept?' (this form \u2013 change class only)':(G[x]?'':' (new form)')}</option>`).join('')}</select></label>
+ <label style="display:block;margin-top:12px">Class<input id="gnmv_c" class="fi" list="gnmv_l" placeholder="Class (pick or type a new one)" autocomplete="off"></label><datalist id="gnmv_l"></datalist><div id="gnmv_h" class="sub" style="font-size:12.5px;margin-top:4px"></div>
+ <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn" data-id="${esc(id)}" onclick="gnMoveGo(this.dataset.id)">Move</button><button class="btn o" onclick="$('gnmv').remove()">Cancel</button></div></div>`;
+ gnMoveDept()}
+function gnMoveGo(id){const{f,r}=gnRow(id);if(!r)return;const to=$('gnmv_d')&&$('gnmv_d').value,cl=String(($('gnmv_c')||{}).value||'').trim(),G=gnAll();if(!to)return;
+ if(to===f.dept){if(!cl)return toast('Type or pick the new class.');gnMvCls(r,cl);m13Mark();$('gnmv').remove();gnDraw();return toast(r.name+' \u2192 class '+cl+' \u2714')}
+
  if(!G[to])G[to]={dept:to,basis:f.basis,days:f.days,dc:[],rows:[],late:[],at:Date.now()};
  const t=G[to];if(t.rows.some(x=>x.id===id)){$('gnmv').remove();return toast(r.name+' is already in '+to+'.')}
  const nd={};f.dc.forEach(k=>{const v=(r.d||{})[k.id];if(v===undefined)return;let m=t.dc.find(x=>x.l===k.l);if(!m){m={id:t.dc.some(x=>x.id===k.id)?'dc'+Date.now()+Math.floor(Math.random()*99):k.id,l:k.l};t.dc.push(m)}nd[m.id]=v});
- f.rows=f.rows.filter(x=>x.id!==id);r.d=nd;r.mv=f.dept;r.grp='';
+ f.rows=f.rows.filter(x=>x.id!==id);r.d=nd;r.mv=f.dept;r.grp='';if(cl)gnMvCls(r,cl);
  t.rows.push(r);t.rows.sort((a,b)=>String(a.name).localeCompare(String(b.name)));
- m13Mark();$('gnmv').remove();gnDraw();toast(r.name+' moved to '+to+' \u2714 \u00B7 open it from Generated forms')}
+ m13Mark();$('gnmv').remove();gnDraw();toast(r.name+' moved to '+to+(cl?' ('+cl+')':'')+' \u2714 \u00B7 open it from Generated forms')}
 function gnRem(id){const{f,r}=gnRow(id);if(!r)return;if(!confirm('Remove '+r.name+' from this 13th Month form?\n\nThe employee is not deleted from Payroll or 201 Files.'))return;f.rows=f.rows.filter(x=>x.id!==id);m13Mark();gnDraw()}
 function gnRebasis(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const bs=$('gn_rb').value;
  if(!confirm('Set the '+(bs==='old'?'OLD':'LATEST')+' rate for all '+f.rows.length+' employees?\n\nRates you typed by hand will be replaced.'))return;
@@ -5378,7 +5451,7 @@ function gnExport(){const f=((M13S||{}).gen||{})[GD];if(!f)return;
  try{const bl=gnXlsxBuild(f),a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='13th-Month-Pay-'+MY+'-'+String(f.dept).replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   logAct('Exported 13th month pay form (Excel)','13th Month Pay',MY+' \u00B7 '+f.dept);toast('Exported \u2714')}catch(e){console.error(e);toast('Excel export failed - saved as CSV instead.');gnExportCsv()}}
 function gnExportCsv(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const T=gnTot(f),H=['Name','Account No.','Rate','No. of Days','13th Month Pay','Mos. Worked','A/R','Vale',...f.dc.map(k=>k.l),'Net Pay','Remarks','Start Date','Comment'];
- const L=[];gnGroups(f).forEach(g=>{const G1=gnGroups(f).length>1||g.title;if(g.title)L.push([g.title]);g.rows.forEach(r=>L.push(((r)=>{const c=gnCalc(r,f);return[r.name,r.acct?'="'+r.acct+'"':'',gnRateD(r,f),r.days===''?'':pn(r.days),c.has?c.pay:'',(r.mi===''||r.mi==null?'':pn(r.mi)),r.ar===''?'':pn(r.ar),r.v===''?'':pn(r.v),...f.dc.map(k=>(r.d||{})[k.id]===undefined?'':pn(r.d[k.id])),c.has?c.net:'',r.rem||'',gnDS(r)?m13Long(gnDS(r)):'',gnCm(r)]})(r)));if(G1){const t=gnTot({rows:g.rows,dc:f.dc});L.push(['Subtotal'+(g.title?' - '+g.title:''),'','','',t.pay,'',t.ar,t.v,...f.dc.map(k=>t.d[k.id]),t.net,'','',''])}});
+ const L=[];gnGroups(f).forEach(g=>{const G1=gnGroups(f).length>1||g.title;if(g.title)L.push([g.title]);g.rows.forEach(r=>L.push(((r)=>{const c=gnCalc(r,f);return[r.name,r.acct?'="'+r.acct+'"':'',gnRateD(r,f),r.days===''?'':pn(r.days),c.has?c.pay:'',(r.mi===''||r.mi==null?'':pn(r.mi)),r.ar===''?'':pn(r.ar),r.v===''?'':pn(r.v),...f.dc.map(k=>(r.d||{})[k.id]===undefined?'':pn(r.d[k.id])),c.has?c.net:'',r.rem||'',gnDS(r)?m13Long(gnDS(r)):'',gnCm(r)]})(r)));if(G1){const t=gnTot({rows:g.rows,dc:f.dc,dept:f.dept});L.push(['Subtotal'+(g.title?' - '+g.title:''),'','','',t.pay,'',t.ar,t.v,...f.dc.map(k=>t.d[k.id]),t.net,'','',''])}});
  cxCsv('13th-Month-Pay-'+MY+'-'+String(f.dept).replace(/[^A-Za-z0-9]+/g,'_')+'.csv',[['13th Month Pay '+MY+' - '+f.dept],H,...L,['Total','','','',T.pay,'',T.ar,T.v,...f.dc.map(k=>T.d[k.id]),T.net,'','',''],...(()=>{const e=gnEntM(f),X=[[''],['Entries :']];e.ents.forEach(x=>{X.push([x.d,x.lb,'','',pn(x.deb),'',x.rd],...x.cr.map(z=>['',z.l,'','','',pn(z.a),z.rm]),['',x.bl,'','','',pn(x.bank),x.rb])});if(e.ents.length>1)X.push(['Total Bank','','','','',e.bank]);const g=gnSig(f);X.push([''],['Prepared By:','','Checked By:','','Approved By:'],[''],[g.prep[0],'',g.chk[0],'',g.apr[0]],[''],[g.prep[1],'','','',g.apr[1]]);return X})()]);
  logAct('Exported 13th month pay form','13th Month Pay',MY+' · '+f.dept);toast('Exported ✔')}
 function mExport(){const M=m13Model(),L=[];
@@ -5474,7 +5547,7 @@ function gnXlsxBuild(f){
  const TT=gnTot(f),GG=gnGroups(f),pnn=v=>pn(v),mx=GG.reduce((m,g)=>g.rows.reduce((q,r)=>Math.max(q,String(r.name||'').length),m),0),NMW=Math.min(54,Math.max(30,mx+6));
  row(span(1,6,'13th Month Pay '+MY+' - '+f.dept,st({fn:'Georgia',sz:18,b:1,col:NAVY})),28);
  row(span(1,10,'13th Month Pay = Rate \u00D7 No. of Days. Net Pay = 13th Month Pay \u2212 A/R \u2212 Vale \u2212 other deductions.',st({sz:10,col:MU})),18);
- row(span(1,10,'13th Month Pay: '+fm(TT.pay)+'     Net Pay: '+fm(TT.net)+'     Employees: '+TT.n,st({sz:11,b:1,col:NAVY})),22);
+ row(span(1,10,'13th Month Pay: '+fw(TT.pay)+'     Net Pay: '+fw(TT.net)+'     Employees: '+TT.n,st({sz:11,b:1,col:NAVY})),22);
  row({},8);
  const HD=st({b:1,sz:10,col:NAVY,fill:SOFT,bd:'h',v:'center',wrap:1}),HDR=st({b:1,sz:10,col:NAVY,fill:SOFT,bd:'h',h:'right',v:'center',wrap:1}),HDC=st({b:1,sz:10,col:NAVY,fill:SOFT,bd:'h',h:'center',v:'center',wrap:1}),
   HN=['Name','Account No.','Rate','No. of Days','13th Month Pay','Mos. Worked','A/R','Vale',...f.dc.map(k=>k.l),'Net Pay','Remarks','Start Date','Comment'],
@@ -5491,7 +5564,7 @@ function gnXlsxBuild(f){
    f.dc.forEach((k,x)=>{cl[9+x]=num((r.d||{})[k.id])});cl[9+DC]=c.has?{v:c.net,s:sNumB}:{v:undefined,s:sNum};
    cl[10+DC]={v:r.rem||undefined,s:sTx};cl[11+DC]={v:gnDS(r)?m13Long(gnDS(r)):undefined,s:sDt};cl[12+DC]={v:gnCm(r)||undefined,s:sTx};row(cl)});
   if(g.st==='no')row(span(1,NC,g.title+'  \u00B7  '+g.rows.length+' employee'+(g.rows.length===1?'':'s')+'  \u00B7  not counted in the totals',st({b:1,col:NAVY,fill:SF2,bd:'g'})),20);
-  else if(GG.length>1||g.title){const t=gnTot({rows:g.rows,dc:f.dc});tot('Subtotal'+(g.title?'  \u00B7  '+g.title:'')+'  \u00B7  '+g.rows.length+' employee'+(g.rows.length===1?'':'s'),t,{fill:SF2,bd:'g'})}});
+  else if(GG.length>1||g.title){const t=gnTot({rows:g.rows,dc:f.dc,dept:f.dept});tot('Subtotal'+(g.title?'  \u00B7  '+g.title:'')+'  \u00B7  '+g.rows.length+' employee'+(g.rows.length===1?'':'s'),t,{fill:SF2,bd:'g'})}});
  tot('Total  \u00B7  '+TT.n+' employee'+(TT.n===1?'':'s'),TT,{bd:'t'});
  if((f.late||[]).length){row({},10);row(span(1,NC,'Not included in 13th Month Pay '+MY+' (hired / started probationary October onward):',st({b:1,col:NAVY})),20);f.late.forEach(r=>row(span(1,NC,'\u2022 '+r.name+' \u2014 Hired / start: '+m13Long(r.hired),st({col:INK})),18))}
  {const eh=st({b:1,col:NAVY,fill:SOFT,bd:'h'}),ehr=st({b:1,col:NAVY,fill:SOFT,bd:'h',h:'right'}),ec=st({bd:'g'}),ecr=st({bd:'g',h:'right'}),en_=st({bd:'g',nf:MONEY,h:'right'}),eb=st({bd:'g',nf:MONEY,h:'right',b:1}),e=gnEntM(f),
@@ -5526,8 +5599,8 @@ function mXlsx(){const M=m13Model();if(!M.D.length)return toast('Nothing to expo
  const bl=m13XlsxBuild(M),a=document.createElement('a');a.href=URL.createObjectURL(bl);
  a.download='13th-Month-Pay-'+MY+(MD!=='all'?'-'+String(MD).replace(/[^A-Za-z0-9]+/g,'_'):'')+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
  logAct('Exported 13th month pay (Excel)','13th Month Pay',MY);toast('Exported \u2714')}
-const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['act','Activity']];
-const ROLES={admin:['Admin','Full access, including Users & Access',['req','sub','emp','pay','addc','m13','mg','tmk','tma','tmp','mgp','mge','act']],hr:['HR Staff','Requests, 201 Files, Timemark Check, Activity',['req','sub','emp','tmk','act']],payroll:['Payroll','Request Form, Payroll, Additional Compensation, 13th Month Pay and Monthly Gross',['req','pay','addc','m13','mg']],staff:['Staff','Request Form only',['req']]};
+const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['att','Attendance'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['act','Activity']];
+const ROLES={admin:['Admin','Full access, including Users & Access',['req','sub','emp','pay','att','addc','m13','mg','tmk','tma','tmp','mgp','mge','act']],hr:['HR Staff','Requests, 201 Files, Timemark Check, Activity',['req','sub','emp','tmk','act']],payroll:['Payroll','Request Form, Payroll, Attendance, Additional Compensation, 13th Month Pay and Monthly Gross',['req','pay','att','addc','m13','mg']],staff:['Staff','Request Form only',['req']]};
 let MYA=null,ACC=false,UL=null;
 const can0=k=>SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||(k!=='usr'&&(MYA.pages||[]).includes(k))))||(!MYA&&k==='req');const can=k=>k==='mg'?(can0('mg')||can0('pay')):k==='ben'?can0('emp'):can0(k);
 /* Management department: only users with the special permission can see it (Payroll / 201 Files / Monthly Gross history) */
@@ -5885,6 +5958,7 @@ function drawU(){uDirty=false;
  ${u.signed_up_at?`<div class="ux-meta"><span>${UI.cal} Signed up ${esc(new Date(u.signed_up_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}))}</span>${u.confirmed_at?`<span class="ux-ok">${UI.ok} Email confirmed</span>`:`<span class="ux-wait">${UI.clock} Email not confirmed yet</span>`}</div>`:''}</div>
  <div class="ux-rolebox"><span class="ux-lbl">Role</span><select class="ux-sel" id="ur_${i}" ${self?'disabled':''} onchange="uRole(${i})">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}"${u.role===k?' selected':''}>${v[0]}</option>`).join('')}</select></div></div>
  <div class="ux-sec"><span class="ux-lbl">Pages this user can view</span><div class="ux-chips">${PGS.map(([k,l])=>`<label class="ux-chip"><input type="checkbox" id="up_${i}_${k}"${ad||(u.pages||[]).includes(k)?' checked':''}${self||ad?' disabled':''}> ${l}</label>`).join('')}</div></div>
+ <div class="ux-sec"><span class="ux-lbl">Attendance: departments this user can open &amp; edit <small style="font-weight:400">(none ticked = all departments)</small></span><div class="ux-chips" id="uad_${i}">${attDeptChips(u.pages||[],self||ad)}</div></div>
  <div class="ux-ft"><label class="ux-sw"><input type="checkbox" id="ua_${i}"${u.active?' checked':''}${self?' disabled':''}><i></i><span>Account active</span></label>${self?`<span class="ux-note">${UI.lock} You can't change your own access.</span>`:`<div class="ux-ac"><button class="ux-b" onclick="uPw(${i})">${UI.key} Set password</button><button class="ux-b" onclick="uReset(${i})">${UI.mail} Send reset link</button><button class="ux-b danger" onclick="uDel(${i})">${UI.trash} Delete</button><button class="btn sm ux-save" onclick="uSave(${i})">Save changes</button></div>`}</div></div>`};
  const nAct=UL.filter(u=>u.active).length,nAdm=UL.filter(u=>u.role==='admin').length,nPen=UL.filter(u=>u.signed_up_at&&!u.confirmed_at).length;
  $('main').innerHTML=`<div class="ux-wrap"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap"><h1>Users &amp; Access</h1><button class="btn" onclick="uNew()" style="margin-top:6px">+ Create user</button></div><p class="ux-lead">Choose a role and the pages each user can view. Use <b>Create user</b> to add an account yourself, or wait for people to sign up on their own.</p>
@@ -5920,13 +5994,14 @@ function uNew(){if(!isAdm())return toast('Only an admin can create users.');uNew
  <label>Role<select id="un_r" class="fi" onchange="uNewRole()">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}"${k==='staff'?' selected':''}>${v[0]} - ${esc(v[1])}</option>`).join('')}</select></label>
  <div style="margin:10px 0 4px;font-weight:600;font-size:13px">Pages this user can view</div>
  <div class="ux-chips" id="un_pg">${PGS.map(([k,l])=>`<label class="ux-chip"><input type="checkbox" id="un_p_${k}"${ROLES.staff[2].includes(k)?' checked':''}> ${l}</label>`).join('')}</div>
+ <div style="margin:10px 0 4px;font-weight:600;font-size:13px">Attendance departments <small style="font-weight:400">(none ticked = all)</small></div><div class="ux-chips" id="uad_new">${attDeptChips([],false)}</div>
  <div id="un_err" style="color:#b3392f;font-size:13px;margin:10px 0 0;min-height:18px" role="alert"></div>
  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px"><button class="btn o" type="button" onclick="uNewClose()">Cancel</button><button class="btn" type="button" id="un_s" onclick="uNewSave()">Create user</button></div></div>`;
  document.body.appendChild(o);setTimeout(()=>$('un_n').focus(),50)}
 function uNewRole(){const r=$('un_r').value;PGS.forEach(([k])=>{const c=$('un_p_'+k);c.checked=ROLES[r][2].includes(k);c.disabled=r==='admin'})}
 async function uNewSave(){
  const er=m=>{$('un_err').textContent=m},n=$('un_n').value.replace(/[\u0000-\u001f<>]/g,'').replace(/\s+/g,' ').trim(),e=$('un_e').value.trim().toLowerCase(),pw=$('un_p').value,role=$('un_r').value,
-  pages=role==='admin'?ROLES.admin[2]:PGS.map(([k])=>k).filter(k=>$('un_p_'+k).checked);
+  pages=role==='admin'?ROLES.admin[2]:PGS.map(([k])=>k).filter(k=>$('un_p_'+k).checked).concat(attDeptSel('uad_new'));
  er('');if(!isAdm())return er('Only an admin can create users.');
  if(n.length<2)return er('Enter the full name.');if(!okE(e))return er('Invalid email address.');if(pw.length<8)return er('Password must be at least 8 characters.');
  if((UL||[]).some(u=>String(u.email).toLowerCase()===e))return er('This email already has an account.');
@@ -5948,8 +6023,8 @@ async function uNewSave(){
  catch(x){b.disabled=false;b.textContent='Create user';er(nice(x))}}
 function uFind(q){UF.q=q.toLowerCase();uApply()}
 function uRole(i){const r=$('ur_'+i).value,pg=ROLES[r][2];PGS.forEach(([k])=>{const c=$(`up_${i}_${k}`);c.checked=pg.includes(k);c.disabled=r==='admin'})}
-async function uSave(i){const u=UL[i],role=$('ur_'+i).value,active=$('ua_'+i).checked,pages=role==='admin'?ROLES.admin[2]:PGS.map(([k])=>k).filter(k=>$(`up_${i}_${k}`).checked);
- if(!confirm('Save access changes for '+u.email+'?\nRole: '+ROLES[role][0]+'\nPages: '+(pages.map(k=>PGS.find(x=>x[0]===k)[1]).join(', ')||'none')+'\nActive: '+(active?'Yes':'No')))return;
+async function uSave(i){const u=UL[i],role=$('ur_'+i).value,active=$('ua_'+i).checked,pages=role==='admin'?ROLES.admin[2]:PGS.map(([k])=>k).filter(k=>$(`up_${i}_${k}`).checked).concat(attDeptSel('uad_'+i));
+ if(!confirm('Save access changes for '+u.email+'?\nRole: '+ROLES[role][0]+'\nPages: '+(pages.filter(k=>PGS.find(x=>x[0]===k)).map(k=>PGS.find(x=>x[0]===k)[1]).join(', ')||'none')+(pages.some(k=>String(k).indexOf('attd:')===0)?'\nAttendance departments: '+pages.filter(k=>String(k).indexOf('attd:')===0).map(k=>k.slice(5)).join(', '):'')+'\nActive: '+(active?'Yes':'No')))return;
  try{await api('/rest/v1/hrd_access?user_id=eq.'+u.user_id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({role,pages,active,updated_at:new Date().toISOString()})});
   Object.assign(u,{role,pages,active});logAct('Changed user access','Users',u.email+' → '+ROLES[role][0]+(active?'':' (disabled)'));toast('Saved ✔');drawU()}
  catch(x){alert('Could not save: '+x.message)}}
@@ -8081,9 +8156,246 @@ body.m13fv #xmasfx,body.m13fv #xmaslt{display:none!important}
 </script>
 <script>
 /* build 599: one-time clean of old service-worker caches so the new files are used */
-(function(){try{var B='614';if(localStorage.getItem('hrd_build')===B)return;localStorage.setItem('hrd_build',B);if(localStorage.getItem('hrd_build')!==B)return;
+(function(){try{var B='620';if(localStorage.getItem('hrd_build')===B)return;localStorage.setItem('hrd_build',B);if(localStorage.getItem('hrd_build')!==B)return;
 var p=[];if(window.caches&&caches.keys)p.push(caches.keys().then(function(k){return Promise.all(k.map(function(n){return caches.delete(n)}))}));
 if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}));
 Promise.all(p).then(function(){if(p.length)location.reload()}).catch(function(){})}catch(e){}})();
+</script>
+<script>
+/* ===== ATTENDANCE: one sheet per department + cutoff. Saved in its own Supabase table hrd_attendance (name = "_att|DEPT|from|to"). Run the attendance SQL once. ===== */
+(function(){
+const KP='_att|';
+const A={v:'list',key:'',sd:'',sf:'',st:'',f:'all'};
+let T=0,DIRTY=false,PUSHING=false,SNAP={};
+const ATD=window.ATD={};const sj=o=>JSON.stringify(o);
+try{const o=JSON.parse(localStorage.getItem('hrd_att')||'{}');if(o&&typeof o==='object')Object.assign(ATD,o)}catch(e){}
+const cache=()=>{try{localStorage.setItem('hrd_att',sj(ATD))}catch(e){}};
+async function load(){if(!SES.tok)return;
+ try{const rows=await api('/rest/v1/hrd_attendance?select=name,data');if(!Array.isArray(rows))throw new Error('bad response');
+  const R={};rows.forEach(r=>{if(r&&r.name&&r.data&&Array.isArray(r.data.emps))R[r.name]=r.data});
+  let dirty=false;try{dirty=localStorage.getItem('hrd_att_dirty')==='1'}catch(e){}
+  const keep=dirty?Object.assign({},ATD):{};Object.keys(ATD).forEach(k=>delete ATD[k]);Object.assign(ATD,R);if(dirty)Object.assign(ATD,keep);
+  SNAP=Object.fromEntries(Object.keys(R).map(k=>[k,sj(R[k])]));cache();if(dirty)await push()}
+ catch(e){toast('Attendance could not load from Supabase ('+(e.message||'error')+'). Run the attendance SQL, then reload. Showing the copy saved on this device.')}}
+async function push(){const up=Object.keys(ATD).filter(k=>sj(ATD[k])!==SNAP[k]),del=Object.keys(SNAP).filter(k=>!(k in ATD));
+ if(!up.length&&!del.length){try{localStorage.removeItem('hrd_att_dirty')}catch(e){}return true}
+ try{if(up.length)await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:sj(up.map(k=>({name:k,data:ATD[k],updated_at:new Date().toISOString()})))});
+  for(const k of del)await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(k),{method:'DELETE',headers:{Prefer:'return=minimal'}});
+  up.forEach(k=>{SNAP[k]=sj(ATD[k])});del.forEach(k=>{delete SNAP[k]});try{localStorage.removeItem('hrd_att_dirty')}catch(e){}return true}
+ catch(e){try{localStorage.setItem('hrd_att_dirty','1')}catch(x){}toast('Attendance saved on this device only ('+(e.message||'sync failed')+'). Run the attendance SQL in Supabase.');return false}}
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const dt0=s=>new Date(s+'T00:00:00');
+const lab=(f,t)=>{try{return pLabOf(f,t).replace(/[A-Z]{2,}/g,w=>w[0]+w.slice(1).toLowerCase())}catch(e){return f+' → '+t}};
+let W=null,UNS=false;const S=()=>W;const clone=o=>JSON.parse(JSON.stringify(o));
+const who=()=>{try{return(MYA&&MYA.full_name)||((ME&&ME.user_metadata)||{}).full_name||(ME&&ME.email)||''}catch(e){return''}};
+const allKeys=()=>Object.keys(ATD||{}).filter(k=>k.indexOf(KP)===0&&ATD[k]&&Array.isArray(ATD[k].emps));
+const allowed=()=>{if(SUPER||(MYA&&MYA.role==='admin'))return null;const a=((MYA&&MYA.pages)||[]).filter(x=>String(x).indexOf('attd:')===0).map(x=>String(x).slice(5));return a.length?a:null};
+const okD=d=>{const a=allowed();return!a||a.includes(d)};
+const folders=()=>{try{return pFolders().filter(okD)}catch(e){return[]}};
+window.attDeptChips=(pg,dis)=>{let F=[];try{F=pFolders()}catch(e){}return F.map(f=>`<label class="ux-chip"><input type="checkbox" class="uad" data-d="${esc(f)}"${(pg||[]).includes('attd:'+f)?' checked':''}${dis?' disabled':''}> ${esc(f)}</label>`).join('')};
+window.attDeptSel=id=>[...document.querySelectorAll('#'+id+' .uad:checked')].map(c=>'attd:'+c.dataset.d);
+const dayList=sh=>{const o=[],a=dt0(sh.from),b=dt0(sh.to);if(isNaN(a)||isNaN(b))return o;for(const x=new Date(a);x<=b&&o.length<62;x.setDate(x.getDate()+1))o.push(iso(x));return o};
+const getC=(sh,k,d,mk)=>{const r=sh.d[k]||(mk?(sh.d[k]={}):null);if(!r)return null;return r[d]||(mk?(r[d]={v:'',t:'',c:''}):null)};
+const tidy=(sh,k,d)=>{const r=sh.d[k];if(!r||!r[d])return;const c=r[d];if((c.v===''||c.v==null)&&!c.t&&!c.c)delete r[d];if(!Object.keys(r).length)delete sh.d[k]};
+
+/* ---------- save ---------- */
+function stat(m){const e=$('atst');if(e)e.textContent=m}
+function sv(){if(!W)return;UNS=true;stat('● Unsaved changes')}
+/* Nothing is written until the user presses Save. Saved sheets belong to the department + cutoff (not to a user account), so they stay in the history even if a user account is deleted. */
+async function commit(){const w=W;if(!w)return false;w.upd=new Date().toISOString();w.by=who();if(!w.cr)w.cr=w.upd;ATD[A.key]=clone(w);cache();try{localStorage.setItem('hrd_att_dirty','1')}catch(e){}
+ PUSHING=true;stat('Saving…');let ok=false;try{ok=await push()}finally{PUSHING=false}UNS=false;stat(ok?'✔ Saved':'Saved on this device only');try{logAct('Saved attendance','Attendance',w.dept+' — '+lab(w.from,w.to))}catch(e){}return ok}
+window.atSave=async()=>{if(!W)return;if(!UNS)return toast('No changes to save.');if(!confirm('Save the attendance of '+W.dept+' for '+lab(W.from,W.to)+'?'))return;const ok=await commit();if(ok)toast('Attendance saved ✔')};
+function leave(cont){if(!UNS||!W){cont();return}const d=ovl('atlv');
+ d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 6px">Unsaved changes</h3><div class="sub" style="margin:0 0 14px;font-size:13.5px">You have not saved the attendance of <b>${esc(W.dept)}</b> (${esc(lab(W.from,W.to))}). What would you like to do?</div><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn o sm" onclick="$('atlv').remove()">Keep editing</button><button class="btn dl sm" id="atlv_d">Don't save</button><button class="btn ok sm" id="atlv_s">Save</button></div></div>`;
+ $('atlv_d').onclick=()=>{UNS=false;W=null;$('atlv').remove();cont()};
+ $('atlv_s').onclick=async()=>{$('atlv_s').disabled=true;await commit();const o=$('atlv');if(o)o.remove();cont()}}
+window.attUns=()=>UNS&&!!W;window.attLeave=leave;
+addEventListener('beforeunload',e=>{if(UNS&&W){e.preventDefault();e.returnValue=''}});
+
+/* ---------- names + rates from the latest saved payroll of the department ---------- */
+function latestPay(dept){return(PH||[]).filter(p=>p.data&&pFo(p.data)===dept).sort((a,b)=>String(b.data.to||'').localeCompare(String(a.data.to||''))||String(b.created_at).localeCompare(String(a.created_at)))[0]||null}
+function empFrom(s,dept,h,m){const d=h?h.data:null,id=String(s.id);
+ let rate=d&&d.rates&&d.rates[s.id]!=null?pn(d.rates[s.id]):(pn(s.rate)||pn((PIDX[s.dept+'|'+pNm(s.name)]||[])[0]));
+ let pd=m!=='g';
+ if(m==='g'){try{const k=pEk(s),gpd=d&&d.gpd,gpe=d&&d.gpe;pd=d?(!gpd?false:(gpe&&gpe[k]!=null?!!gpe[k]:(Object.prototype.hasOwnProperty.call(gpd,pGKey(s))?!!gpd[pGKey(s)]:!!pGpdDef(s)))):!!pGpdDef(s)}catch(e){pd=false}}
+ const rw=d&&d.rows&&d.rows[s.id],fd=pn(rw&&rw.fd)>0?pn(rw.fd):(pn(d&&d.fd)>0?pn(d.fd):7);
+ let c='';try{c=pGrp(s)||''}catch(e){}
+ return{k:id,n:s.name,r:rate,c:c||dept,pd:pd?1:0,fd}}
+function buildEmps(dept,have){const h=latestPay(dept),d=h?h.data:null,C=(typeof PCFG!=='undefined'&&PCFG[dept])||{};let m=(d&&d.m)||C.m||'r';if(isMg(dept))m='r';
+ let L;if(d&&d.rates)L=Object.keys(d.rates).map(id=>(STF||[]).find(s=>String(s.id)===String(id))).filter(Boolean);else L=(STF||[]).filter(s=>s.dept===dept);
+ const ord=(typeof PGO!=='undefined'&&PGO[dept])||[],ix=g=>{const k=ord.indexOf(g);return k<0?99:k};
+ let E=L.map(s=>empFrom(s,dept,h,m)).filter(e=>!have||!have.has(e.k));
+ E.sort((a,b)=>ix(a.c)-ix(b.c)||a.n.localeCompare(b.n));return{E,m}}
+
+/* ---------- totals (same formula as the payroll form) ---------- */
+function tot(sh,e){let pr=0,vl=0,sl=0,np=0,any=false;const r=sh.d[e.k]||{};Object.keys(r).forEach(dt=>{const c=r[dt];if(!c)return;const v=+c.v||0;if((c.v!==''&&c.v!=null)||c.t)any=true;if(c.t==='VL')vl+=v;else if(c.t==='SL')sl+=v;else if(c.t==='VLN'||c.t==='SLN')np+=v;else pr+=v});
+ const days=pr+(sh.vp?vl+sl:0),f=e.fd>0?e.fd:7;return{pr,vl,sl,np,days,any,amt:!any?0:(e.pd?r2(pn(e.r)*days):r2(pn(e.r)/f*days))}}
+const nf=n=>String(Math.round(n*100)/100);
+
+/* ---------- styles ---------- */
+const css=document.createElement('style');css.textContent=`
+.atw{overflow:auto;border:1px solid var(--ln);border-radius:12px;background:var(--sf);max-height:calc(100vh - 250px)}
+table.at{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:13.5px;color:var(--ink)}
+table.at th,table.at td{border-bottom:1px solid var(--ln);border-right:1px solid var(--ln);padding:6px;vertical-align:middle;background:var(--sf)}
+table.at thead th{position:sticky;top:0;z-index:3;background:var(--sf2);font-weight:600;text-align:center;font-size:12.5px}
+table.at .sn{position:sticky;left:0;z-index:2;min-width:165px;max-width:200px;text-align:left}
+table.at thead .sn{z-index:4}
+table.at .sr{min-width:104px}
+table.at .sd,table.at .sa{text-align:right;min-width:72px;white-space:nowrap}table.at .sa{min-width:104px}table.at .rm{min-width:130px}
+table.at tr.atg td{background:var(--soft);font-weight:700;color:var(--h);padding:7px 10px}
+table.at tr.atg td>div{position:sticky;left:10px;display:flex;gap:10px;align-items:center;width:max-content}
+.atc{min-width:76px;width:76px;text-align:center}
+.ati{display:flex;flex-direction:column;gap:3px;align-items:center}
+.atv{width:64px;text-align:center;padding:5px 2px;border:1px solid var(--ln2);border-radius:6px;background:transparent;color:inherit;font:inherit;-moz-appearance:textfield;appearance:textfield}
+.atv::-webkit-outer-spin-button,.atv::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.att{width:64px;padding:4px 2px;border:1px solid var(--ln2);border-radius:6px;background:transparent;color:inherit;font:inherit;font-size:12.5px}
+.atm{border:0;background:none;cursor:pointer;font-size:12px;opacity:.3;padding:2px 6px;line-height:1}
+.atm:hover{opacity:.8}.atm.has{opacity:1;background:rgba(184,146,58,.25);border-radius:6px}
+table.at td.atc.p1{background:rgba(22,163,74,.13)}
+table.at td.atc.tVL{background:rgba(37,99,235,.20)}
+table.at td.atc.tSL{background:rgba(234,88,12,.22)}
+table.at td.atc.tNP{background:rgba(107,114,128,.25)}
+.atc.tNP .att,.atc.tNP .atv{color:#6b7280;font-weight:700;border-color:#6b7280;border-style:dashed}
+.atc.tVL .att,.atc.tVL .atv{color:#2563eb;font-weight:700;border-color:#2563eb}
+.atc.tSL .att,.atc.tSL .atv{color:#ea580c;font-weight:700;border-color:#ea580c}
+.atc.p1 .atv{border-color:#16a34a;font-weight:700}
+.atx{border:0;background:none;cursor:pointer;color:var(--mu);font-size:13px;padding:0 4px}.atx:hover{color:#c0392b}
+.atq{border:1px solid var(--ln2);background:transparent;color:var(--lk);border-radius:6px;cursor:pointer;font-size:11px;padding:1px 6px;margin-top:2px}
+.atq:hover{background:var(--soft)}.atq.atrm{color:#c0392b;border-color:#c0392b66}.atq.atrm:hover{background:#c0392b18}
+.atl{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;flex-wrap:wrap}
+.atl i{font-style:normal;padding:1px 8px;border-radius:10px;font-weight:700;float:none;font-size:12px}
+.atl .a1{background:rgba(22,163,74,.2);color:#16a34a}.atl .a2{background:rgba(37,99,235,.2);color:#2563eb}.atl .a3{background:rgba(234,88,12,.22);color:#ea580c}.atl .a4{background:rgba(107,114,128,.25);color:#6b7280}
+.atbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.atbox{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:14px;padding:18px;width:min(460px,100%);max-height:92vh;overflow:auto}
+.atbox label{display:block;font-size:13px;margin:10px 0 0;color:var(--mu)}
+.atbox .fi{width:100%;margin-top:4px}
+.atsm{font-size:11.5px;color:var(--mu);display:block;font-weight:400}
+.atpr{display:none}
+table.at tr.atsub td{background:var(--soft);font-weight:700;color:var(--h)}
+table.at tr.atgt td{background:var(--h);color:#fff;font-size:14.5px}
+table.at tr.atgt .sn{background:var(--h)}
+@media print{table.at .atm,.atq,.atx,.att,.atrmi,table.at tr.atg .btn{display:none!important}.atw{max-height:none;overflow:visible;border:0}
+.atpr{display:block;font-size:11px;font-weight:700;line-height:1.2}.atpc{display:block;font-size:9px;font-weight:400;line-height:1.15;word-break:break-word;white-space:normal;color:#000}.atnotes{margin-top:12px;font-size:12px;font-weight:400}.atnotes b{font-weight:700}.atnotes div{margin:2px 0}
+table.at .sn,table.at thead th{position:static}table.at .atv,.at .fi{border:0!important;background:transparent!important}
+.tNP .atpr{color:#4b5563}.tVL .atpr{color:#2563eb}.tSL .atpr{color:#ea580c}
+body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+`;document.head.appendChild(css);
+
+/* ---------- main entry (called from the Attendance tab) ---------- */
+window.att=async function(){$('main').innerHTML='<h1>Attendance</h1><p class="sub">Loading…</p>';
+ await load();if(PG!=='att')return;
+ if(!Array.isArray(STF))await loadS();if(PG!=='att')return;
+ try{await loadH(1)}catch(e){}if(PG!=='att')return;
+ if(A.v==='sheet'&&!UNS)W=ATD[A.key]?clone(ATD[A.key]):null;
+ if(A.v==='sheet'&&!S())A.v='list';draw()};
+function draw(){if(A.v==='sheet'&&S()&&!okD(S().dept))A.v='list';A.v==='sheet'&&S()?drawSheet():A.v==='setup'?drawSetup():drawList()}
+
+/* ---------- list of saved attendance sheets ---------- */
+function drawList(){A.v='list';const F=folders(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`,
+ L=allKeys().map(k=>({k,s:ATD[k]})).filter(x=>F.includes(x.s.dept)&&(A.f==='all'||x.s.dept===A.f)).sort((a,b)=>String(b.s.to).localeCompare(String(a.s.to))||a.s.dept.localeCompare(b.s.dept)),
+ used=[...new Set(allKeys().map(k=>ATD[k].dept).filter(d=>F.includes(d)))];
+ $('main').innerHTML=`<h1>Attendance</h1><p class="sub">Click <b>+ New Attendance</b> to choose a department and cutoff. The names and rates are copied from that department's latest payroll.</p>
+<div class="pz-bar no-print"><button class="btn ok" onclick="atNew()">+ New Attendance</button></div>
+<div class="panel" style="max-width:none;margin:0"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px"><h3 style="margin:0;flex:1">Attendance sheets <span style="font-size:13px;color:#888;font-family:inherit">(${L.length})</span></h3>
+<label style="font-size:13px">Department <select class="fi" style="width:auto;margin:0 0 0 6px" onchange="atF(this.value)">${op('all','All departments',A.f==='all')}${used.map(d=>op(d,d,A.f===d)).join('')}</select></label></div>
+${L.length?`<div style="overflow-x:auto"><table class="hl"><tr><th>Department</th><th>Cutoff</th><th class="hlc">Employees</th><th>Last edited</th><th></th></tr>${L.map(({k,s})=>`<tr><td><span class="dp">${esc(s.dept)}</span></td><td><b>${esc(lab(s.from,s.to))}</b></td><td class="hlc"><span class="hln">${s.emps.length}</span></td><td>${s.upd?`<span class="hld">${new Date(s.upd).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}</span><span class="hlt">${new Date(s.upd).toLocaleTimeString('en-PH',{hour:'numeric',minute:'2-digit'})}</span>${s.by?`<span class="hlt">by ${esc(s.by)}</span>`:''}`:''}</td><td class="hla"><div class="hlb"><button class="btn o sm" data-k="${esc(k)}" onclick="atOpen(this.dataset.k)">Open</button><button class="btn dl sm" data-k="${esc(k)}" onclick="atDelSheet(this.dataset.k)">Delete</button></div></td></tr>`).join('')}</table></div>`:'<p class="empty" style="padding:8px">No attendance sheets yet. Click + New Attendance to create one.</p>'}</div>`}
+window.atF=v=>{A.f=v;drawList()};
+window.atOpen=k=>{if(!ATD[k]||!okD(ATD[k].dept))return toast('You do not have access to this department.');W=clone(ATD[k]);UNS=false;A.key=k;A.v='sheet';drawSheet();scrollTo(0,0)};
+window.atDelSheet=async k=>{const s=ATD[k];if(!s||!okD(s.dept))return;if(!confirm('Delete the attendance of '+s.dept+' for '+lab(s.from,s.to)+'?\n\nThis removes it from the attendance history for everyone. This cannot be undone.'))return;
+ delete ATD[k];if(A.key===k){A.key='';W=null;UNS=false}cache();try{localStorage.setItem('hrd_att_dirty','1')}catch(e){}await push();try{logAct('Deleted attendance','Attendance',s.dept+' — '+lab(s.from,s.to))}catch(e){}drawList()};
+
+/* ---------- new attendance: department + cutoff (same as the payroll setup) ---------- */
+function nextRange(dept){let last='';const h=latestPay(dept);if(h&&h.data.to)last=h.data.to;allKeys().forEach(k=>{const s=ATD[k];if(s.dept===dept&&s.to>last)last=s.to});const a=last?dt0(last):new Date();if(last)a.setDate(a.getDate()+1);a.setHours(0,0,0,0);const b=new Date(a);b.setDate(b.getDate()+6);return[iso(a),iso(b)]}
+window.atNew=()=>{A.v='setup';A.sd='';A.sf='';A.st='';drawSetup()};
+window.atBack=()=>leave(()=>{W=null;A.key='';drawList()});
+function drawSetup(){const F=folders(),n=STF.filter(s=>s.dept===A.sd).length;
+
+ $('main').innerHTML=`<h1>New Attendance</h1><p class="sub">Choose the department first, then set the cutoff period.</p>
+<div class="panel" style="max-width:none;margin:0"><div class="sx-hd"><h3 style="margin:0">Which department?</h3></div><p class="sub" style="margin:0 0 16px;font-size:13.5px">The names and rates are copied from the department's latest payroll.</p>
+<div class="sx-grid">${F.map(f=>{const c=STF.filter(s=>s.dept===f).length;return`<button class="sx-d${A.sd===f?' on':''}${c?'':' emp'}" data-f="${esc(f)}" onclick="atPickD(this.dataset.f)"><span class="ic">${esc(pIcon(f))}</span><span><b>${esc(f)}</b><small>${c?c+' employee'+(c>1?'s':''):'No employees yet'}</small></span></button>`}).join('')}</div></div>
+${A.sd?`<div class="panel sx-st" style="max-width:none;margin:16px 0 0"><h3 style="margin:0 0 4px">Select the cutoff</h3><p class="sub" style="margin:0 0 16px;font-size:13.5px">${n?n+' employee'+(n>1?'s':'')+' in <b>'+esc(A.sd)+'</b>.':'No employees in '+esc(A.sd)+' yet. You can add them on the next screen.'}</p>
+<div class="sx-dt"><div class="sx-f"><label for="atsf">From</label><input id="atsf" type="date" value="${esc(A.sf)}" oninput="atSetD('f',this.value)"></div><span class="sx-ar">→</span><div class="sx-f"><label for="atst2">To</label><input id="atst2" type="date" value="${esc(A.st)}" oninput="atSetD('t',this.value)"></div><button class="btn o sm" style="margin-bottom:6px" onclick="atWeek()" title="Set To = From + 6 days">7-day cutoff</button>
+</div>
+<div class="sx-pv"><small>Cutoff</small><b id="atsp">-</b></div><div id="atse" class="pz-note edit" style="display:none;margin:12px 0 0"></div></div>`:''}
+<div class="pz-bar sx-ft" style="margin:16px 0 0"><button class="btn o" onclick="atBack()">Cancel</button><span class="sum" id="atsum"></span><button class="btn ok" id="atsb" onclick="atCreate()" disabled>Create attendance →</button></div>`;atSync()}
+window.atPickD=f=>{A.sd=f;[A.sf,A.st]=nextRange(f);drawSetup()};
+window.atSetD=(k,v)=>{if(k==='f')A.sf=v;else A.st=v;atSync()};
+window.atWeek=()=>{if(!A.sf)return;const a=dt0(A.sf);if(isNaN(a))return;a.setDate(a.getDate()+6);A.st=iso(a);const i=$('atst2');if(i)i.value=A.st;atSync()};
+function atSync(){const bad=A.sf&&A.st&&A.sf>A.st,long=A.sf&&A.st&&!bad&&pDays(A.sf,A.st)>62,ok=A.sd&&A.sf&&A.st&&!bad&&!long,ex=ok?ATD[sk(A.sd,A.sf,A.st)]:null;
+ const p=$('atsp'),b=$('atsb'),e=$('atse'),m=$('atsum');if(p)p.textContent=A.sf&&A.st&&!bad?lab(A.sf,A.st):'-';if(b){b.disabled=!ok;b.textContent=ex?'Open existing attendance →':'Create attendance →'}
+ if(m)m.innerHTML=!A.sd?'Pick a department to continue.':ok?'<b>'+esc(A.sd)+'</b> · '+esc(lab(A.sf,A.st))+(pDays(A.sf,A.st)!==7?'<br><span style="color:#b0792a;font-weight:600">⚠ This cutoff is '+pDays(A.sf,A.st)+' day(s), not 7 days.</span>':''):'<b>'+esc(A.sd)+'</b> · choose the cutoff dates.';
+ if(e){e.style.display=bad||long||ex?'':'none';e.textContent=bad?'The From date must be on or before the To date.':long?'A cutoff can be at most 62 days.':ex?'An attendance for this department and cutoff already exists. It will be opened.':''}}
+const sk=(d,f,t)=>KP+d+'|'+f+'|'+t;
+window.atCreate=()=>{if(!A.sd||!A.sf||!A.st||A.sf>A.st)return;if(!okD(A.sd))return toast('You do not have access to this department.');const k=sk(A.sd,A.sf,A.st);
+ if(ATD[k]){atOpen(k);return toast('Opened the existing attendance.')}
+ const b=buildEmps(A.sd);W={dept:A.sd,from:A.sf,to:A.st,m:b.m,vp:1,emps:b.E,d:{},cr:new Date().toISOString()};
+ A.key=k;A.v='sheet';UNS=true;drawSheet();scrollTo(0,0);toast((b.E.length?b.E.length+' employee'+(b.E.length>1?'s':'')+' copied from the latest payroll. ':'No payroll yet for this department. Use + Add employee. ')+'Press Save to keep it.')};
+
+/* ---------- the attendance sheet ---------- */
+const dh=dt=>{const d=dt0(dt);return`<div style="font-size:14px">${d.getMonth()+1}/${d.getDate()}</div><div style="font-weight:500;color:var(--mu);font-size:11px">${d.toLocaleDateString('en',{weekday:'short'})}</div>`};
+const TL={VL:'VL',SL:'SL',VLN:'VL no pay',SLN:'SL no pay'};
+const prT=c=>c?((c.t?'<b>'+TL[c.t]+'</b>':'')+(c.c?'<span class="atpc">'+esc(c.c)+'</span>':'')):'';
+const cc=c=>c&&c.t==='VL'?'tVL':c&&c.t==='SL'?'tSL':c&&(c.t==='VLN'||c.t==='SLN')?'tNP':c&&(+c.v||0)>0?'p1':'';
+function cellH(sh,i,dt){const e=sh.emps[i],c=(sh.d[e.k]||{})[dt]||{};
+ return`<td class="atc ${cc(c)}" id="atc_${i}_${dt}"><div class="ati"><input class="atv" type="number" inputmode="decimal" step="0.5" min="0" value="${c.v===''||c.v==null?'':esc(c.v)}" oninput="atV(${i},'${dt}',this)" onkeydown="atKey(event,${i},'${dt}')" aria-label="Days"><select class="att" onchange="atT(${i},'${dt}',this)" aria-label="VL or SL" title="VL / SL (paid) · VL NP / SL NP = no pay (no credits left)"><option value="">–</option><option value="VL"${c.t==='VL'?' selected':''}>VL</option><option value="SL"${c.t==='SL'?' selected':''}>SL</option><option value="VLN"${c.t==='VLN'?' selected':''}>VL NP</option><option value="SLN"${c.t==='SLN'?' selected':''}>SL NP</option></select><div class="atpr" id="atp_${i}_${dt}">${prT(c)}</div></div><button class="atm${c.c?' has':''}" id="atm_${i}_${dt}" onclick="atCm(${i},'${dt}')" title="${esc(c.c||'Add comment')}">💬</button></td>`}
+function sumH(sh,i){const e=sh.emps[i],t=tot(sh,e);return[`${t.any?nf(t.days):'-'}${t.vl||t.sl||t.np?`<span class="atsm">${[t.vl?'VL '+nf(t.vl):'',t.sl?'SL '+nf(t.sl):'',t.np?'No pay '+nf(t.np):''].filter(Boolean).join(' · ')}</span>`:''}`,t.any?fm(t.amt):'-']}
+function drawSheet(){const sh=S();if(!sh){return drawList()}A.v='sheet';const D=dayList(sh),w=$('atw'),sl=w?w.scrollLeft:0,st=w?w.scrollTop:0;
+ const ord=[];const G={};sh.emps.forEach((e,i)=>{(G[e.c]=G[e.c]||[]).push(i)});
+ const gk=Object.keys(G),ix=(typeof PGO!=='undefined'&&PGO[sh.dept])||[];gk.sort((a,b)=>{const x=ix.indexOf(a),y=ix.indexOf(b);return(x<0?99:x)-(y<0?99:y)});
+ const colN=D.length+5;if(!sh.rm)sh.rm={};
+ A.gs=[];const subR=(id,lbl,idx,cls)=>{A.gs.push({id,idx});const z=gsum(sh,idx);return`<tr class="atsub ${cls||''}"><td class="sn" colspan="2"><b>${esc(lbl)}</b></td><td colspan="${D.length}"></td><td class="sd" id="atgd_${id}"><b>${z[0]?nf(z[0]):'-'}</b></td><td class="sa" id="atga_${id}"><b>${z[1]?fm(z[1]):'-'}</b></td><td></td></tr>`};
+ let body='';gk.forEach((g,gi)=>{body+=`<tr class="atg"><td colspan="${colN}"><div><span>${esc(g)}</span><button class="btn o sm" data-c="${esc(g)}" onclick="atAdd(this.dataset.c)">+ Add employee</button></div></td></tr>`;
+  G[g].forEach(i=>{const e=sh.emps[i],s=sumH(sh,i);
+   body+=`<tr><td class="sn"><b>${esc(e.n)}</b><br><button class="atq" onclick="atFillRow(${i})" title="Put 1 on every empty day">✓ all days</button> <button class="atq atrm" onclick="atRemove(${i})" title="Remove this employee from this attendance">🗑 Remove</button></td>
+<td class="sr"><input class="atv" style="width:86px" type="number" step="any" min="0" value="${e.r||''}" oninput="atR(${i},this)" aria-label="Rate"><span class="atsm">${e.pd?'per day':'gross ÷ '+(e.fd>0?e.fd:7)}</span></td>${D.map(dt=>cellH(sh,i,dt)).join('')}<td class="sd" id="atd_${i}"><b>${s[0]}</b></td><td class="sa" id="ata_${i}"><b>${s[1]}</b></td><td class="rm"><input style="margin:0;width:100%;min-width:112px" value="${esc(sh.rm[e.k]||'')}" class="fi atrmi" oninput="atRm(${i},this)" placeholder="Remarks" aria-label="Remarks"><div class="atpr" style="font-weight:400" id="atrp_${i}">${esc(sh.rm[e.k]||'')}</div></td></tr>`});body+=subR('g'+gi,'Total · '+g,G[g])});
+ if(gk.length)body+=subR('all','GRAND TOTAL',sh.emps.map((_,i)=>i),'atgt');
+ const mg=sh.m==='g';
+ $('main').innerHTML=`<div class="atbar no-print"><button class="btn o sm" onclick="atBack()">← Back</button><h1 style="margin:0;font-size:24px">Attendance · ${esc(sh.dept)}</h1><span class="sub" style="margin:0">${esc(lab(sh.from,sh.to))}</span><span style="flex:1"></span><span id="atst" class="sub" style="margin:0;font-size:12.5px">${UNS?'● Unsaved changes':'✔ Saved'}</span><button class="btn ok" id="atsave" onclick="atSave()">💾 Save</button></div>
+<div class="atbar no-print"><button class="btn ok sm" onclick="atAdd('')">+ Add employee</button><button class="btn o sm" onclick="atSyncNames()" title="Add employees that are in the latest payroll but not in this attendance yet">↻ Sync names from payroll</button><button class="btn o sm" onclick="window.print()">🖨 Print</button>
+<label style="font-size:13px;display:inline-flex;gap:6px;align-items:center"><input type="checkbox" ${sh.vp?'checked':''} onchange="atVp(this.checked)"> VL / SL counts as a paid day</label>
+<span class="atl"><span>Legend:</span><i class="a1">1 present</i><i class="a2">VL</i><i class="a3">SL</i><i class="a4">VL / SL no pay (NP)</i><span style="color:var(--mu)">· type a number to edit (½ = 0.5) · 💬 = comment · ✓ on the date = all 1</span></span></div>
+<div class="atpr" style="font-size:16px;margin:0 0 6px">Attendance · ${esc(sh.dept)} · ${esc(lab(sh.from,sh.to))}</div><div class="atw" id="atw"><table class="at"><thead><tr><th class="sn">Name</th><th class="sr">${mg?'Rate / Gross':'Rate'}</th>${D.map(dt=>`<th class="atc">${dh(dt)}<br><button class="atq" onclick="atFillCol('${dt}')" title="Put 1 for everyone who is empty on this day">✓</button></th>`).join('')}<th class="sd">Total days</th><th class="sa">Total amount</th><th class="rm">Remarks</th></tr></thead><tbody>${body||`<tr><td colspan="${colN}" style="padding:24px;text-align:center;color:var(--mu)">No employees yet. Click + Add employee.</td></tr>`}</tbody></table></div><div class="atpr atnotes" id="atnotes"></div>`;upNotes();
+ const w2=$('atw');if(w2){w2.scrollLeft=sl;w2.scrollTop=st}}
+
+/* ---------- cell edits ---------- */
+function upCell(i,dt){const sh=S(),e=sh.emps[i],c=(sh.d[e.k]||{})[dt]||{},td=$('atc_'+i+'_'+dt),b=$('atm_'+i+'_'+dt);if(td)td.className='atc '+cc(c);{const p=$('atp_'+i+'_'+dt);if(p)p.innerHTML=prT(c)}upNotes();if(b){b.classList.toggle('has',!!c.c);b.title=c.c||'Add comment'}upRow(i)}
+function upNotes(){const sh=S(),el=$('atnotes');if(!sh||!el)return;const L=[];sh.emps.forEach(e=>{const r=sh.d[e.k]||{};Object.keys(r).sort().forEach(dt=>{if(r[dt].c){const d=dt0(dt);L.push(`<div><b>${esc(e.n)}</b> · ${d.getMonth()+1}/${d.getDate()}${r[dt].t?' ('+TL[r[dt].t]+')':''}: ${esc(r[dt].c)}</div>`)}})});
+ const R=sh.emps.filter(e=>sh.rm&&sh.rm[e.k]).map(e=>`<div><b>${esc(e.n)}</b>: ${esc(sh.rm[e.k])}</div>`);
+ el.innerHTML=(L.length?'<div style="font-weight:700;margin-bottom:2px">Comments</div>'+L.join(''):'')+(R.length&&L.length?'<div style="height:6px"></div>':'')+(R.length?'<div style="font-weight:700;margin-bottom:2px">Remarks</div>'+R.join(''):'')}
+function gsum(sh,idx){let d=0,a=0;idx.forEach(i=>{const t=tot(sh,sh.emps[i]);d+=t.days;a+=t.amt});return[d,r2(a)]}
+function upTot(){const sh=S();if(!sh||!A.gs)return;A.gs.forEach(g=>{const z=gsum(sh,g.idx),d=$('atgd_'+g.id),a=$('atga_'+g.id);if(d)d.innerHTML='<b>'+(z[0]?nf(z[0]):'-')+'</b>';if(a)a.innerHTML='<b>'+(z[1]?fm(z[1]):'-')+'</b>'})}
+function upRow(i){const sh=S(),s=sumH(sh,i),d=$('atd_'+i),a=$('ata_'+i);if(d)d.innerHTML='<b>'+s[0]+'</b>';if(a)a.innerHTML='<b>'+s[1]+'</b>';upTot()}
+window.atV=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1),v=el.value;c.v=v===''?'':Math.max(0,+v||0);tidy(sh,e.k,dt);upCell(i,dt);sv()};
+window.atT=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1);c.t=el.value;if(c.t&&(c.v===''||c.v==null)){c.v=1;const inp=el.parentNode.querySelector('.atv');if(inp)inp.value=1}tidy(sh,e.k,dt);upCell(i,dt);sv()};
+window.atR=(i,el)=>{const sh=S();sh.emps[i].r=Math.max(0,+el.value||0);upRow(i);sv()};
+window.atRm=(i,el)=>{const sh=S();if(!sh.rm)sh.rm={};const k=sh.emps[i].k;if(el.value.trim())sh.rm[k]=el.value;else delete sh.rm[k];const p=$('atrp_'+i);if(p)p.textContent=el.value;upNotes();sv()};
+window.atVp=on=>{const sh=S();sh.vp=on?1:0;sh.emps.forEach((_,i)=>upRow(i));sv()};
+window.atKey=(ev,i,dt)=>{if(ev.key!=='Enter')return;ev.preventDefault();const n=document.querySelector('#atc_'+(i+(ev.shiftKey?-1:1))+'_'+dt+' .atv');if(n){n.focus();n.select()}};
+window.atFillRow=i=>{const sh=S(),e=sh.emps[i];dayList(sh).forEach(dt=>{const c=getC(sh,e.k,dt,1);if((c.v===''||c.v==null)&&!c.t)c.v=1;tidy(sh,e.k,dt)});drawSheet();sv()};
+window.atFillCol=dt=>{const sh=S();sh.emps.forEach(e=>{const c=getC(sh,e.k,dt,1);if((c.v===''||c.v==null)&&!c.t)c.v=1;tidy(sh,e.k,dt)});drawSheet();sv()};
+window.atCm=(i,dt)=>{const sh=S(),e=sh.emps[i],c=(sh.d[e.k]||{})[dt]||{},d=ovl('atcm');
+ d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 2px">Comment</h3><div class="sub" style="margin:0;font-size:13px">${esc(e.n)} · ${esc(dt0(dt).toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'}))}</div><textarea id="atcmt" class="fi" rows="4" style="width:100%;margin-top:10px" placeholder="e.g. late, half day, overtime…">${esc(c.c||'')}</textarea>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn o sm" onclick="$('atcm').remove()">Cancel</button>${c.c?`<button class="btn dl sm" onclick="atCmSave(${i},'${dt}',1)">Remove</button>`:''}<button class="btn ok sm" onclick="atCmSave(${i},'${dt}')">Save</button></div></div>`;const t=$('atcmt');if(t)t.focus()};
+window.atCmSave=(i,dt,rm)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1);c.c=rm?'':($('atcmt').value||'').trim();tidy(sh,e.k,dt);const o=$('atcm');if(o)o.remove();upCell(i,dt);sv()};
+
+/* ---------- employees ---------- */
+window.atRemove=i=>{const sh=S(),e=sh.emps[i];if(!e||!confirm('Remove '+e.n+' from this attendance? Their days here will be deleted.'))return;delete sh.d[e.k];if(sh.rm)delete sh.rm[e.k];sh.emps.splice(i,1);drawSheet();sv()};
+window.atSyncNames=()=>{const sh=S(),have=new Set(sh.emps.map(e=>e.k)),b=buildEmps(sh.dept,have);if(!b.E.length)return toast('Already up to date. Nobody is missing.');b.E.forEach(e=>sh.emps.push(e));drawSheet();sv();toast(b.E.length+' employee'+(b.E.length>1?'s':'')+' added from the latest payroll ✔')};
+window.atAdd=cls=>{const sh=S(),have=new Set(sh.emps.map(e=>e.k)),pool=(STF||[]).filter(s=>!have.has(String(s.id))).sort((a,b)=>a.dept.localeCompare(b.dept)||a.name.localeCompare(b.name)),
+ cl=[...new Set([...sh.emps.map(e=>e.c),...((typeof PGO!=='undefined'&&PGO[sh.dept])||[]),sh.dept])],d=ovl('atad');
+ d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 2px">Add employee</h3><div class="sub" style="margin:0;font-size:13px">${esc(sh.dept)} · ${esc(lab(sh.from,sh.to))}</div>
+<label>Existing employee (from any department)<select id="ata_s" class="fi" onchange="atAddPick(this.value)"><option value="">— New employee (type the name below) —</option>${pool.map(s=>`<option value="${esc(s.id)}">${esc(s.name)} — ${esc(s.dept)}</option>`).join('')}</select></label>
+<label>Name<input id="ata_n" class="fi" placeholder="LAST NAME, FIRST NAME"></label>
+<label>Class / group<input id="ata_c" class="fi" list="ata_cl" value="${esc(cls||'')}" placeholder="${esc(sh.dept)}"><datalist id="ata_cl">${cl.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></label>
+<label>Rate type<select id="ata_t" class="fi"><option value="1"${sh.m!=='g'?' selected':''}>Per day (rate × days)</option><option value="0"${sh.m==='g'?' selected':''}>Gross salary (gross ÷ days divisor × days)</option></select></label>
+<label>Rate / gross<input id="ata_r" class="fi" type="number" step="any" min="0" placeholder="0.00"></label>
+<label>Days divisor (for gross)<input id="ata_f" class="fi" type="number" step="1" min="1" value="7"></label>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn o sm" onclick="$('atad').remove()">Cancel</button><button class="btn ok sm" onclick="atAddSave()">Add</button></div></div>`};
+window.atAddPick=id=>{if(!id)return;const s=(STF||[]).find(x=>String(x.id)===String(id));if(!s)return;const sh=S(),e=empFrom(s,s.dept,latestPay(s.dept),sh.m);$('ata_n').value=s.name;$('ata_r').value=e.r||'';if(!$('ata_c').value)$('ata_c').value=sh.dept;$('ata_t').value=sh.m==='g'?'0':'1'};
+window.atAddSave=()=>{const sh=S(),sid=$('ata_s').value,s=sid?(STF||[]).find(x=>String(x.id)===String(sid)):null,n=($('ata_n').value||'').trim();if(!n)return alert('Please enter the employee name.');
+ const dup=sh.emps.find(e=>e.n.trim().toUpperCase()===n.toUpperCase());if(dup&&!confirm(n+' is already in this attendance. Add anyway?'))return;
+ sh.emps.push({k:s?String(s.id):'x'+Date.now().toString(36),n,r:Math.max(0,+$('ata_r').value||0),c:($('ata_c').value||'').trim()||sh.dept,pd:$('ata_t').value==='1'?1:0,fd:Math.max(1,+$('ata_f').value||7),x:1});
+ $('atad').remove();drawSheet();sv()};
+})();
 </script>
 </body></html>
