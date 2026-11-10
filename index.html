@@ -8361,7 +8361,7 @@ const hrx=()=>adm()||!!(MYA&&MYA.active&&MYA.role==='hr');
 const isLk=sh=>!!(sh&&sh.lk);
 const lkWhen=t=>{try{return new Date(t).toLocaleString('en-PH',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})}catch(e){return''}};
 const lkTxt=sh=>sh&&sh.lk?'Locked'+(sh.lk.by?' by '+sh.lk.by:'')+(sh.lk.at?' · '+lkWhen(sh.lk.at):''):'';
-const noEd=()=>{const sh=S();if(sh&&sh.lk){toast('🔒 This attendance is locked. View only. Ask an admin to unlock it.');return true}return false};
+const noEd=()=>{const sh=S();if(sh&&sh.lk){toast('🔒 This attendance is locked. View only. Ask an admin or HR staff to unlock it.');return true}return false};
 const folders=()=>{try{return pFolders().filter(okD)}catch(e){return[]}};
 window.attDeptChips=(pg,dis)=>{let F=[];try{F=pFolders()}catch(e){}return F.map(f=>`<label class="ux-chip"><input type="checkbox" class="uad" data-d="${esc(f)}"${(pg||[]).includes('attd:'+f)?' checked':''}${dis?' disabled':''}> ${esc(f)}</label>`).join('')};
 window.attDeptSel=id=>[...document.querySelectorAll('#'+id+' .uad:checked')].map(c=>'attd:'+c.dataset.d);
@@ -8457,6 +8457,14 @@ if(!window.__atPoll){window.__atPoll=setInterval(async()=>{
   const f=document.activeElement;if(f&&/^(INPUT|SELECT|TEXTAREA)$/.test(f.tagName))return;
   const key=A.key;ATD[key]=clone(row.data);SNAP[key]=sj(row.data);cache();W=clone(row.data);BASE=clone(row.data);drawSheet();toast(lkNew!==lkOld?(row.data.lk?'🔒 This attendance was locked'+(row.data.lk.by?' by '+row.data.lk.by:'')+'. It is now view only.':'🔓 This attendance was unlocked. You can edit it again.'):'Updated with the changes saved by '+(row.data.by||'another user')+'.')
  }catch(e){}},20000)}
+
+/* Attendance list: when the admin or HR staff locks / unlocks a sheet, everybody sees the same lock state without reloading */
+if(!window.__atPollL){window.__atPollL=setInterval(async()=>{
+ try{if(A.v!=='list'||PG!=='att'||document.hidden||PUSHING||['atsp','atcm','atrc','atlv'].some(id=>$(id)))return;
+  const rows=await api('/rest/v1/hrd_attendance?select=name,lk:data->lk',{_quiet:true});if(!Array.isArray(rows))return;
+  let ch=false;rows.forEach(r=>{const d=ATD[r.name];if(!d)return;if(sj(d.lk||null)!==sj(r.lk||null)){if(r.lk)d.lk=r.lk;else delete d.lk;SNAP[r.name]=sj(d);ch=true}});
+  if(ch){cache();drawList()}
+ }catch(e){}},15000)}
 
 addEventListener('beforeunload',e=>{if(UNS&&W){e.preventDefault();e.returnValue=''}});
 
@@ -8690,7 +8698,7 @@ function drawSheet(){const sh=S();if(!sh){return drawList()}Object.keys(sh.d||{}
  if(gk.length)body+=subR('all','GRAND TOTAL',sh.emps.map((_,i)=>i),'atgt');
  const mg=sh.m==='g';
  $('main').innerHTML=`<div class="atbar no-print">${AT_FP&&AT_FP.k===A.key?'<button class="btn sm" onclick="atBackPay()" title="Return to the payroll you came from">← Back to Payroll</button>':'<button class="btn o sm" onclick="atBack()">← Back</button>'}<h1 style="margin:0;font-size:24px">Attendance · ${esc(sh.dept)}</h1><span class="sub" style="margin:0">${esc(lab(sh.from,sh.to))}</span><span style="flex:1"></span><span id="atdn" class="atdnw no-print">${dnHtml(sh)}</span><span id="atst" class="sub" style="margin:0;font-size:12.5px">${isLk(sh)?'🔒 Locked':UNS?'● Unsaved changes':'✔ Saved'}</span>${hrx()?`<button class="btn ${isLk(sh)?'no':'o'}" onclick="atLock(A.key,${isLk(sh)?'false':'true'})">${isLk(sh)?'🔓 Unlock':'🔒 Lock'}</button>`:''}<button class="btn ok" id="atsave" onclick="atSave()"${isLk(sh)?' disabled':''}>💾 Save</button></div>
-${isLk(sh)?`<div class="atlkbar no-print">🔒 <b>${esc(lkTxt(sh))}</b>. View only: you cannot edit or delete it. Print and Export still work. Only an admin can unlock it.</div>`:''}
+${isLk(sh)?`<div class="atlkbar no-print">🔒 <b>${esc(lkTxt(sh))}</b>. View only: you cannot edit or delete it. Print and Export still work. An admin or HR staff can unlock it.</div>`:''}
 <div class="atbar no-print"><button class="btn ok sm" onclick="atAdd('')">+ Add employee</button><input id="atsq" class="fi" type="search" autocomplete="off" placeholder="🔍 Search name…" value="${esc(AT_Q)}" oninput="atSq(this.value)" style="width:210px;max-width:100%;margin:0"><button class="btn o sm" onclick="atSyncNames()" title="Add employees that are in the latest payroll but not in this attendance yet">↻ Sync names from payroll</button>${hrx()?'<button class="btn o sm" onclick="atSyncPay([A.key])" title="Send the total days of this cutoff to the matching saved payroll">⇄ Sync to Payroll</button>':''}<button class="btn o sm" onclick="window.print()">🖨 Print</button><button class="btn o sm" onclick="atXlsx()" title="Download this attendance as an Excel file (same layout, colours, totals and the summary per class)">⬇ Export Excel</button><button class="btn o sm" onclick="atCsv()" title="Download this attendance as a CSV file">⬇ Export CSV</button>
 <label style="font-size:13px;display:inline-flex;gap:6px;align-items:center"><input type="checkbox" ${sh.vp?'checked':''} onchange="atVp(this.checked)"> VL / SL counts as a paid day</label>
 <span class="atl"><span>Legend:</span><i class="a1">1 present</i><i class="a2">VL</i><i class="a3">SL</i><i class="a4">VL / SL no pay (NP)</i><span style="color:var(--mu)">· type a number to edit (½ = 0.5) · 💬 = comment · ✓ on the date = all 1</span></span></div>
