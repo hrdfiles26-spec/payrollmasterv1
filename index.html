@@ -8204,7 +8204,7 @@ async function push(){const up=Object.keys(ATD).filter(k=>sj(ATD[k])!==SNAP[k]),
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const dt0=s=>new Date(s+'T00:00:00');
 const lab=(f,t)=>{try{return pLabOf(f,t).replace(/[A-Z]{2,}/g,w=>w[0]+w.slice(1).toLowerCase())}catch(e){return f+' → '+t}};
-let W=null,UNS=false;const S=()=>W;const clone=o=>JSON.parse(JSON.stringify(o));
+let W=null,UNS=false,BASE=null,SVN=0;const S=()=>W;const clone=o=>JSON.parse(JSON.stringify(o));
 const who=()=>{try{return(MYA&&MYA.full_name)||((ME&&ME.user_metadata)||{}).full_name||(ME&&ME.email)||''}catch(e){return''}};
 const allKeys=()=>Object.keys(ATD||{}).filter(k=>k.indexOf(KP)===0&&ATD[k]&&Array.isArray(ATD[k].emps));
 const allowed=()=>{if(SUPER||(MYA&&MYA.role==='admin'))return null;const a=((MYA&&MYA.pages)||[]).filter(x=>String(x).indexOf('attd:')===0).map(x=>String(x).slice(5));return a.length?a:null};
@@ -8216,18 +8216,87 @@ const dayList=sh=>{const o=[],a=dt0(sh.from),b=dt0(sh.to);if(isNaN(a)||isNaN(b))
 const getC=(sh,k,d,mk)=>{const r=sh.d[k]||(mk?(sh.d[k]={}):null);if(!r)return null;return r[d]||(mk?(r[d]={v:'',t:'',c:''}):null)};
 const tidy=(sh,k,d)=>{const r=sh.d[k];if(!r||!r[d])return;const c=r[d];if((c.v===''||c.v==null)&&!c.t&&!c.c)delete r[d];if(!Object.keys(r).length)delete sh.d[k]};
 
+/* ---------- who encoded each entry ---------- */
+const stampC=c=>{c.u=who();c.ts=Date.now()};
+const byS=u=>{u=String(u||'').trim();if(!u)return'';return u.indexOf('@')>0?u.split('@')[0]:u.split(/\s+/)[0]};
+const byT=c=>'Encoded by '+c.u+(c.ts?' · '+new Date(c.ts).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'');
+const byD=(c,i,dt)=>`<div class="atby" id="atb_${i}_${dt}"${c&&c.u?` title="${esc(byT(c))}"`:''}>${esc(byS(c&&c.u))}</div>`;
+function byHtml(sh){const m={};Object.keys(sh.d||{}).forEach(k=>Object.keys(sh.d[k]).forEach(dt=>{const c=sh.d[k][dt];if(!c||!c.u)return;const o=m[c.u]||(m[c.u]={n:0,ts:0});o.n++;if((c.ts||0)>o.ts)o.ts=c.ts||0}));const k=Object.keys(m);if(!k.length)return'';return'<b>Encoded by:</b> '+k.map(u=>esc(u)+' ('+m[u].n+' '+(m[u].n>1?'entries':'entry')+(m[u].ts?', last '+new Date(m[u].ts).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'')+')').join(' · ')}
+const upBy=()=>{const sh=S(),e=$('atbys');if(sh&&e)e.innerHTML=byHtml(sh)};
+
+/* ---------- several people on the same attendance: merge, never overwrite ----------
+   Each save reads the latest copy from Supabase, keeps what the other person saved, adds what THIS person changed
+   (compared with the copy this person opened), then writes it back only if nobody saved in between (otherwise it repeats). */
+const eqj=(a,b)=>sj(a)===sj(b);
+function mergeSh(base,mine,theirs){
+ base=base||{emps:[],d:{},rm:{}};const pick=(b,m,t)=>eqj(m,b)?t:m,out={};
+ new Set([...Object.keys(theirs),...Object.keys(mine),...Object.keys(base)]).forEach(k=>{if(k==='emps'||k==='d'||k==='rm')return;const v=pick(base[k],mine[k],theirs[k]);if(v!==undefined)out[k]=v});
+ ['d','rm'].forEach(f=>{const B=base[f]||{},M=mine[f]||{},T=theirs[f]||{},o={};
+  new Set([...Object.keys(B),...Object.keys(M),...Object.keys(T)]).forEach(k=>{
+   if(f==='rm'){const v=pick(B[k],M[k],T[k]);if(v!==undefined)o[k]=v;return}
+   const b=B[k]||{},m=M[k]||{},t=T[k]||{},r={};
+   new Set([...Object.keys(b),...Object.keys(m),...Object.keys(t)]).forEach(dt=>{const v=pick(b[dt],m[dt],t[dt]);if(v!==undefined)r[dt]=v});
+   if(Object.keys(r).length)o[k]=r});
+  out[f]=o});
+ const idx=a=>new Map((a||[]).map(e=>[String(e.k),e])),bm=idx(base.emps),mm=idx(mine.emps),tm=idx(theirs.emps),ord=[];
+ (theirs.emps||[]).forEach(e=>ord.push(String(e.k)));(mine.emps||[]).forEach(e=>{if(!tm.has(String(e.k)))ord.push(String(e.k))});
+ out.emps=[];
+ ord.forEach(k=>{const B=bm.get(k),M=mm.get(k),T=tm.get(k);let e;
+  if(eqj(M,B))e=T;
+  else if(M===undefined)e=undefined;
+  else if(T===undefined||eqj(T,B))e=M;
+  else{e={};new Set([...Object.keys(B||{}),...Object.keys(M),...Object.keys(T)]).forEach(f=>{const v=pick((B||{})[f],M[f],T[f]);if(v!==undefined)e[f]=v})}
+  if(e!==undefined)out.emps.push(e)});
+ return out}
+async function mergeSave(key,w){
+ const enc=encodeURIComponent(key);
+ for(let n=0;n<6;n++){
+  const rows=await api('/rest/v1/hrd_attendance?name=eq.'+enc+'&select=data,updated_at'),row=Array.isArray(rows)&&rows[0],now=new Date().toISOString();
+  if(row&&row.data&&Array.isArray(row.data.emps)){
+   const m=mergeSh(BASE,w,row.data);
+   const res=await api('/rest/v1/hrd_attendance?name=eq.'+enc+'&updated_at=eq.'+encodeURIComponent(row.updated_at),{method:'PATCH',headers:{Prefer:'return=representation'},body:sj({data:m,updated_at:now})});
+   if(res&&res.queued_locally)return{m,o:row.data};
+   if(Array.isArray(res)&&res.length)return{m,o:row.data}
+  }else{
+   const res=await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=ignore-duplicates,return=representation'},body:sj({name:key,data:w,updated_at:now})});
+   if(res&&res.queued_locally)return{m:w};
+   if(Array.isArray(res)&&res.length)return{m:w}
+  }}
+ const er=new Error('Someone else is saving this attendance at the same time. Please press Save again.');er.conflict=true;throw er}
+
 /* ---------- save ---------- */
 function stat(m){const e=$('atst');if(e)e.textContent=m}
-function sv(){if(!W)return;UNS=true;stat('● Unsaved changes')}
+function sv(){if(!W)return;SVN++;UNS=true;stat('● Unsaved changes')}
 /* Nothing is written until the user presses Save. Saved sheets belong to the department + cutoff (not to a user account), so they stay in the history even if a user account is deleted. */
-async function commit(){const w=W;if(!w)return false;carryCls(w);if(w.pb==null)w.pb=pbDef(w.dept);w.upd=new Date().toISOString();w.by=who();if(!w.cr)w.cr=w.upd;ATD[A.key]=clone(w);cache();try{localStorage.setItem('hrd_att_dirty','1')}catch(e){}
- PUSHING=true;stat('Saving…');let ok=false;try{ok=await push()}finally{PUSHING=false}UNS=false;stat(ok?'✔ Saved':'Saved on this device only');try{logAct('Saved attendance','Attendance',w.dept+' — '+lab(w.from,w.to))}catch(e){}return ok}
+async function commit(){const w=W;if(!w)return false;carryCls(w);if(w.pb==null)w.pb=pbDef(w.dept);w.upd=new Date().toISOString();w.by=who();if(!w.cr)w.cr=w.upd;
+ const key=A.key,snap=clone(w),n0=SVN;let ok=false,fb=false,other='';PUSHING=true;stat('Saving…');
+ try{
+  const r=await mergeSave(key,snap),m=r.m;
+  if(r.o&&(!BASE||r.o.upd!==BASE.upd))other=(r.o.by&&r.o.by!==w.by)?r.o.by:'another user';
+  ATD[key]=clone(m);SNAP[key]=sj(m);cache();try{localStorage.removeItem('hrd_att_dirty')}catch(x){}
+  if(A.key===key&&W){if(SVN!==n0){W=mergeSh(snap,W,m);UNS=true}else{W=clone(m);UNS=false}BASE=clone(m);if(other)drawSheet()}
+  ok=true;if(other)toast('Saved and merged with the changes of '+other+'.')
+ }catch(e){
+  if(e&&e.conflict){toast(e.message);stat('● Unsaved changes');return false}
+  fb=true;ATD[key]=clone(w);cache();try{localStorage.setItem('hrd_att_dirty','1')}catch(x){}ok=await push()
+ }finally{PUSHING=false}
+ if(fb)UNS=false;stat(ok?(UNS?'● Unsaved changes':'✔ Saved'):'Saved on this device only');try{logAct('Saved attendance','Attendance',w.dept+' — '+lab(w.from,w.to))}catch(e){}return ok}
 window.atSave=async()=>{if(!W)return;if(!UNS)return toast('No changes to save.');if(!confirm('Save the attendance of '+W.dept+' for '+lab(W.from,W.to)+'?'))return;const ok=await commit();if(ok)toast('Attendance saved ✔')};
 function leave(cont){if(!UNS||!W){cont();return}const d=ovl('atlv');
  d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 6px">Unsaved changes</h3><div class="sub" style="margin:0 0 14px;font-size:13.5px">You have not saved the attendance of <b>${esc(W.dept)}</b> (${esc(lab(W.from,W.to))}). What would you like to do?</div><div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn o sm" onclick="$('atlv').remove()">Keep editing</button><button class="btn dl sm" id="atlv_d">Don't save</button><button class="btn ok sm" id="atlv_s">Save</button></div></div>`;
  $('atlv_d').onclick=()=>{UNS=false;W=null;$('atlv').remove();cont()};
  $('atlv_s').onclick=async()=>{$('atlv_s').disabled=true;await commit();const o=$('atlv');if(o)o.remove();cont()}}
 window.attUns=()=>UNS&&!!W;window.attLeave=leave;
+/* Two people with the same attendance open: pick up the other person's saved changes (only when this person has nothing unsaved; otherwise they are merged on Save). */
+if(!window.__atPoll){window.__atPoll=setInterval(async()=>{
+ try{if(A.v!=='sheet'||!W||!A.key||PUSHING||document.hidden)return;if(['atcm','atsp','atrc','atlv'].some(id=>$(id)))return;
+  const rows=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(A.key)+'&select=data',{_quiet:true}),row=Array.isArray(rows)&&rows[0];
+  if(!row||!row.data||!Array.isArray(row.data.emps)||(BASE&&row.data.upd===BASE.upd))return;
+  if(UNS){stat('● Unsaved changes · '+(row.data.by||'another user')+' also saved. Both will be merged when you Save.');return}
+  const f=document.activeElement;if(f&&/^(INPUT|SELECT|TEXTAREA)$/.test(f.tagName))return;
+  const key=A.key;ATD[key]=clone(row.data);SNAP[key]=sj(row.data);cache();W=clone(row.data);BASE=clone(row.data);drawSheet();toast('Updated with the changes saved by '+(row.data.by||'another user')+'.')
+ }catch(e){}},20000)}
+
 addEventListener('beforeunload',e=>{if(UNS&&W){e.preventDefault();e.returnValue=''}});
 
 /* ---------- names + rates from the latest saved payroll of the department ---------- */
@@ -8298,7 +8367,7 @@ const nf=n=>String(Math.round(n*100)/100);
 
 /* ---------- styles ---------- */
 const css=document.createElement('style');css.textContent=`
-.atw{overflow:auto;border:1px solid var(--ln);border-radius:12px;background:var(--sf);max-height:calc(100vh - 250px)}
+.atby{font-size:9px;line-height:1.15;color:var(--mu);max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;margin-top:1px}.atbys{font-size:12px;color:var(--mu);margin-top:10px}.atw{overflow:auto;border:1px solid var(--ln);border-radius:12px;background:var(--sf);max-height:calc(100vh - 250px)}
 table.at{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:13.5px;color:var(--ink)}
 table.at th,table.at td{border-bottom:1px solid var(--ln);border-right:1px solid var(--ln);padding:6px;vertical-align:middle;background:var(--sf)}
 table.at thead th{position:sticky;top:0;z-index:3;background:var(--sf2);font-weight:600;text-align:center;font-size:12.5px}
@@ -8341,7 +8410,7 @@ table.at tr.atgt .sn{background:var(--h)}
 table.at .sc{min-width:130px}.atcli{width:108px;margin:0;text-transform:uppercase}
 .atcp{display:none}.atcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;align-items:start}
 table.atcb{border-collapse:collapse;width:100%;font-size:13px;color:var(--ink)}table.atcb th{background:var(--h);color:#fff;text-align:left;padding:5px 8px;border:1px solid var(--ln2)}table.atcb td{border:1px solid var(--ln2);padding:4px 8px;background:var(--sf)}table.atcb td.a{text-align:right;white-space:nowrap}table.atcb tr.t td{font-weight:700;background:var(--sf2)}
-@media print{.atrcb{display:none!important}.atpbi{display:none!important}.atpbp{display:block!important;font-size:13px}.atcli{display:none!important}.atcp{display:block!important;font-weight:700;font-size:12px;white-space:normal;word-break:break-word;overflow:visible}.atcg{grid-template-columns:repeat(3,1fr);gap:8px}table.atcb{break-inside:avoid;page-break-inside:avoid;font-size:11px}table.atcb th,table.atcb td{border-color:#888}.atck{display:none}table.at .atm,.atq,.atx,.att,.atrmi,table.at tr.atg .btn{display:none!important}.atw{max-height:none;overflow:visible;border:0}
+@media print{.atby{display:none!important}.atrcb{display:none!important}.atpbi{display:none!important}.atpbp{display:block!important;font-size:13px}.atcli{display:none!important}.atcp{display:block!important;font-weight:700;font-size:12px;white-space:normal;word-break:break-word;overflow:visible}.atcg{grid-template-columns:repeat(3,1fr);gap:8px}table.atcb{break-inside:avoid;page-break-inside:avoid;font-size:11px}table.atcb th,table.atcb td{border-color:#888}.atck{display:none}table.at .atm,.atq,.atx,.att,.atrmi,table.at tr.atg .btn{display:none!important}.atw{max-height:none;overflow:visible;border:0}
 .atpr{display:block;font-size:11px;font-weight:700;line-height:1.2}.atpc{display:block;font-size:9px;font-weight:400;line-height:1.15;word-break:break-word;white-space:normal;color:#000}.atnotes{margin-top:12px;font-size:12px;font-weight:400}.atnotes b{font-weight:700}.atnotes div{margin:2px 0}
 table.at .sn,table.at thead th{position:static}table.at .atv,.at .fi{border:0!important;background:transparent!important}
 .tNP .atpr{color:#4b5563}.tVL .atpr{color:#2563eb}.tSL .atpr{color:#ea580c}
@@ -8367,7 +8436,10 @@ function drawList(){A.v='list';const F=folders(),op=(v,l,c)=>`<option value="${e
 <label style="font-size:13px">Department <select class="fi" style="width:auto;margin:0 0 0 6px" onchange="atF(this.value)">${op('all','All departments',A.f==='all')}${used.map(d=>op(d,d,A.f===d)).join('')}</select></label></div>
 ${L.length?`<div style="overflow-x:auto"><table class="hl"><tr><th>Department</th><th>Cutoff</th><th class="hlc">Employees</th><th>Last edited</th><th></th></tr>${L.map(({k,s})=>`<tr><td><span class="dp">${esc(s.dept)}</span></td><td><b>${esc(lab(s.from,s.to))}</b></td><td class="hlc"><span class="hln">${s.emps.length}</span></td><td>${s.upd?`<span class="hld">${new Date(s.upd).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}</span><span class="hlt">${new Date(s.upd).toLocaleTimeString('en-PH',{hour:'numeric',minute:'2-digit'})}</span>${s.by?`<span class="hlt">by ${esc(s.by)}</span>`:''}`:''}</td><td class="hla"><div class="hlb"><button class="btn o sm" data-k="${esc(k)}" onclick="atOpen(this.dataset.k)">Open</button><button class="btn dl sm" data-k="${esc(k)}" onclick="atDelSheet(this.dataset.k)">Delete</button></div></td></tr>`).join('')}</table></div>`:'<p class="empty" style="padding:8px">No attendance sheets yet. Click + New Attendance to create one.</p>'}</div>`}
 window.atF=v=>{A.f=v;drawList()};
-window.atOpen=k=>{if(!ATD[k]||!okD(ATD[k].dept))return toast('You do not have access to this department.');W=clone(ATD[k]);UNS=false;CLX.clear();A.key=k;A.v='sheet';drawSheet();scrollTo(0,0)};
+window.atOpen=async k=>{if(!ATD[k]||!okD(ATD[k].dept))return toast('You do not have access to this department.');
+ let dirty=false;try{dirty=localStorage.getItem('hrd_att_dirty')==='1'}catch(e){}
+ if(!dirty){try{const rows=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(k)+'&select=data,updated_at'),row=Array.isArray(rows)&&rows[0];if(row&&row.data&&Array.isArray(row.data.emps)){ATD[k]=row.data;SNAP[k]=sj(row.data);cache()}}catch(e){}}
+ W=clone(ATD[k]);BASE=clone(ATD[k]);UNS=false;CLX.clear();A.key=k;A.v='sheet';drawSheet();scrollTo(0,0)};
 window.atDelSheet=async k=>{const s=ATD[k];if(!s||!okD(s.dept))return;if(!confirm('Delete the attendance of '+s.dept+' for '+lab(s.from,s.to)+'?\n\nThis removes it from the attendance history for everyone. This cannot be undone.'))return;
  delete ATD[k];if(A.key===k){A.key='';W=null;UNS=false}cache();try{localStorage.setItem('hrd_att_dirty','1')}catch(e){}await push();try{logAct('Deleted attendance','Attendance',s.dept+' — '+lab(s.from,s.to))}catch(e){}drawList()};
 
@@ -8393,10 +8465,11 @@ function atSync(){const bad=A.sf&&A.st&&A.sf>A.st,long=A.sf&&A.st&&!bad&&pDays(A
  if(m)m.innerHTML=!A.sd?'Pick a department to continue.':ok?'<b>'+esc(A.sd)+'</b> · '+esc(lab(A.sf,A.st))+(pDays(A.sf,A.st)!==7?'<br><span style="color:#b0792a;font-weight:600">⚠ This cutoff is '+pDays(A.sf,A.st)+' day(s), not 7 days.</span>':''):'<b>'+esc(A.sd)+'</b> · choose the cutoff dates.';
  if(e){e.style.display=bad||long||ex?'':'none';e.textContent=bad?'The From date must be on or before the To date.':long?'A cutoff can be at most 62 days.':ex?'An attendance for this department and cutoff already exists. It will be opened.':''}}
 const sk=(d,f,t)=>KP+d+'|'+f+'|'+t;
-window.atCreate=()=>{if(!A.sd||!A.sf||!A.st||A.sf>A.st)return;if(!okD(A.sd))return toast('You do not have access to this department.');const k=sk(A.sd,A.sf,A.st);
+window.atCreate=async()=>{if(!A.sd||!A.sf||!A.st||A.sf>A.st)return;if(!okD(A.sd))return toast('You do not have access to this department.');const k=sk(A.sd,A.sf,A.st);
+ if(!ATD[k]){try{const rows=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(k)+'&select=data'),row=Array.isArray(rows)&&rows[0];if(row&&row.data&&Array.isArray(row.data.emps)){ATD[k]=row.data;SNAP[k]=sj(row.data);cache()}}catch(e){}}
  if(ATD[k]){atOpen(k);return toast('Opened the existing attendance.')}
  const b=buildEmps(A.sd);W={dept:A.sd,from:A.sf,to:A.st,m:b.m,vp:1,emps:b.E,d:{},cr:new Date().toISOString()};
- A.key=k;A.v='sheet';UNS=true;drawSheet();scrollTo(0,0);toast((b.E.length?b.E.length+' employee'+(b.E.length>1?'s':'')+' copied from the latest payroll. ':'No payroll yet for this department. Use + Add employee. ')+'Press Save to keep it.')};
+ BASE=null;A.key=k;A.v='sheet';UNS=true;drawSheet();scrollTo(0,0);toast((b.E.length?b.E.length+' employee'+(b.E.length>1?'s':'')+' copied from the latest payroll. ':'No payroll yet for this department. Use + Add employee. ')+'Press Save to keep it.')};
 
 /* ---------- the attendance sheet ---------- */
 const dh=dt=>{const d=dt0(dt);return`<div style="font-size:14px">${d.getMonth()+1}/${d.getDate()}</div><div style="font-weight:500;color:var(--mu);font-size:11px">${d.toLocaleDateString('en',{weekday:'short'})}</div>`};
@@ -8404,7 +8477,7 @@ const TL={VL:'VL',SL:'SL',VLN:'VL no pay',SLN:'SL no pay'};
 const prT=c=>c?((c.t?'<b>'+TL[c.t]+'</b>':'')+(c.c?'<span class="atpc">'+esc(c.c)+'</span>':'')):'';
 const cc=c=>c&&c.t==='VL'?'tVL':c&&c.t==='SL'?'tSL':c&&(c.t==='VLN'||c.t==='SLN')?'tNP':c&&(+c.v||0)>0?'p1':'';
 function cellH(sh,i,dt){const e=sh.emps[i],c=(sh.d[e.k]||{})[dt]||{};
- return`<td class="atc ${cc(c)}" id="atc_${i}_${dt}"><div class="ati"><input class="atv" type="number" inputmode="decimal" step="0.5" min="0" value="${c.v===''||c.v==null?'':esc(c.v)}" oninput="atV(${i},'${dt}',this)" onkeydown="atKey(event,${i},'${dt}')" aria-label="Days"><select class="att" onchange="atT(${i},'${dt}',this)" aria-label="VL or SL" title="VL / SL (paid) · VL NP / SL NP = no pay (no credits left)"><option value="">–</option><option value="VL"${c.t==='VL'?' selected':''}>VL</option><option value="SL"${c.t==='SL'?' selected':''}>SL</option><option value="VLN"${c.t==='VLN'?' selected':''}>VL NP</option><option value="SLN"${c.t==='SLN'?' selected':''}>SL NP</option></select><div class="atpr" id="atp_${i}_${dt}">${prT(c)}</div></div><button class="atm${c.c?' has':''}" id="atm_${i}_${dt}" onclick="atCm(${i},'${dt}')" title="${esc(c.c||'Add comment')}">💬</button></td>`}
+ return`<td class="atc ${cc(c)}" id="atc_${i}_${dt}"><div class="ati"><input class="atv" type="number" inputmode="decimal" step="0.5" min="0" value="${c.v===''||c.v==null?'':esc(c.v)}" oninput="atV(${i},'${dt}',this)" onkeydown="atKey(event,${i},'${dt}')" aria-label="Days"><select class="att" onchange="atT(${i},'${dt}',this)" aria-label="VL or SL" title="VL / SL (paid) · VL NP / SL NP = no pay (no credits left)"><option value="">–</option><option value="VL"${c.t==='VL'?' selected':''}>VL</option><option value="SL"${c.t==='SL'?' selected':''}>SL</option><option value="VLN"${c.t==='VLN'?' selected':''}>VL NP</option><option value="SLN"${c.t==='SLN'?' selected':''}>SL NP</option></select><div class="atpr" id="atp_${i}_${dt}">${prT(c)}</div>${byD(c,i,dt)}</div><button class="atm${c.c?' has':''}" id="atm_${i}_${dt}" onclick="atCm(${i},'${dt}')" title="${esc(c.c||'Add comment')}">💬</button></td>`}
 function sumH(sh,i){const e=sh.emps[i],t=tot(sh,e);return[`${t.any?nf(t.days):'-'}${t.vl||t.sl||t.np?`<span class="atsm">${[t.vl?'VL '+nf(t.vl):'',t.sl?'SL '+nf(t.sl):'',t.np?'No pay '+nf(t.np):''].filter(Boolean).join(' · ')}</span>`:''}`,t.any?fm(t.amt):'-']}
 function drawSheet(){const sh=S();if(!sh){return drawList()}A.v='sheet';const D=dayList(sh),w=$('atw'),sl=w?w.scrollLeft:0,st=w?w.scrollTop:0;
  const ord=[];const G={};sh.emps.forEach((e,i)=>{(G[e.c]=G[e.c]||[]).push(i)});
@@ -8421,21 +8494,21 @@ function drawSheet(){const sh=S();if(!sh){return drawList()}A.v='sheet';const D=
 <div class="atbar no-print"><button class="btn ok sm" onclick="atAdd('')">+ Add employee</button><button class="btn o sm" onclick="atSyncNames()" title="Add employees that are in the latest payroll but not in this attendance yet">↻ Sync names from payroll</button><button class="btn o sm" onclick="window.print()">🖨 Print</button><button class="btn o sm" onclick="atXlsx()" title="Download this attendance as an Excel file (same layout, colours, totals and the summary per class)">⬇ Export Excel</button><button class="btn o sm" onclick="atCsv()" title="Download this attendance as a CSV file">⬇ Export CSV</button>
 <label style="font-size:13px;display:inline-flex;gap:6px;align-items:center"><input type="checkbox" ${sh.vp?'checked':''} onchange="atVp(this.checked)"> VL / SL counts as a paid day</label>
 <span class="atl"><span>Legend:</span><i class="a1">1 present</i><i class="a2">VL</i><i class="a3">SL</i><i class="a4">VL / SL no pay (NP)</i><span style="color:var(--mu)">· type a number to edit (½ = 0.5) · 💬 = comment · ✓ on the date = all 1</span></span></div>
-<div class="atpr" style="font-size:16px;margin:0 0 6px">Attendance · ${esc(sh.dept)} · ${esc(lab(sh.from,sh.to))}</div><div class="atw" id="atw"><table class="at"><thead><tr><th class="sn">Name</th><th class="sr">${mg?'Rate / Gross':'Rate'}</th>${br?'<th class="sc">Class</th>':''}${D.map(dt=>`<th class="atc">${dh(dt)}<br><button class="atq" onclick="atFillCol('${dt}')" title="Put 1 for everyone who is empty on this day">✓</button></th>`).join('')}<th class="sd">Total days</th><th class="sa">Total amount</th><th class="rm">Remarks</th></tr></thead><tbody>${body||`<tr><td colspan="${colN}" style="padding:24px;text-align:center;color:var(--mu)">No employees yet. Click + Add employee.</td></tr>`}</tbody></table></div>${br?`<datalist id="atcll">${clList(sh).map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`:''}<div id="atcls">${clSumH(sh)}</div><div class="atpr atnotes" id="atnotes"></div><div class="atpb" style="margin-top:30px"><div style="font-size:12px;color:var(--mu)">Prepared by:</div><input class="fi atpbi" value="${esc(sh.pb!=null?sh.pb:pbDef(sh.dept))}" oninput="atPbFit(this)" onchange="atPb(this)" placeholder="Name" aria-label="Prepared by" style="width:260px;max-width:100%;border:0;border-bottom:1px solid var(--ink);border-radius:0;background:transparent;font-weight:700;text-transform:uppercase;padding:4px 2px"><div class="atpbp" style="font-weight:700;text-transform:uppercase;border-bottom:1px solid #000;display:none;min-width:260px;width:max-content;max-width:100%;white-space:normal">${esc(sh.pb!=null?sh.pb:pbDef(sh.dept))}</div></div>`;upNotes();document.querySelectorAll('.atpbi').forEach(atPbFit);
+<div class="atpr" style="font-size:16px;margin:0 0 6px">Attendance · ${esc(sh.dept)} · ${esc(lab(sh.from,sh.to))}</div><div class="atw" id="atw"><table class="at"><thead><tr><th class="sn">Name</th><th class="sr">${mg?'Rate / Gross':'Rate'}</th>${br?'<th class="sc">Class</th>':''}${D.map(dt=>`<th class="atc">${dh(dt)}<br><button class="atq" onclick="atFillCol('${dt}')" title="Put 1 for everyone who is empty on this day">✓</button></th>`).join('')}<th class="sd">Total days</th><th class="sa">Total amount</th><th class="rm">Remarks</th></tr></thead><tbody>${body||`<tr><td colspan="${colN}" style="padding:24px;text-align:center;color:var(--mu)">No employees yet. Click + Add employee.</td></tr>`}</tbody></table></div>${br?`<datalist id="atcll">${clList(sh).map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`:''}<div id="atcls">${clSumH(sh)}</div><div class="atpr atnotes" id="atnotes"></div><div class="atbys" id="atbys"></div><div class="atpb" style="margin-top:30px"><div style="font-size:12px;color:var(--mu)">Prepared by:</div><input class="fi atpbi" value="${esc(sh.pb!=null?sh.pb:pbDef(sh.dept))}" oninput="atPbFit(this)" onchange="atPb(this)" placeholder="Name" aria-label="Prepared by" style="width:260px;max-width:100%;border:0;border-bottom:1px solid var(--ink);border-radius:0;background:transparent;font-weight:700;text-transform:uppercase;padding:4px 2px"><div class="atpbp" style="font-weight:700;text-transform:uppercase;border-bottom:1px solid #000;display:none;min-width:260px;width:max-content;max-width:100%;white-space:normal">${esc(sh.pb!=null?sh.pb:pbDef(sh.dept))}</div></div>`;upNotes();upBy();document.querySelectorAll('.atpbi').forEach(atPbFit);
  const w2=$('atw');if(w2){w2.scrollLeft=sl;w2.scrollTop=st}}
 
 /* ---------- cell edits ---------- */
-function upCell(i,dt){const sh=S(),e=sh.emps[i],c=(sh.d[e.k]||{})[dt]||{},td=$('atc_'+i+'_'+dt),b=$('atm_'+i+'_'+dt);if(td)td.className='atc '+cc(c);{const p=$('atp_'+i+'_'+dt);if(p)p.innerHTML=prT(c)}upNotes();if(b){b.classList.toggle('has',!!c.c);b.title=c.c||'Add comment'}upRow(i)}
+function upCell(i,dt){const sh=S(),e=sh.emps[i],c=(sh.d[e.k]||{})[dt]||{},td=$('atc_'+i+'_'+dt),b=$('atm_'+i+'_'+dt);if(td)td.className='atc '+cc(c);{const p=$('atp_'+i+'_'+dt);if(p)p.innerHTML=prT(c)}{const q=$('atb_'+i+'_'+dt);if(q){q.textContent=byS(c.u);q.title=c.u?byT(c):''}}upNotes();upBy();if(b){b.classList.toggle('has',!!c.c);b.title=c.c||'Add comment'}upRow(i)}
 function upNotes(){const sh=S(),el=$('atnotes');if(!sh||!el)return;const L=[];sh.emps.forEach(e=>{const r=sh.d[e.k]||{};Object.keys(r).sort().forEach(dt=>{if(r[dt].c){const d=dt0(dt);L.push(`<div><b>${esc(e.n)}</b> · ${d.getMonth()+1}/${d.getDate()}${r[dt].t?' ('+TL[r[dt].t]+')':''}: ${esc(r[dt].c)}</div>`)}})});
  const R=sh.emps.filter(e=>sh.rm&&sh.rm[e.k]).map(e=>`<div><b>${esc(e.n)}</b>: ${esc(sh.rm[e.k])}</div>`);
  el.innerHTML=(L.length?'<div style="font-weight:700;margin-bottom:2px">Comments</div>'+L.join(''):'')+(R.length&&L.length?'<div style="height:6px"></div>':'')+(R.length?'<div style="font-weight:700;margin-bottom:2px">Remarks</div>'+R.join(''):'')}
 function gsum(sh,idx){let d=0,a=0;idx.forEach(i=>{const t=tot(sh,sh.emps[i]);d+=t.days;a+=t.amt});return[d,r2(a)]}
 function upTot(){const sh=S();if(!sh||!A.gs)return;upCls();A.gs.forEach(g=>{const z=gsum(sh,g.idx),d=$('atgd_'+g.id),a=$('atga_'+g.id);if(d)d.innerHTML='<b>'+(z[0]?nf(z[0]):'-')+'</b>';if(a)a.innerHTML='<b>'+(z[1]?fm(z[1]):'-')+'</b>'})}
 function upRow(i){const sh=S(),s=sumH(sh,i),d=$('atd_'+i),a=$('ata_'+i);if(d)d.innerHTML='<b>'+s[0]+'</b>';if(a)a.innerHTML='<b>'+s[1]+'</b>';upTot()}
-window.atV=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1),v=el.value;c.v=v===''?'':Math.max(0,+v||0);tidy(sh,e.k,dt);upCell(i,dt);sv()};
-window.atT=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1);c.t=el.value;if(c.t&&(c.v===''||c.v==null)){c.v=1;const inp=el.parentNode.querySelector('.atv');if(inp)inp.value=1}tidy(sh,e.k,dt);upCell(i,dt);sv()};
+window.atV=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1),v=el.value;c.v=v===''?'':Math.max(0,+v||0);stampC(c);tidy(sh,e.k,dt);upCell(i,dt);sv()};
+window.atT=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1);c.t=el.value;stampC(c);if(c.t&&(c.v===''||c.v==null)){c.v=1;const inp=el.parentNode.querySelector('.atv');if(inp)inp.value=1}tidy(sh,e.k,dt);upCell(i,dt);sv()};
 const rcD=d=>{const x=dt0(d);return(x.getMonth()+1)+'/'+x.getDate()};
-const rcH=(e,i)=>`${(e.rc||[]).map((z,k)=>`<div class="atsm">↳ ₱${nf(pn(z.r))} from ${rcD(z.d)} <button class="atq atrcb" onclick="atRcDel(${i},${k})" title="Remove this rate change">✕</button></div>`).join('')}<button class="atq atrcb" onclick="atRc(${i})" title="Salary increase: new rate starting on a date in this period">📈 Salary increase</button>`;
+const rcH=(e,i)=>`${(e.rc||[]).map((z,k)=>`<div class="atsm"${z.u?` title="Added by ${esc(z.u)}"`:''}>↳ ₱${nf(pn(z.r))} from ${rcD(z.d)} <button class="atq atrcb" onclick="atRcDel(${i},${k})" title="Remove this rate change">✕</button></div>`).join('')}<button class="atq atrcb" onclick="atRc(${i})" title="Salary increase: new rate starting on a date in this period">📈 Salary increase</button>`;
 const atRcTxt=e=>(e.rc||[]).map(z=>'Rate '+nf(pn(z.r))+' from '+rcD(z.d)).join('; ');
 window.atRc=i=>{const sh=S();if(!sh||!sh.emps[i])return;const e=sh.emps[i],D=dayList(sh),d=ovl('atrc');
  d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 2px">Salary increase</h3><div class="sub" style="margin:0;font-size:13px">${esc(e.n)} · current ${e.pd?'rate per day':'gross'}: ₱${nf(pn(rAt(e,D[D.length-1]||'')))}</div>
@@ -8444,19 +8517,19 @@ window.atRc=i=>{const sh=S();if(!sh||!sh.emps[i])return;const e=sh.emps[i],D=day
 <div class="atsm" style="margin-top:8px">Days before that date use the old rate; that date and after use the new rate.</div>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn o sm" onclick="$('atrc').remove()">Cancel</button><button class="btn ok sm" onclick="atRcSave(${i})">Save</button></div></div>`;const t=$('atrcr');if(t)t.focus()};
 window.atRcSave=i=>{const sh=S();if(!sh||!sh.emps[i])return;const e=sh.emps[i],dt=($('atrcd')||{}).value,r=+(($('atrcr')||{}).value);if(!dt||!(r>0)){const t=$('atrcr');if(t)t.focus();return}
- e.rc=(e.rc||[]).filter(x=>x.d!==dt);e.rc.push({d:dt,r:r});e.rc.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);const o=$('atrc');if(o)o.remove();drawSheet();sv()};
+ e.rc=(e.rc||[]).filter(x=>x.d!==dt);e.rc.push({d:dt,r:r,u:who()});e.rc.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);const o=$('atrc');if(o)o.remove();drawSheet();sv()};
 window.atRcDel=(i,k)=>{const sh=S();if(!sh||!sh.emps[i]||!sh.emps[i].rc)return;sh.emps[i].rc.splice(k,1);if(!sh.emps[i].rc.length)delete sh.emps[i].rc;drawSheet();sv()};
 window.atR=(i,el)=>{const sh=S();sh.emps[i].r=Math.max(0,+el.value||0);upRow(i);sv()};
 window.atFd=(i,el)=>{const sh=S();if(!sh||!sh.emps[i])return;sh.emps[i].fd=Math.max(1,+el.value||7);upRow(i);sv()};
 window.atRm=(i,el)=>{const sh=S();if(!sh.rm)sh.rm={};const k=sh.emps[i].k;if(el.value.trim())sh.rm[k]=el.value;else delete sh.rm[k];const p=$('atrp_'+i);if(p)p.textContent=el.value;upNotes();sv()};
 window.atVp=on=>{const sh=S();sh.vp=on?1:0;sh.emps.forEach((_,i)=>upRow(i));sv()};
 window.atKey=(ev,i,dt)=>{if(ev.key!=='Enter')return;ev.preventDefault();const n=document.querySelector('#atc_'+(i+(ev.shiftKey?-1:1))+'_'+dt+' .atv');if(n){n.focus();n.select()}};
-window.atFillRow=i=>{const sh=S(),e=sh.emps[i];dayList(sh).forEach(dt=>{const c=getC(sh,e.k,dt,1);if((c.v===''||c.v==null)&&!c.t)c.v=1;tidy(sh,e.k,dt)});drawSheet();sv()};
-window.atFillCol=dt=>{const sh=S();sh.emps.forEach(e=>{const c=getC(sh,e.k,dt,1);if((c.v===''||c.v==null)&&!c.t)c.v=1;tidy(sh,e.k,dt)});drawSheet();sv()};
+window.atFillRow=i=>{const sh=S(),e=sh.emps[i];dayList(sh).forEach(dt=>{const c=getC(sh,e.k,dt,1);if((c.v===''||c.v==null)&&!c.t){c.v=1;stampC(c)}tidy(sh,e.k,dt)});drawSheet();sv()};
+window.atFillCol=dt=>{const sh=S();sh.emps.forEach(e=>{const c=getC(sh,e.k,dt,1);if((c.v===''||c.v==null)&&!c.t){c.v=1;stampC(c)}tidy(sh,e.k,dt)});drawSheet();sv()};
 window.atCm=(i,dt)=>{const sh=S(),e=sh.emps[i],c=(sh.d[e.k]||{})[dt]||{},d=ovl('atcm');
  d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 2px">Comment</h3><div class="sub" style="margin:0;font-size:13px">${esc(e.n)} · ${esc(dt0(dt).toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'}))}</div><textarea id="atcmt" class="fi" rows="4" style="width:100%;margin-top:10px" placeholder="e.g. late, half day, overtime…">${esc(c.c||'')}</textarea>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button class="btn o sm" onclick="$('atcm').remove()">Cancel</button>${c.c?`<button class="btn dl sm" onclick="atCmSave(${i},'${dt}',1)">Remove</button>`:''}<button class="btn ok sm" onclick="atCmSave(${i},'${dt}')">Save</button></div></div>`;const t=$('atcmt');if(t)t.focus()};
-window.atCmSave=(i,dt,rm)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1);c.c=rm?'':($('atcmt').value||'').trim();tidy(sh,e.k,dt);const o=$('atcm');if(o)o.remove();upCell(i,dt);sv()};
+window.atCmSave=(i,dt,rm)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1);c.c=rm?'':($('atcmt').value||'').trim();stampC(c);tidy(sh,e.k,dt);const o=$('atcm');if(o)o.remove();upCell(i,dt);sv()};
 
 /* ---------- EXPORT: Excel (.xlsx) and CSV of the attendance sheet ---------- */
 function atGroups(sh){const G={};sh.emps.forEach((e,i)=>{(G[e.c]=G[e.c]||[]).push(i)});const gk=Object.keys(G),ix=(typeof PGO!=='undefined'&&PGO[sh.dept])||[];gk.sort((a,b)=>{const x=ix.indexOf(a),y=ix.indexOf(b);return(x<0?99:x)-(y<0?99:y)});return{G,gk}}
