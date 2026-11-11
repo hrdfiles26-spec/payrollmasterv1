@@ -4137,7 +4137,7 @@ function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the pay
   else{put(HR,3+i,3+i,pT('h_'+c.k,pDef(c.k)),hdr,HR+1);i++}}
  r=HR+2;
  // --- body ---
- const noSum=['days','fd','pd','rem','arem','acct','lbal'],GT={net:0,coop:0,tot:0},TS=Object.fromEntries(cols.map(c=>[c.k,0]));
+ const noSum=['days','fd','pd','rem','arem','acct'],GT={net:0,coop:0,tot:0},TS=Object.fromEntries(cols.map(c=>[c.k,0]));
  const bodyBase={sz:10,col:INK,bl:GRID,br:GRID,bt:GRID,bb:GRID,v:'center'};
  const sumRow=(label,S,fill,col,top)=>{hts[r]=19;const st={sz:10,b:1,col,fill,bl:GRID,br:GRID,bt:top,bb:GRID,v:'center'};put(r,1,1,label,{...st,h:'left'});put(r,2,2,'',st);
   cols.forEach((c,i)=>put(r,3+i,3+i,noSum.includes(c.k)?'':r2(S[c.k]),{...st,h:'right',nf:MONEY}));r++};
@@ -4773,7 +4773,7 @@ function drawForm0(){
  const cv=(s,k,b)=>`<td id="c_${s.id}_${k}" class="cv k_${k}${b?' b':''}">${pf(pVals(s)[k])}</td>`;
  const nb=(s,k)=>{const r=pRow(s),v=pVals(s),o=((PP.open&&PP.open[s.id])||{})[k==='bal'?'vale':'coop'];return`<td class="k_${k}"><input class="pi" id="i_${s.id}_${k}" type="number" step="any" onwheel="this.blur()" onkeydown="pDayKey(event)" title="Opening: ${fm(o)} · Type to change it; clear it to go back to automatic" value="${esc(r[k]!=null&&r[k]!==''?r[k]:(v[k]||''))}" oninput="pIn('${s.id}','${k}',this.value)"></td>`};
  const lb=s=>`<td class="k_lbal"><input class="pi" id="i_${s.id}_lbal" type="number" step="any" onwheel="this.blur()" onkeydown="pDayKey(event)" title="Total COOP / loan balance before this payroll · type to change" value="${esc(pVals(s).lbal||'')}" oninput="pLbSet('${s.id}',this.value)"></td>`;
- const sr=(p,l,c)=>`<tr class="${c}"><td>${l}</td>${PP.m==='g'?'':'<td></td>'}${cols.map(q=>['days','fd','pd','rem','arem','acct'].includes(q.k)||q.k==='lbal'?`<td class="k_${q.k}"></td>`:`<td id="${p}_${q.k}" class="k_${q.k}">-</td>`).join('')}<td class="no-print"></td></tr>`;
+ const sr=(p,l,c)=>`<tr class="${c}"><td>${l}</td>${PP.m==='g'?'':'<td></td>'}${cols.map(q=>['days','fd','pd','rem','arem','acct'].includes(q.k)?`<td class="k_${q.k}"></td>`:`<td id="${p}_${q.k}" class="k_${q.k}">-</td>`).join('')}<td class="no-print"></td></tr>`;
  const fx=s=>`<td class="k_fd"><input class="pi plk" id="i_${s.id}_fd" type="number" step="any" readonly tabindex="-1" title="Fixed days · edit in 📅 Days" value="${pGPD(s)?'':esc(pFDs(s)||'')}"></td>`;
  const pdc=s=>`<td class="k_pd"><input class="pi plk" id="i_${s.id}_pd" type="number" step="any" readonly tabindex="-1" title="${pGPD(s)?'Per day · daily rate':'Per day · Gross ÷ fixed days'}" value="${esc(pdv(s))}"></td>`;
  const cell=(s,k)=>k==='pd'?pdc(s):k==='fd'?fx(s):k==='rem'||k==='arem'||k==='acct'?t(s,k):k==='pay'?(PP.m==='g'?gp(s):cv(s,'pay')):k==='lbal'?lb(s):k==='net'?cv(s,'net',1):k==='tot'?cv(s,'tot'):k==='bal'||k==='cbal'?nb(s,k):n(s,k);
