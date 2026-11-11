@@ -1701,6 +1701,9 @@ async function apiAll(path,o){path=path.indexOf('order=')<0?path+'&order=id':pat
 /* last successful sync with Supabase (any read or save that the server accepted) */
 let SYNCT=0;const syncTxt=()=>SYNCT?new Date(SYNCT).toLocaleString('en-PH',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'}):'Waiting for the first sync\u2026';
 function syncPaint(){const e=document.getElementById('synct');if(e)e.textContent=syncTxt()}
+var SRV_OFF=0,SRV_OK=false,SRV_WARN=false;
+function nowISO(){return new Date(Date.now()+SRV_OFF).toISOString()}
+function srvClock(r){try{const dh=r&&r.headers&&r.headers.get('date');if(!dh)return;const t=Date.parse(dh);if(isNaN(t))return;SRV_OFF=t-Date.now();SRV_OK=true;if(Math.abs(SRV_OFF)>3e5&&!SRV_WARN){SRV_WARN=true;const m=Math.round(Math.abs(SRV_OFF)/6e4),s=m>=1440?Math.round(m/1440)+' day(s)':m>=60?Math.round(m/60)+' hour(s)':m+' minute(s)';setTimeout(()=>{try{toast('⚠ This device clock is '+s+(SRV_OFF<0?' ahead':' behind')+'. Please set the date/time to automatic. Saved times use the server time.')}catch(e){}},1500)}}catch(e){}}
 async function api(path,o={}){
   const {_noQueue,_quiet,_retried,_noUndo,...fo}=o;
   const method=String(o.method||'GET').toUpperCase(),write=!['GET','HEAD'].includes(method),isAuth=path.startsWith('/auth/'),canQ=write&&!_noQueue&&!isAuth&&!NOQ.test(path);
@@ -1711,7 +1714,7 @@ async function api(path,o={}){
   let UR=null;if(write&&!isAuth&&!_noUndo){try{UR=await undoPre(method,path,o)}catch(e){UR=null}}
   const ac=(!write&&typeof AbortController!=='undefined')?new AbortController():null,tm=ac?setTimeout(()=>ac.abort(),15000):0;
   let r,t;try{r=await fetch(SB_URL+path,{...fo,...(ac?{signal:ac.signal}:{}),headers:{apikey:SB_KEY,'Content-Type':'application/json',...(SES.tok?{Authorization:'Bearer '+SES.tok}:{}),...(o.headers||{})}});
-  t=await r.text()}catch(e){if(!isAuth&&!NOQ.test(path))syncAlert(e&&e.name==='AbortError'?'The server took too long to respond.':'Cannot reach the server (check the internet connection).','conn');if(e&&e.name==='AbortError')throw new Error('The server took too long to respond. Check your internet and try again.');throw e}finally{if(tm)clearTimeout(tm)}
+  t=await r.text();srvClock(r)}catch(e){if(!isAuth&&!NOQ.test(path))syncAlert(e&&e.name==='AbortError'?'The server took too long to respond.':'Cannot reach the server (check the internet connection).','conn');if(e&&e.name==='AbortError')throw new Error('The server took too long to respond. Check your internet and try again.');throw e}finally{if(tm)clearTimeout(tm)}
   if(r.status<500&&SYNCAL_K==='conn')syncOk('conn');
   if(r.ok&&!isAuth){SYNCT=Date.now();syncPaint()}
   let j;try{j=t?JSON.parse(t):{}}catch{j=t}
@@ -8506,7 +8509,7 @@ async function load(){if(!SES.tok)return;
  catch(e){toast('Attendance could not load from Supabase ('+(e.message||'error')+'). Run the attendance SQL, then reload. Showing the copy saved on this device.')}}
 async function push(){const up=Object.keys(ATD).filter(k=>sj(ATD[k])!==SNAP[k]),del=Object.keys(SNAP).filter(k=>!(k in ATD));
  if(!up.length&&!del.length){try{localStorage.removeItem('hrd_att_dirty')}catch(e){}return true}
- try{if(up.length)await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:sj(up.map(k=>({name:k,data:ATD[k],updated_at:new Date().toISOString()})))});
+ try{if(up.length)await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:sj(up.map(k=>({name:k,data:ATD[k],updated_at:nowISO()})))});
   for(const k of del)await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(k),{method:'DELETE',headers:{Prefer:'return=minimal'}});
   up.forEach(k=>{SNAP[k]=sj(ATD[k])});del.forEach(k=>{delete SNAP[k]});try{localStorage.removeItem('hrd_att_dirty')}catch(e){}return true}
  catch(e){try{localStorage.setItem('hrd_att_dirty','1')}catch(x){}toast('Attendance saved on this device only ('+(e.message||'sync failed')+'). Run the attendance SQL in Supabase.');return false}}
@@ -8576,7 +8579,7 @@ function mergeSh(base,mine,theirs){
 async function mergeSave(key,w){
  const enc=encodeURIComponent(key);
  for(let n=0;n<6;n++){
-  const rows=await api('/rest/v1/hrd_attendance?name=eq.'+enc+'&select=data,updated_at'),row=Array.isArray(rows)&&rows[0],now=new Date().toISOString();
+  const rows=await api('/rest/v1/hrd_attendance?name=eq.'+enc+'&select=data,updated_at'),row=Array.isArray(rows)&&rows[0],now=nowISO();
   if(row&&row.data&&Array.isArray(row.data.emps)){
    if(row.data.lk){const er=new Error(hrx()?'This attendance is locked. Unlock it first, then save again.':'This attendance was locked'+(row.data.lk.by?' by '+row.data.lk.by:'')+'. Your changes were not saved.');er.locked=true;throw er}
    const m=mergeSh(BASE,w,row.data);
@@ -8595,11 +8598,11 @@ function stat(m){const e=$('atst');if(e)e.textContent=m}
 const dnHtml=sh=>{const dn=sh&&sh.st==='done',lk=isLk(sh);return`<span class="atseg" title="Staff: choose Done when this attendance is finished, so the admin knows it can be locked."><button type="button" class="${!dn?'on wp':''}" onclick="atStatus(0)"${lk?' disabled':''}>⏳ Updating</button><button type="button" class="${dn?'on dn':''}" onclick="atStatus(1)"${lk?' disabled':''}>✔ Done</button></span>${dn&&sh.sd&&sh.sd.by?`<span class="atdnby">by ${esc(sh.sd.by)}</span>`:''}`};
 function atDnUi(){const e=$('atdn');if(e&&W)e.innerHTML=dnHtml(W)}
 window.atStatus=async v=>{if(!W||noEd())return;const on=!!v;if(on===(W.st==='done'))return;
- if(on){if(!confirm('Mark this attendance as DONE?\n\nYour changes are saved too, and the admin will see it is ready to lock. If you edit it again, it goes back to “Updating”.'))return;W.st='done';W.sd={by:who(),at:new Date().toISOString()}}else{delete W.st;delete W.sd}
+ if(on){if(!confirm('Mark this attendance as DONE?\n\nYour changes are saved too, and the admin will see it is ready to lock. If you edit it again, it goes back to “Updating”.'))return;W.st='done';W.sd={by:who(),at:nowISO()}}else{delete W.st;delete W.sd}
  SVN++;UNS=true;atDnUi();const ok=await commit();atDnUi();if(ok)toast(on?'Marked as Done ✔ — the admin can now lock it.':'Back to Updating')};
 function sv(){if(!W)return;if(W.st==='done'){delete W.st;delete W.sd;atDnUi()}SVN++;UNS=true;stat('● Unsaved changes')}
 /* Nothing is written until the user presses Save. Saved sheets belong to the department + cutoff (not to a user account), so they stay in the history even if a user account is deleted. */
-async function commit(){const w=W;if(!w)return false;carryCls(w);if(w.pb==null)w.pb=pbDef(w.dept);w.upd=new Date().toISOString();w.by=who();if(!w.cr)w.cr=w.upd;
+async function commit(){const w=W;if(!w)return false;carryCls(w);if(w.pb==null)w.pb=pbDef(w.dept);w.upd=nowISO();w.by=who();if(!w.cr)w.cr=w.upd;
  const key=A.key,snap=clone(w),n0=SVN;let ok=false,fb=false,other='';PUSHING=true;stat('Saving…');
  try{
   const r=await mergeSave(key,snap),m=r.m;
@@ -8814,8 +8817,8 @@ window.atLock=async(k,on)=>{if(!hrx())return toast('Only an admin or HR staff ca
   for(let n=0;n<4;n++){
    const rows=await api('/rest/v1/hrd_attendance?name=eq.'+enc+'&select=data,updated_at'),row=Array.isArray(rows)&&rows[0];
    if(!row||!row.data)throw new Error('This attendance is not saved on the server yet. Save it first.');
-   const d=clone(row.data);if(on)d.lk={by:who(),at:new Date().toISOString()};else delete d.lk;
-   const res=await api('/rest/v1/hrd_attendance?name=eq.'+enc+'&updated_at=eq.'+encodeURIComponent(row.updated_at),{method:'PATCH',headers:{Prefer:'return=representation'},body:sj({data:d,updated_at:new Date().toISOString()})});
+   const d=clone(row.data);if(on)d.lk={by:who(),at:nowISO()};else delete d.lk;
+   const res=await api('/rest/v1/hrd_attendance?name=eq.'+enc+'&updated_at=eq.'+encodeURIComponent(row.updated_at),{method:'PATCH',headers:{Prefer:'return=representation'},body:sj({data:d,updated_at:nowISO()})});
    if((res&&res.queued_locally)||(Array.isArray(res)&&res.length)){ATD[k]=d;SNAP[k]=sj(d);cache();if(A.key===k){W=clone(d);BASE=clone(d);UNS=false}
     try{logAct(on?'Locked attendance':'Unlocked attendance','Attendance',lbl)}catch(e){}toast(on?'🔒 Locked ✔':'🔓 Unlocked ✔');draw();return}}
   throw new Error('Someone else is saving this attendance right now. Please try again.')}
@@ -8848,7 +8851,7 @@ const sk=(d,f,t)=>KP+d+'|'+f+'|'+t;
 window.atCreate=async()=>{if(!A.sd||!A.sf||!A.st||A.sf>A.st)return;if(!okD(A.sd))return toast('You do not have access to this department.');const k=sk(A.sd,A.sf,A.st);
  if(!ATD[k]){try{const rows=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(k)+'&select=data'),row=Array.isArray(rows)&&rows[0];if(row&&row.data&&Array.isArray(row.data.emps)){ATD[k]=row.data;SNAP[k]=sj(row.data);cache()}}catch(e){}}
  if(ATD[k]){atOpen(k);return toast('Opened the existing attendance.')}
- const b=buildEmps(A.sd),sk0=atDupFilter(b,A.sd,A.sf,A.st);W={dept:A.sd,from:A.sf,to:A.st,m:b.m,vp:1,emps:b.E,d:{},cr:new Date().toISOString()};
+ const b=buildEmps(A.sd),sk0=atDupFilter(b,A.sd,A.sf,A.st);W={dept:A.sd,from:A.sf,to:A.st,m:b.m,vp:1,emps:b.E,d:{},cr:nowISO()};
  BASE=null;A.key=k;A.v='sheet';UNS=true;drawSheet();scrollTo(0,0);toast((b.E.length?b.E.length+' employee'+(b.E.length>1?'s':'')+' copied from the latest payroll. ':'No payroll yet for this department. Use + Add employee. ')+'Press Save to keep it.');atDupNote(sk0,A.sd)};
 
 /* ---------- the attendance sheet ---------- */
@@ -9145,7 +9148,7 @@ async function syncOne(k){
  ids.forEach(id=>{if(!used.has(id)){const x=stf(id);r.gone.push(x?x.name:'Employee #'+id)}});
  r.add=add.map(x=>x.n);
  const gap=r2(ag-pgT);r.ag=r2(ag);r.pg=r2(pgT);r.run=run.id;r.iss={c:chg.length,a:add.length,gp:Math.abs(gap)>=.01};
- if(chg.length||add.length||r.iss.gp)d.sy={at:new Date().toISOString(),by:rhBy(),att:k,dept:sh.dept,lab:r.lab,ag:r.ag,pg:r.pg,diff:diff.slice(0,80),chg,add,gone:r.gone.slice(0,80)};else delete d.sy;
+ if(chg.length||add.length||r.iss.gp)d.sy={at:nowISO(),by:rhBy(),att:k,dept:sh.dept,lab:r.lab,ag:r.ag,pg:r.pg,diff:diff.slice(0,80),chg,add,gone:r.gone.slice(0,80)};else delete d.sy;
  if(sj(d.rows)!==b0||sj(d.sy||null)!==y0||sj([d.gpe||null,d.gpd||null])!==gx0||sj(d.xb||null)!==xb0){await api('/rest/v1/hrd_payroll?id=eq.'+run.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:sj({data:d})});if(PP&&PP.runId===run.id&&!PP.dirty){PP.rows=d.rows;PP.gpe=d.gpe||null;PP.gpd=d.gpd||null;if(d.xb)PP.xb=d.xb}}
  r.ok=true;return r}
 function showSync(R){const d=ovl('atsy'),li=a=>a.slice(0,30).map(x=>'<li>'+esc(x)+'</li>').join('')+(a.length>30?'<li>…and '+(a.length-30)+' more</li>':'');
