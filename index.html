@@ -8142,14 +8142,14 @@ document.addEventListener('input',function(e){var t=e.target;if(!t||!t.closest||
  /* the payroll sheet AND the pop-up windows (Entries, ATM, Days, SSP, COOP, Vale, Deductions ...) */
  var POP=['#pem','#atmm','#dysm','#ddsm','#cpsm','#vlsm','#sspm','#mlm','#smm'],
      SELTD=['#main table.ps td','#main .m13w table.cx-t tr.m13-r td'].concat(POP.map(function(x){return x+' table td'})).join(','),
-     SELTR=['#main table.ps tbody tr','#main .m13w table.cx-t tbody tr.m13-r'].concat(POP.map(function(x){return x+' table tr'})).join(',');
+     SELTR=['#main table.ps tbody tr','#main .m13w table.cx-t tbody tr.m13-r','#main table.hl tr','#main table.at tbody tr'].concat(POP.map(function(x){return x+' table tr'})).join(',');
  function markCol(t){var c=t&&t.closest?t.closest(SELTD):null;if(!c||c===ccell)return;if(ccell)ccell.classList.remove('ccel');ccell=c;c.classList.add('ccel');
   /* Excel-style: also light up the column header of the cell that has the cursor */
   chd.forEach(function(x){x.classList.remove('chd')});chd=[];var m=/(?:^|\s)(k_[^\s]+)/.exec(c.className||''),tb=c.closest('table');
   if(m&&tb&&tb.classList.contains('ps')){try{tb.querySelectorAll('thead th.'+m[1]).forEach(function(x){x.classList.add('chd');chd.push(x)})}catch(e){}}
   else if(tb&&!tb.classList.contains('ps')){try{var h=tb.rows[0]&&tb.rows[0].cells[c.cellIndex];if(h&&h.tagName==='TH'){h.classList.add('chd');chd.push(h)}}catch(e){}}}
  function mark(t){markCol(t);var tr=t&&t.closest?t.closest(SELTR):null;if(!tr||tr===cur)return;
-  if(tr.closest('#main')?!tr.querySelector('td.nm,td.m13-nm'):!tr.querySelector('input,select'))return;
+  if(tr.closest('#main')?!(tr.querySelector('td.nm,td.m13-nm,td.sn')||(tr.closest('table.hl')&&tr.querySelector('td'))):!tr.querySelector('input,select'))return;
   if(cur)cur.classList.remove('rsel');cur=tr;tr.classList.add('rsel')}
  /* highlight follows only what is clicked / focused (typing, Enter, arrows) - NOT the mouse pointer */
  document.addEventListener('mousedown',function(e){mark(e.target)},true);
@@ -8181,6 +8181,17 @@ document.addEventListener('input',function(e){var t=e.target;if(!t||!t.closest||
   e.preventDefault();var n=next(t,k);if(n)land(n)});
 })();
 </script>
+<style id="at-rowsel">
+/* Attendance list + attendance sheet: the whole clicked row is highlighted (same as the payroll form) */
+@media screen{
+#main table.hl tr.rsel td{background:#ffefb0!important;border-top-color:#e0c46a!important;border-bottom-color:#e0c46a!important}
+#main table.hl tr.rsel td[tabindex="-1"]:focus{outline:0;background:#ffefb0!important}
+#main table.at tr.rsel td{box-shadow:inset 0 2px 0 #e0c46a,inset 0 -2px 0 #e0c46a}
+#main table.at tr.rsel td:not(.atc){background:#ffefb0!important}
+#main table.at tr.rsel td.atc{background-image:linear-gradient(#ffd96688,#ffd96688)!important}
+html[data-theme=dark] #main table.hl tr.rsel td,html[data-theme=dark] #main table.hl tr.rsel td[tabindex="-1"]:focus,html[data-theme=dark] #main table.at tr.rsel td:not(.atc){background:#4a4220!important}
+}
+</style>
 <style id="pz-fv-xmas">
 /* Payroll: FULL VIEW (whole form on screen, still editable) */
 body.pzfv .side,body.pzfv #syncAlert,body.pzfv #pzfh,body.pzfv #main .no-print{display:none!important}
