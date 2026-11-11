@@ -4202,13 +4202,13 @@ function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the pay
   if(smFM()){const bd={bl:'thin:FF000000',br:'thin:FF000000',bt:'thin:FF000000',bb:'thin:FF000000'},fs={sz:10,col:'FF000000',v:'center',...bd},RED='FFC00000';
    r++;hts[r]=24;put(r,sx0,sx0+3,String(PF).toUpperCase(),{...fs,b:1,sz:12,h:'center'});
    SR.ents.forEach(e=>{const rows=smFmRows(e),r0=r+1;
-    for(let i=0;i<rows.length;){let j=i;while(j<rows.length&&rows[j].g.toLowerCase()===rows[i].g.toLowerCase())j++;put(r0+i,sx0,sx0,rows[i].g,{...fs,b:1,h:'center',wrap:1},r0+j-1);i=j}
+    for(let i=0;i<rows.length;){let j=i;while(smFMV()&&j<rows.length&&rows[j].g.toLowerCase()===rows[i].g.toLowerCase())j++;if(j===i)j++;put(r0+i,sx0,sx0,rows[i].g,smFMV()?{...fs,b:1,h:'center',wrap:1}:{...fs,h:'left',wrap:1},r0+j-1);i=j}
     rows.forEach((q,i)=>{const z=q.z,x=z.x,cr=x.k==='ssp'||x.k==='tax'||x.k==='ded',rr=r0+i;hts[rr]=Math.max(hts[rr]||0,String(q.it).length>30?30:18);
      put(rr,sx0+1,sx0+1,q.it,{...fs,h:'left',wrap:1});put(rr,sx0+2,sx0+2,cr?'':z.a,{...fs,nf:PESO,h:'right'});put(rr,sx0+3,sx0+3,cr?z.a:'',{...fs,nf:PESO,h:'right'});
      if(rk('L:'+x.id))put(rr,sx0+4,sx0+4,rk('L:'+x.id),rmS)});
-    r+=rows.length;r++;hts[r]=20;
+    r+=rows.length;if(!smFMV()){r++;hts[r]=12;for(let c=0;c<4;c++)put(r,sx0+c,sx0+c,'',fs)}r++;hts[r]=20;
     put(r,sx0,sx0+1,'',fs);put(r,sx0+2,sx0+2,'Bank',{...fs,b:1,h:'right',col:RED});put(r,sx0+3,sx0+3,r2(e.bank),{...fs,b:1,h:'right',col:RED,nf:PESO});
-    if(rk('B:'+e.n))put(r,sx0+4,sx0+4,rk('B:'+e.n),rmS)});r++;hts[r]=30;r++;hts[r]=22;put(r,sx0,sx0+1,'',fs);put(r,sx0+2,sx0+2,'TOTAL',{...fs,b:1,h:'right',col:RED});put(r,sx0+3,sx0+3,r2(SR.bank),{...fs,b:1,h:'right',col:RED,nf:PESO});if(rk('X:gt'))put(r,sx0+4,sx0+4,rk('X:gt'),rmS)}
+    if(rk('B:'+e.n))put(r,sx0+4,sx0+4,rk('B:'+e.n),rmS)});if(smFMV()||SR.ents.length>1){r++;hts[r]=30;r++;hts[r]=22;put(r,sx0,sx0+1,'',fs);put(r,sx0+2,sx0+2,'TOTAL',{...fs,b:1,h:'right',col:RED});put(r,sx0+3,sx0+3,r2(SR.bank),{...fs,b:1,h:'right',col:RED,nf:PESO});if(rk('X:gt'))put(r,sx0+4,sx0+4,rk('X:gt'),rmS)}}
   else{
   SR.ents.forEach((e,ei)=>{
    e.lines.filter(z=>z.a||rk('L:'+z.x.id)).forEach(z=>{const cr=z.x.k==='ssp'||z.x.k==='tax'||z.x.k==='ded',v=z.a?z.a:'';
@@ -4703,7 +4703,11 @@ function smHaulFix(){const S=PP.sm;if(!Array.isArray(S)||!S.length)return;
  const miss=(STF||[]).filter(s=>s.dept===PF&&!cov.has(s.id));if(!miss.length)return;
  const gs=[...new Set(miss.map(s=>pGrp(s)||''))],j=S.findIndex(x=>x.k!=='sal');
  S.splice(j<0?S.length:j,0,{id:'sgx'+S.length+'_'+miss.length,l:gs.length===1?(gs[0]||PF):PF,k:'sal',e:miss.map(s=>s.id),en:sal[0].en||1})}
-const smFM=()=>String(PF).toUpperCase()==='FMVM';
+const smFMV=()=>String(PF).toUpperCase()==='FMVM';
+const smLay=()=>!smFMV()&&!hasXB()&&!isMg(PF)&&!/^(EXTRA PAYROLL|PSALES|HAULING)$/.test(String(PF).toUpperCase());
+const smFM=()=>smFMV()||smLay();
+/* department name shown on the side of each line (FMVM: per block; other departments: the line's own department, deductions belong to the payroll's department) */
+const smLineG=(e,x)=>String(x.nm||(smFMV()?smFmGrp(e):(x.k==='sal'?(String(x.l||'').replace(/\s+Salaries$/i,'').trim()||String(PF).toUpperCase()):String(PF).toUpperCase()))).trim();
 /* Manual lines under the summary (A/R, loans ...): typed directly in the form, printed and exported as a boxed table */
 const smxNum=v=>{const n=parseFloat(String(v==null?'':v).replace(/,/g,''));return isNaN(n)?'':n};
 const smxPf=v=>{const n=smxNum(v);return n===''?'':pf(n)};
@@ -4730,9 +4734,9 @@ function smFmAdm(){const S=PP.sm;if(!Array.isArray(S)||!S.length)return;const em
 /* ===== Summary: hide/show empty rows, + / − adjustments on any line, quick add line ===== */
 const smEf=z=>z.x.k==='sal'?z.ad:(z.x.k==='ssp'||z.x.k==='tax'||z.x.k==='ded')?-z.ad:0;
 const smMode=()=>PP.smHide==null?'d':PP.smHide?'h':'s';
-const smIsHid=()=>{const m=smMode();return m==='h'||(m==='d'&&!smFM())};
+const smIsHid=()=>{const m=smMode();return m==='h'||(m==='d'&&!smFMV())};
 const smEmpty=z=>!z.a&&!z.x.man&&!z.x.adj&&!smRK('L:'+z.x.id);
-const smRowHid=z=>{const m=smMode();return m==='h'?smEmpty(z):m==='d'?(z.x.k==='ssp'&&smEmpty(z)):false};
+const smRowHid=z=>{const m=smMode();return m==='h'?smEmpty(z):m==='d'?(smFMV()?(z.x.k==='ssp'&&smEmpty(z)):smEmpty(z)):false};
 const smNum=v=>{const n=parseFloat(String(v==null?'':v).replace(/[,\s+]/g,'').replace(/[\u2212\u2013]/g,'-'));return isNaN(n)?0:n};
 const smAdjUI=z=>`<span class="lsw no-print"><input class="lsi${z.x.adj?' has':''}" inputmode="decimal" autocomplete="off" placeholder="+ / \u2212" title="Type an amount to ADD (e.g. 1200 or +1200) or to LESS (e.g. -500) on this line. The totals and Bank are computed automatically." value="${z.x.adj?esc(String(z.x.adj)):''}" oninput="smAdj('${z.x.id}',this.value)" onblur="smCalc()">${z.x.man?`<button type="button" class="lsx" title="Delete this line" onclick="smDelLine('${z.x.id}')">\u2715</button>`:''}</span>`;
 const smAddRow=n=>`<tr class="lsb no-print"><td colspan="5"><button type="button" class="btn o sm" onclick="smQuick(${n},'sal')">\u2795 Add line</button> <button type="button" class="btn o sm" onclick="smQuick(${n},'ded')">\u2796 Less line</button></td></tr>`;
@@ -4745,8 +4749,8 @@ const smLbl=(z,it)=>z.x.man?`<input class="lli no-print" autocomplete="off" titl
 function smLblSet(id,v){const S=smGet(),x=S&&S.find(q=>q.id===id);if(!x)return;v=String(v||'').trim();if(v)x.l=v;pDirty();drawP()}
 function smAddDept(){const S=smGet();if(!S)return;const n=prompt('Name of the new department:');if(n==null||!String(n).trim())return;const rl=S.filter(x=>x.k==='sal'&&!x.man).map(x=>parseInt(x.en)||1),en=rl.length?Math.max(...rl):Math.max(1,...S.map(x=>parseInt(x.en)||1))+1;
  S.push({id:'sd'+Date.now().toString(36)+Math.floor(Math.random()*99),l:'Salaries',nm:String(n).trim(),k:'sal',e:[],en,man:1});pDirty();drawP();toast('Department added \u2014 type the amount beside Salaries, or use Add line / Less line')}
-function smGrpRn(en,old,nv){nv=String(nv||'').trim();if(!nv||nv===old){drawP();return}const R=smVals(),e=R&&R.ents.find(q=>q.n===en);if(!e)return;const lo=String(old).toLowerCase(),eg=smFmGrp(e);
- e.lines.forEach(z=>{const x=z.x;if(String(x.nm||eg).trim().toLowerCase()!==lo)return;if(x.k==='sal'&&String(x.l||'').replace(/\s+Salaries$/i,'').trim().toLowerCase()===lo)x.l=/\s+Salaries$/i.test(x.l||'')?nv+' Salaries':nv;x.nm=nv});pDirty();drawP()}
+function smGrpRn(en,old,nv){nv=String(nv||'').trim();if(!nv||nv===old){drawP();return}const R=smVals(),e=R&&R.ents.find(q=>q.n===en);if(!e)return;const lo=String(old).toLowerCase();
+ e.lines.forEach(z=>{const x=z.x;if(smLineG(e,x).toLowerCase()!==lo)return;if(x.k==='sal'&&String(x.l||'').replace(/\s+Salaries$/i,'').trim().toLowerCase()===lo)x.l=/\s+Salaries$/i.test(x.l||'')?nv+' Salaries':nv;x.nm=nv});pDirty();drawP()}
 const smGrpAdd=(n,g)=>`<tr class="lsb no-print"><td colspan="5"><button type="button" class="btn o sm" data-g="${esc(g)}" onclick="smQuick(${n},'sal',this.dataset.g)">\u2795 Add line to ${esc(g)}</button> <button type="button" class="btn o sm" data-g="${esc(g)}" onclick="smQuick(${n},'ded',this.dataset.g)">\u2796 Less line</button></td></tr>`;
 function smQuick(en,k,grp){const S=smGet();if(!S)return;const l=prompt(k==='ded'?'Description of the line to LESS (e.g. Electricity, Cash advance):':'Description of the line to ADD:');if(l==null||!String(l).trim())return;
  const dn=grp!=null?String(grp):String(prompt('Department of this line (example: Admin).\nLeave blank to keep it in this block\'s own department:','')||'').trim(),ent=S.filter(x=>(parseInt(x.en)||1)===(en||1)),own=ent.length&&ent.every(x=>x.man)?(ent.find(x=>x.nm)||{}).nm:'';S.push({id:'sq'+Date.now().toString(36)+Math.floor(Math.random()*99),l:String(l).trim(),k,e:[],en:en||1,man:1,...(dn?{nm:dn}:own?{nm:own}:{})});pDirty();drawP();toast('Line added \u2014 type the amount in the box beside it')}
@@ -4757,10 +4761,10 @@ function smAutoClean(S){if(!Array.isArray(S))return;const en=x=>Math.max(1,parse
  for(let i=S.length-1;i>=0;i--){const x=S[i];if(!x.man&&/^(sl_|stax|sel)/.test(x.id||'')&&man.has(en(x))&&!real.has(en(x)))S.splice(i,1)}}
 function smFmGrp(e){const z=e.lines.find(z=>z.x.k==='sal');const g=z?String(z.x.l||'').replace(/\s+Salaries$/i,'').trim():'';return g||String(PF).toUpperCase()}
 const smGrpSort=R=>R; /* rows stay in order: salaries / manual lines first, deductions below, each row keeps its own department name */
-function smFmRows(e){const eg=smFmGrp(e);return smGrpSort(e.lines.filter(z=>!smRowHid(z)).map(z=>{const x=z.x,g=String(x.nm||eg).trim(),it=x.k==='sal'&&String(x.l||'').replace(/\s+Salaries$/i,'').trim().toLowerCase()===g.toLowerCase()?'Salaries':String(x.l||'');return{z,g,it}}))}
+function smFmRows(e){return smGrpSort(e.lines.filter(z=>!smRowHid(z)).map(z=>{const x=z.x,g=smLineG(e,x),it=x.k==='sal'&&String(x.l||'').replace(/\s+Salaries$/i,'').trim().toLowerCase()===g.toLowerCase()?'Salaries':String(x.l||'');return{z,g,it}}))}
 const smGet=()=>{if(!SM_ON())return null;if(!PP.sm)PP.sm=smDefault(PF);smAutoClean(PP.sm);if(smFM())smMergeDept(PP.sm);if(String(PF).toUpperCase()==='EXTRA PAYROLL')smXFix(PP.sm);if(String(PF).toUpperCase()==='HAULING')smHaulFix();else{smLoanFix();smXbFix()}if(smFM()){smFmFix();smFmAdm()}if(String(PF).toUpperCase()==='PSALES'&&smOldPS(PP.sm))PP.sm=smPS();if(!PP.smEl){const c=(PP.xc||[]).find(c=>/electric/i.test(c.h||''));if(c){PP.smEl=1;if(!PP.sm.some(x=>x.k==='ded'&&x.src===c.id)){const j=PP.sm.findIndex(x=>x.k==='ssp'||x.k==='tax');PP.sm.splice(j<0?PP.sm.length:j,0,{id:'sel'+c.id,l:c.h,k:'ded',src:c.id,e:[],en:1})}}}if(String(PF).toUpperCase()==='LAYERS')PP.sm.forEach(x=>{if(x&&x.k==='ded'&&/^\s*electricity\s*$/i.test(x.l||''))x.l='Power'});return PP.sm};
 function smVals(){const S=smGet();if(!S)return null;const emp=(STF||[]).filter(s=>s.dept===PF),V=Object.fromEntries(emp.map(s=>[s.id,pVals(s)]));
- const sum=k=>r2(emp.reduce((t,s)=>t+V[s.id][k],0)),net=sum('net'),tot=sum('ft'),coop=sum('coop'),ded=sum('ded'),all=r2(net+coop+ded),en=x=>Math.max(1,parseInt(x.en)||1),rk=(k,x)=>x&&x.nm&&PF!=='FMVM'?3:PF==='PSALES'?0:k==='ded'?0.5:k==='ssp'?1:k==='tax'?2:0,E={};
+ const sum=k=>r2(emp.reduce((t,s)=>t+V[s.id][k],0)),net=sum('net'),tot=sum('ft'),coop=sum('coop'),ded=sum('ded'),all=r2(net+coop+ded),en=x=>Math.max(1,parseInt(x.en)||1),rk=(k,x)=>x&&x.nm&&!smFM()?3:PF==='PSALES'?0:k==='ded'?0.5:k==='ssp'?1:k==='tax'?2:0,E={};
  S.forEach((x,i)=>{(E[en(x)]=E[en(x)]||[]).push([x,i])});
  const ents=Object.keys(E).map(Number).sort((a,b)=>a-b).map(n=>{const xs=E[n].sort((p,q)=>rk(p[0].k,p[0])-rk(q[0].k,q[0])||p[1]-q[1]).map(p=>p[0]),hasSal=xs.some(x=>x.k==='sal'&&!x.man)||(xs.length>0&&xs.every(x=>x.man)),set=new Set();
   xs.filter(x=>x.k==='sal').forEach(x=>smMem(x).forEach(id=>set.add(id)));const pool=hasSal?emp.filter(s=>set.has(s.id)):emp;
@@ -4773,12 +4777,12 @@ function smRC(k,cs){return`<td class="n"${cs?' colspan="'+cs+'"':''}><input clas
 function smRm(k,v){const S=smGet();if(!S||!S.length)return;if(k.slice(0,2)==='L:'){const x=S.find(z=>z.id===k.slice(2));if(x)x.rm=v}else{const o=S[0].xr=S[0].xr||{};o[k]=v}const e=document.activeElement;if(e&&e.nextElementSibling)e.nextElementSibling.textContent=v;pDirty()}
 function smHtmlFM(S,R){const ids=[];
  const body=R.ents.map(e=>{const rows=smFmRows(e);let h='';
-  for(let i=0;i<rows.length;){let j=i;while(j<rows.length&&rows[j].g.toLowerCase()===rows[i].g.toLowerCase())j++;
+  for(let i=0;i<rows.length;){let j=i;while(smFMV()&&j<rows.length&&rows[j].g.toLowerCase()===rows[i].g.toLowerCase())j++;if(j===i)j++;
    for(let k=i;k<j;k++){const z=rows[k].z,cr=z.x.k==='ssp'||z.x.k==='tax'||z.x.k==='ded';ids.push(z.x.id);
     h+=`<tr id="smr_${z.x.id}">${k===i?`<td class="nmc" rowspan="${j-i}"><input class="gni no-print" autocomplete="off" title="Click to rename this department" data-o="${esc(rows[i].g)}" value="${esc(rows[i].g)}" onchange="smGrpRn(${e.n},this.dataset.o,this.value)"><span class="gnp">${esc(rows[i].g)}</span></td>`:''}<td class="l">${smLbl(z,rows[k].it)}${smAdjUI(z)}</td>${cr?`<td class="a"></td><td class="a" id="sm_${z.x.id}"></td>`:`<td class="a" id="sm_${z.x.id}"></td><td class="a"></td>`}${smRC('L:'+z.x.id)}</tr>`}
-   if(rows.slice(i,j).every(q=>q.z.x.man))h+=smGrpAdd(e.n,rows[i].g);i=j}
-  return h+(rows.length&&rows.every(q=>q.z.x.man)?'':smAddRow(e.n))+`<tr class="bk"><td class="nmc"></td><td class="l"></td><td class="a r">Bank</td><td class="a r" id="sm_bk${e.n}"></td>${smRC('B:'+e.n)}</tr>`}).join('');
- return`<div class="psw"><table id="smfm" data-v="${ids.join(',')}" class="psj fm"><tbody><tr><td class="fmt" colspan="4">${esc(String(PF).toUpperCase())}</td></tr>${body}<tr class="sp"><td colspan="5"></td></tr><tr class="bk" id="smr_gt"><td class="nmc"></td><td class="l"></td><td class="a r">TOTAL</td><td class="a r" id="sm_gt"></td>${smRC('X:gt')}</tr>${smDeptRow()}</tbody></table>${smxHtml()}<div class="psmc no-print" id="sm_chk"></div><div class="psmc no-print" id="sm_chk2"></div>${smBtns()}</div>`}
+   if(smFMV()&&rows.slice(i,j).every(q=>q.z.x.man))h+=smGrpAdd(e.n,rows[i].g);i=j}
+  return h+(rows.length&&rows.every(q=>q.z.x.man)?'':smAddRow(e.n))+(smFMV()?'':'<tr class="sp"><td colspan="5"></td></tr>')+`<tr class="bk"><td class="nmc"></td><td class="l"></td><td class="a r">Bank</td><td class="a r" id="sm_bk${e.n}"></td>${smRC('B:'+e.n)}</tr>`}).join('');
+ return`<div class="psw"><table id="smfm" data-v="${ids.join(',')}" class="psj fm${smFMV()?'':' fm2'}"><tbody><tr><td class="fmt" colspan="4">${esc(String(PF).toUpperCase())}</td></tr>${body}${(smFMV()||R.ents.length>1)?`<tr class="sp"><td colspan="5"></td></tr><tr class="bk" id="smr_gt"><td class="nmc"></td><td class="l"></td><td class="a r">TOTAL</td><td class="a r" id="sm_gt"></td>${smRC('X:gt')}</tr>`:''}${smDeptRow()}</tbody></table>${smxHtml()}<div class="psmc no-print" id="sm_chk"></div><div class="psmc no-print" id="sm_chk2"></div>${smBtns()}</div>`}
 function smHtml(){const S=smGet();if(!S||!S.length)return'';const R=smVals();if(smFM())return smHtmlFM(S,R);let first=1;
  const rows=R.ents.map((e,k)=>{const L=e.lines.map(z=>{const cr=z.x.k==='ssp'||z.x.k==='tax'||z.x.k==='ded';return`<tr id="smr_${z.x.id}"${z.x.hz?' style="display:none"':''}><td class="nmc">${esc(z.x.nm||'')}</td><td class="l">${esc(z.x.l)}${smAdjUI(z)}</td>${cr?'<td class="a"></td><td class="a" id="sm_'+z.x.id+'"></td>':'<td class="a" id="sm_'+z.x.id+'"></td><td class="a"></td>'}${smRC('L:'+z.x.id)}</tr>`}).join('');
   const XP=PF==='EXTRA PAYROLL',bk=`<tr class="bk"><td class="nmc"></td><td class="l">${XP?'BANK':'Bank'}</td>${XP?'<td class="a" id="sm_bk'+e.n+'"></td><td class="a"></td>':'<td class="a"></td><td class="a" id="sm_bk'+e.n+'"></td>'}${smRC('B:'+e.n)}</tr>`;first=0;
@@ -6571,6 +6575,7 @@ seasonUI();
 .pw .psj tr.sp td{border:0;background:transparent;height:12px}
 @media print{.pw .psj tr.sp td{height:30px!important;border:0!important;background:transparent!important}}
 .pw .psj.fm td{border:1px solid #000;height:22px}
+.pw .psj.fm2 td.nmc{text-align:left;font-weight:400;min-width:110px}.pw .psj.fm2 .gni{font-weight:400;text-align:left}
 .pw .psj.fm td.fmt{text-align:center;font-weight:700;font-size:calc(var(--pf,11px) + 2px);height:26px}
 .pw .psj.fm td.nmc{text-align:center;vertical-align:middle;font-weight:700;min-width:120px}
 .pw .psj.fm td.l{text-align:left;font-weight:400;min-width:290px}
