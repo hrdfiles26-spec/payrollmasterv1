@@ -5300,12 +5300,14 @@ let PZFVO=null,PZFVY=0;
 function pzFvFit(){if(!document.body.classList.contains('pzfv'))return;const t=document.querySelector('#main .pw .ps'),w=document.querySelector('#main .pw');if(!t||!w)return;let z=13;const B=document.body;B.style.setProperty('--pzfs',z+'px');
  while(z>6.5&&t.scrollWidth>w.clientWidth+1){z-=.5;B.style.setProperty('--pzfs',z+'px')}}
 function pzFvBar(){let b=document.getElementById('pzfvb');if(!b){b=document.createElement('div');b.id='pzfvb';document.body.appendChild(b)}
- b.innerHTML='<button class="btn ok" type="button" onclick="saveP()">Save payroll</button><button class="btn '+(PU?'no':'o')+'" type="button" onclick="pLock()">'+(PU?'🔓 Edit mode ON — lock':'🔒 Unlock to edit')+'</button><button class="btn" type="button" onclick="pzFullView(false)">✕ Exit Full View</button>'}
+ document.body.classList.toggle('pzfvu',!!PU);
+ const ed=PU?'<button class="btn o" type="button" onclick="pAddCol()">+ Column</button><button class="btn o" type="button" onclick="pAddDet()">+ Detail line</button><button class="btn o" type="button" onclick="pExcelLayout()" title="Use the columns of the Excel file">↺ Excel layout</button>'+((PP.hc||[]).length?'<button class="btn o" type="button" onclick="PP.hc=[];pDirty();drawP()">↺ Restore columns</button>':''):'';
+ b.innerHTML='<button class="btn ok" type="button" onclick="saveP()">Save payroll</button>'+ed+'<button class="btn '+(PU?'no':'o')+'" type="button" onclick="pLock()">'+(PU?'🔓 Edit mode ON — lock':'🔒 Unlock to edit')+'</button><button class="btn" type="button" onclick="pzFullView(false)">✕ Exit Full View</button>'}
 function pzFullView(on){const B=document.body;
  if(on){if(!document.querySelector('#main .pw'))return;PZFVY=window.scrollY;B.classList.add('pzfv');pzFvBar();pzFvFit();
   if(!PZFVO){PZFVO=new MutationObserver(()=>{if(!document.querySelector('#main .pw'))pzFullView(false);else{pzFvBar();pzFvFit()}});PZFVO.observe(document.getElementById('main'),{childList:true})}
   scrollTo(0,0)}
- else{if(!B.classList.contains('pzfv'))return;B.classList.remove('pzfv');B.style.removeProperty('--pzfs');const b=document.getElementById('pzfvb');if(b)b.remove();if(PZFVO){PZFVO.disconnect();PZFVO=null}scrollTo(0,PZFVY)}}
+ else{if(!B.classList.contains('pzfv'))return;B.classList.remove('pzfv','pzfvu');B.style.removeProperty('--pzfs');const b=document.getElementById('pzfvb');if(b)b.remove();if(PZFVO){PZFVO.disconnect();PZFVO=null}scrollTo(0,PZFVY)}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('pzfv'))pzFullView(false)});
 window.addEventListener('resize',()=>{try{pzFvFit()}catch(e){}});
 /* ===== 13th Month Pay: Christmas decor (snow + lights) shown only while that page is open ===== */
@@ -8196,7 +8198,12 @@ html[data-theme=dark] #main table.hl tr.rsel td,html[data-theme=dark] #main tabl
 </style>
 <style id="pz-fv-xmas">
 /* Payroll: FULL VIEW (whole form on screen, still editable) */
-body.pzfv .side,body.pzfv #syncAlert,body.pzfv #pzfh,body.pzfv #main .no-print{display:none!important}
+body.pzfv .side,body.pzfv #syncAlert,body.pzfv #pzfh,body.pzfv #main .no-print:not(.pw .no-print){display:none!important}
+/* Full View: the edit controls inside the form (name edit, rate history, remove row, delete column, detail line) stay available; the empty action column only shows in Edit mode */
+body.pzfv:not(.pzfvu) #main .pw .ps th.no-print,body.pzfv:not(.pzfvu) #main .pw .ps td.no-print{display:none!important}
+body.pzfv #main .pw .ps td.ac{white-space:nowrap}
+body.pzfv #main .pw .cx{display:flex!important}
+#pzfvb{flex-wrap:wrap;justify-content:flex-end;max-width:calc(100vw - 32px);background:#fff;padding:6px;border:1px solid #cfd9e8}
 body.pzfv main{margin:0!important;padding:14px 18px!important;max-width:none!important}
 body.pzfv #main .pw{padding:14px 16px!important;overflow:visible!important;border-radius:0!important;box-shadow:none!important;border:0!important}
 body.pzfv #main .pw .ps{min-width:0!important;width:100%!important;overflow:visible!important;font-size:var(--pzfs,11px)!important}
@@ -8599,7 +8606,7 @@ table.at tr.atgt .sn{background:var(--h)}
 table.at .sc{min-width:130px}.atcli{width:108px;margin:0;text-transform:uppercase}
 .atcp{display:none}.atcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;align-items:start}
 table.atcb{border-collapse:collapse;width:100%;font-size:13px;color:var(--ink)}table.atcb th{background:var(--h);color:#fff;text-align:left;padding:5px 8px;border:1px solid var(--ln2)}table.atcb td{border:1px solid var(--ln2);padding:4px 8px;background:var(--sf)}table.atcb td.a{text-align:right;white-space:nowrap}table.atcb tr.t td{font-weight:700;background:var(--sf2)}
-@media print{.atby{display:none!important}.atrcb{display:none!important}.atpbi{display:none!important}.atpbp{display:block!important;font-size:13px}.atcli{display:none!important}.atcp{display:block!important;font-weight:700;font-size:12px;white-space:normal;word-break:break-word;overflow:visible}.atcg{grid-template-columns:repeat(3,1fr);gap:8px}table.atcb{break-inside:avoid;page-break-inside:avoid;font-size:11px}table.atcb th,table.atcb td{border-color:#888}.atck{display:none}table.at .atm,.atq,.atx,.att,.atrmi,table.at tr.atg .btn{display:none!important}.atw{max-height:none;overflow:visible;border:0}
+@media print{.atby{display:none!important}.atrcb{display:none!important}.atpbi{display:none!important}.atpbp{display:block!important;font-size:13px}.atcli{display:none!important}.atmv{display:none!important}.atcp{display:block!important;font-weight:700;font-size:12px;white-space:normal;word-break:break-word;overflow:visible}.atcg{grid-template-columns:repeat(3,1fr);gap:8px}table.atcb{break-inside:avoid;page-break-inside:avoid;font-size:11px}table.atcb th,table.atcb td{border-color:#888}.atck{display:none}table.at .atm,.atq,.atx,.att,.atrmi,table.at tr.atg .btn{display:none!important}.atw{max-height:none;overflow:visible;border:0}
 .atpr{display:block;font-size:11px;font-weight:700;line-height:1.2}.atpc{display:block;font-size:9px;font-weight:400;line-height:1.15;word-break:break-word;white-space:normal;color:#000}.atnotes{margin-top:12px;font-size:12px;font-weight:400}.atnotes b{font-weight:700}.atnotes div{margin:2px 0}
 table.at .sn,table.at thead th{position:static}table.at .atv,.at .fi{border:0!important;background:transparent!important}
 table.at{width:100%!important;min-width:0!important;table-layout:auto;font-size:10px}
@@ -8706,9 +8713,9 @@ function drawSheet(){const sh=S();if(!sh){return drawList()}Object.keys(sh.d||{}
  const gk=Object.keys(G),ix=(typeof PGO!=='undefined'&&PGO[sh.dept])||[];gk.sort((a,b)=>{const x=ix.indexOf(a),y=ix.indexOf(b);return(x<0?99:x)-(y<0?99:y)});
  const br=isBr(sh),colN=D.length+6+(br?1:0);if(!sh.rm)sh.rm={};
  A.gs=[];const subR=(id,lbl,idx,cls)=>{A.gs.push({id,idx});const z=gsum(sh,idx);return`<tr class="atsub ${cls||''}"><td class="sn" colspan="${br?3:2}"><b>${esc(lbl)}</b></td><td colspan="${D.length}"></td><td class="sd" id="atgd_${id}"><b>${z[0]?nd3(z[0]):'-'}</b></td><td class="sj" id="atgj_${id}"><b>${z[2]?fm(z[2]):'-'}</b></td><td class="sa" id="atga_${id}"><b>${z[1]?fm(z[1]):'-'}</b></td><td></td></tr>`};
- let body='';gk.forEach((g,gi)=>{body+=`<tr class="atg"><td colspan="${colN}"><div><span>${esc(g)}</span><button class="btn o sm" data-c="${esc(g)}" onclick="atAdd(this.dataset.c)">+ Add employee</button></div></td></tr>`;
+ let body='';gk.forEach((g,gi)=>{body+=`<tr class="atg"><td colspan="${colN}"><div><span>${esc(g)}</span><button class="btn o sm" data-c="${esc(g)}" onclick="atAdd(this.dataset.c)">+ Add employee</button> <button class="btn o sm no-print" data-c="${esc(g)}" onclick="atGrpRen(this.dataset.c)" title="Change the name of this class / group">✎ Rename class</button></div></td></tr>`;
   G[g].forEach(i=>{const e=sh.emps[i],s=sumH(sh,i);
-   body+=`<tr class="atrw" data-n="${esc(e.n)}"><td class="sn"><b>${esc(e.n)}</b><br><button class="atq" onclick="atFillRow(${i})" title="Put 1 on every empty day">✓ all days</button> <button class="atq atrm" onclick="atRemove(${i})" title="Remove this employee from this attendance">🗑 Remove</button></td>
+   body+=`<tr class="atrw" data-n="${esc(e.n)}"><td class="sn"><b>${esc(e.n)}</b><br><button class="atq" onclick="atFillRow(${i})" title="Put 1 on every empty day">✓ all days</button> <button class="atq atrm" onclick="atRemove(${i})" title="Remove this employee from this attendance">🗑 Remove</button> <button class="atq atmv no-print" onclick="atMv(${i})" title="Move this employee to another class / group (or type a new one)">⇄ Move</button></td>
 <td class="sr"><input class="atv" style="width:86px" type="number" step="any" min="0" value="${e.r||''}" oninput="atR(${i},this)" aria-label="Rate"><span class="atsm">${e.pd?'per day':`gross ÷ <input class="atv" id="atfd_${i}" style="width:44px;padding:2px" type="number" step="any" min="1" value="${e.fd>0?e.fd:7}" oninput="atFd(${i},this)" title="Fixed days (same as Fixed Days in the payroll)" aria-label="Fixed days">`}</span>${rcH(e,i)}</td>${br?`<td class="sc"><input class="fi atcli" list="atcll" value="${esc(clOf(e))}" oninput="atCl(${i},this)" onchange="this.value=this.value.trim().toUpperCase();atCl(${i},this)" placeholder="Class" aria-label="Class"><span class="atcp">${esc(clOf(e))}</span><button class="atq" onclick="atSp(${i})" title="Hatiin ang sahod sa ibang class">✂ Hatiin</button>${spList(e).map(z=>`<div class="atsm">↳ ${esc(z.c)} · ${nf(pn(z.d))} days</div>`).join('')}</td>`:''}${D.map(dt=>cellH(sh,i,dt)).join('')}<td class="sd" id="atd_${i}"><b>${s[0]}</b></td><td class="sj"><input class="atv atadj" type="number" step="any" value="${(sh.adj&&sh.adj[e.k])||''}" placeholder="0" oninput="atAdj(${i},this)" aria-label="Adjustment" title="Add (+) or deduct (−) an amount. It is included in the Total amount."></td><td class="sa" id="ata_${i}"><b>${s[1]}</b></td><td class="rm"><div class="atrmw no-print"><input style="margin:0;flex:1;min-width:90px" value="${esc(sh.rm[e.k]||'')}" class="fi atrmi" oninput="atRm(${i},this)" placeholder="Remarks (type or pick)" aria-label="Remarks"><select class="fi atrms" onchange="atRmPick(${i},this)" aria-label="Quick remarks" title="Pick a remark (or just type your own)"><option value="">▾</option>${RM_OPTS.map(o=>`<option value="${o}">${o}</option>`).join('')}</select></div><div class="atpr" style="font-weight:400" id="atrp_${i}">${esc(sh.rm[e.k]||'')}</div></td></tr>`});body+=subR('g'+gi,'Total · '+g,G[g])});
  if(gk.length)body+=subR('all','GRAND TOTAL',sh.emps.map((_,i)=>i),'atgt');
  const mg=sh.m==='g';
@@ -8826,6 +8833,33 @@ ${isBr(sh)?`<label>Class (e.g. 52TANJM1)<input id="ata_cl2" class="fi" list="ata
 <label>Rate / gross<input id="ata_r" class="fi" type="number" step="any" min="0" placeholder="0.00"></label>
 <label>Days divisor (for gross)<input id="ata_f" class="fi" type="number" step="1" min="1" value="7"></label>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn o sm" onclick="$('atad').remove()">Cancel</button><button class="btn ok sm" onclick="atAddSave()">Add</button></div></div>`};
+
+/* ---------- Move an employee to another class / group, rename a class / group, or add a new one ---------- */
+const grpNames=sh=>[...new Set([...sh.emps.map(e=>e.c),...((typeof PGO!=='undefined'&&PGO[sh.dept])||[])].map(x=>String(x==null?'':x)).filter(x=>x.trim()))];
+const grpFind=(sh,v)=>{const u=String(v).trim().toUpperCase();return sh.emps.map(e=>e.c).find(c=>String(c==null?'':c).trim().toUpperCase()===u)};
+window.atMv=i=>{const sh=S();if(!sh||!sh.emps[i])return;const e=sh.emps[i],d=ovl('atmv');
+ d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 2px">Move to another class</h3><div class="sub" style="margin:0;font-size:13px"><b>${esc(e.n)}</b> · now in <b>${esc(e.c||sh.dept)}</b></div>
+<label>Move to (pick a class, or type a new one)<input id="atmv_c" class="fi" list="atmv_l" autocomplete="off" placeholder="e.g. B2" onkeydown="if(event.key==='Enter'){event.preventDefault();atMvSave(${i})}"><datalist id="atmv_l">${grpNames(sh).filter(c=>c!==e.c).map(c=>`<option value="${esc(c)}">`).join('')}</datalist></label>
+<div class="atsm" style="margin-top:6px">Only the class changes. The name stays in this attendance, with all the days already typed. If the class is not in the list, it is added.</div>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn o sm" onclick="$('atmv').remove()">Cancel</button><button class="btn ok sm" onclick="atMvSave(${i})">Move</button></div></div>`;const t=$('atmv_c');if(t)t.focus()};
+window.atMvSave=i=>{const sh=S();if(!sh||!sh.emps[i])return;const inp=$('atmv_c'),v=String((inp||{}).value||'').trim();if(!v){if(inp)inp.focus();return}
+ const e=sh.emps[i],ex=grpFind(sh,v),to=ex!=null?ex:v;if(String(e.c)===String(to)){const o=$('atmv');if(o)o.remove();return}
+ const isNew=ex==null&&!grpNames(sh).some(c=>String(c).trim().toUpperCase()===v.toUpperCase());
+ e.c=to;
+ /* put him at the end of the target class so he is easy to find */
+ const k=sh.emps.indexOf(e);sh.emps.splice(k,1);let at=-1;sh.emps.forEach((x,j)=>{if(String(x.c)===String(to))at=j});if(at<0)sh.emps.push(e);else sh.emps.splice(at+1,0,e);
+ const o=$('atmv');if(o)o.remove();drawSheet();sv();toast(e.n+' moved to '+to+(isNew?' (new class)':'')+'.');
+ setTimeout(()=>{try{const r=[...document.querySelectorAll('tr.atrw')].find(x=>x.dataset.n===e.n);if(r)r.scrollIntoView({block:'center'})}catch(x){}},50)};
+window.atGrpRen=g=>{const sh=S();if(!sh)return;const d=ovl('atgr');
+ d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 2px">Rename class</h3><div class="sub" style="margin:0;font-size:13px">${esc(g)} · ${sh.emps.filter(e=>String(e.c)===String(g)).length} employee(s)</div>
+<label>New name<input id="atgr_n" class="fi" list="atgr_l" autocomplete="off" value="${esc(g)}" data-g="${esc(g)}" onkeydown="if(event.key==='Enter'){event.preventDefault();atGrpRenSave(this.dataset.g)}"><datalist id="atgr_l">${grpNames(sh).filter(c=>c!==g).map(c=>`<option value="${esc(c)}">`).join('')}</datalist></label>
+<div class="atsm" style="margin-top:6px">Everyone in this class is renamed together (e.g. B1:189 → B1:190). If you pick a class that already exists, the two are combined.</div>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn o sm" onclick="$('atgr').remove()">Cancel</button><button class="btn ok sm" data-g="${esc(g)}" onclick="atGrpRenSave(this.dataset.g)">Save</button></div></div>`;const t=$('atgr_n');if(t){t.focus();t.select()}};
+window.atGrpRenSave=g=>{const sh=S();if(!sh)return;const inp=$('atgr_n'),v=String((inp||{}).value||'').trim();if(!v){if(inp)inp.focus();return}
+ const ex=grpFind(sh,v),to=ex!=null?ex:v;if(String(to)===String(g)){const o=$('atgr');if(o)o.remove();return}
+ const merge=ex!=null&&String(ex)!==String(g);if(merge&&!confirm('"'+to+'" already exists in this attendance.\n\nCombine "'+g+'" into "'+to+'"?'))return;
+ sh.emps.forEach(e=>{if(String(e.c)===String(g))e.c=to});
+ const o=$('atgr');if(o)o.remove();drawSheet();sv();toast('Class renamed to '+to+'.')};
 const nzS=x=>String(x||'').toUpperCase().replace(/[^A-Z0-9Ñ ]/g,' ').replace(/\s+/g,' ').trim();
 const nzHit=(txt,q)=>{const t=nzS(txt);return nzS(q).split(' ').filter(Boolean).every(w=>t.includes(w))};
 
@@ -9047,7 +9081,7 @@ window.atSyncPay=async keys=>{
  showSync(R)};
 
 /* ---------- lock guard: every editing action is blocked while the open attendance is locked ---------- */
-['atV','atT','atR','atFd','atRm','atVp','atFillRow','atFillCol','atCm','atCmSave','atRc','atRcSave','atRcDel','atRemove','atSyncNames','atAdd','atAddSave','atCl','atSp','atSpAdd','atSpSet','atSpDel','atPb','atSave'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;window[n]=function(){if(noEd())return;return f.apply(this,arguments)}});
+['atV','atT','atR','atFd','atRm','atVp','atFillRow','atFillCol','atCm','atCmSave','atRc','atRcSave','atRcDel','atRemove','atMv','atMvSave','atGrpRen','atGrpRenSave','atSyncNames','atAdd','atAddSave','atCl','atSp','atSpAdd','atSpSet','atSpDel','atPb','atSave'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;window[n]=function(){if(noEd())return;return f.apply(this,arguments)}});
 })();
 </script>
 </body></html>
