@@ -3698,7 +3698,7 @@ function xbPrint(c){c=c===1;if(!PP.runId||PP.dirty)return toast('Save the payrol
  w.focus();w.print();setTimeout(()=>f.remove(),1500)},250)}
 addEventListener('afterprint',()=>document.body.classList.remove('xb-only'));
 /* Auto remark: when the days entered are not the employee's fixed days, Remarks shows the actual days (only fills an empty / auto remark, never a typed one) */
-function pDaysRem(id){const s=(STF||[]).find(x=>x.id===id);if(!s||PP.m!=='g'||isMg(PF))return;const r=PP.rows[id]=PP.rows[id]||{};if(r.rem&&!r.remD)return;const pd=pGPD(s),d=pn(r.days),f=pd?7:pFDs(s),t=(r.days!=null&&r.days!==''&&d!==f)?d+' day'+(d===1?'':'s')+(pd?'':' (fixed '+f+')'):'';if(String(r.rem||'')===t)return;if(t){r.rem=t;r.remD=1}else{delete r.rem;delete r.remD}const a=$('i_'+id+'_rem');if(a)a.value=t;const b=$('pt_'+id+'_rem');if(b)b.textContent=t;const c=document.querySelector('#dysm .dk[data-id="'+id+'"]');if(c){c.value=t;c.defaultValue=t}}
+function pDaysRem(id){const s=(STF||[]).find(x=>x.id===id);if(!s||PP.m!=='g'||isMg(PF))return;const r=PP.rows[id]=PP.rows[id]||{};if(r.rem&&!r.remD)return;const pd=pGPD(s),d=pn(r.days),f=pd?7:pFDs(s),t=(r.days!=null&&r.days!==''&&d!==f)?dy3(d)+' day'+(d===1?'':'s')+(pd?'':' (fixed '+f+')'):'';if(String(r.rem||'')===t)return;if(t){r.rem=t;r.remD=1}else{delete r.rem;delete r.remD}const a=$('i_'+id+'_rem');if(a)a.value=t;const b=$('pt_'+id+'_rem');if(b)b.textContent=t;const c=document.querySelector('#dysm .dk[data-id="'+id+'"]');if(c){c.value=t;c.defaultValue=t}}
 function pIn(id,k,v){(PP.rows[id]=PP.rows[id]||{})[k]=v;if(k==='rem'){delete PP.rows[id].remA;delete PP.rows[id].remD}const e=document.getElementById('pt_'+id+'_'+k);if(e)e.textContent=v;
  if(k==='days'){const m=document.querySelector('#dysm .dy[data-id="'+id+'"]');if(m&&m.value!==String(v)){m.value=String(v);m.defaultValue=m.value;try{dysPrev(id)}catch(x){}}}
  try{const sv=String(v==null?'':v),act=document.activeElement,put=el=>{if(el&&el!==act&&el.value!==sv){el.value=sv;el.defaultValue=sv;return 1}};
@@ -4242,7 +4242,7 @@ function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.inclu
  dk=['vale','sss','phic','hdmf','ded','tax','ps','coop'],SR={vale:0,e_hloan:1,e_sloan:2,sss:3,phic:4,hdmf:5,ded:6,e_rent:7,e_elec:7.2,e_cash:7.4,e_cbond:8,tax:8.2,ps:8.4,coop:9},SS=['vale','e_hloan','e_sloan','sss','phic','hdmf','ded','e_rent','e_elec','e_cbond','coop'],
  lss=O.filter(k=>vis(k)&&(dk.includes(k)||xc.some(c=>c.id===k&&c.m==='less'))&&(SS.includes(k)||v[k])).map((k,i)=>[k,i]).sort((a,b)=>(SR[a[0]]??8.6)-(SR[b[0]]??8.6)||a[1]-b[1]).map(a=>a[0]),
  gross=r2(v.pay+adds.reduce((a,k)=>a+(v[k]||0),0)),td=r2(gross-v.net),bal=k=>k==='vale'?v.bal:k==='coop'?v.cbal:0,
- rd=PP.m==='r'&&vis('days')?[pRate(s),pn(r.days)]:null;
+ rd=PP.m==='r'&&vis('days')?[pRate(s),dy3(pn(r.days))]:null;
  return{s,g,v,r,lab,adds,lss,gross,td,bal,rd}}
 function pSlip(x){return pSlipHtml(pSlipModel(x))}
 function pSlipHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd:rdv}=M,n=Math.ceil(lss.length/2)||1,
@@ -8509,7 +8509,7 @@ const spAmt=(e,z)=>r2(pn(z.d)*pdOf(e));
 function clModel(sh){const CM=(typeof xbCm==='function')?xbCm():{},fm2=g=>(typeof xbFarm==='function')?xbFarm(g):'',P=Object.keys(CM).map(k=>({k,cl:CM[k]||[],rows:[],t:0})),C={},warn=[];let G=0;
  const put=(c,grp,name,amt)=>{c=String(c||'').trim();const pp=P.find(z=>z.k===c)||(c===''?P.find(z=>z.k===fm2(grp)):null);if(pp){pp.rows.push([name,amt,'n']);pp.t=r2(pp.t+amt)}else(C[c]=C[c]||[]).push([name,amt])};
  sh.emps.forEach(e=>{const t=tot(sh,e);G=r2(G+t.amt);if(!t.amt)return;const sp=spList(e),sa=sp.reduce((q,z)=>q+spAmt(e,z),0),sd=sp.reduce((q,z)=>q+pn(z.d),0),left=r2(t.days-sd);
-  if(sp.length&&left<-0.001)warn.push(e.n+': '+nf(sd)+' days divided but only '+nf(t.days)+' days worked');
+  if(sp.length&&left<-0.001)warn.push(e.n+': '+nd3(sd)+' days divided but only '+nd3(t.days)+' days worked');
   put(clOf(e),e.c,sp.length?e.n+' ('+nf(left)+' days)':e.n,r2(t.amt-sa));
   sp.forEach(z=>put(z.c,'',e.n+' ('+nf(pn(z.d))+' days)',spAmt(e,z)))});
  P.forEach(pp=>{if(!pp.rows.length)return;const n=pp.cl.length;if(!n){C[pp.k]=(C[pp.k]||[]).concat(pp.rows.map(r=>[r[0],r[1]]));return}const e=r2(pp.t/n);pp.cl.forEach((c,i)=>(C[c]=C[c]||[]).push([pp.k+' (share)',i<n-1?e:r2(pp.t-e*(n-1))]))});
@@ -8523,7 +8523,7 @@ function clSumH(sh){if(!isBr(sh)||!sh.emps.length)return'';const M=clModel(sh),d
 /* split dialog: move some of a person's days to other classes */
 window.atSp=i=>{const sh=S();if(!sh||!sh.emps[i])return;ovl('atsp');spDlg(i)};
 function spDlg(i){const sh=S(),e=sh.emps[i],d=$('atsp');if(!d||!e)return;const t=tot(sh,e),sp=e.sp||(e.sp=[]),used=sp.reduce((q,z)=>q+pn(z.d),0),left=r2(t.days-used),pdv2=pdOf(e);
- d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 2px">Hatiin ang sahod · Split</h3><div class="sub" style="margin:0;font-size:13px">${esc(e.n)} · ${nf(t.days)} days worked · class ${esc(clOf(e)||'(no class)')}</div>
+ d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 2px">Hatiin ang sahod · Split</h3><div class="sub" style="margin:0;font-size:13px">${esc(e.n)} · ${nd3(t.days)} days worked · class ${esc(clOf(e)||'(no class)')}</div>
  ${sp.map((z,k)=>`<div style="display:flex;gap:6px;align-items:center;margin-top:10px"><input class="fi" style="flex:1;margin:0" list="atcll" value="${esc(z.c||'')}" placeholder="Class (e.g. 51TANJM2)" onchange="atSpSet(${i},${k},'c',this.value)"><input class="fi" style="width:84px;margin:0" type="number" step="any" min="0" value="${z.d||''}" placeholder="Days" onchange="atSpSet(${i},${k},'d',this.value)"><span class="atsm" style="min-width:84px;text-align:right">${fm(spAmt(e,z))}</span><button class="btn dl sm" onclick="atSpDel(${i},${k})" title="Remove">✕</button></div>`).join('')}
  <div style="margin-top:12px;font-size:13px;${left<0?'color:#c0392b':'color:var(--mu)'}">Remaining in ${esc(clOf(e)||'(no class)')}: <b>${nf(left)} days</b> = ${fm(r2(t.amt-sp.reduce((q,z)=>q+spAmt(e,z),0)))}${left<0?' (over-divided)':''}</div>
  <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px"><button class="btn o sm" onclick="atSpAdd(${i})">+ Class</button><button class="btn ok sm" onclick="atSpDone()">Done</button></div></div>`}
@@ -8882,7 +8882,7 @@ async function syncOne(k){
  d.rows=d.rows||{};d.rates=d.rates||{};const b0=sj(d.rows),y0=sj(d.sy||null);
  const ids=Object.keys(d.rates||{}).map(String),stf=id=>(STF||[]).find(x=>String(x.id)===id),nm=x=>{try{return pNm(x)}catch(e){return String(x||'').toUpperCase().trim()}},byN={};
  ids.forEach(id=>{const x=stf(id);if(x)byN[nm(x.name)]=id});
- const used=new Set(),g=d.m==='g'&&!isMg(sh.dept),chg=[],add=[],diff=[];let ag=0,pgT=0;
+ const hasAdj=!(d.hc||[]).includes('adj'),used=new Set(),g=d.m==='g'&&!isMg(sh.dept),chg=[],add=[],diff=[];let ag=0,pgT=0;
  sh.emps.forEach(e=>{
   const id=ids.includes(String(e.k))?String(e.k):(byN[nm(e.n)]||''),t=tot(sh,e),ar=atArem(sh,e);
   if(!id){ag+=t.amt;add.push({n:e.n,r:pn(e.r),c:e.c||'',pd:e.pd?1:0,fd:e.fd>0?e.fd:7,days:t.any?nr3(t.days):'',arem:ar||'',amt:t.amt});return}
@@ -8890,13 +8890,15 @@ async function syncOne(k){
   const row=d.rows[id]=d.rows[id]||{};
   if(ar){row.arem=ar;r.rem++}else delete row.arem;
   /* gross check: attendance gross vs days x the rate that is in the payroll; rate check: attendance rate vs payroll rate */
-  const pr=pn(d.rates[id]),nr=pn(rAt(e,sh.to)),f2=e.pd?7:(pn(row.fd)>0?pn(row.fd):(pn(d.fd)>0?pn(d.fd):7)),pg=t.any?syPay(pr,t.days,e.pd,f2):0;
+  const pr=pn(d.rates[id]),nr=pn(rAt(e,sh.to)),f2=e.pd?7:(pn(row.fd)>0?pn(row.fd):(pn(d.fd)>0?pn(d.fd):7)),pg=r2((t.any?syPay(pr,t.days,e.pd,f2):0)+(hasAdj?t.adj:0));
   ag+=t.amt;pgT+=pg;
   if(Math.abs(t.amt-pg)>=.01)diff.push({n:e.n,a:t.amt,p:pg});
   if(nr>0&&r2(nr)!==r2(pr)){const rc=(e.rc||[]).find(z=>r2(pn(z.r))===r2(nr));chg.push({id,n:e.n,old:pr,nw:nr,eff:(rc&&rc.d)||sh.from,days:t.any?t.days:0,pd:e.pd?1:0,f:f2,a:t.amt,p:pg})}
+  /* Attendance adjustment -> the payroll's Adj. column (only when the payroll has that column) */
+  if(hasAdj){if(t.adj){row.adj=String(t.adj);row.adjS=1;r.adj=(r.adj||0)+1}else if(row.adjS){delete row.adj;delete row.adjS}}else if(t.adj)r.adjX=(r.adjX||0)+1;
   if(!t.any){r.skip++;if(!Object.keys(row).length)delete d.rows[id];return}
   row.days=nr3(t.days);
-  if(g&&(!row.rem||row.remD)){const f=e.pd?7:(pn(row.fd)>0?pn(row.fd):(pn(d.fd)>0?pn(d.fd):7)),txt=t.days!==f?nr3(t.days)+' day'+(t.days===1?'':'s')+(e.pd?'':' (fixed '+f+')'):'';if(txt){row.rem=txt;row.remD=1}else{delete row.rem;delete row.remD}}
+  if(g&&(!row.rem||row.remD)){const f=e.pd?7:(pn(row.fd)>0?pn(row.fd):(pn(d.fd)>0?pn(d.fd):7)),txt=t.days!==f?dy3(nr3(t.days))+' day'+(t.days===1?'':'s')+(e.pd?'':' (fixed '+f+')'):'';if(txt){row.rem=txt;row.remD=1}else{delete row.rem;delete row.remD}}
   r.up++});
  ids.forEach(id=>{if(!used.has(id)){const x=stf(id);r.gone.push(x?x.name:'Employee #'+id)}});
  r.add=add.map(x=>x.n);
@@ -8905,7 +8907,7 @@ async function syncOne(k){
  if(sj(d.rows)!==b0||sj(d.sy||null)!==y0){await api('/rest/v1/hrd_payroll?id=eq.'+run.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:sj({data:d})});if(PP&&PP.runId===run.id&&!PP.dirty)PP.rows=d.rows}
  r.ok=true;return r}
 function showSync(R){const d=ovl('atsy'),li=a=>a.slice(0,30).map(x=>'<li>'+esc(x)+'</li>').join('')+(a.length>30?'<li>…and '+(a.length-30)+' more</li>':'');
- d.innerHTML=`<div class="atbox" style="max-width:580px;max-height:80vh;overflow:auto"><h3 style="margin:0 0 10px">Sync to Payroll</h3>${R.map(r=>`<div style="border:1px solid var(--ln);border-radius:10px;padding:10px 12px;margin:0 0 10px"><b>${esc(r.dept||'')}</b> · ${esc(r.lab||'')}${r.ok?`<div style="color:#2e7d4f;margin-top:4px">✔ ${r.up} employee${r.up===1?'':'s'} updated in the payroll${r.rem?' · '+r.rem+' with attendance remarks':''}${r.skip?' · '+r.skip+' skipped (no attendance entered)':''} <button class="btn o sm" style="margin-left:6px" data-r="${esc(r.run)}" onclick="atOpenPay(this.dataset.r)">Open in Payroll</button></div>`:`<div style="color:#b3392f;margin-top:4px">✖ ${esc(r.msg)}</div>`}${r.ok&&r.iss&&(r.iss.c||r.iss.a||r.iss.gp)?`<div style="margin-top:8px;padding:9px 11px;border-radius:8px;background:#fff6e0;color:#6b4700;border:1px solid #e0b04a"><b>⚠ Needs your review</b><ul style="margin:4px 0 8px 18px;padding:0">${r.iss.gp?`<li>Total gross does not match: Attendance ${fm(r.ag)} vs Payroll ${fm(r.pg)} (difference ${fm(r.ag-r.pg)})</li>`:''}${r.iss.c?`<li>${r.iss.c} employee${r.iss.c===1?'':'s'} with a different rate</li>`:''}${r.iss.a?`<li>${r.iss.a} employee${r.iss.a===1?'':'s'} in the attendance but not in the payroll</li>`:''}</ul><button class="btn sm" data-r="${esc(r.run)}" onclick="document.getElementById('atsy').remove();atSyOpen(this.dataset.r)">Review &amp; decide</button> <small>This notice also shows in Payroll until you decide.</small></div>`:''}${r.gone&&r.gone.length?`<div style="margin-top:8px;color:#8a5a00"><b>⚠ In the payroll but no longer in this cutoff's attendance (${r.gone.length}):</b><ul style="margin:4px 0 0 18px;padding:0">${li(r.gone)}</ul><small>Their days in the payroll were not changed.</small></div>`:''}</div>`).join('')}<div style="display:flex;justify-content:flex-end"><button class="btn sm" onclick="$('atsy').remove()">OK</button></div></div>`}
+ d.innerHTML=`<div class="atbox" style="max-width:580px;max-height:80vh;overflow:auto"><h3 style="margin:0 0 10px">Sync to Payroll</h3>${R.map(r=>`<div style="border:1px solid var(--ln);border-radius:10px;padding:10px 12px;margin:0 0 10px"><b>${esc(r.dept||'')}</b> · ${esc(r.lab||'')}${r.ok?`<div style="color:#2e7d4f;margin-top:4px">✔ ${r.up} employee${r.up===1?'':'s'} updated in the payroll${r.rem?' · '+r.rem+' with attendance remarks':''}${r.adj?' · '+r.adj+' adjustment'+(r.adj===1?'':'s')+' copied to the Adj. column':''}${r.skip?' · '+r.skip+' skipped (no attendance entered)':''}${r.adjX?'<div style=\"color:#b0792a\">⚠ '+r.adjX+' adjustment'+(r.adjX===1?'':'s')+' not copied: this payroll has no Adj. column (show it in the payroll first).</div>':''} <button class="btn o sm" style="margin-left:6px" data-r="${esc(r.run)}" onclick="atOpenPay(this.dataset.r)">Open in Payroll</button></div>`:`<div style="color:#b3392f;margin-top:4px">✖ ${esc(r.msg)}</div>`}${r.ok&&r.iss&&(r.iss.c||r.iss.a||r.iss.gp)?`<div style="margin-top:8px;padding:9px 11px;border-radius:8px;background:#fff6e0;color:#6b4700;border:1px solid #e0b04a"><b>⚠ Needs your review</b><ul style="margin:4px 0 8px 18px;padding:0">${r.iss.gp?`<li>Total gross does not match: Attendance ${fm(r.ag)} vs Payroll ${fm(r.pg)} (difference ${fm(r.ag-r.pg)})</li>`:''}${r.iss.c?`<li>${r.iss.c} employee${r.iss.c===1?'':'s'} with a different rate</li>`:''}${r.iss.a?`<li>${r.iss.a} employee${r.iss.a===1?'':'s'} in the attendance but not in the payroll</li>`:''}</ul><button class="btn sm" data-r="${esc(r.run)}" onclick="document.getElementById('atsy').remove();atSyOpen(this.dataset.r)">Review &amp; decide</button> <small>This notice also shows in Payroll until you decide.</small></div>`:''}${r.gone&&r.gone.length?`<div style="margin-top:8px;color:#8a5a00"><b>⚠ In the payroll but no longer in this cutoff's attendance (${r.gone.length}):</b><ul style="margin:4px 0 0 18px;padding:0">${li(r.gone)}</ul><small>Their days in the payroll were not changed.</small></div>`:''}</div>`).join('')}<div style="display:flex;justify-content:flex-end"><button class="btn sm" onclick="$('atsy').remove()">OK</button></div></div>`}
 
 /* ---------- Review dialog: the admin decides per person (Update rate / Add to payroll / Ignore) ---------- */
 let SYR=null;
@@ -8973,23 +8975,23 @@ window.atCmp=async()=>{
  const nm=x=>{try{return pNm(x)}catch(e){return String(x||'').toUpperCase().trim()}},St=[].concat(...pGroups().map(g=>g[1])),byId={},byN={};
  St.forEach(x=>{byId[String(x.id)]=x;byN[nm(x.name)]=x});
  const pd=x=>{const r=(PP.rows&&PP.rows[x.id])||{};return(r.days===''||r.days==null)?null:pn(r.days)},used=new Set(),R=[];
- let ta=0,tp=0,tam=0,tpm=0;const r2c=v=>Math.round(v*100)/100,pam=x=>{try{return r2c(pVals(x).pay)}catch(e){return null}};
+ let ta=0,tp=0,tam=0,tpm=0;const r3=v=>Math.round(v*1000)/1000,r2c=v=>Math.round(v*100)/100,pam=x=>{try{return r2c(pVals(x).pay)}catch(e){return null}};
  sh.emps.forEach(e=>{const t=tot(sh,e),a=t.any?t.days:null,am=t.any?r2c(t.base):null,x=byId[String(e.k)]||byN[nm(e.n)];
   if(a!=null){ta+=a;tam+=am}
   if(!x){if(a!=null)R.push({n:e.n,a,am,p:null,pm:null,s:'np',m:'Not in this payroll'});return}
   used.add(String(x.id));const p=pd(x),pm=p!=null?pam(x):null;if(p!=null){tp+=p;tpm+=pm||0}
-  const dd=r2c((p||0)-(a||0)),da=r2c((pm||0)-(am||0));
+  const dd=r3((p||0)-(a||0)),da=r2c((pm||0)-(am||0));
   if(a==null&&p==null)R.push({n:e.n,a,am,p,pm,s:'ok',m:'No days in either'});
-  else if(a!=null&&p!=null&&Math.abs(dd)<.005&&Math.abs(da)<.5)R.push({n:e.n,a,am,p,pm,s:'ok',m:'Match'});
-  else R.push({n:e.n,a,am,p,pm,s:'df',m:a==null?'No attendance entered':p==null?'Not yet in payroll (sync it)':Math.abs(dd)>=.005?'Days differ by '+nf(dd)+' (payroll − attendance)':'Amount differs by '+fmM(da)+' (payroll − attendance)'})});
+  else if(a!=null&&p!=null&&Math.abs(dd)<.0005&&Math.abs(da)<.5)R.push({n:e.n,a,am,p,pm,s:'ok',m:'Match'});
+  else R.push({n:e.n,a,am,p,pm,s:'df',m:a==null?'No attendance entered':p==null?'Not yet in payroll (sync it)':Math.abs(dd)>=.0005?'Days differ by '+nd3(dd)+' (payroll − attendance)':'Amount differs by '+fmM(da)+' (payroll − attendance)'})});
  St.forEach(x=>{if(used.has(String(x.id)))return;const p=pd(x);if(p!=null){const pm=pam(x);tp+=p;tpm+=pm||0;R.push({n:x.name,a:null,am:null,p,pm,s:'na',m:'Not in this attendance'})}});
- const adjT=r2c(sh.emps.reduce((q,e)=>q+tot(sh,e).adj,0)),bad=R.filter(r=>r.s!=='ok').length,dTot=r2c(tp-ta),dAmt=r2c(tpm-tam),okAll=!bad&&Math.abs(dTot)<.005&&Math.abs(dAmt)<.5;
+ const adjT=r2c(sh.emps.reduce((q,e)=>q+tot(sh,e).adj,0)),bad=R.filter(r=>r.s!=='ok').length,dTot=r3(tp-ta),dAmt=r2c(tpm-tam),okAll=!bad&&Math.abs(dTot)<.0005&&Math.abs(dAmt)<.5;
  R.sort((a,b)=>(a.s==='ok')-(b.s==='ok')||String(a.n).localeCompare(String(b.n)));
- const col={ok:'#2e7d4f',df:'#b3392f',np:'#b0792a',na:'#b0792a'},ic={ok:'✔',df:'⚠',np:'✖',na:'✖'},f=v=>v==null?'–':nf(v),fa=v=>v==null?'–':fmM(v);
+ const col={ok:'#2e7d4f',df:'#b3392f',np:'#b0792a',na:'#b0792a'},ic={ok:'✔',df:'⚠',np:'✖',na:'✖'},f=v=>v==null?'–':nd3(v),fa=v=>v==null?'–':fmM(v);
  box(`<h3 style="margin:0 0 4px">Attendance check</h3><p class="sub" style="margin:0 0 12px"><b>${esc(dept)}</b> · ${esc(L)}${PP.dirty?'<br><span style="color:#b0792a">Includes the unsaved changes on this payroll screen.</span>':''}${adjT?`<br><span style="color:var(--mu);font-size:12.5px">Attendance adjustments (${fmM(adjT)}) are not part of this comparison: it checks days × rate only.</span>`:''}</p>
  <div style="padding:14px 16px;border-radius:12px;margin:0 0 14px;${okAll?'background:#e8f5ec;color:#1f6b3d;border:1px solid #9fd1b1':'background:#fff6e0;color:#6b4700;border:1px solid #e0b04a'}"><div style="font-size:16px;font-weight:700">${okAll?'✔ BALANCED — the attendance and the payroll match (days and amount).':'⚠ NOT BALANCED — '+bad+' line'+(bad===1?'':'s')+(Math.abs(dAmt)>=.5?' · amount differs by '+fmM(dAmt):'')+' to check.'}</div>
  <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:4px 16px;margin-top:10px;font-size:13.5px"><span></span><b>Attendance</b><b>Payroll</b><b>Difference</b>
- <span>Total days</span><span>${nf(r2c(ta))}</span><span>${nf(r2c(tp))}</span><span><b>${nf(dTot)}</b></span>
+ <span>Total days</span><span>${nd3(r3(ta))}</span><span>${nd3(r3(tp))}</span><span><b>${nd3(dTot)}</b></span>
  <span>Total amount</span><span>${fmM(r2c(tam))}</span><span>${fmM(r2c(tpm))}</span><span><b>${fmM(dAmt)}</b></span></div></div>
  <label style="font-size:13px;display:flex;gap:6px;align-items:center;margin:0 0 8px"><input type="checkbox" onchange="document.querySelectorAll('#atcmp .atcok').forEach(r=>r.style.display=this.checked?'none':'')"> Show only the lines with a difference</label>
  <div style="overflow-x:auto"><table class="hl" style="width:100%"><tr><th>Name</th><th class="hlc">Att. days</th><th class="hlc">Pay. days</th><th class="hlc">Att. amount</th><th class="hlc">Pay. amount</th><th>Status</th></tr>${R.map(r=>`<tr class="${r.s==='ok'?'atcok':''}"><td>${esc(r.n)}</td><td class="hlc">${f(r.a)}</td><td class="hlc">${f(r.p)}</td><td class="hlc">${fa(r.am)}</td><td class="hlc">${fa(r.pm)}</td><td style="color:${col[r.s]};font-weight:600">${ic[r.s]} ${esc(r.m)}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--mu)">No employees.</td></tr>'}</table></div>
