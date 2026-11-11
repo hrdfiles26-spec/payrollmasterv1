@@ -1812,7 +1812,8 @@ async function enter(){
  await loadAccess();
  if(!SUPER&&MYA&&!MYA.active){alert('Your account is disabled. Please contact the admin.');return logout()}
  const f=applyNav();try{if(typeof tick==='function')tick()}catch(e){}try{sndUI()}catch(e){}
- if(!f)$('main').innerHTML='<h1>No access</h1><p class="sub">You have no pages assigned yet. Please contact the admin.</p>';else go('dash');
+ /* every signed-in user lands on the Dashboard first (it can be viewed by everyone), even if they only have Attendance / Time Mark / Monthly / Benefits access */
+ go('dash');
  if(can('emp'))loadND().then(()=>loadE(true));if(can('act'))actPoll();setInterval(()=>can('act')&&actPoll(),60000);can('tmk')&&tmNotifSync(true);can('tma')&&tmDecSync(true);Promise.all([pdLoad().catch(()=>0),chatLoad()]).then(()=>{chatBadge();liveStart()})}
 function applyNav(){ADM=can('usr');{const a=$('ndel');if(a)a.style.display=SUPER?'none':''}
  ['req','sub','emp','pay','act','usr'].forEach((k,j)=>$('n'+(j+1)).style.display=can(k)?'':'none');$('n7').style.display=isAdm()?'':'none';['addc','m13'].forEach((k,j)=>{const a=$('n'+(9+j));a.style.display='';a.classList.toggle('lkd',!can(k));a.title=can(k)?'':'Needs permission from the admin'});{const a=$('n14');if(a)a.style.display=can('att')?'':'none';}{const a=$('n11');if(a)a.style.display=can('tmk')?'':'none';}{const a=$('n12');if(a)a.style.display=can('mg')?'':'none';}{const a=$('n13');if(a)a.style.display=can('ben')?'':'none';}
@@ -4863,7 +4864,14 @@ async function m13(){GD='';if(M13S&&M13S.dirty&&String(M13S.year)===String(MY)&&
 function m13View(y){GD='';y=String(y);if(y!==String(MY)){if(!m13Leave())return;MY=y;m13Open(MY)}MD='all';MQ='';mDraw();scrollTo(0,0)}
 function m13Back(){GD='';MD='';MQ='';mDraw();scrollTo(0,0)}
 function m13Pick(y){if(String(y)===String(MY))return;if(!m13Leave()){mDraw();return}MY=String(y);m13Open(MY);mDraw()}
-function m13Staff(){const S=M13S,rm=new Set((S&&S.removed)||[]);return[...(STF||[]).filter(s=>!rm.has(String(s.id))),...((S&&S.added)||[]).map(a=>({id:a.id,name:a.name,dept:a.dept,rate:a.rate,_add:1}))]}
+/* ---- 13th Month Pay: which departments each user may view (stored in the user's pages as "m13d:<DEPARTMENT>"; none ticked = all) ---- */
+let M13NF=0;
+const m13Allowed=()=>{if(SUPER||(MYA&&MYA.role==='admin'))return null;const a=((MYA&&MYA.pages)||[]).filter(x=>String(x).indexOf('m13d:')===0).map(x=>String(x).slice(5));return a.length?a:null};
+const m13OkD=d=>{const a=m13Allowed();return!a||a.includes(d)};
+window.m13DeptChips=(pg,dis)=>{let F=[];try{F=pFolders()}catch(e){}return F.map(f=>`<label class="ux-chip"><input type="checkbox" class="uad13" data-d="${esc(f)}"${(pg||[]).includes('m13d:'+f)?' checked':''}${dis?' disabled':''}> ${esc(f)}</label>`).join('')};
+window.m13DeptSel=id=>[...document.querySelectorAll('#'+id+' .uad13:checked')].map(c=>'m13d:'+c.dataset.d);
+function m13Staff(){const L=m13Staff0();return M13NF||!m13Allowed()?L:L.filter(s=>m13OkD(s.dept))}
+function m13Staff0(){const S=M13S,rm=new Set((S&&S.removed)||[]);return[...(STF||[]).filter(s=>!rm.has(String(s.id))),...((S&&S.added)||[]).map(a=>({id:a.id,name:a.name,dept:a.dept,rate:a.rate,_add:1}))]}
 /* v519: 13th month sheet layout (as the FMVM Excel): Rate x No. of Days = 13th Month Pay; Net Pay = 13th Month Pay - A/R - Vale. New hires of the year are in CONTRACTUAL / PROBATIONARY: Rate x Days / 12 x months worked until Dec 31. Days, A/R and Vale start blank. */
 const m13Days=()=>(M13S&&M13S.days)||{};
 const m13Ent=(o,id)=>{const v=o[id];return v==null?{}:typeof v==='object'?v:{d:v}};
@@ -4922,7 +4930,9 @@ function gnFilter(){const q=String(GQ||'').trim().toLowerCase(),R=[...document.q
 function m13HrToggle(){M13HR=!M13HR;try{localStorage.setItem('hrd_m13hr',M13HR?'1':'0')}catch(e){}mDraw()}
 function m13NcToggle(){M13NC=!M13NC;try{localStorage.setItem('hrd_m13nc',M13NC?'1':'0')}catch(e){}mDraw()}
 function m13Sort(k){M13SORT=M13SORT.k===k?{k:k,d:-M13SORT.d}:{k:k,d:(k==='y'||k==='p'||k==='net'||k==='at'||k==='wd')?-1:1};mDraw()}
-function m13HistRows(){
+function m13HistRowsAll(){M13NF++;try{return m13HistRows0()}finally{M13NF--}}
+function m13HistRows(){return m13HistRowsAll().filter(r=>m13OkD(r.d))}
+function m13HistRows0(){
  const sv={S:M13S,Y:MY,D:MD,Q:MQ},rows=[],cp=o=>JSON.parse(JSON.stringify(o)),
   yrs=[...new Set([...(M13H||[]).map(r=>String(r.year)),String(sv.Y)])];
  try{yrs.forEach(y=>{
@@ -4949,7 +4959,7 @@ function m13HAll(on){M13HSEL=new Set();M13HMODE=!!on;if(on)m13HistRows().forEach
 /* Delete one or many saved departments. A year whose departments are all picked is removed completely. */
 async function m13HDel(pairs,ask){if(!pairs.length)return toast('Tick at least one row first.');
  const by=new Map();pairs.forEach(([y,d])=>{y=String(y);if(!by.has(y))by.set(y,new Set());by.get(y).add(d)});
- const all=m13HistRows(),tot=y=>new Set(all.filter(r=>String(r.y)===y).map(r=>r.d)),
+ const all=m13HistRowsAll(),tot=y=>new Set(all.filter(r=>String(r.y)===y).map(r=>r.d)),
   lines=[...by.entries()].map(([y,D])=>{const t=tot(y);return y+': '+(D.size>=t.size?'the whole year ('+t.size+' department'+(t.size===1?'':'s')+')':[...D].join(', '))});
  if(!confirm((ask||'Delete from the saved 13th Month Pay History?')+'\n\n'+lines.join('\n')+'\n\nThis cannot be undone.'))return;
  try{for(const [y,D] of by){const t=tot(y);
@@ -4993,6 +5003,7 @@ function m13OpenDept(y,d,g){y=String(y);if(y!==String(MY)){if(!m13Leave())return
 function mDraw(){if(PG!=='m13')return;return m13Keep(mDraw0)}
 function mDraw0(){gnSync(M13S);
  if(STF==null||PH==null){$('main').innerHTML='<section class="cx-wrap"><div class="cx-head"><div><h1>13th Month Pay</h1><p class="sub">The payroll data could not be loaded. Check your connection and that the payroll tables are set up, then open this page again.</p></div></div></section>';return}
+ if(GD&&!m13OkD(GD))GD='';if(MD&&MD!=='all'&&!m13OkD(MD))MD='all';
  if(GD&&M13S&&M13S.gen&&M13S.gen[GD])return gnDraw();
  const M=m13Model(),SF=m13Staff(),S=M13S,depts=[...new Set(SF.map(s=>s.dept))].sort(),
  yrs=[...new Set([MY,String(new Date().getFullYear()),...PH.map(p=>String((p.data||{}).from||'').slice(0,4)).filter(y=>/^\d{4}$/.test(y)),...(M13H||[]).map(r=>String(r.year))])].sort().reverse(),
@@ -5060,20 +5071,21 @@ function m13Rem(id){const S=M13S,a=(S.added||[]).find(x=>String(x.id)===String(i
 function m13Restore(id){const S=M13S;S.removed=(S.removed||[]).filter(x=>x!==String(id));m13Mark();mDraw()}
 function m13AddPick(n){const e=(E||[]).find(x=>String(x.name||'').toLowerCase()===String(n).trim().toLowerCase());if(e&&$('a13d')&&!$('a13d').value)$('a13d').value=nd(e.dept||'')}
 function m13Add(){const nm=$('a13n').value.trim().replace(/\s+/g,' '),dp=$('a13d').value.trim(),rt=pn($('a13r').value);
- if(!nm||!dp)return toast('Enter the name and department.');if(!(rt>0))return toast('Enter the rate (greater than zero).');
+ if(!nm||!dp)return toast('Enter the name and department.');if(!m13OkD(dp))return toast('You do not have access to the '+dp+' department.');if(!(rt>0))return toast('Enter the rate (greater than zero).');
  const S=M13S,low=nm.toLowerCase(),inL=m13Staff().find(s=>s.dept===dp&&s.name.toLowerCase()===low);if(inL)return toast(nm+' is already in '+dp+'.');
  const gone=(STF||[]).find(s=>(S.removed||[]).includes(String(s.id))&&s.dept===dp&&s.name.toLowerCase()===low);
  if(gone&&confirm(nm+' was removed from this list. Restore the original entry instead?\n\nPress OK to restore, or Cancel to add a new one.')){return m13Restore(gone.id)}
  (S.added=S.added||[]).push({id:'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:nm,dept:dp,rate:rt});m13Mark();mDraw();toast('Added '+nm+' ✔')}
 async function m13Save(){const S=M13S;if(!S)return;
  const sv=[MD,MQ];MD='all';MQ='';let M,R;try{M=m13Model();R=[];M.D.forEach(x=>x.secs.forEach(sc=>sc.rows.forEach(r=>R.push(r))))}finally{MD=sv[0];MQ=sv[1]}
+ let MF=M;if(m13Allowed()){M13NF++;try{MD='all';MQ='';MF=m13Model()}finally{M13NF--;MD=sv[0];MQ=sv[1]}}/* the saved totals always cover every department, even when this user can only see some */
  const neg=R.filter(r=>r.has&&r.net<0);
  if(neg.length)return alert('Cannot save: Net Pay cannot be negative.\n\n'+neg.slice(0,15).map(r=>'• '+r.s.name+' — Net Pay '+fm(r.net)+' (13th Month '+fm(r.pay)+', A/R '+fm(r.ar)+', Vale '+fm(r.vl)+')').join('\n')+(neg.length>15?'\n…and '+(neg.length-15)+' more':'')+'\n\nPlease fix the A/R or Vale of the employee(s) listed above.');
- {const gneg=[];Object.values(S.gen||{}).forEach(f=>f.rows.forEach(r=>{const c=gnCalc(r,f);if(c.has&&c.net<0)gneg.push('• '+r.name+' ('+f.dept+') — Net Pay '+fm(c.net))}));if(gneg.length)return alert('Cannot save: Net Pay cannot be negative.\n\n'+gneg.slice(0,15).join('\n')+(gneg.length>15?'\n…and '+(gneg.length-15)+' more':'')+'\n\nPlease fix the deductions of the employee(s) listed above.')}
- {const bad=[];Object.values(S.gen||{}).forEach(f=>f.rows.forEach(r=>{if(gnStat(r)==='no')return;if(!ACCT13.test(String(r.acct||'')))bad.push('• '+r.name+' ('+f.dept+') — '+(r.acct?'"'+r.acct+'" is not 13 digits':'no account number'))}));if(bad.length)return alert('Cannot save: every employee in the 13th Month Pay needs an account number of exactly 13 digits.\n\n'+bad.slice(0,15).join('\n')+(bad.length>15?'\n…and '+(bad.length-15)+' more':'')+'\n\nType it in the Account No. column or in ATM accounts. Employees marked No 13th MP are not checked.')}
+ {const gneg=[];Object.values(S.gen||{}).filter(f=>m13OkD(f.dept)).forEach(f=>f.rows.forEach(r=>{const c=gnCalc(r,f);if(c.has&&c.net<0)gneg.push('• '+r.name+' ('+f.dept+') — Net Pay '+fm(c.net))}));if(gneg.length)return alert('Cannot save: Net Pay cannot be negative.\n\n'+gneg.slice(0,15).join('\n')+(gneg.length>15?'\n…and '+(gneg.length-15)+' more':'')+'\n\nPlease fix the deductions of the employee(s) listed above.')}
+ {const bad=[];Object.values(S.gen||{}).filter(f=>m13OkD(f.dept)).forEach(f=>f.rows.forEach(r=>{if(gnStat(r)==='no')return;if(!ACCT13.test(String(r.acct||'')))bad.push('• '+r.name+' ('+f.dept+') — '+(r.acct?'"'+r.acct+'" is not 13 digits':'no account number'))}));if(bad.length)return alert('Cannot save: every employee in the 13th Month Pay needs an account number of exactly 13 digits.\n\n'+bad.slice(0,15).join('\n')+(bad.length>15?'\n…and '+(bad.length-15)+' more':'')+'\n\nType it in the Account No. column or in ATM accounts. Employees marked No 13th MP are not checked.')}
  if(!M.withDays&&!gnHasDays()&&!confirm('No. of Days is still empty for everyone. Save anyway?'))return;
  if(!confirm((S.saved?'Save your changes to':'Save')+' 13th Month Pay '+S.year+'?\n\nThere is one saved record per year. '+(S.saved?'The saved copy will be replaced.':'It will be added to History.')+(()=>{const na=m13NoAcct();return na.length?'\n\n\u26A0 '+na.length+' employee'+(na.length>1?'s have':' has')+' no ATM account yet:\n'+na.slice(0,15).map(x=>'\u2022 '+x.name+' ('+x.dept+')').join('\n')+(na.length>15?'\n\u2026and '+(na.length-15)+' more':'')+'\n\nPress OK to save anyway, or Cancel to add their accounts first (ATM accounts button).':''})()))return;
- Object.values(S.gen||{}).forEach(f=>{f.sv=1});const at=new Date().toISOString(),by=m13Who(),body={year:+S.year,data:{days:S.days,added:S.added||[],removed:S.removed||[],def:S.def,gen:S.gen||{},hid:(S.hid||[]).filter(d=>!(S.gen&&S.gen[d])),sum:{cnt:M.cnt,withDays:M.withDays,p:M.G.p,n:M.G.n}},updated_by:by,updated_at:at};
+ Object.values(S.gen||{}).forEach(f=>{f.sv=1});const at=new Date().toISOString(),by=m13Who(),body={year:+S.year,data:{days:S.days,added:S.added||[],removed:S.removed||[],def:S.def,gen:S.gen||{},hid:(S.hid||[]).filter(d=>!(S.gen&&S.gen[d])),sum:{cnt:MF.cnt,withDays:MF.withDays,p:MF.G.p,n:MF.G.n}},updated_by:by,updated_at:at};
  try{await api('/rest/v1/hrd_m13?on_conflict=year',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
   await m13Load();S.saved=true;S.dirty=false;S.at=at;S.by=by;m13DraftClear();logAct('Saved 13th month pay','13th Month Pay',S.year+' · '+M.withDays+'/'+M.cnt+' with days · '+fm(M.G.n));toast('Saved ✔ 13th Month Pay '+S.year+' is in History');mDraw()}
  catch(e){if(m13Missing(e)){M13OK=false;mDraw();alert('The table for saving 13th Month Pay is not set up yet.\n\nRun the SQL shown at the top of this page in Supabase (SQL Editor), then press Save again. Your work is still here.');return}alert('Could not save: '+(e.message||e))}}
@@ -5082,8 +5094,8 @@ async function m13Del(y){if(!confirm('Delete the saved 13th Month Pay '+y+' from
   if(String(MY)===String(y)){try{localStorage.removeItem(m13DK(y))}catch(e){}M13S.saved=false;M13S.dirty=true;M13S.at='';M13S.by=''}mDraw();toast('Deleted')}catch(e){alert('Could not delete: '+(e.message||e))}}
 const m13SqlH=()=>`<div class="cx-card no-print"><h3 style="margin:0 0 6px">One-time setup: run this in Supabase → SQL Editor</h3><p class="sub" style="font-size:14px;margin:0 0 10px">The table for saved 13th Month Pay (History) has not been created yet, so Save cannot work. What you type here is kept as a draft in this browser.</p><pre style="white-space:pre-wrap;font-size:12px;background:var(--sf2);padding:12px;border-radius:8px;max-height:240px;overflow:auto">${esc(M13SQL)}</pre><button class="btn" onclick="try{navigator.clipboard.writeText(M13SQL);toast('SQL copied')}catch(e){}">Copy SQL</button> <button class="btn o" onclick="m13Recheck()">I've run it</button></div>`;
 async function m13Recheck(){await m13Load();if(M13OK===false)toast('The table is still not found.');else{const y=M13S.year,k=M13S.dirty;m13Open(y);if(k)M13S.dirty=true;toast('Ready — you can Save now ✔')}mDraw()}
-function m13Extra(noRm,noHist){const S=M13S,rm=noRm?[]:(STF||[]).filter(s=>(S.removed||[]).includes(String(s.id))),H=M13H||[];
- const sm=r=>{const x=(r.data||{}).sum||{};return x};
+function m13Extra(noRm,noHist){const S=M13S,rm=noRm?[]:(STF||[]).filter(s=>(S.removed||[]).includes(String(s.id))&&m13OkD(s.dept)),H=M13H||[];
+ const sm=r=>{const x=m13Allowed()?{}:((r.data||{}).sum||{});return x};
  return(rm.length?`<div class="cx-card no-print" style="margin-top:14px"><h3 style="margin:0 0 8px">Removed from ${esc(S.year)} (${rm.length})</h3><div style="display:flex;flex-wrap:wrap;gap:8px">${rm.map(s=>`<span class="cx-tag" style="padding:5px 6px 5px 10px">${esc(s.name)} <small>· ${esc(s.dept)}</small> <button class="btn o sm" data-id="${esc(String(s.id))}" onclick="m13Restore(this.dataset.id)">Restore</button></span>`).join('')}</div></div>`:'')+
  (noHist?'':`<div class="cx-card no-print" style="margin-top:14px"><h3 style="margin:0 0 8px">13th Month Pay History <span class="m13s" style="display:inline">(${H.length})</span></h3>${H.length?`<div class="cx-tw"><table class="cx-t" style="min-width:0"><thead><tr><th>Year</th><th class="n">Employees</th><th class="n">13th Month Pay</th><th class="n">Net Pay</th><th>Saved</th><th></th></tr></thead><tbody>${H.map(r=>{const x=sm(r),cur=String(r.year)===String(S.year);return`<tr><td><b>${esc(r.year)}</b>${cur?' <span class="cx-tag">Open</span>':''}</td><td class="n">${x.cnt!=null?x.withDays+'/'+x.cnt:'-'}</td><td class="n">${x.p!=null?fm(x.p):'-'}</td><td class="n">${x.n!=null?fm(x.n):'-'}</td><td>${esc(new Date(r.updated_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'}))}${r.updated_by?'<small class="m13s">'+esc(r.updated_by)+'</small>':''}</td><td class="n"><button class="btn sm" onclick="m13View('${esc(String(r.year))}')">Open</button> <button class="btn dl sm" onclick="m13Del('${esc(String(r.year))}')">Delete</button></td></tr>`}).join('')}</tbody></table></div>`:`<div class="cx-em">${M13OK===false?'Set up the table above first.':'Nothing saved yet. Fill in the days, then press Save.'}</div>`}</div>`)}
 /* ===== 13th Month Pay: GENERATE a department form from the latest saved payroll (active employees, with their ATM account) ===== */
@@ -5118,7 +5130,7 @@ function gnTot(f){const R_=f.rows.filter(r=>gnStat(r)!=='no'),t={n:R_.length,pay
 const gnHasDays=()=>Object.values((M13S&&M13S.gen)||{}).some(f=>f.rows.some(r=>r.days!==''&&r.days!=null));
 function gnOpen(){
  if(!M13S||STF==null||PH==null)return toast('Payroll data is still loading. Please try again.');
- const depts=[...new Set((STF||[]).map(s=>s.dept))].filter(d=>pLastH(d)).sort();
+ const depts=[...new Set((STF||[]).map(s=>s.dept))].filter(d=>pLastH(d)&&m13OkD(d)).sort();
  if(!depts.length)return toast('No saved payroll found. Save a payroll first.');
  const d=ovl('gnm');
  d.innerHTML=`<div style="${BX};max-width:520px"><h2 style="margin:0 0 4px">Generate 13th Month Pay ${esc(MY)}</h2><p class="sub" style="font-size:13.5px;margin:0 0 14px">Lists the active employees of the department from the payroll cutoff you choose, with their ATM account.</p>
@@ -5201,7 +5213,7 @@ function gnSigSet(el){const f=((M13S||{}).gen||{})[GD];if(!f)return;const g=el.d
 /* ===== 13th Month Pay: ATM Accounts. The accounts belong to the generated form (a snapshot): later Payroll changes never touch a saved 13th month. ===== */
 let M13ATQ='';
 const m13AF=()=>((M13S||{}).gen||{})[GD];
-function m13NoAcct(){const o=[];Object.keys((M13S&&M13S.gen)||{}).sort().forEach(d=>{const f=M13S.gen[d];(f.rows||[]).forEach(r=>{if(gnStat(r)==='no')return;if(!String(r.acct||'').trim())o.push({dept:d,name:r.name})})});return o}
+function m13NoAcct(){const o=[];Object.keys((M13S&&M13S.gen)||{}).sort().forEach(d=>{if(!m13OkD(d))return;const f=M13S.gen[d];(f.rows||[]).forEach(r=>{if(gnStat(r)==='no')return;if(!String(r.acct||'').trim())o.push({dept:d,name:r.name})})});return o}
 function m13AtmM(f){const secs=gnGroups(f,1).map(g=>({g:g.title||f.dept,rows:g.rows.filter(r=>gnStat(r)!=='no').map(r=>{const c=gnCalc(r,f),o=String(r.aown||'').trim(),m=String(r.arm||'').trim();return{id:String(r.id),name:r.name,a:String(r.acct||'').trim(),n:c.has?c.net:0,o:o,m:m,oo:[o,m].filter(Boolean).join(' \u00B7 ')}})})).filter(x=>x.rows.length),all=[].concat(...secs.map(x=>x.rows)),own={},G={};
  all.forEach(x=>{if(x.a)own[x.a]=(own[x.a]?own[x.a]+' / ':'')+x.name;(G[x.a||'?']=G[x.a||'?']||[]).push(x)});
  return{dept:f.dept,secs:secs,groups:Object.entries(G).map(([a,L])=>({a:a==='?'?'':a,holder:(L.find(x=>x.o)||{}).o||own[a]||'',rows:L,sum:r2(L.reduce((t,x)=>t+x.n,0))})),tot:r2(all.reduce((t,x)=>t+x.n,0)),de:0,co:0,tmrAcct:'',coAcct:'',n:all.length,miss:all.filter(x=>!x.a).length}}
@@ -6152,6 +6164,7 @@ function drawU(){uDirty=false;
  <div class="ux-rolebox"><span class="ux-lbl">Role</span><select class="ux-sel" id="ur_${i}" ${self?'disabled':''} onchange="uRole(${i})">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}"${u.role===k?' selected':''}>${v[0]}</option>`).join('')}</select></div></div>
  <div class="ux-sec"><span class="ux-lbl">Pages this user can view</span><div class="ux-chips">${PGS.map(([k,l])=>`<label class="ux-chip"><input type="checkbox" id="up_${i}_${k}"${ad||(u.pages||[]).includes(k)?' checked':''}${self||ad?' disabled':''}> ${l}</label>`).join('')}</div></div>
  <div class="ux-sec"><span class="ux-lbl">Attendance: departments this user can open &amp; edit <small style="font-weight:400">(none ticked = all departments)</small></span><div class="ux-chips" id="uad_${i}">${attDeptChips(u.pages||[],self||ad)}</div></div>
+ <div class="ux-sec"><span class="ux-lbl">13th Month Pay: departments this user can view <small style="font-weight:400">(none ticked = all departments)</small></span><div class="ux-chips" id="uad13_${i}">${m13DeptChips(u.pages||[],self||ad)}</div></div>
  <div class="ux-ft"><label class="ux-sw"><input type="checkbox" id="ua_${i}"${u.active?' checked':''}${self?' disabled':''}><i></i><span>Account active</span></label>${self?`<span class="ux-note">${UI.lock} You can't change your own access.</span>`:`<div class="ux-ac"><button class="ux-b" onclick="uPw(${i})">${UI.key} Set password</button><button class="ux-b" onclick="uReset(${i})">${UI.mail} Send reset link</button><button class="ux-b danger" onclick="uDel(${i})">${UI.trash} Delete</button><button class="btn sm ux-save" onclick="uSave(${i})">Save changes</button></div>`}</div></div>`};
  const nAct=UL.filter(u=>u.active).length,nAdm=UL.filter(u=>u.role==='admin').length,nPen=UL.filter(u=>u.signed_up_at&&!u.confirmed_at).length;
  $('main').innerHTML=`<div class="ux-wrap"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap"><h1>Users &amp; Access</h1><button class="btn" onclick="uNew()" style="margin-top:6px">+ Create user</button></div><p class="ux-lead">Choose a role and the pages each user can view. Use <b>Create user</b> to add an account yourself, or wait for people to sign up on their own.</p>
@@ -6188,13 +6201,14 @@ function uNew(){if(!isAdm())return toast('Only an admin can create users.');uNew
  <div style="margin:10px 0 4px;font-weight:600;font-size:13px">Pages this user can view</div>
  <div class="ux-chips" id="un_pg">${PGS.map(([k,l])=>`<label class="ux-chip"><input type="checkbox" id="un_p_${k}"${ROLES.staff[2].includes(k)?' checked':''}> ${l}</label>`).join('')}</div>
  <div style="margin:10px 0 4px;font-weight:600;font-size:13px">Attendance departments <small style="font-weight:400">(none ticked = all)</small></div><div class="ux-chips" id="uad_new">${attDeptChips([],false)}</div>
+ <div style="margin:10px 0 4px;font-weight:600;font-size:13px">13th Month Pay departments <small style="font-weight:400">(none ticked = all)</small></div><div class="ux-chips" id="uad13_new">${m13DeptChips([],false)}</div>
  <div id="un_err" style="color:#b3392f;font-size:13px;margin:10px 0 0;min-height:18px" role="alert"></div>
  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px"><button class="btn o" type="button" onclick="uNewClose()">Cancel</button><button class="btn" type="button" id="un_s" onclick="uNewSave()">Create user</button></div></div>`;
  document.body.appendChild(o);setTimeout(()=>$('un_n').focus(),50)}
 function uNewRole(){const r=$('un_r').value;PGS.forEach(([k])=>{const c=$('un_p_'+k);c.checked=ROLES[r][2].includes(k);c.disabled=r==='admin'})}
 async function uNewSave(){
  const er=m=>{$('un_err').textContent=m},n=$('un_n').value.replace(/[\u0000-\u001f<>]/g,'').replace(/\s+/g,' ').trim(),e=$('un_e').value.trim().toLowerCase(),pw=$('un_p').value,role=$('un_r').value,
-  pages=role==='admin'?ROLES.admin[2]:PGS.map(([k])=>k).filter(k=>$('un_p_'+k).checked).concat(attDeptSel('uad_new'));
+  pages=role==='admin'?ROLES.admin[2]:PGS.map(([k])=>k).filter(k=>$('un_p_'+k).checked).concat(attDeptSel('uad_new'),m13DeptSel('uad13_new'));
  er('');if(!isAdm())return er('Only an admin can create users.');
  if(n.length<2)return er('Enter the full name.');if(!okE(e))return er('Invalid email address.');if(pw.length<8)return er('Password must be at least 8 characters.');
  if((UL||[]).some(u=>String(u.email).toLowerCase()===e))return er('This email already has an account.');
@@ -6216,8 +6230,8 @@ async function uNewSave(){
  catch(x){b.disabled=false;b.textContent='Create user';er(nice(x))}}
 function uFind(q){UF.q=q.toLowerCase();uApply()}
 function uRole(i){const r=$('ur_'+i).value,pg=ROLES[r][2];PGS.forEach(([k])=>{const c=$(`up_${i}_${k}`);c.checked=pg.includes(k);c.disabled=r==='admin'})}
-async function uSave(i){const u=UL[i],role=$('ur_'+i).value,active=$('ua_'+i).checked,pages=role==='admin'?ROLES.admin[2]:PGS.map(([k])=>k).filter(k=>$(`up_${i}_${k}`).checked).concat(attDeptSel('uad_'+i));
- if(!confirm('Save access changes for '+u.email+'?\nRole: '+ROLES[role][0]+'\nPages: '+(pages.filter(k=>PGS.find(x=>x[0]===k)).map(k=>PGS.find(x=>x[0]===k)[1]).join(', ')||'none')+(pages.some(k=>String(k).indexOf('attd:')===0)?'\nAttendance departments: '+pages.filter(k=>String(k).indexOf('attd:')===0).map(k=>k.slice(5)).join(', '):'')+'\nActive: '+(active?'Yes':'No')))return;
+async function uSave(i){const u=UL[i],role=$('ur_'+i).value,active=$('ua_'+i).checked,pages=role==='admin'?ROLES.admin[2]:PGS.map(([k])=>k).filter(k=>$(`up_${i}_${k}`).checked).concat(attDeptSel('uad_'+i),m13DeptSel('uad13_'+i));
+ if(!confirm('Save access changes for '+u.email+'?\nRole: '+ROLES[role][0]+'\nPages: '+(pages.filter(k=>PGS.find(x=>x[0]===k)).map(k=>PGS.find(x=>x[0]===k)[1]).join(', ')||'none')+(pages.some(k=>String(k).indexOf('attd:')===0)?'\nAttendance departments: '+pages.filter(k=>String(k).indexOf('attd:')===0).map(k=>k.slice(5)).join(', '):'')+(pages.some(k=>String(k).indexOf('m13d:')===0)?'\n13th Month departments: '+pages.filter(k=>String(k).indexOf('m13d:')===0).map(k=>k.slice(5)).join(', '):'')+'\nActive: '+(active?'Yes':'No')))return;
  try{await api('/rest/v1/hrd_access?user_id=eq.'+u.user_id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({role,pages,active,updated_at:new Date().toISOString()})});
   Object.assign(u,{role,pages,active});logAct('Changed user access','Users',u.email+' → '+ROLES[role][0]+(active?'':' (disabled)'));toast('Saved ✔');drawU()}
  catch(x){alert('Could not save: '+x.message)}}
