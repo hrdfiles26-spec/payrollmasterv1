@@ -4943,11 +4943,11 @@ function m13HistRows0(){
   if(rec&&st!==sv.S)Object.values(st.gen||{}).forEach(f=>{f.sv=1});gnSync(st);M13S=st;MY=y;MD='all';MQ='';
   const G=st.gen||{},used=new Set();
   Object.keys(G).forEach(d=>{const f=G[d];if(!f||!Array.isArray(f.rows))return;const T=gnTot(f);
-   rows.push({y:y,d:d,n:T.n,wd:f.rows.filter(r=>gnCalc(r,f).has).length,p:T.pay,net:T.net,rec:rec,dirty:!!st.dirty,gen:true});used.add(d)});
+   rows.push({y:y,d:d,n:T.n,wd:f.rows.filter(r=>gnCalc(r,f).has).length,p:T.pay,net:T.net,rec:rec,dirty:!!st.dirty,gen:true,nm:f.rows.map(r=>(r&&r.name)||'').join(' | ')});used.add(d)});
   const M=m13Model();
   const hid=new Set(((rec.data||{}).hid)||[]);
   M.D.forEach(x=>{if(used.has(x.d)||hid.has(x.d))return;const wd=x.secs.reduce((a,sc)=>a+sc.rows.filter(r=>r.has).length,0);if(!wd)return;
-   rows.push({y:y,d:x.d,n:x.n,wd:wd,p:x.t.p,net:x.t.n,rec:rec,dirty:!!st.dirty,gen:false})})
+   rows.push({y:y,d:x.d,n:x.n,wd:wd,p:x.t.p,net:x.t.n,rec:rec,dirty:!!st.dirty,gen:false,nm:x.secs.flatMap(sc=>sc.rows.map(r=>(r.s&&r.s.name)||'')).join(' | ')})})
  })}finally{M13S=sv.S;MY=sv.Y;MD=sv.D;MQ=sv.Q}
  return rows}
 let M13HV={by:'y',dir:-1};
@@ -4978,8 +4978,13 @@ const m13DelDept=(y,d)=>m13HDel([[y,d]],'Delete this department from the saved H
 const m13DelYear=y=>m13HDel(m13HistRows().filter(r=>String(r.y)===String(y)).map(r=>[r.y,r.d]),'Delete the whole year from the saved History?');
 const m13DelSel=()=>m13HDel([...M13HSEL].map(m13Hp),'Delete the ticked rows from the saved History?');
 function m13HV(k){M13HV=M13HV.by===k?{by:k,dir:-M13HV.dir}:{by:k,dir:k==='y'?-1:1};mDraw()}
-function m13HistH(){
- const R=m13HistRows();if(!R.length)return'';
+let M13HQ='';
+function m13HistH(){if(!m13HistRows().length)return'';
+ return `<div class="cx-card no-print" style="margin-bottom:10px"><label for="m13hq" style="display:block;font-size:13px;font-weight:600;margin:0 0 6px">Search</label><input id="m13hq" type="search" autocomplete="off" placeholder="Type a department, year or employee name" value="${esc(M13HQ)}" oninput="m13HQs(this.value)" style="width:100%;max-width:420px"></div><div id="m13hw">${m13HistBody()}</div>`}
+function m13HQs(v){M13HQ=v;const w=document.getElementById('m13hw');if(w)w.innerHTML=m13HistBody()}
+function m13HistBody(){
+ const R0=m13HistRows(),q=String(M13HQ||'').trim().toLowerCase(),R=q?R0.filter(r=>(String(r.d)+' '+String(r.y)+' '+String(r.nm||'')).toLowerCase().includes(q)):R0;if(!R0.length)return'';
+ if(!R.length)return`<div class="cx-card no-print"><p class="m13s" style="margin:0">No match for "${esc(M13HQ)}".</p></div>`;
  const V=M13HV,fd=r=>new Date(r.rec.updated_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'}),
   ar=k=>V.by===k?(V.dir>0?' ▲':' ▼'):'',nS=R.filter(r=>M13HSEL.has(m13Hk(r.y,r.d))).length,
   ck=(y,d,t)=>!M13HMODE?'':`<input type="checkbox" class="m13hck" title="${t||'Tick to select'}" ${M13HSEL.has(m13Hk(y,d))?'checked':''} data-y="${esc(y)}" data-d="${esc(d)}" onchange="m13HSel(this.dataset.y,this.dataset.d,this.checked)">`,
@@ -5000,6 +5005,7 @@ function m13HistH(){
   return `<div class="m13hy"><div class="m13hy-h"><div>${M13HMODE?`<input type="checkbox" class="m13hck" title="Tick every department of ${esc(y)}" ${ns===L.length?'checked':''} data-y="${esc(y)}" onchange="m13HSelY(this.dataset.y,this.checked)">`:''}<b class="m13hy-y">${esc(y)}</b><span class="m13hy-s">Saved ${esc(fd(L[0]))}${rec.updated_by?' · '+esc(rec.updated_by):''}</span></div><div class="m13hy-a">${dirty?'<span class="cx-tag">Unsaved changes</span>':''}<button class="btn dlo sm" title="Delete the saved record of ${esc(y)} (all departments)" data-y="${esc(y)}" onclick="m13DelYear(this.dataset.y)">Delete year</button></div></div>
   <div class="m13hy-b"><table class="cx-t" style="min-width:0"><thead><tr>${M13HMODE?'<th class="m13hc"></th>':''}<th>Department</th><th class="n">Employees</th><th class="n">With days</th><th class="n">13th Month Pay</th><th class="n">Net Pay</th><th></th></tr></thead><tbody>${L.map(r=>`<tr class="${M13HSEL.has(m13Hk(r.y,r.d))?'m13hsel':''}">${M13HMODE?`<td class="m13hc">${ck(r.y,r.d)}</td>`:''}<td><b>${esc(r.d)}</b></td><td class="n">${r.n}</td><td class="n">${r.wd}/${r.n}</td><td class="n">${fw(r.p)}</td><td class="n">${fw(r.net)}</td><td class="n">${acts(r)}</td></tr>`).join('')}</tbody><tfoot><tr>${M13HMODE?'<td></td>':''}<td>Total</td><td class="n">${E}</td><td class="n">${W}/${E}</td><td class="n">${fw(P)}</td><td class="n">${fw(N)}</td><td></td></tr></tfoot></table></div></div>`}).join('')+`</div>`}
 function m13OpenDept(y,d,g){y=String(y);if(y!==String(MY)){if(!m13Leave())return;MY=y;m13Open(MY)}GD=(g&&M13S&&M13S.gen&&M13S.gen[d])?d:'';MD=d;MQ='';mDraw();scrollTo(0,0)}
+function m13Q(v){MQ=v;mDraw();const e=$('mq');if(e){e.focus();try{e.setSelectionRange(v.length,v.length)}catch(_){}}}
 function mDraw(){if(PG!=='m13')return;return m13Keep(mDraw0)}
 function mDraw0(){gnSync(M13S);
  if(STF==null||PH==null){$('main').innerHTML='<section class="cx-wrap"><div class="cx-head"><div><h1>13th Month Pay</h1><p class="sub">The payroll data could not be loaded. Check your connection and that the payroll tables are set up, then open this page again.</p></div></div></section>';return}
@@ -5034,7 +5040,7 @@ function mDraw0(){gnSync(M13S);
  <div class="cx-card"><div class="cx-bar">
   <div><label for="my">Year</label><select id="my" onchange="m13Pick(this.value)">${yrs.map(y=>op(y,y+((M13H||[]).some(r=>String(r.year)===y)?' · saved':''),y===MY)).join('')}</select></div>
   <div><label for="md">Department</label><select id="md" onchange="MD=this.value;mDraw()">${op('all','All departments',MD==='all')}${depts.map(d=>op(d,d,MD===d)).join('')}</select></div>
-  <div class="grow"><label for="mq">Search employee</label><input id="mq" value="${esc(MQ)}" placeholder="Type a name, then press Enter" onchange="MQ=this.value;mDraw()"></div>
+  <div class="grow"><label for="mq">Search employee</label><input id="mq" type="search" autocomplete="off" value="${esc(MQ)}" placeholder="Type a name to find an employee" oninput="m13Q(this.value)"></div>
   <span id="m13st" class="m13b n no-print"></span>
   ${m13Acts('mXlsx()','Generate')}</div>
 ${MD==='all'?`<div class="cx-bar no-print" style="border-top:1px solid var(--ln);padding-top:14px"><span class="m13s" style="max-width:none">Select a <b>Department</b> above to open its Settings (No. of Days · Apply to all) and to add an employee.</span></div>`:` <div class="cx-bar no-print" style="border-top:1px solid var(--ln);padding-top:14px"><div><label for="m13df">Settings · No. of Days</label><input id="m13df" type="number" min="0" step="any" inputmode="decimal" style="width:110px" placeholder="e.g. 26" value="${esc(String(S.def==null?'':S.def))}" oninput="M13S.def=this.value"></div>
@@ -6248,6 +6254,45 @@ function rmBoot(){let rt=null;try{rt=localStorage.getItem('hrd_rm')}catch(e){}if
   if(ok===false){try{localStorage.removeItem('hrd_rm')}catch(e){}SES.clear();return fail()}
   if(++n<6)return new Promise(r=>setTimeout(r,navigator.onLine===false?3000:1500)).then(go);fail()}).catch(fail);
  go()}
+/* ---- 13th Month Pay is VIEW-ONLY for Staff (and for any role other than Admin / Payroll): they can view, use Full view, export and print, but cannot edit, generate, save or delete ---- */
+(function(){
+ const RO=()=>!(SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||MYA.role==='payroll')));
+ window.m13Ro=RO;
+ const MSG='13th Month Pay is view-only for your account. You can view, print and export, but you cannot edit or delete.';
+ const BLK=['m13Rem','m13Restore','m13Add','m13Save','m13Del','m13HDel','m13Apply','m13ClearDays','mSetD','gnOpen','gnGo','gnBuild','gnDelForm','gnRefresh','gnEntSet','gnEntReset','gnSigSet','gnAddXc','gnAddXcGo','gnColSet','gnColAll','gnXRem','gnXSet','gnClassApply','gnAddRow','gnBasisAll','gnFxOn','gnFxOff','gnUnitSet','gnSet','gnMarkAllNo','gnStSet','gnClsSet','gnMvCls','gnMoveDept','gnMoveOpen','gnMoveGo','gnRem','gnRebasis','gnDaysAll','gnAddDc','gnDcLbl','gnDcRem','gnAddFill','gnAddName','m13AtmSet','gnXLbl','m13AddPick','m13HSel','m13HSelY','m13HAll'];
+ const PAINT=BLK.concat(['m13DelDept','m13DelYear','m13DelSel']);
+ BLK.forEach(n=>{const f=window[n];if(typeof f!=='function')return;window[n]=function(){if(RO()){try{toast(MSG)}catch(e){}return}return f.apply(this,arguments)}});
+ {const f=window.m13Mark;if(typeof f==='function')window.m13Mark=function(){if(RO())return;return f.apply(this,arguments)}}
+ {const f=window.m13Leave;if(typeof f==='function')window.m13Leave=function(){if(RO()){try{m13DraftClear()}catch(e){}try{if(M13S)M13S.dirty=false}catch(e){}return true}return f.apply(this,arguments)}}
+ const re=new RegExp('(?:^|[^A-Za-z0-9_$.])('+PAINT.join('|')+')\\s*\\(');
+ const ALLOW=new RegExp('(?:^|[^A-Za-z0-9_$.])(m13FullView|mPrint|mXlsx|mExport|gnExport|gnExportCsv|m13Slips|m13SlipPrint|m13SlipXlsx|m13AtmOpen|m13AtmPrint|m13AtmXls|m13AtmClose|m13OpenDept|m13View|m13Back|gnBack|gnDraw|gnShow)\\s*\\(');
+ const paint=()=>{
+  /* inputs / selects / checkboxes that edit something: locked */
+  document.querySelectorAll('[onclick],[onchange],[oninput]').forEach(el=>{
+   if(el.__m13ro)return;
+   const h=(el.getAttribute('onclick')||'')+' '+(el.getAttribute('onchange')||'')+' '+(el.getAttribute('oninput')||'');
+   if(!re.test(h))return;el.__m13ro=1;
+   const t=el.tagName,ty=String(el.type||'').toLowerCase();
+   if(t==='INPUT'){if(ty==='checkbox'||ty==='radio'||ty==='button')el.disabled=true;else el.readOnly=true}
+   else if(t==='TEXTAREA')el.readOnly=true;
+   else if(t==='SELECT')el.disabled=true;
+   else el.style.display='none'});
+  /* buttons: ONLY Full View, Print, Export, Payslips and ATM accounts stay (plus the Open / Back / Close buttons needed to move around); every other button is hidden */
+  const roots=[document.getElementById('main'),...document.querySelectorAll('body > div[id^="gn"],body > div[id^="m13"]')].filter(Boolean);
+  roots.forEach(root=>root.querySelectorAll('button').forEach(b=>{
+   if(b.__m13bt)return;b.__m13bt=1;
+   const oc=b.getAttribute('onclick')||'';
+   if(re.test(oc)){b.style.display='none';return}
+   if(ALLOW.test(oc)||/\.remove\(\)/.test(oc))return;
+   b.style.display='none'}));
+  /* view-only: the edit settings (Rate to use / No. of days / 13th Month Pay basis, Add name, Add employee) are hidden completely */
+  ['gn_rb','gn_dy','gn_bs'].forEach(i=>{const e=document.getElementById(i),g=e&&e.closest('.m13-g');if(g)g.style.display='none'});
+  ['gn_an','m13df','a13n'].forEach(i=>{const e=document.getElementById(i),g=e&&e.closest('.cx-bar');if(g)g.style.display='none'});
+  const m=document.getElementById('main');
+  if(m&&!document.getElementById('m13roN')){const d=document.createElement('div');d.id='m13roN';d.className='cx-note no-print';d.style.cssText='margin:0 0 12px';d.innerHTML='\uD83D\uDC41 <b>View only.</b> You can view the 13th Month Pay, use Full View, Print, Export, and see the Payslips and ATM accounts. Editing and deleting are not available for your account.';m.insertBefore(d,m.firstChild)}};
+ let t=0;
+ new MutationObserver(()=>{if(t)return;if(typeof PG==='undefined'||PG!=='m13'||!RO())return;t=requestAnimationFrame(()=>{t=0;try{paint()}catch(e){}})}).observe(document.body,{childList:true,subtree:true});
+})();
 rmInit();
 if(SES.tok&&!RECOV){let ex=false,has=false;try{ex=(jwt(SES.tok).exp||0)*1000<Date.now()+20000}catch(e){}try{has=!!localStorage.getItem('hrd_rm')}catch(e){}
  if(ex&&has){delete SES.tok;rmBoot()}else enter()}else if(!RECOV)rmBoot();
