@@ -4275,7 +4275,7 @@ function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.inclu
  dk=['vale','sss','phic','hdmf','ded','tax','ps','coop'],SR={vale:0,e_hloan:1,e_sloan:2,sss:3,phic:4,hdmf:5,ded:6,e_rent:7,e_elec:7.2,e_cash:7.4,e_cbond:8,tax:8.2,ps:8.4,coop:9},SS=['vale','e_hloan','e_sloan','sss','phic','hdmf','ded','e_rent','e_elec','e_cbond','coop'],
  lss=O.filter(k=>vis(k)&&(dk.includes(k)||xc.some(c=>c.id===k&&c.m==='less'))&&(SS.includes(k)||v[k])).map((k,i)=>[k,i]).sort((a,b)=>(SR[a[0]]??8.6)-(SR[b[0]]??8.6)||a[1]-b[1]).map(a=>a[0]),
  gross=r2(v.pay+adds.reduce((a,k)=>a+(v[k]||0),0)),td=r2(gross-v.net),bal=k=>k==='vale'?v.bal:k==='coop'?v.cbal:0,
- rd=PP.m==='r'&&vis('days')?[pRate(s),dy3(pn(r.days))]:null,dn=v.ded>0?dedNote(s,v.ded):'';
+ rd=PP.m==='r'&&vis('days')?[pRate(s),dy3(pn(r.days))]:null,dn=v.ded>0?((()=>{try{return String(dnTxt(s)||'').trim()}catch(e){return''}})()||dedNote(s,v.ded)):'';
  return{s,g,v,r,lab,adds,lss,gross,td,bal,rd,dn}}
 function pSlip(x){return pSlipHtml(pSlipModel(x))}
 function pSlipHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd:rdv,dn}=M,n=Math.ceil(lss.length/2)||1,
