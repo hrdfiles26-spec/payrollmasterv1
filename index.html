@@ -3446,6 +3446,7 @@ async function dysRate(id,el){await pRateSet(id,el);dysPrev(id)}
 function dysF(id,v){pIn(id,'days',v);const e=$('i_'+id+'_days');if(e)e.value=v}
 function dysKey(e){if(e.key!=='Enter')return;e.preventDefault();const L=[...document.querySelectorAll('#dysm .dy')],i=L.indexOf(e.target);if(L[i+1]){L[i+1].focus();L[i+1].select()}}
 function sspF(id,k,v){const s=STF.find(x=>x.id===id);if(s)sspSet(s,{[k]:k==='on'?+v:pn(v)})}
+function sspMark(v){const q=pNm(STQ.sspm||'');(STF||[]).filter(s=>s.dept===PF&&(!q||pNm(s.name).includes(q))).forEach(s=>sspF(s.id,'on',v?1:0));sspDraw();try{stF('sspm')}catch(e){}}
 function sspAll(){SSPS=null;pdSave();(STF||[]).filter(s=>s.dept===PF).forEach(s=>sspApply(s,!!sspGet(s).on));if(isMg(PF))PP.hc=(PP.hc||[]).filter(k=>!['sss','phic','hdmf'].includes(k));pDirty();$('sspm').remove();drawForm();toast('SSP saved ✔')}
 const ATM_D=()=>({tmr:FXL.tmrAcct||'3827382530000',coop:FXL.coopAcct||'3827382009130'}),atmCf=()=>PDS._atm||{};
 function atmOpen(){const d=ovl('atmm');d.onclick=e=>{if(e.target===d&&d._dn!==false)atmClose()};atmDraw()}
@@ -4980,7 +4981,7 @@ const m13DelSel=()=>m13HDel([...M13HSEL].map(m13Hp),'Delete the ticked rows from
 function m13HV(k){M13HV=M13HV.by===k?{by:k,dir:-M13HV.dir}:{by:k,dir:k==='y'?-1:1};mDraw()}
 let M13HQ='';
 function m13HistH(){if(!m13HistRows().length)return'';
- return `<div class="cx-card no-print" style="margin-bottom:10px"><label for="m13hq" style="display:block;font-size:13px;font-weight:600;margin:0 0 6px">Search</label><input id="m13hq" type="search" autocomplete="off" placeholder="Type a department, year or employee name" value="${esc(M13HQ)}" oninput="m13HQs(this.value)" style="width:100%;max-width:420px"></div><div id="m13hw">${m13HistBody()}</div>`}
+ return `<div id="m13hw">${m13HistBody()}</div>`}
 function m13HQs(v){M13HQ=v;const w=document.getElementById('m13hw');if(w)w.innerHTML=m13HistBody()}
 function m13HistBody(){
  const R0=m13HistRows(),q=String(M13HQ||'').trim().toLowerCase(),R=q?R0.filter(r=>(String(r.d)+' '+String(r.y)+' '+String(r.nm||'')).toLowerCase().includes(q)):R0;if(!R0.length)return'';
@@ -6265,7 +6266,7 @@ function rmBoot(){let rt=null;try{rt=localStorage.getItem('hrd_rm')}catch(e){}if
  {const f=window.m13Mark;if(typeof f==='function')window.m13Mark=function(){if(RO())return;return f.apply(this,arguments)}}
  {const f=window.m13Leave;if(typeof f==='function')window.m13Leave=function(){if(RO()){try{m13DraftClear()}catch(e){}try{if(M13S)M13S.dirty=false}catch(e){}return true}return f.apply(this,arguments)}}
  const re=new RegExp('(?:^|[^A-Za-z0-9_$.])('+PAINT.join('|')+')\\s*\\(');
- const ALLOW=new RegExp('(?:^|[^A-Za-z0-9_$.])(m13FullView|mPrint|mXlsx|mExport|gnExport|gnExportCsv|m13Slips|m13SlipPrint|m13SlipXlsx|m13AtmOpen|m13AtmPrint|m13AtmXls|m13AtmClose|m13OpenDept|m13View|m13Back|gnBack|gnDraw|gnShow)\\s*\\(');
+ const ALLOW=new RegExp('(?:^|[^A-Za-z0-9_$.])(m13FullView|mPrint|mXlsx|mExport|gnExport|gnExportCsv|m13Slips|m13SlipPrint|m13SlipXlsx|m13AtmOpen|m13AtmPrint|m13AtmXls|m13AtmClose|m13cmOpen|m13cmClose|m13cmSend|m13cmF|m13cmDone|m13cmDel|m13OpenDept|m13View|m13Back|gnBack|gnDraw|gnShow)\\s*\\(');
  const paint=()=>{
   /* inputs / selects / checkboxes that edit something: locked */
   document.querySelectorAll('[onclick],[onchange],[oninput]').forEach(el=>{
@@ -6287,11 +6288,49 @@ function rmBoot(){let rt=null;try{rt=localStorage.getItem('hrd_rm')}catch(e){}if
    b.style.display='none'}));
   /* view-only: the edit settings (Rate to use / No. of days / 13th Month Pay basis, Add name, Add employee) are hidden completely */
   ['gn_rb','gn_dy','gn_bs'].forEach(i=>{const e=document.getElementById(i),g=e&&e.closest('.m13-g');if(g)g.style.display='none'});
+  {const e=document.getElementById('m13hq'),g=e&&e.closest('.cx-card');if(g)g.style.display='none'}
   ['gn_an','m13df','a13n'].forEach(i=>{const e=document.getElementById(i),g=e&&e.closest('.cx-bar');if(g)g.style.display='none'});
   const m=document.getElementById('main');
   if(m&&!document.getElementById('m13roN')){const d=document.createElement('div');d.id='m13roN';d.className='cx-note no-print';d.style.cssText='margin:0 0 12px';d.innerHTML='\uD83D\uDC41 <b>View only.</b> You can view the 13th Month Pay, use Full View, Print, Export, and see the Payslips and ATM accounts. Editing and deleting are not available for your account.';m.insertBefore(d,m.firstChild)}};
  let t=0;
  new MutationObserver(()=>{if(t)return;if(typeof PG==='undefined'||PG!=='m13'||!RO())return;t=requestAnimationFrame(()=>{t=0;try{paint()}catch(e){}})}).observe(document.body,{childList:true,subtree:true});
+})();
+/* ---- 13th Month Pay: Comments / Suggestions. Anyone can send one; Admin and HR Staff see all of them (others see only their own). ---- */
+(function(){
+ const SQL='create table if not exists public.hrd_m13_comments(\n  id uuid primary key default gen_random_uuid(),\n  created_at timestamptz not null default now(),\n  author_email text not null,\n  author_name text,\n  year text,\n  dept text,\n  employee text,\n  message text not null,\n  status text not null default \'open\',\n  done_by text,\n  done_at timestamptz);\nalter table public.hrd_m13_comments enable row level security;\ncreate policy "m13c insert own" on public.hrd_m13_comments for insert to authenticated\n  with check (author_email = (auth.jwt()->>\'email\'));\ncreate policy "m13c read" on public.hrd_m13_comments for select to authenticated\n  using (author_email = (auth.jwt()->>\'email\') or exists(select 1 from public.hrd_access a where a.user_id=auth.uid() and a.active and a.role in (\'admin\',\'hr\')));\ncreate policy "m13c update" on public.hrd_m13_comments for update to authenticated\n  using (exists(select 1 from public.hrd_access a where a.user_id=auth.uid() and a.active and a.role in (\'admin\',\'hr\')));\ndrop policy if exists "m13c delete" on public.hrd_m13_comments;\ncreate policy "m13c delete" on public.hrd_m13_comments for delete to authenticated\n  using (author_email = (auth.jwt()->>\'email\') or exists(select 1 from public.hrd_access a where a.user_id=auth.uid() and a.active and a.role=\'admin\'));';
+ const rdr=()=>!!(SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||MYA.role==='hr')));
+ const who=()=>((MYA&&MYA.full_name)||(ME.user_metadata||{}).full_name||'').trim();
+ let L=[],OK=true,open=0,F='open';
+ const ctx=()=>{let y='',d='';try{y=String(MY||'');d=String((GD||(MD&&MD!=='all'?MD:''))||'')}catch(e){}return{y,d}};
+ const fd=t=>{try{return new Date(t).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}catch(e){return''}};
+ async function load(){try{L=await api('/rest/v1/hrd_m13_comments?select=*&order=created_at.desc&limit=500');OK=true}catch(e){L=[];OK=!/hrd_m13_comments|relation|schema cache|404|PGRST/i.test(String(e&&e.message||e))}open=L.filter(c=>c.status!=='done').length;badge()}
+ function badge(){const b=document.getElementById('m13cmN');if(b){b.textContent=open||'';b.style.display=open&&rdr()?'inline-block':'none'}}
+ function close(){const o=document.getElementById('m13cmO');if(o)o.remove()}
+ function draw(){
+  let o=document.getElementById('m13cmO');if(!o){o=document.createElement('div');o.id='m13cmO';o.className='no-print';o.style.cssText='position:fixed;inset:0;background:rgba(10,17,31,.55);z-index:9000;display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow:auto';o.addEventListener('mousedown',e=>{if(e.target===o)close()});document.body.appendChild(o)}
+  const c=ctx(),R=rdr(),shown=R?L.filter(x=>F==='all'||(F==='done'?x.status==='done':x.status!=='done')):L;
+  const inp='width:100%;padding:10px 12px;border:1px solid var(--ln2);border-radius:10px;font:inherit;background:var(--sf2);color:var(--ink)';
+  o.innerHTML=`<div style="background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:16px;max-width:680px;width:100%;padding:20px 22px;box-shadow:0 20px 60px #0006"><div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1;font-size:20px">💬 Comments &amp; Suggestions</h2><button class="btn o sm" onclick="m13cmClose()">✕</button></div>
+  <p class="sub" style="margin:4px 0 14px">${R?'Comments sent by users about the 13th Month Pay.':'Send a comment or suggestion about the 13th Month Pay. The Admin and HR Staff will see it.'}</p>
+  ${OK?'':`<div class="cx-note"><b>The comments table must be created first.</b> Run this in Supabase → SQL Editor, then reopen:<pre style="white-space:pre-wrap;font-size:12px;margin:8px 0 0">${esc(SQL)}</pre></div>`}
+  <div style="display:grid;gap:10px;margin-bottom:6px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><label style="font-size:12px;font-weight:600">Employee name (optional)<input id="m13cmE" style="${inp}" placeholder="Name this is about" autocomplete="off"></label><label style="font-size:12px;font-weight:600">Where<input id="m13cmW2" style="${inp}" readonly value="${esc('13th Month Pay '+c.y+(c.d?' · '+c.d:''))}"></label></div>
+  <label style="font-size:12px;font-weight:600">Your comment / suggestion<textarea id="m13cmT" rows="4" style="${inp};resize:vertical" placeholder="Type here…"></textarea></label>
+  <div><button class="btn" id="m13cmS" onclick="m13cmSend()">Send</button></div></div>
+  <div style="border-top:1px solid var(--ln);margin-top:14px;padding-top:12px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="flex:1">${R?'All comments':'Your comments'}</b>${R?['open','done','all'].map(k=>`<button class="btn ${F===k?'':'o'} sm" onclick="m13cmF('${k}')">${k==='open'?'Open':k==='done'?'Done':'All'}</button>`).join(''):''}</div>
+  <div style="display:grid;gap:8px;max-height:42vh;overflow:auto">${shown.length?shown.map(x=>`<div style="border:1px solid var(--ln);border-radius:12px;padding:10px 12px;background:var(--sf2)"><div style="font-size:12px;color:var(--mu)"><b style="color:var(--ink)">${esc(x.author_name||x.author_email)}</b> · ${esc(fd(x.created_at))}${x.year?' · '+esc(x.year):''}${x.dept?' · '+esc(x.dept):''}${x.employee?' · re: <b>'+esc(x.employee)+'</b>':''}${x.status==='done'?' · ✅ Done'+(x.done_by?' by '+esc(x.done_by):''):''}</div><div style="white-space:pre-wrap;margin-top:4px">${esc(x.message)}</div>${R||String(x.author_email||'').toLowerCase()===String(ME.email||'').toLowerCase()?`<div style="margin-top:8px;display:flex;gap:6px">${R?`<button class="btn o sm" onclick="m13cmDone('${esc(x.id)}',${x.status==='done'?0:1})">${x.status==='done'?'Reopen':'Mark done'}</button>`:''}${isAdm()||String(x.author_email||'').toLowerCase()===String(ME.email||'').toLowerCase()?`<button class="btn o sm x" onclick="m13cmDel('${esc(x.id)}')">Delete</button>`:''}</div>`:''}</div>`).join(''):'<p class="sub" style="margin:0">No comments yet.</p>'}</div></div></div>`}
+ window.m13cmClose=close;
+ window.m13cmF=k=>{F=k;draw()};
+ window.m13cmOpen=async()=>{draw();await load();if(document.getElementById('m13cmO')){const e=document.getElementById('m13cmE')?.value,t=document.getElementById('m13cmT')?.value;draw();if(e)document.getElementById('m13cmE').value=e;if(t)document.getElementById('m13cmT').value=t}};
+ window.m13cmSend=async()=>{const t=(document.getElementById('m13cmT').value||'').trim(),e=(document.getElementById('m13cmE').value||'').trim(),c=ctx();if(!t)return toast('Type your comment first.');const b=document.getElementById('m13cmS');b.disabled=true;
+  try{await api('/rest/v1/hrd_m13_comments',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({author_email:ME.email||'',author_name:who()||null,year:c.y||null,dept:c.d||null,employee:e||null,message:t})});toast('Sent. The Admin and HR Staff will see your comment.');try{logAct('Sent a 13th month comment','13th Month Pay',(e?e+': ':'')+t.slice(0,120))}catch(x){}await load();draw()}
+  catch(x){OK=!/hrd_m13_comments|relation|schema cache|404|PGRST/i.test(String(x&&x.message||x));if(OK)toast('Could not send: '+(x&&x.message||'error'));draw();b.disabled=false}};
+ window.m13cmDone=async(id,d)=>{try{await api('/rest/v1/hrd_m13_comments?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({status:d?'done':'open',done_by:d?(who()||ME.email||''):null,done_at:d?new Date().toISOString():null})});await load();draw()}catch(x){toast('Could not update: '+(x&&x.message||'error'))}};
+ window.m13cmDel=async id=>{if(!confirm('Delete this comment? It will also disappear for the Admin and HR Staff.'))return;try{await api('/rest/v1/hrd_m13_comments?id=eq.'+encodeURIComponent(id),{method:'DELETE'});await load();draw()}catch(x){toast('Could not delete: '+(x&&x.message||'error'))}};
+ let t=0,ld=0;
+ const put=()=>{if(typeof PG==='undefined'||PG!=='m13')return;const w=document.querySelector('#main section.cx-wrap');if(!w||document.getElementById('m13cmB'))return;
+  const d=document.createElement('div');d.id='m13cmB';d.className='no-print';d.style.cssText='display:flex;justify-content:flex-end;margin:0 0 10px';d.innerHTML='<button class="btn o" onclick="m13cmOpen()" title="Send a comment or suggestion about the 13th Month Pay">💬 Comments <span id="m13cmN" style="display:none;background:#c0392b;color:#fff;border-radius:999px;padding:0 7px;font-size:11px;margin-left:4px"></span></button>';
+  const n=document.getElementById('m13roN');w.insertBefore(d,w.firstChild);badge();if(rdr()&&!ld){ld=1;load().finally(()=>{setTimeout(()=>ld=0,20000)})}};
+ new MutationObserver(()=>{if(t)return;t=requestAnimationFrame(()=>{t=0;try{put()}catch(e){}})}).observe(document.body,{childList:true,subtree:true});
 })();
 rmInit();
 if(SES.tok&&!RECOV){let ex=false,has=false;try{ex=(jwt(SES.tok).exp||0)*1000<Date.now()+20000}catch(e){}try{has=!!localStorage.getItem('hrd_rm')}catch(e){}
