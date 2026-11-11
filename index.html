@@ -4279,14 +4279,15 @@ function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.inclu
  return{s,g,v,r,lab,adds,lss,gross,td,bal,rd,dn}}
 function pSlip(x){return pSlipHtml(pSlipModel(x))}
 function pSlipHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd:rdv,dn}=M,n=Math.ceil(lss.length/2)||1,
- anyBal=lss.some(k=>bal(k)),rd=rdv?`<small>${pf(rdv[0])} × ${rdv[1]}</small>`:'';
+ anyBal=lss.some(k=>bal(k)),dnm=dn?String(dn).split(' · ').map(q=>q.replace(/\s+-?[\d,]*\.?\d+$/,'').trim()).filter(q=>q&&!/^Other$/i.test(q)):[],
+ ll=k=>esc(lab(k))+(k==='ded'&&dnm.length===1?` <small class="sl-dl">(${esc(dnm[0])})</small>`:''),rd=rdv?`<small>${pf(rdv[0])} × ${rdv[1]}</small>`:'';
  return`<div class="slip"><div class="sl-co">Rayanton Farms &amp; Livestock Corp.</div><div class="sl-pr">For the period cut off: ${esc(pPeriod())}</div><div class="sl-nm">${esc(s.name)}</div>
 <div class="sl-r dep"><span>Department</span><b>${esc(g)}</b></div>
 ${adds.length?`<div class="sl-r"><span>Gross Salary${rd}</span><em>${pf(v.pay)}</em></div>${adds.map(k=>`<div class="sl-r"><span>${esc(lab(k))}</span><em>${pf(v[k])}</em></div>`).join('')}<div class="sl-r ln"><span>Gross Salary</span><b>${pf(gross)}</b></div>`:`<div class="sl-r ln"><span>Gross Salary${rd}</span><b>${pf(gross)}</b></div>`}
 <div class="sl-ls">Less : Deductions${anyBal?'<small>Bal.</small>':''}</div>
-<div class="sl-dg" style="grid-template-rows:repeat(${n},auto)">${lss.map(k=>`<div class="si"><span>${esc(lab(k))}</span><em>${pf(v[k])}</em><i>${bal(k)?pf(bal(k)):''}</i></div>`).join('')}</div>
+<div class="sl-dg" style="grid-template-rows:repeat(${n},auto)">${lss.map(k=>`<div class="si"><span>${ll(k)}</span><em>${pf(v[k])}</em><i>${bal(k)?pf(bal(k)):''}</i></div>`).join('')}</div>
 <div class="sl-r td"><span>Total Deductions :</span><b>${pf(td)}</b></div>
-<div class="sl-net"><span>Net Pay</span><b>${pf(v.net)}</b></div>${r.rem?`<div class="sl-rm">Remarks: ${esc(r.rem)}</div>`:''}${dn?`<div class="sl-rm sl-dn">Deductions: ${esc(dn)}</div>`:''}
+<div class="sl-net"><span>Net Pay</span><b>${pf(v.net)}</b></div>${r.rem?`<div class="sl-rm">Remarks: ${esc(r.rem)}</div>`:''}${dn?`<div class="sl-rm sl-dn">Deduction details: ${esc(dn)}</div>`:''}
 <div class="sl-sg">Signature:</div></div>`}
 // ----- Export the payslips to Excel (.xlsx): same 3 x 4 layout per page as the preview -----
 /* Excel refuses files that contain control characters or NaN/Infinity numbers; clean them so every Excel export still opens */
@@ -6529,7 +6530,8 @@ seasonUI();
 .sl-net{border-top:1px solid #000;display:flex;justify-content:space-between;align-items:center;padding-top:.8mm;padding-bottom:.8mm}
 .sl-net span{font-size:.98em}.sl-net b{font-size:1.4em}
 .sl-rm{font-size:.8em;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sl-rm.sl-dn{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.2}
+.sl-dl{display:block;white-space:normal;font-size:.8em;font-weight:600;color:#000;line-height:1.15}
+.sl-rm.sl-dn{color:#000;font-weight:600;font-size:.9em;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.2}
 .sl-sg{border-top:1px solid #000;font-size:.85em;padding-top:3.2mm;padding-bottom:.6mm}
 /* payslip: management = individual slips, bigger & roomier; email controls */
 .slip{position:relative}
