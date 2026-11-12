@@ -4192,6 +4192,9 @@ function pr(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the payro
 addEventListener('beforeprint',()=>{if(PG==='pay'&&PV==='form'&&STF)try{pPrep(PPZ)}catch(e){}});
 function pExcelLayout(){if(!confirm('Reset the columns of this form to the Excel layout of '+PF+'?\nColumn names you changed will go back to the defaults. Values already typed in columns that are removed from the layout are kept but hidden.'))return;const C=PCFG[PF]||{};PP.xc=JSON.parse(JSON.stringify(C.xc||[]));PP.hc=[...(C.hc||[])];PP.ord=C.ord?[...C.ord]:null;PP.m=C.m||'r';if(PP.m==='g')PP.gpd=pGpdBuild(PF);PP.t=Object.fromEntries(Object.entries(PP.t||{}).filter(([k])=>!/^h_/.test(k)));pDirty();drawP()}
 // ===== Export the payroll to Excel (.xlsx): same look as the preview (logo, title, header groups, colours, subtotals, signatures) =====
+/* Excel letterhead: logo + company + address + title drawn as ONE picture, so it can never shift when the columns are resized */
+window._plgi=new Image();try{window._plgi.src=LOGO}catch(e){}
+function pHdPng(co,ad,tt,py,pe){try{const im=window._plgi;if(!im||!im.complete||!im.naturalWidth)return null;const S=2,W=760,H=173,c=document.createElement('canvas');c.width=W*S;c.height=H*S;const x=c.getContext('2d');x.scale(S,S);const lh=90,lw=Math.round(lh*im.naturalWidth/im.naturalHeight),mx=W-lw-24,cx=lw+12+mx/2;x.drawImage(im,0,5,lw,lh);x.textAlign='center';x.textBaseline='middle';x.fillStyle='#12305c';x.font='700 24px Georgia,serif';x.fillText(String(co||''),cx,22,mx);x.fillStyle='#66738a';x.font='13px Calibri,Arial,sans-serif';x.fillText(String(ad||''),cx,54,mx);x.fillStyle='#b8923a';x.font='700 18px Georgia,serif';x.fillText(String(tt||''),cx,83,mx);x.fillStyle='#12305c';x.font='700 21px Georgia,serif';x.fillText(String(py||''),cx,134,mx);x.fillStyle='#1a2233';x.font='700 12px Calibri,Arial,sans-serif';x.fillText(String(pe||''),cx,161,mx);const d=atob(c.toDataURL('image/png').split(',')[1]),b=new Uint8Array(d.length);for(let i=0;i<d.length;i++)b[i]=d.charCodeAt(i);return{b,w:W*S,h:H*S,hd:1}}catch(e){return null}}
 function pLogoPng(){try{const m=/^data:image\/png;base64,(.+)$/.exec(String(LOGO));if(!m)return null;const s=atob(m[1]),b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);const dv=new DataView(b.buffer);return{b,w:dv.getUint32(16),h:dv.getUint32(20)}}catch(e){return null}}
 function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the payroll first.');
  const cols=pCols().filter(c=>prBal(c.k)?prShow(c.k):!(PRH[PF]||[]).includes(c.k)),G=pGroups(),NC=cols.length+2,cells=new Map(),merges=[],hts={},ck=(r,c)=>r+','+c,
@@ -4210,16 +4213,17 @@ function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the pay
   blk=Math.max(String(pT('co','RAYANTON FARMS & LIVESTOCK CORP.')).length*15.5,String(pT('ad','14 Virgo St., Sierra Vista Sub., Cupang, Antipolo City')).length*6.4,String(PP.title||PF).length*11);
  let cg=1,ta,tb;{let acc=0;for(let c=1;c<=NC;c++){cg=c;const w=pxw(wd[c]);if(mid<=acc+w)break;acc+=w}
   ta=tb=Math.max(2,cg);let ws=pxw(wd[ta]);while(ws<blk*1.25){let ex=false;if(ta>2){ta--;ws+=pxw(wd[ta]);ex=true}if(tb<NC&&ws<blk*1.25){tb++;ws+=pxw(wd[tb]);ex=true}if(!ex)break}}
+ ta=1;tb=NC;/* fixed layout: the title block spans every column (always centred) and the logo stays at the top-left corner */
  let r=1;
  // --- title block (logo on the left, centred titles) ---
  hts[1]=30;hts[2]=20;hts[3]=24;hts[4]=6;
- put(1,ta,tb,pT('co','RAYANTON FARMS & LIVESTOCK CORP.'),{fn:'Georgia',sz:17,b:1,col:NAVY,h:'center'});
+ const HDI=pHdPng(pT('co','RAYANTON FARMS & LIVESTOCK CORP.'),pT('ad','14 Virgo St., Sierra Vista Sub., Cupang, Antipolo City'),PP.title||PF,pT('pay','PAYROLL'),pT('perl','PAYROLL PERIOD:')+'  '+pT('per',pLab()));
+ if(!HDI){put(1,ta,tb,pT('co','RAYANTON FARMS & LIVESTOCK CORP.'),{fn:'Georgia',sz:17,b:1,col:NAVY,h:'center'});
  put(2,ta,tb,pT('ad','14 Virgo St., Sierra Vista Sub., Cupang, Antipolo City'),{sz:9.5,col:'FF66738A',h:'center'});
- put(3,ta,tb,PP.title||PF,{fn:'Georgia',sz:13,b:1,col:'FFB8923A',h:'center'});
+ put(3,ta,tb,PP.title||PF,{fn:'Georgia',sz:13,b:1,col:'FFB8923A',h:'center'})}
  for(let c=1;c<=NC;c++)put(4,c,c,'',{bb:c===cg?'medium:FFB8923A':'thin:FFE3E7EF'});
  r=5;hts[5]=8;r=6;hts[6]=24;
- put(6,1,NC,pT('pay','PAYROLL'),{fn:'Georgia',sz:15,b:1,col:NAVY,h:'center'});
- hts[7]=17;put(7,1,NC,pT('perl','PAYROLL PERIOD:')+'  '+pT('per',pLab()),{sz:10,b:1,col:INK,h:'center'});
+ hts[7]=17;if(!HDI){put(6,1,NC,pT('pay','PAYROLL'),{fn:'Georgia',sz:15,b:1,col:NAVY,h:'center'});put(7,1,NC,pT('perl','PAYROLL PERIOD:')+'  '+pT('per',pLab()),{sz:10,b:1,col:INK,h:'center'})}
  r=8;(PP.det||[]).forEach(d=>{if(!d)return;hts[r]=15;put(r,1,NC,d,{sz:9.5,col:'FF66738A',h:'center'});r++});
  hts[r]=8;r++;
  // --- table header (two rows, merged groups exactly like the preview) ---
@@ -4356,7 +4360,7 @@ function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the pay
   xfX=xfs.map(k=>{const [f,fi_,b,n,h,v,w]=k.split('|');return`<xf numFmtId="${n}" fontId="${f}" fillId="${fi_}" borderId="${b}" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${h}" vertical="${v}"${+w?' wrapText="1"':''}/></xf>`}).join(''),
   H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',
   styles=H+`<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="2"><numFmt numFmtId="164" formatCode="#,##0.00;-#,##0.00;&quot;-&quot;"/><numFmt numFmtId="165" formatCode="&quot;₱&quot;#,##0.00"/></numFmts><fonts count="${fonts.length}">${fontX}</fonts><fills count="${fills.length}">${fillX}</fills><borders count="${bords.length}">${bordX}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfX}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
- const lg=pLogoPng(),PX=9525,lh=90,lw=lg?Math.round(lh*lg.w/lg.h):0,
+ const lg=HDI||pLogoPng(),PX=9525,lh=HDI?173:90,lw=lg?Math.round(lh*lg.w/lg.h):0,
   paper=/14in/.test(PPZ)?5:14,
   colsX=wd.slice(1,TC+1).map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"${i+1>=HS&&i+1<HS+HXC.length?' hidden="1"':''}/>`).join(''),
   sheet=H+`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>${colsX}</cols><sheetData>${rowsX.join('')}</sheetData><mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells><printOptions horizontalCentered="1"/><pageMargins left="0.3" right="0.3" top="0.4" bottom="0.4" header="0.2" footer="0.2"/><pageSetup paperSize="${paper}" orientation="landscape" fitToWidth="1" fitToHeight="0"/>${xbBrk?`<rowBreaks count="1" manualBreakCount="1"><brk id="${xbBrk}" max="16383" man="1"/></rowBreaks>`:''}${lg?'<drawing r:id="rId1"/>':''}</worksheet>`,
@@ -4366,7 +4370,7 @@ function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the pay
   {name:'xl/workbook.xml',data:H+`<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${RT}"><sheets><sheet name="Payroll" sheetId="1" r:id="rId1"/>${xbX?'<sheet name="Class Summary" sheetId="3" r:id="rId4"/>':''}<sheet name="ATM Accounts" sheetId="2" r:id="rId3"/></sheets><definedNames><definedName name="_xlnm.Print_Titles" localSheetId="0">Payroll!$${HR}:$${HR+1}</definedName></definedNames></workbook>`},
   {name:'xl/_rels/workbook.xml.rels',data:H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${RT}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${RT}/styles" Target="styles.xml"/><Relationship Id="rId3" Type="${RT}/worksheet" Target="worksheets/sheet2.xml"/>${xbX?`<Relationship Id="rId4" Type="${RT}/worksheet" Target="worksheets/sheet3.xml"/>`:''}</Relationships>`},
   {name:'xl/styles.xml',data:styles},{name:'xl/worksheets/sheet1.xml',data:sheet},{name:'xl/worksheets/sheet2.xml',data:atSheet},...(xbX?[{name:'xl/worksheets/sheet3.xml',data:xbX}]:[])];
- if(lg){const cx=lw*PX,cy=lh*PX;let lc=0,lx=6;{const c0=Math.max(1,ta-2),span=[];let tot=0;for(let c=c0;c<ta;c++){span.push(pxw(wd[c]));tot+=pxw(wd[c])}let off=Math.max(0,tot-lw-8),k=0;while(k<span.length-1&&off>=span[k]){off-=span[k];k++}lc=c0-1+k;lx=off}
+ if(lg){const cx=lw*PX,cy=lh*PX;let lc=0,lx=6;if(0){const c0=Math.max(1,ta-2),span=[];let tot=0;for(let c=c0;c<ta;c++){span.push(pxw(wd[c]));tot+=pxw(wd[c])}let off=Math.max(0,tot-lw-8),k=0;while(k<span.length-1&&off>=span[k]){off-=span[k];k++}lc=c0-1+k;lx=off}
   files.push({name:'xl/worksheets/_rels/sheet1.xml.rels',data:H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${RT}/drawing" Target="../drawings/drawing1.xml"/></Relationships>`},
    {name:'xl/drawings/drawing1.xml',data:H+`<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${RT}"><xdr:oneCellAnchor><xdr:from><xdr:col>${lc}</xdr:col><xdr:colOff>${lx*PX}</xdr:colOff><xdr:row>0</xdr:row><xdr:rowOff>${3*PX}</xdr:rowOff></xdr:from><xdr:ext cx="${cx}" cy="${cy}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="2" name="Logo"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>`},
    {name:'xl/drawings/_rels/drawing1.xml.rels',data:H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${RT}/image" Target="../media/logo.png"/></Relationships>`},
@@ -4900,7 +4904,7 @@ function smHtmlFM(S,R){const ids=[];
  const body=R.ents.map(e=>{const rows=smFmRows(e);let h='';
   for(let i=0;i<rows.length;){let j=i;while(smFMV()&&j<rows.length&&rows[j].g.toLowerCase()===rows[i].g.toLowerCase())j++;if(j===i)j++;
    for(let k=i;k<j;k++){const z=rows[k].z,cr=z.x.k==='ssp'||z.x.k==='tax'||z.x.k==='ded';ids.push(z.x.id);
-    h+=`<tr id="smr_${z.x.id}">${k===i?`<td class="nmc" rowspan="${j-i}"><input class="gni no-print" autocomplete="off" title="Click to rename this department" data-o="${esc(rows[i].g)}" value="${esc(rows[i].g)}" onchange="smGrpRn(${e.n},this.dataset.o,this.value)"><span class="gnp">${esc(rows[i].g)}</span></td>`:''}<td class="l">${smLbl(z,rows[k].it)}${smAdjUI(z)}</td>${cr?`<td class="a"></td><td class="a" id="sm_${z.x.id}"></td>`:`<td class="a" id="sm_${z.x.id}"></td><td class="a"></td>`}${smRC('L:'+z.x.id)}</tr>`}
+    h+=`<tr id="smr_${z.x.id}">${k===i?`<td class="nmc" rowspan="${j-i}"><input class="gni no-print" autocomplete="off" title="Click to rename this department" data-o="${esc(rows[i].g)}" value="${esc(rows[i].g)}" onchange="smGrpRn(${e.n},this.dataset.o,this.value)"><span class="gnp">${esc(rows[i].g)}</span></td>`:''}<td class="l">${z.x.man?`<div class="lfx">${smLbl(z,rows[k].it)}${smAdjUI(z)}</div>`:smLbl(z,rows[k].it)+smAdjUI(z)}</td>${cr?`<td class="a"></td><td class="a" id="sm_${z.x.id}"></td>`:`<td class="a" id="sm_${z.x.id}"></td><td class="a"></td>`}${smRC('L:'+z.x.id)}</tr>`}
    if(smFMV()&&rows.slice(i,j).every(q=>q.z.x.man))h+=smGrpAdd(e.n,rows[i].g);i=j}
   return h+(rows.length&&rows.every(q=>q.z.x.man)?'':smAddRow(e.n))+(smFMV()?'':'<tr class="sp"><td colspan="5"></td></tr>')+`<tr class="bk"><td class="nmc"></td><td class="l"></td><td class="a r">Bank</td><td class="a r" id="sm_bk${e.n}"></td>${smRC('B:'+e.n)}</tr>`}).join('');
  return`<div class="psw"><table id="smfm" data-v="${ids.join(',')}" class="psj fm${smFMV()?'':' fm2'}"><tbody><tr><td class="fmt" colspan="4">${esc(String(PF).toUpperCase())}</td></tr>${body}${(smFMV()||R.ents.length>1)?`<tr class="sp"><td colspan="5"></td></tr><tr class="bk" id="smr_gt"><td class="nmc"></td><td class="l"></td><td class="a r">TOTAL</td><td class="a r" id="sm_gt"></td>${smRC('X:gt')}</tr>`:''}${smDeptRow()}</tbody></table>${smxHtml()}<div class="psmc no-print" id="sm_chk"></div><div class="psmc no-print" id="sm_chk2"></div>${smBtns()}</div>`}
@@ -4964,7 +4968,7 @@ function pDraftChk(){if(PV!=='form'||!PF)return;const key=PDK();if(PDDONE===key)
 document.addEventListener('input',()=>{if(PV==='form')pDraftQ()},true);
 setInterval(()=>{if(PV==='form')pDraftSave()},10000);
 function drawP(){if(STF==null)return drawForm();PV==='setup'?drawSetup():PV==='form'?drawForm():PV==='slip'?drawSlips():drawHist()}
-function pFit(){document.querySelectorAll('.ph input.pi,.pm input.pi,.pfoot .pu input.pi').forEach(i=>{const c=getComputedStyle(i),m=document.createElement('span');m.style.cssText='position:absolute;visibility:hidden;white-space:pre;font-family:'+c.fontFamily+';font-size:'+c.fontSize+';font-weight:'+c.fontWeight+';font-style:'+c.fontStyle+';letter-spacing:'+c.letterSpacing+';text-transform:'+c.textTransform;m.textContent=i.value||'';document.body.appendChild(m);const w=m.getBoundingClientRect().width;m.remove();i.style.maxWidth='none';i.style.minWidth='0';i.style.width=Math.ceil(w*1.12)+18+'px'})}
+function pFit(){document.querySelectorAll('.ph input.pi,.pm input.pi,.pfoot .pu input.pi').forEach(i=>{const c=getComputedStyle(i),m=document.createElement('span'),pf=i.closest('.ph')&&(i.classList.contains('co')||i.classList.contains('ttl'));m.style.cssText='position:absolute;visibility:hidden;white-space:pre;font-family:'+(pf?'Georgia,serif':c.fontFamily)+';font-size:'+c.fontSize+';font-weight:'+(pf?'700':c.fontWeight)+';font-style:'+c.fontStyle+';letter-spacing:'+c.letterSpacing+';text-transform:'+c.textTransform;m.textContent=i.value||'';document.body.appendChild(m);const w=m.getBoundingClientRect().width;m.remove();i.style.maxWidth='none';i.style.minWidth='0';i.style.width=Math.ceil(w*1.12)+18+'px'})}
 document.addEventListener('input',e=>{if(e.target&&e.target.closest&&e.target.closest('.ph,.pm'))pFit()});
 addEventListener('beforeprint',()=>{try{pFit()}catch(x){}});
 // the group heading is skipped when it just repeats the title already printed at the top
@@ -6712,10 +6716,13 @@ seasonUI();
 @media print{.pw .psj.fm .gni{display:none!important}.pw .psj.fm .gnp{display:inline!important}}
 .pw .psj.fm .lli{width:calc(100% - 120px);border:0;border-bottom:1px dotted #9aa3ad;background:transparent;font:inherit;color:#000;padding:2px 4px;outline:0}.pw .psj.fm .lli:focus{background:#fffbd0}.pw .psj.fm .llp{display:none}
 @media print{.pw .psj.fm .lli{display:none!important}.pw .psj.fm .llp{display:inline!important}}
+/* manual line: buttons stay at the left, the name sits flush RIGHT like Hauling / SSS Loan (Extra Payroll keeps it left); the department name sits right, next to the arrows */
+.pw .psj .lfx{display:flex;flex-direction:row-reverse;align-items:center}.pw .psj .lfx .lsw{float:none;margin:0 8px 0 0}.pw .psj.xp .lli{text-align:left;font-weight:400}
+.pw .psj:not(.fm) td.nmc{text-align:right}.pw .psj:not(.fm) .gni{text-align:right}
 /* the editable inputs and their print-only copies must never show together (was only hidden inside .psj.fm) */
 .pw .psj .llp,.pw .psj .gnp{display:none}
 .pw .psj .gni{width:100%;border:0;border-bottom:1px dotted #9aa3ad;background:transparent;font:inherit;color:#000;padding:2px 4px;outline:0}
-.pw .psj .lli{width:calc(100% - 120px);border:0;border-bottom:1px dotted #9aa3ad;background:transparent;font:inherit;color:#000;padding:2px 4px;outline:0}
+.pw .psj .lli{flex:1;min-width:0;width:100%;text-align:right;font-weight:700;border:0;border-bottom:1px dotted #9aa3ad;background:transparent;font:inherit;color:#000;padding:2px 4px;outline:0}
 @media print{.pw .psj .lli,.pw .psj .gni{display:none!important}.pw .psj .llp,.pw .psj .gnp{display:inline!important}}
 .pw .psj tr.lsb td{border:0!important;background:transparent!important;text-align:left;height:auto;padding:4px 0}
 @media print{.pw .psj .lsw,.pw .psj tr.lsb{display:none!important}}
@@ -6898,7 +6905,7 @@ html[data-theme=dark] .psgp{color-scheme:light;color:#000}
 
 /* header of every department form: same layout on screen, in print/PDF */
 @media print{.pw .ph,.pw .pm,.pw .ph::after,.pw .ph img,.pw .ps th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.pw .ph{justify-content:center;border-bottom:1px solid #e3e7ef;position:relative}
+.pw .ph{justify-content:center;border-bottom:1px solid #e3e7ef;position:relative;flex-wrap:nowrap;width:100%}.pw .ph>div{min-width:max-content}.pw .ph img{flex:none}
 .pw .ph input.pi.co{font-family:Georgia,serif!important;color:#12305c!important;font-weight:700;text-align:center}
 .pw .ph input.pi.ad{color:#4a566b!important;text-align:center}
 .pw .ph input.pi.ttl{font-family:Georgia,serif!important;color:#b8923a!important;font-weight:700;text-align:center}
