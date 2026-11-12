@@ -4306,8 +4306,14 @@ function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the pay
  }}
  // --- signatures + ATM / COOP / Total ---
  r++;hts[r]=26;const fr=r,ul={bb:'thin:FF000000',h:'center',v:'bottom',sz:10.5,b:1,col:'FF000000'},lb={sz:9.5,h:'center',col:'FF444444'};
- const c2=Math.min(5,NC);put(fr,1,1,PP.prep||'',ul);put(fr,3,c2,PP.chk||'',ul);
- hts[fr+1]=16;put(fr+1,1,1,pT('pb','Prepared by'),lb);put(fr+1,3,c2,pT('cb','Checked by'),lb);
+ /* the Prepared by / Checked by names must show in full: widen the signature cells over more columns until the name fits, and wrap + grow the row only if it still does not */
+ const sgW=(a,b)=>{let t=0;for(let c=a;c<=b;c++)t+=wd[c]||11;return t},sgN=t=>String(t||'').length*1.3+4;
+ let p2=1;if(sgN(PP.prep)>sgW(1,1)&&NC>=3)p2=2;
+ let c2=Math.min(5,NC);while(sgN(PP.chk)>sgW(3,c2)&&c2<NC)c2++;
+ const sgL=Math.max(1,Math.ceil(Math.max(sgN(PP.prep)/sgW(1,p2),sgN(PP.chk)/sgW(3,c2))));
+ const ulw=sgL>1?{...ul,wrap:1}:ul;hts[fr]=Math.max(26,sgL>1?sgL*14+6:0);
+ put(fr,1,p2,PP.prep||'',ulw);put(fr,3,c2,PP.chk||'',ulw);
+ hts[fr+1]=16;put(fr+1,1,p2,pT('pb','Prepared by'),lb);put(fr+1,3,c2,pT('cb','Checked by'),lb);
  let lastR=fr+1,xbBrk=0,XB2=null;const TC=Math.max(NC+(hasVC?1:0),5)+HXC.length;
  if(hasXB()){const M=xbModel(),cells2=new Map(),merges2=[],hts2={},cell2=(r,c)=>{let o=cells2.get(ck(r,c));if(!o){o={st:{}};cells2.set(ck(r,c),o)}return o},put2=(r,c1,c2,v,st,rb)=>{rb=rb||r;const o=cell2(r,c1);if(v!==undefined&&v!==null&&v!=='')o.v=v;for(let rr=r;rr<=rb;rr++)for(let cc=c1;cc<=c2;cc++)Object.assign(cell2(rr,cc).st,st||{});if(c2>c1||rb>r)merges2.push(pColL(c1)+r+':'+pColL(c2)+rb)};XB2={cells:cells2,merges:merges2,hts:hts2,last:1};nb={sz:10,col:'FF000000',v:'center'},bd={bl:'thin:FFCFD6E4',br:'thin:FFCFD6E4',bt:'thin:FFCFD6E4',bb:'thin:FFCFD6E4'},bx={bl:'thin:FF000000',br:'thin:FF000000',bt:'thin:FF000000',bb:'thin:FF000000'};let q=1;
   hts2[q]=20;put2(q,1,3,PF,{...nb,sz:12,b:1,h:'left'});q++;hts2[q]=16;put2(q,1,3,(PP.title||PF)+' · '+pLab(),{...nb,h:'left'});q+=2;
@@ -4790,7 +4796,9 @@ const smFMV=()=>String(PF).toUpperCase()==='FMVM';
 const smLay=()=>!smFMV()&&!hasXB()&&!isMg(PF)&&!/^(EXTRA PAYROLL|PSALES|HAULING)$/.test(String(PF).toUpperCase());
 const smFM=()=>smFMV()||smLay();
 /* department name shown on the side of each line (FMVM: per block; other departments: the line's own department, deductions belong to the payroll's department) */
-const smLineG=(e,x)=>String(x.nm||(smFMV()?smFmGrp(e):(x.k==='sal'?(String(x.l||'').replace(/\s+Salaries$/i,'').trim()||String(PF).toUpperCase()):String(PF).toUpperCase()))).trim();
+const smLineG=(e,x)=>String(x.nm||(smFMV()?smFmGrp(e):(x.man?smBlkG(e):x.k==='sal'?(String(x.l||'').replace(/\s+Salaries$/i,'').trim()||String(PF).toUpperCase()):String(PF).toUpperCase()))).trim();
+/* department of a manually added line that has no department typed: the department of the block's own Salaries line (never its own description) */
+const smBlkG=e=>{const z=e&&e.lines&&e.lines.find(q=>q.x.k==='sal'&&!q.x.man);return z?(String(z.x.nm||String(z.x.l||'').replace(/\s+Salaries$/i,'').trim())||String(PF).toUpperCase()):String(PF).toUpperCase()};
 /* Manual lines under the summary (A/R, loans ...): typed directly in the form, printed and exported as a boxed table */
 const smxNum=v=>{const n=parseFloat(String(v==null?'':v).replace(/,/g,''));return isNaN(n)?'':n};
 const smxPf=v=>{const n=smxNum(v);return n===''?'':pf(n)};
@@ -4833,7 +4841,9 @@ const smLbl=(z,it)=>z.x.man?`<input class="lli no-print" autocomplete="off" titl
 function smLblSet(id,v){const S=smGet(),x=S&&S.find(q=>q.id===id);if(!x)return;v=String(v||'').trim();if(v)x.l=v;pDirty();drawP()}
 function smAddDept(){const S=smGet();if(!S)return;const n=prompt('Name of the new department:');if(n==null||!String(n).trim())return;const rl=S.filter(x=>x.k==='sal'&&!x.man).map(x=>parseInt(x.en)||1),en=rl.length?Math.max(...rl):Math.max(1,...S.map(x=>parseInt(x.en)||1))+1;
  S.push({id:'sd'+Date.now().toString(36)+Math.floor(Math.random()*99),l:'Salaries',nm:String(n).trim(),k:'sal',e:[],en,man:1});pDirty();drawP();toast('Department added \u2014 type the amount beside Salaries, or use Add line / Less line')}
-function smGrpRn(en,old,nv){nv=String(nv||'').trim();if(!nv||nv===old){drawP();return}const R=smVals(),e=R&&R.ents.find(q=>q.n===en);if(!e)return;const lo=String(old).toLowerCase();
+function smGrpRn(en,old,nv,id){nv=String(nv||'').trim();if(!nv||nv===old){drawP();return}const R=smVals(),e=R&&R.ents.find(q=>q.n===en);if(!e)return;const lo=String(old).toLowerCase();
+ /* one row only (department names are typed by hand, row by row): the other rows keep the department they show now */
+ if(id){const z=e.lines.find(q=>q.x.id===id);if(!z){drawP();return}e.lines.forEach(q=>{if(q!==z&&q.x.man&&!q.x.nm)q.x.nm=smLineG(e,q.x)});const x=z.x;if(x.k==='sal'&&String(x.l||'').replace(/\s+Salaries$/i,'').trim().toLowerCase()===lo)x.l=/\s+Salaries$/i.test(x.l||'')?nv+' Salaries':nv;x.nm=nv;pDirty();drawP();return}
  e.lines.forEach(z=>{const x=z.x;if(smLineG(e,x).toLowerCase()!==lo)return;if(x.k==='sal'&&String(x.l||'').replace(/\s+Salaries$/i,'').trim().toLowerCase()===lo)x.l=/\s+Salaries$/i.test(x.l||'')?nv+' Salaries':nv;x.nm=nv});pDirty();drawP()}
 const smGrpAdd=(n,g)=>`<tr class="lsb no-print"><td colspan="5"><button type="button" class="btn o sm" data-g="${esc(g)}" onclick="smQuick(${n},'sal',this.dataset.g)">\u2795 Add line to ${esc(g)}</button> <button type="button" class="btn o sm" data-g="${esc(g)}" onclick="smQuick(${n},'ded',this.dataset.g)">\u2796 Less line</button></td></tr>`;
 function smQuick(en,k,grp){const S=smGet();if(!S)return;const l=prompt(k==='ded'?'Description of the line to LESS (e.g. Electricity, Cash advance):':'Description of the line to ADD:');if(l==null||!String(l).trim())return;
@@ -4908,7 +4918,7 @@ function smHtmlFM(S,R){const ids=[];
  const body=R.ents.map(e=>{const rows=smFmRows(e);let h='';
   for(let i=0;i<rows.length;){let j=i;while(smFMV()&&j<rows.length&&rows[j].g.toLowerCase()===rows[i].g.toLowerCase())j++;if(j===i)j++;
    for(let k=i;k<j;k++){const z=rows[k].z,cr=z.x.k==='ssp'||z.x.k==='tax'||z.x.k==='ded';ids.push(z.x.id);
-    h+=`<tr id="smr_${z.x.id}">${k===i?`<td class="nmc" rowspan="${j-i}"><input class="gni no-print" autocomplete="off" title="Click to rename this department" data-o="${esc(rows[i].g)}" value="${esc(rows[i].g)}" onchange="smGrpRn(${e.n},this.dataset.o,this.value)"><span class="gnp">${esc(rows[i].g)}</span></td>`:''}<td class="l">${z.x.man?`<div class="lfx">${smLbl(z,rows[k].it)}${smAdjUI(z)}</div>`:smLbl(z,rows[k].it)+smAdjUI(z)}</td>${z.x.man?smAmtTd(z,cr):cr?`<td class="a"></td><td class="a" id="sm_${z.x.id}"></td>`:`<td class="a" id="sm_${z.x.id}"></td><td class="a"></td>`}${smRC('L:'+z.x.id)}</tr>`}
+    h+=`<tr id="smr_${z.x.id}">${k===i?`<td class="nmc" rowspan="${j-i}"><input class="gni no-print" autocomplete="off" title="Click to rename this department" data-o="${esc(rows[i].g)}" value="${esc(rows[i].g)}" onchange="smGrpRn(${e.n},this.dataset.o,this.value${smFMV()?'':",'"+esc(z.x.id)+"'"})"><span class="gnp">${esc(rows[i].g)}</span></td>`:''}<td class="l">${z.x.man?`<div class="lfx">${smLbl(z,rows[k].it)}${smAdjUI(z,1)}</div>`:smLbl(z,rows[k].it)+smAdjUI(z)}</td>${z.x.man?smAmtTd(z,cr):cr?`<td class="a"></td><td class="a" id="sm_${z.x.id}"></td>`:`<td class="a" id="sm_${z.x.id}"></td><td class="a"></td>`}${smRC('L:'+z.x.id)}</tr>`}
    if(smFMV()&&rows.slice(i,j).every(q=>q.z.x.man))h+=smGrpAdd(e.n,rows[i].g);i=j}
   return h+(rows.length&&rows.every(q=>q.z.x.man)?'':smAddRow(e.n))+(smFMV()?'':'<tr class="sp"><td colspan="5"></td></tr>')+`<tr class="bk"><td class="nmc"></td><td class="l"></td><td class="a r">Bank</td><td class="a r" id="sm_bk${e.n}"></td>${smRC('B:'+e.n)}</tr>`}).join('');
  return`<div class="psw"><table id="smfm" data-v="${ids.join(',')}" class="psj fm${smFMV()?'':' fm2'}"><tbody><tr><td class="fmt" colspan="4">${esc(String(PF).toUpperCase())}</td></tr>${body}${(smFMV()||R.ents.length>1)?`<tr class="sp"><td colspan="5"></td></tr><tr class="bk" id="smr_gt"><td class="nmc"></td><td class="l"></td><td class="a r">TOTAL</td><td class="a r" id="sm_gt"></td>${smRC('X:gt')}</tr>`:''}${smDeptRow()}</tbody></table>${smxHtml()}<div class="psmc no-print" id="sm_chk"></div><div class="psmc no-print" id="sm_chk2"></div>${smBtns()}</div>`}
