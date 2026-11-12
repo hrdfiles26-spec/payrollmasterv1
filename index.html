@@ -4190,6 +4190,9 @@ function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the pay
  const wd=[];wd[1]=Math.min(40,Math.max(26,...G.flatMap(([,L])=>L.map(s=>s.name.length+3))));wd[2]=10;
  cols.forEach((c,i)=>{const h=String(pT('h_'+c.k,pDef(c.k))),k=c.k;let w=k==='acct'?18:k==='rem'?20:k==='arem'?38:k==='days'?9:Math.max(11,Math.min(15,Math.ceil(h.length*.62)+2));wd[3+i]=w});for(let c=1;c<=NC;c++)if(!wd[c])wd[c]=11;
  const VCM=s=>String((pRow(s)||{}).vcm||'').trim(),hasVC=G.some(([,L])=>L.some(s=>VCM(s))),XC=NC+1;if(hasVC)wd[XC]=38;
+ /* columns hidden in the app (or unticked in Print / Export columns) go to the right as HIDDEN Excel columns: right-click > Unhide in Excel */
+ const HKEEP=new Set(cols.map(c=>c.k)),HXC=pOrder().filter(k=>!HKEEP.has(k)&&!['days','fd','pd'].includes(k)).map(k=>({k})),HS=Math.max(NC+(hasVC?1:0),5)+1;
+ HXC.forEach((c,j)=>{const k=c.k;wd[HS+j]=k==='acct'?18:k==='rem'?20:k==='arem'?38:Math.max(11,Math.min(15,Math.ceil(String(pT('h_'+k,pDef(k))).length*.62)+2))});
  const pxw=w=>Math.round(w*7+5),totW=wd.slice(1,NC+1).reduce((a,w)=>a+pxw(w),0),mid=totW/2,
   blk=Math.max(String(pT('co','RAYANTON FARMS & LIVESTOCK CORP.')).length*15.5,String(pT('ad','14 Virgo St., Sierra Vista Sub., Cupang, Antipolo City')).length*6.4,String(PP.title||PF).length*11);
  let cg=1,ta,tb;{let acc=0;for(let c=1;c<=NC;c++){cg=c;const w=pxw(wd[c]);if(mid<=acc+w)break;acc+=w}
@@ -4214,12 +4217,13 @@ function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the pay
   if(c.g){let j=i;while(j<cols.length&&cols[j].g===c.g)j++;put(HR,3+i,2+j,pT(gl[c.g][0],gl[c.g][1]),hdr);for(let q=i;q<j;q++)put(HR+1,3+q,3+q,pT('h_'+cols[q].k,pDef(cols[q].k)),hdr);i=j}
   else{put(HR,3+i,3+i,pT('h_'+c.k,pDef(c.k)),hdr,HR+1);i++}}
  if(hasVC)put(HR,XC,XC,'Vale Comment',hdr,HR+1);
+ HXC.forEach((c,j)=>put(HR,HS+j,HS+j,pT('h_'+c.k,pDef(c.k)),hdr,HR+1));
  r=HR+2;
  // --- body ---
  const noSum=['days','fd','pd','rem','arem','acct'],GT={net:0,coop:0,tot:0},TS=Object.fromEntries(cols.map(c=>[c.k,0]));
  const bodyBase={sz:10,col:INK,bl:GRID,br:GRID,bt:GRID,bb:GRID,v:'center'};
  const sumRow=(label,S,fill,col,top)=>{hts[r]=19;const st={sz:10,b:1,col,fill,bl:GRID,br:GRID,bt:top,bb:GRID,v:'center'};put(r,1,1,label,{...st,h:'left'});put(r,2,2,'',st);
-  cols.forEach((c,i)=>put(r,3+i,3+i,noSum.includes(c.k)?'':r2(S[c.k]),{...st,h:'right',nf:MONEY}));r++};
+  cols.forEach((c,i)=>put(r,3+i,3+i,noSum.includes(c.k)?'':r2(S[c.k]),{...st,h:'right',nf:MONEY}));HXC.forEach((c,j)=>put(r,HS+j,HS+j,noSum.includes(c.k)?'':r2(S[c.k]||0),{...st,h:'right',nf:MONEY}));r++};
  G.forEach(([d,L])=>{
   if(!pSameT(d)){hts[r]=17;put(r,1,NC,pGL(d),{fn:'Georgia',sz:10.5,b:1,col:'FF7A5A12',fill:'FFF3ECE0',bl:'thin:FFEADFC8',br:'thin:FFEADFC8',bt:'thin:FFEADFC8',bb:'thin:FFEADFC8',v:'center'});r++}
   const S=Object.fromEntries(cols.map(c=>[c.k,0]));
@@ -4238,6 +4242,13 @@ function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the pay
     else if(k==='bal'||k==='cbal'){val=rw[k]!=null&&rw[k]!==''?pn(rw[k]):(v[k]||'')}
     else{val=rw[k]!=null&&rw[k]!==''?pn(rw[k]):''}
     if(!noSum.includes(k)&&!hd){S[k]+=v[k]||0;TS[k]+=v[k]||0}
+    if(hd){st.fill=HX.fill;st.col=HX.col}
+    put(r,x,x,val,st)});
+   HXC.forEach((c,j)=>{const k=c.k,x=HS+j;let val='',st={...bodyBase,h:'right'};
+    if(k==='rem'||k==='arem'){val=rw[k]||'';st.h='left'}else if(k==='acct'){val=String(pAcctV(s)||'');st.h='left'}
+    else if(k==='pay'||k==='net'||k==='tot'||k==='lbal'){val=v[k]||'';st.nf=MONEY}
+    else{val=rw[k]!=null&&rw[k]!==''?pn(rw[k]):(k==='bal'||k==='cbal'?(v[k]||''):'')}
+    if(!noSum.includes(k)&&!hd){const a=(k==='pay'||k==='net'||k==='tot'||k==='lbal')?(v[k]||0):pn(rw[k]!=null&&rw[k]!==''?rw[k]:(k==='bal'||k==='cbal'?v[k]:0));S[k]=(S[k]||0)+a;TS[k]=(TS[k]||0)+a}
     if(hd){st.fill=HX.fill;st.col=HX.col}
     put(r,x,x,val,st)});
    if(hasVC)put(r,XC,XC,VCM(s),{...bodyBase,h:'left',wrap:1,sz:9.5,col:'FF4A566B'});r++});
@@ -4278,7 +4289,7 @@ function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the pay
  r++;hts[r]=26;const fr=r,ul={bb:'thin:FF000000',h:'center',v:'bottom',sz:10.5,b:1,col:'FF000000'},lb={sz:9.5,h:'center',col:'FF444444'};
  const c2=Math.min(5,NC);put(fr,1,1,PP.prep||'',ul);put(fr,3,c2,PP.chk||'',ul);
  hts[fr+1]=16;put(fr+1,1,1,pT('pb','Prepared by'),lb);put(fr+1,3,c2,pT('cb','Checked by'),lb);
- let lastR=fr+1,xbBrk=0,XB2=null;const TC=Math.max(NC+(hasVC?1:0),5);
+ let lastR=fr+1,xbBrk=0,XB2=null;const TC=Math.max(NC+(hasVC?1:0),5)+HXC.length;
  if(hasXB()){const M=xbModel(),cells2=new Map(),merges2=[],hts2={},cell2=(r,c)=>{let o=cells2.get(ck(r,c));if(!o){o={st:{}};cells2.set(ck(r,c),o)}return o},put2=(r,c1,c2,v,st,rb)=>{rb=rb||r;const o=cell2(r,c1);if(v!==undefined&&v!==null&&v!=='')o.v=v;for(let rr=r;rr<=rb;rr++)for(let cc=c1;cc<=c2;cc++)Object.assign(cell2(rr,cc).st,st||{});if(c2>c1||rb>r)merges2.push(pColL(c1)+r+':'+pColL(c2)+rb)};XB2={cells:cells2,merges:merges2,hts:hts2,last:1};nb={sz:10,col:'FF000000',v:'center'},bd={bl:'thin:FFCFD6E4',br:'thin:FFCFD6E4',bt:'thin:FFCFD6E4',bb:'thin:FFCFD6E4'},bx={bl:'thin:FF000000',br:'thin:FF000000',bt:'thin:FF000000',bb:'thin:FF000000'};let q=1;
   hts2[q]=20;put2(q,1,3,PF,{...nb,sz:12,b:1,h:'left'});q++;hts2[q]=16;put2(q,1,3,(PP.title||PF)+' · '+pLab(),{...nb,h:'left'});q+=2;
   hts2[q]=19;put2(q,1,1,'Name',{...nb,...bd,b:1,col:'FFFFFFFF',fill:NAVY,h:'left'});put2(q,2,2,'Class',{...nb,...bd,b:1,col:'FFFFFFFF',fill:NAVY,h:'left'});put2(q,3,3,'Amount',{...nb,...bd,b:1,col:'FFFFFFFF',fill:NAVY,h:'right'});q++;
@@ -4334,7 +4345,7 @@ function pXls(){if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the pay
   styles=H+`<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="2"><numFmt numFmtId="164" formatCode="#,##0.00;-#,##0.00;&quot;-&quot;"/><numFmt numFmtId="165" formatCode="&quot;₱&quot;#,##0.00"/></numFmts><fonts count="${fonts.length}">${fontX}</fonts><fills count="${fills.length}">${fillX}</fills><borders count="${bords.length}">${bordX}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfX}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
  const lg=pLogoPng(),PX=9525,lh=90,lw=lg?Math.round(lh*lg.w/lg.h):0,
   paper=/14in/.test(PPZ)?5:14,
-  colsX=wd.slice(1,TC+1).map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join(''),
+  colsX=wd.slice(1,TC+1).map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"${i+1>=HS&&i+1<HS+HXC.length?' hidden="1"':''}/>`).join(''),
   sheet=H+`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>${colsX}</cols><sheetData>${rowsX.join('')}</sheetData><mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells><printOptions horizontalCentered="1"/><pageMargins left="0.3" right="0.3" top="0.4" bottom="0.4" header="0.2" footer="0.2"/><pageSetup paperSize="${paper}" orientation="landscape" fitToWidth="1" fitToHeight="0"/>${xbBrk?`<rowBreaks count="1" manualBreakCount="1"><brk id="${xbBrk}" max="16383" man="1"/></rowBreaks>`:''}${lg?'<drawing r:id="rId1"/>':''}</worksheet>`,
   RT='http://schemas.openxmlformats.org/officeDocument/2006/relationships',
   files=[{name:'[Content_Types].xml',data:H+`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>${xbX?'<Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>':''}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${lg?'<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>':''}</Types>`},
@@ -4367,12 +4378,12 @@ function pFitSlips(){const L=[...document.querySelectorAll('.slip')];if(!L.lengt
  m=Math.min(m,pr)}L.forEach(e=>e.style.fontSize=m+'px')}
 addEventListener('beforeprint',()=>{if(PG==='pay'&&PV==='slip')try{pFitSlips()}catch(x){}});
 function pSlipList(){const out=[];pGroups().forEach(([g,L])=>L.forEach(s=>{if(pHeld(s))return;const v=pVals(s);if(PSK&&!v.pay&&!v.tot&&!v.net&&!v.adj)return;out.push({s,g,v})}));return out}
-function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.includes(k),xc=PP.xc||[],
+function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.includes(k)||(k===(((PP.xc||[]).find(c=>c&&c.id==='e_elbal'))||{}).a&&pn(r.e_elbal)>0),xc=PP.xc||[],
  lab=k=>{const t=PP.t&&PP.t['h_'+k];if(t)return t.replace(/\s*\(payable\)/i,'');if(k==='sss')return'SSS';if(k==='phic')return'PHIC';if(k==='hdmf')return'HDMF';return pDef(k).replace(/\s*\(payable\)/i,'')},
  O=pOrder(),RK={adj:0,e_petty:1,e_cash:1},adds=O.filter(k=>vis(k)&&v[k]&&(k==='adj'||xc.some(c=>c.id===k&&c.m==='add'))).map((k,i)=>[k,i]).sort((a,b)=>(RK[a[0]]??2)-(RK[b[0]]??2)||a[1]-b[1]).map(a=>a[0]),
  dk=['vale','sss','phic','hdmf','ded','tax','ps','coop'],SR={vale:0,e_hloan:1,e_sloan:2,sss:3,phic:4,hdmf:5,ded:6,e_rent:7,e_elec:7.2,e_cash:7.4,e_cbond:8,tax:8.2,ps:8.4,coop:9},SS=['vale','e_hloan','e_sloan','sss','phic','hdmf','ded','e_rent','e_elec','e_cbond','coop'],
  lss=O.filter(k=>vis(k)&&(dk.includes(k)||xc.some(c=>c.id===k&&c.m==='less'))&&(SS.includes(k)||v[k])).map((k,i)=>[k,i]).sort((a,b)=>(SR[a[0]]??8.6)-(SR[b[0]]??8.6)||a[1]-b[1]).map(a=>a[0]),
- gross=r2(v.pay+adds.reduce((a,k)=>a+(v[k]||0),0)),td=r2(gross-v.net),eb=((xc.find(c=>c&&c.id==='e_elbal'))||{}).a||'e_elec',bal=k=>k==='vale'?v.bal:k==='coop'?v.cbal:k===eb&&xc.some(c=>c.id==='e_elbal')?pn(v.e_elbal):0,
+ gross=r2(v.pay+adds.reduce((a,k)=>a+(v[k]||0),0)),td=r2(gross-v.net),eb=((xc.find(c=>c&&c.id==='e_elbal'))||{}).a||'e_elec',bal=k=>k==='vale'?v.bal:k==='coop'?v.cbal:k===eb&&xc.some(c=>c.id==='e_elbal')?pn(r.e_elbal):0,
  rd=PP.m==='r'&&vis('days')?[pRate(s),dy3(pn(r.days))]:null,dn=v.ded>0?((()=>{try{return String(dnTxt(s)||'').trim()}catch(e){return''}})()||dedNote(s,v.ded)):'';
  return{s,g,v,r,lab,adds,lss,gross,td,bal,eb,rd,dn}}
 function pSlip(x){return pSlipHtml(pSlipModel(x))}
