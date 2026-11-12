@@ -886,8 +886,8 @@ html[data-theme=dark] #main .stat.al-r .si{background:#4a2024;color:#ff8a80}
 .m13w .m13-g select{min-width:170px}
 .m13sg{gap:3.5mm}.slpage.m13p{padding:6mm}
 .m13sg .slip{min-width:0;overflow:hidden}.m13sg .slip>div{min-width:0}
-.m13sg .sl-nm{white-space:nowrap;overflow:hidden;text-overflow:clip}
-.m13sg .sl-cm{font-size:.8em;color:#666;text-align:right;white-space:nowrap;margin-top:-.2mm}
+.m13sg .sl-nm{white-space:normal;overflow-wrap:break-word;overflow:visible;text-overflow:clip}
+.m13sg .sl-cm{font-size:.8em;color:#666;text-align:right;white-space:normal;overflow-wrap:break-word;margin-top:-.2mm}
 .m13t{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:3.5mm}
 .m13t td{padding:0!important;border:0!important;background:none!important;vertical-align:top}
 .slpage.m13p{padding:4mm}
@@ -4460,7 +4460,7 @@ function pSlipXlsx(){const b=pXlsxBuild();if(!b)return toast('No payslips to exp
  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='payslips_'+String(PF).replace(/[^A-Za-z0-9]+/g,'_')+'_'+PP.from+'_to_'+PP.to+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
  logAct('Exported payslips (Excel)','Payroll',PF+' · '+pPeriod());toast('Exported ✔')}
 let PSQ='';const pSqN=t=>String(t||'').toLowerCase().replace(/[^a-z0-9ñ]+/g,' ').trim();
-function pSlipView(){const L=pSlipList();if(!isMg(PF)||!PSQ)return L;const q=pSqN(PSQ).split(' ').filter(Boolean);return L.filter(x=>{const n=pSqN(x.s.name);return q.every(w=>n.includes(w))})}
+function pSlipView(){const L=pSlipList();if(!PSQ)return L;const q=pSqN(PSQ).split(' ').filter(Boolean);return L.filter(x=>{const n=pSqN(x.s.name);return q.every(w=>n.includes(w))})}
 function pSlSearch(v){PSQ=v;drawSlips();const e=$('pslq');if(e){e.focus();try{e.setSelectionRange(v.length,v.length)}catch(_){}}}
 /* payslip = fixed physical size (same on every paper, font never changes); as many as fit per page, the rest go to the next page, none is ever cut */
 const SLW=66,SLH=78,SLGP=1.2,SLPD=3;
@@ -4468,10 +4468,11 @@ function pSlipGrid(){const mm=v=>{const n=parseFloat(v);return/in$/.test(v)?n*25
 function drawSlips(){const ALL=pSlipList().length,L=pSlipView(),pages=[],MG=isMg(PF),FX=!MG||PMGN==='12',[fc,fr]=pSlipGrid(),per=FX?fc*fr:+PMGN,[cc,rr]=FX?[fc,fr]:(PLY[per]||PLY[12]);if(PMKR!==PP.runId){PMK={};PMKR=PP.runId;PSQ=''}for(let i=0;i<L.length;i+=per)pages.push(L.slice(i,i+per));
  $('main').innerHTML=`<div class="pz-bar no-print"><button class="btn o" onclick="pSlipBack()">← Back to payroll</button><span class="pz-sep"></span><b style="font-size:15px;color:var(--h)">Payslips · ${esc(PF)} · ${esc(pPeriod())}</b><span class="sp1"></span>
 <label style="font-size:13px"><input type="checkbox" ${PSK?'checked':''} onchange="PSK=this.checked;drawSlips()"> Skip employees with no pay</label>
+${MG?'':`<input id="pslq" class="fi" type="search" autocomplete="off" placeholder="🔍 Search name…" value="${esc(PSQ)}" style="width:180px;margin:0" oninput="pSlSearch(this.value)" title="Find an employee in this payslip list">`}
 <select class="fi" style="width:auto;margin:0" title="Paper size" onchange="pSetSz(this.value)">${[['8.5in|11in','Letter 8.5 × 11'],['210mm|297mm','A4'],['8.5in|13in','Long bond 8.5 × 13'],['8.5in|14in','Legal 8.5 × 14']].map(([v,l])=>`<option value="${v}"${PSZ===v?' selected':''}>${l}</option>`).join('')}</select>
 ${MG?pSlMgBar():''}<button class="btn" onclick="pSlipPrint()"${L.length?'':' disabled'}>Print</button><button class="btn ok" onclick="pSlipXlsx()"${L.length?'':' disabled'}>Export to Excel</button></div>
-<p class="pz-note no-print"><span>${MG&&PSQ?`Showing ${L.length} of ${ALL} payslips for “${esc(PSQ)}”. Print prints what is shown; Export to Excel still includes everyone. `:''}${L.length} payslip${L.length===1?'':'s'} · ${pages.length} page${pages.length===1?'':'s'} (${per} per page, ${cc} × ${rr}), from the saved payroll of this cutoff. Print uses the preview below as it is: in the print window set the Paper size to match the one above, Scale to 100% and Margins to None, and turn off Headers and footers. Export to Excel saves an .xlsx file (3 × 4 per page, ready to print from Excel); the amounts are real numbers you can edit.</span></p>
-${L.length?`<div class="slwrap" style="--pw:${PSZ.split('|')[0]};--ph:${PSZ.split('|')[1]}">${pages.map(pg=>`<div class="slpage"><div class="slg n${per}${FX?' fx':''}${MG&&!FX?' mgl':''}" style="--cc:${cc};--rr:${rr}">${pg.map(MG?pSlipMg:pSlip).join('')}</div></div>`).join('')}</div>`:`<p class="empty no-print" style="padding:14px">${MG&&PSQ?'No name matches “'+esc(PSQ)+'”.':'No employees with pay in this payroll.'}</p>`}`;pFitSlips();pMkSync();pMkBadges();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pFitSlips)}
+<p class="pz-note no-print"><span>${PSQ?`Showing ${L.length} of ${ALL} payslips for “${esc(PSQ)}”. Print prints what is shown; Export to Excel still includes everyone. `:''}${L.length} payslip${L.length===1?'':'s'} · ${pages.length} page${pages.length===1?'':'s'} (${per} per page, ${cc} × ${rr}), from the saved payroll of this cutoff. Print uses the preview below as it is: in the print window set the Paper size to match the one above, Scale to 100% and Margins to None, and turn off Headers and footers. Export to Excel saves an .xlsx file (3 × 4 per page, ready to print from Excel); the amounts are real numbers you can edit.</span></p>
+${L.length?`<div class="slwrap" style="--pw:${PSZ.split('|')[0]};--ph:${PSZ.split('|')[1]}">${pages.map(pg=>`<div class="slpage"><div class="slg n${per}${FX?' fx':''}${MG&&!FX?' mgl':''}" style="--cc:${cc};--rr:${rr}">${pg.map(MG?pSlipMg:pSlip).join('')}</div></div>`).join('')}</div>`:`<p class="empty no-print" style="padding:14px">${PSQ?'No name matches “'+esc(PSQ)+'”.':'No employees with pay in this payroll.'}</p>`}`;pFitSlips();pMkSync();pMkBadges();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pFitSlips)}
 
 // ===== MANAGEMENT PAYSLIPS: bigger individual slips + mark & email to the address in 201 Files =====
 let PMGN=(()=>{try{const v=localStorage.getItem('hrd_pslip_mg');if(['12','6','4','2'].includes(v))return v}catch(e){}return'6'})();
@@ -4538,7 +4539,7 @@ function pSlipDraw(c,M,fin){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd}=M,per=p
  T('P A Y S L I P',W/2,y,{b:1,sz:11,c:GOLD,a:'center',ls:2});y+=19;
  T('For the period cut off: '+per,W/2,y,{sz:12.5,c:MU,a:'center'});y+=22;
  // employee card
- RR(L,y,R-L,58,6,'#f4f7fb','#dfe5ef');T(s.name,L+16,y+23,{b:1,sz:17,f:G,c:NAVY});T('DEPARTMENT',L+16,y+43,{sz:9.5,b:1,c:MU,ls:1.4});T(g,L+98,y+43,{sz:11.5,b:1,c:GOLD});y+=58+26;
+ RR(L,y,R-L,58,6,'#f4f7fb','#dfe5ef');{let nz=17;c.font='bold '+nz+'px '+G;while(nz>10&&c.measureText(String(s.name)).width>R-L-32){nz-=.5;c.font='bold '+nz+'px '+G}T(s.name,L+16,y+23,{b:1,sz:nz,f:G,c:NAVY})}T('DEPARTMENT',L+16,y+43,{sz:9.5,b:1,c:MU,ls:1.4});T(g,L+98,y+43,{sz:11.5,b:1,c:GOLD});y+=58+26;
  // earnings
  SEC('EARNINGS');
  if(adds.length){ROW('Basic Salary',pf(v.pay),{rate:1});T('ADDITIONAL / ADJUSTMENTS',L,y,{b:1,sz:9.5,c:GOLD,ls:1.4});y+=18;adds.forEach(k=>ROW(lab(k),'+ '+pf(v[k])));HL(y-9,L,R,1,NAVY);y+=5;T('Gross Salary',L,y,{b:1});T(pf(gross),R,y,{b:1,a:'right'});y+=14;y+=13}
@@ -6756,10 +6757,10 @@ seasonUI();
 .slip{font-family:Arial,Helvetica,sans-serif;font-size:10.2pt;line-height:1.25;color:#000;background:#fff;border:1.3px solid #000;height:100%;min-height:0;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .slip>div{padding-left:1.3mm;padding-right:1.3mm;flex-shrink:0}.slip.dense{font-size:7.7pt}.slip.dense .sl-co{font-size:9.4pt}.slip.dense .sl-nm{font-size:8.4pt}.slip.dense .sl-net b{font-size:10.5pt}.slip.dense .sl-sg{padding-top:1.6mm}.slip.dense .sl-r{margin-top:.2mm}
 .sl-co{font-weight:700;font-size:1.2em;padding-top:1mm}
-.sl-pr{color:#1f4e9e;font-weight:700;font-size:.88em;white-space:nowrap;padding-bottom:.6mm}
-.sl-nm{border-top:1px solid #000;border-bottom:1px solid #000;text-align:center;font:700 1.07em Georgia,serif;padding-top:.6mm;padding-bottom:.6mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sl-pr{color:#1f4e9e;font-weight:700;font-size:.88em;white-space:normal;overflow-wrap:break-word;padding-bottom:.6mm}
+.sl-nm{border-top:1px solid #000;border-bottom:1px solid #000;text-align:center;font:700 1.07em Georgia,serif;padding-top:.6mm;padding-bottom:.6mm;white-space:normal;overflow-wrap:break-word;word-break:normal;overflow:visible;text-overflow:clip}
 .sl-r{display:flex;justify-content:space-between;gap:2mm;margin-top:.5mm}
-.sl-r span{flex:none}.sl-r small{color:#666;font-size:.76em;margin-left:1mm}
+.sl-r span{flex:0 1 auto;min-width:0;overflow-wrap:break-word}.sl-r em,.sl-r b{flex:none;white-space:nowrap}.sl-r small{color:#666;font-size:.76em;margin-left:1mm}
 .sl-r em,.sl-r b{font-style:normal;text-align:right}
 .sl-r.dep b{flex:1;text-align:center;font:700 .93em Georgia,serif;color:#12305c}
 .sl-r.ln{border-top:1px solid #000;margin-top:.8mm;padding-top:.3mm;font-weight:700}
@@ -6767,14 +6768,14 @@ seasonUI();
 .sl-ls small{position:absolute;right:1.3mm;font-size:.78em}
 .sl-dg{flex:1 0 auto;display:grid;grid-auto-flow:column;grid-template-columns:1fr 1fr;column-gap:2.2mm;align-content:start;padding-top:.4mm}
 .si{display:flex;gap:.9mm;min-width:0;line-height:1.4}
-.si span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.si{align-items:flex-start}.si span{flex:1;min-width:0;overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:break-word;font-weight:700}.si em,.si i{flex:none;white-space:nowrap}
 .si em{font-style:normal;text-align:right;font-size:.94em}.si i{font-size:.94em;font-style:normal;color:#c00000;text-align:right}.si i:empty{display:none}
 .sl-r.td{border-top:1px solid #000;font-weight:700;padding-top:.4mm;margin-top:0}
 .sl-net{border-top:1px solid #000;display:flex;justify-content:space-between;align-items:center;padding-top:.8mm;padding-bottom:.8mm}
 .sl-net span{font-size:.98em}.sl-net b{font-size:1.4em}
-.sl-rm{font-size:.8em;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sl-rm{font-size:.8em;color:#444;white-space:normal;overflow-wrap:break-word;overflow:visible;text-overflow:clip}
 .sl-dl{display:block;white-space:normal;font-size:.8em;font-weight:600;color:#c00000;line-height:1.15}
-.sl-rm.sl-dn{color:#c00000;font-weight:600;font-size:.9em;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.2}
+.sl-rm.sl-dn{color:#c00000;font-weight:600;font-size:.9em;white-space:normal;display:block;line-height:1.2}
 .sl-sg{border-top:1px solid #000;font-size:.85em;padding-top:3.2mm;padding-bottom:.6mm}
 /* payslip: management = individual slips, bigger & roomier; email controls */
 .slip{position:relative}
