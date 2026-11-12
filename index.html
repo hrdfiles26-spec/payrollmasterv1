@@ -4372,18 +4372,18 @@ function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.inclu
  O=pOrder(),RK={adj:0,e_petty:1,e_cash:1},adds=O.filter(k=>vis(k)&&v[k]&&(k==='adj'||xc.some(c=>c.id===k&&c.m==='add'))).map((k,i)=>[k,i]).sort((a,b)=>(RK[a[0]]??2)-(RK[b[0]]??2)||a[1]-b[1]).map(a=>a[0]),
  dk=['vale','sss','phic','hdmf','ded','tax','ps','coop'],SR={vale:0,e_hloan:1,e_sloan:2,sss:3,phic:4,hdmf:5,ded:6,e_rent:7,e_elec:7.2,e_cash:7.4,e_cbond:8,tax:8.2,ps:8.4,coop:9},SS=['vale','e_hloan','e_sloan','sss','phic','hdmf','ded','e_rent','e_elec','e_cbond','coop'],
  lss=O.filter(k=>vis(k)&&(dk.includes(k)||xc.some(c=>c.id===k&&c.m==='less'))&&(SS.includes(k)||v[k])).map((k,i)=>[k,i]).sort((a,b)=>(SR[a[0]]??8.6)-(SR[b[0]]??8.6)||a[1]-b[1]).map(a=>a[0]),
- gross=r2(v.pay+adds.reduce((a,k)=>a+(v[k]||0),0)),td=r2(gross-v.net),bal=k=>k==='vale'?v.bal:k==='coop'?v.cbal:k==='e_elec'&&xc.some(c=>c.id==='e_elbal')?pn(v.e_elbal):0,
+ gross=r2(v.pay+adds.reduce((a,k)=>a+(v[k]||0),0)),td=r2(gross-v.net),eb=((xc.find(c=>c&&c.id==='e_elbal'))||{}).a||'e_elec',bal=k=>k==='vale'?v.bal:k==='coop'?v.cbal:k===eb&&xc.some(c=>c.id==='e_elbal')?pn(v.e_elbal):0,
  rd=PP.m==='r'&&vis('days')?[pRate(s),dy3(pn(r.days))]:null,dn=v.ded>0?((()=>{try{return String(dnTxt(s)||'').trim()}catch(e){return''}})()||dedNote(s,v.ded)):'';
- return{s,g,v,r,lab,adds,lss,gross,td,bal,rd,dn}}
+ return{s,g,v,r,lab,adds,lss,gross,td,bal,eb,rd,dn}}
 function pSlip(x){return pSlipHtml(pSlipModel(x))}
-function pSlipHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd:rdv,dn}=M,n=Math.ceil(lss.length/2)||1,
+function pSlipHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,eb,rd:rdv,dn}=M,n=Math.ceil(lss.length/2)||1,
  anyBal=lss.some(k=>bal(k)),dnm=dn?String(dn).split(' · ').map(q=>q.replace(/\s+-?[\d,]*\.?\d+$/,'').trim()).filter(q=>q&&!/^Other$/i.test(q)):[],
  ll=k=>esc(lab(k))+(k==='ded'&&dnm.length===1?` <small class="sl-dl">(${esc(dnm[0])})</small>`:''),rd=rdv?`<small>${pf(rdv[0])} × ${rdv[1]}</small>`:'';
  return`<div class="slip"><div class="sl-co">Rayanton Farms &amp; Livestock Corp.</div><div class="sl-pr">For the period cut off: ${esc(pPeriod())}</div><div class="sl-nm">${esc(s.name)}</div>
 <div class="sl-r dep"><span>Department</span><b>${esc(g)}</b></div>
 ${adds.length?`<div class="sl-r"><span>Gross Salary${rd}</span><em>${pf(v.pay)}</em></div>${adds.map(k=>`<div class="sl-r"><span>${esc(lab(k))}</span><em>${pf(v[k])}</em></div>`).join('')}<div class="sl-r ln"><span>Gross Salary</span><b>${pf(gross)}</b></div>`:`<div class="sl-r ln"><span>Gross Salary${rd}</span><b>${pf(gross)}</b></div>`}
 <div class="sl-ls">Less : Deductions${anyBal?'<small>Bal.</small>':''}</div>
-<div class="sl-dg" style="grid-template-rows:repeat(${n},auto)">${lss.map(k=>`<div class="si"><span>${ll(k)}</span><em>${pf(v[k])}</em><i${k==='e_elec'?' style="color:#c0392b;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact"':''}>${bal(k)?pf(bal(k)):''}</i></div>`).join('')}</div>
+<div class="sl-dg" style="grid-template-rows:repeat(${n},auto)">${lss.map(k=>`<div class="si"><span>${ll(k)}</span><em>${pf(v[k])}</em><i${k===eb?' style="color:#c0392b;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact"':''}>${bal(k)?pf(bal(k)):''}</i></div>`).join('')}</div>
 <div class="sl-r td"><span>Total Deductions :</span><b>${pf(td)}</b></div>
 <div class="sl-net"><span>Net Pay</span><b>${pf(v.net)}</b></div>${r.rem?`<div class="sl-rm">Remarks: ${esc(r.rem)}</div>`:''}${dn&&dnm.length!==1?`<div class="sl-rm sl-dn">Deduction details: ${esc(dn)}</div>`:''}
 <div class="sl-sg">Signature:</div></div>`}
