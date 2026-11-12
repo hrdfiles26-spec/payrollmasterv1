@@ -3387,7 +3387,7 @@ function ddsApply(){{const m=$('ddsm');if(m)m.querySelectorAll('input.ddi').forE
 
 // ===== ✏️ Entries: the payroll table is locked; Remarks, Adj, Vale, Bal., SSS/PHIC/HDMF, Tax, Psales, extra columns, Loan/Remaining Balance and Account are typed here =====
 const PE_TXT=['rem','acct'];
-function peKeys(){/* Psales is no longer typed here: enter it as a deduction (Deductions window). It stays only if an old amount still exists, so it can be cleared. */const hasPs=Object.values(PP.rows||{}).some(r=>r&&parseFloat(r.ps)>0),ok=hasPs?['tax','ps']:['tax'];return pCols().map(c=>c.k).filter(k=>ok.includes(k)||(PP.xc||[]).some(x=>x.id===k))}
+function peKeys(){/* Psales is no longer typed here: enter it as a deduction (Deductions window). It stays only if an old amount still exists, so it can be cleared. */const hasPs=Object.values(PP.rows||{}).some(r=>r&&parseFloat(r.ps)>0),ok=hasPs?['tax','ps']:['tax'];const K0=pCols().map(c=>c.k).filter(k=>ok.includes(k)||(PP.xc||[]).some(x=>x.id===k));/* BROILER: the Electricity Balance can always be typed in Entries (and always prints on the payslip) even when its column is hidden in the form */if(/^BROILER$/i.test(PF)&&(PP.xc||[]).some(x=>x&&x.id==='e_elbal')&&!K0.includes('e_elbal')){const i=K0.indexOf('e_elec');if(i>=0)K0.splice(i+1,0,'e_elbal');else K0.push('e_elbal')}return K0}
 function peVal(s,k){const r=pRow(s),v=pVals(s,1);if(k==='acct')return pAcctV(s)??'';if(PE_TXT.includes(k))return r[k]??'';if(k==='pay'||k==='bal'||k==='cbal')return r[k]!=null&&r[k]!==''?r[k]:(v[k]||'');return r[k]??''}
 let PE_TG=false;
 /* Show / hide columns right inside Entries: tick = shown in the payroll form, untick = hidden. Tick it, type the amounts, press Save. */
@@ -4378,7 +4378,7 @@ function pFitSlips(){const L=[...document.querySelectorAll('.slip')];if(!L.lengt
  m=Math.min(m,pr)}L.forEach(e=>e.style.fontSize=m+'px')}
 addEventListener('beforeprint',()=>{if(PG==='pay'&&PV==='slip')try{pFitSlips()}catch(x){}});
 function pSlipList(){const out=[];pGroups().forEach(([g,L])=>L.forEach(s=>{if(pHeld(s))return;const v=pVals(s);if(PSK&&!v.pay&&!v.tot&&!v.net&&!v.adj)return;out.push({s,g,v})}));return out}
-function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.includes(k)||(k===(((PP.xc||[]).find(c=>c&&c.id==='e_elbal'))||{}).a&&pn(r.e_elbal)>0),xc=PP.xc||[],
+function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.includes(k)||(/^BROILER$/i.test(PF)&&k===(((PP.xc||[]).find(c=>c&&c.id==='e_elbal'))||{}).a&&pn(r.e_elbal)>0),xc=PP.xc||[],
  lab=k=>{const t=PP.t&&PP.t['h_'+k];if(t)return t.replace(/\s*\(payable\)/i,'');if(k==='sss')return'SSS';if(k==='phic')return'PHIC';if(k==='hdmf')return'HDMF';return pDef(k).replace(/\s*\(payable\)/i,'')},
  O=pOrder(),RK={adj:0,e_petty:1,e_cash:1},adds=O.filter(k=>vis(k)&&v[k]&&(k==='adj'||xc.some(c=>c.id===k&&c.m==='add'))).map((k,i)=>[k,i]).sort((a,b)=>(RK[a[0]]??2)-(RK[b[0]]??2)||a[1]-b[1]).map(a=>a[0]),
  dk=['vale','sss','phic','hdmf','ded','tax','ps','coop'],SR={vale:0,e_hloan:1,e_sloan:2,sss:3,phic:4,hdmf:5,ded:6,e_rent:7,e_elec:7.2,e_cash:7.4,e_cbond:8,tax:8.2,ps:8.4,coop:9},SS=['vale','e_hloan','e_sloan','sss','phic','hdmf','ded','e_rent','e_elec','e_cbond','coop'],
