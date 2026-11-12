@@ -1500,6 +1500,7 @@ html[data-theme=dark] #main .stat.al-g .si{background:#1f4a31;color:#7fdca4}
  <a id="n3" tabindex="0" onclick="go('emp')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>201 Files</span><i id="b3"></i></a>
  <a id="n13" tabindex="0" onclick="go('ben')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg><span>Employee Benefits</span></a>
  <a id="n4" tabindex="0" onclick="go('pay')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg><span>Payroll</span></a>
+<a id="n15" tabindex="0" onclick="go('psm')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 15l2.2 2.2L15.5 12.5"/></svg><span>Payslip Monitoring</span></a>
  <a id="n12" tabindex="0" onclick="go('mg')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 8h8M8 12h2.5M13.5 12H16M8 16h2.5M13.5 16H16"/></svg><span>Monthly Gross</span></a>
  <a id="n5" tabindex="0" onclick="go('act')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span>Activity</span><i id="b5"></i></a>
  <a id="n6" tabindex="0" onclick="go('usr')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Users &amp; Access</span></a>
@@ -1843,7 +1844,7 @@ async function enter(){
  go('dash');
  if(can('emp'))loadND().then(()=>loadE(true));if(can('act'))actPoll();setInterval(()=>can('act')&&actPoll(),60000);can('tmk')&&tmNotifSync(true);can('tma')&&tmDecSync(true);Promise.all([pdLoad().catch(()=>0),chatLoad()]).then(()=>{chatBadge();liveStart()})}
 function applyNav(){ADM=can('usr');{const a=$('ndel');if(a)a.style.display=SUPER?'none':''}
- ['req','sub','emp','pay','act','usr'].forEach((k,j)=>$('n'+(j+1)).style.display=can(k)?'':'none');$('n7').style.display=isAdm()?'':'none';['addc','m13'].forEach((k,j)=>{const a=$('n'+(9+j));a.style.display='';a.classList.toggle('lkd',!can(k));a.title=can(k)?'':'Needs permission from the admin'});{const a=$('n14');if(a)a.style.display=can('att')?'':'none';}{const a=$('n11');if(a)a.style.display=can('tmk')?'':'none';}{const a=$('n12');if(a)a.style.display=can('mg')?'':'none';}{const a=$('n13');if(a)a.style.display=can('ben')?'':'none';}
+ ['req','sub','emp','pay','act','usr'].forEach((k,j)=>$('n'+(j+1)).style.display=can(k)?'':'none');$('n7').style.display=isAdm()?'':'none';['addc','m13'].forEach((k,j)=>{const a=$('n'+(9+j));a.style.display='';a.classList.toggle('lkd',!can(k));a.title=can(k)?'':'Needs permission from the admin'});{const a=$('n14');if(a)a.style.display=can('att')?'':'none';}{const a=$('n15');if(a)a.style.display=(can('psm')&&!can('pay'))?'':'none';}{const a=$('n11');if(a)a.style.display=can('tmk')?'':'none';}{const a=$('n12');if(a)a.style.display=can('mg')?'':'none';}{const a=$('n13');if(a)a.style.display=can('ben')?'':'none';}
  const rl=SUPER||(MYA&&MYA.role==='admin')?'Admin':MYA?(ROLES[MYA.role]||[MYA.role])[0]:'';
  {const nk=((MYA&&MYA.full_name)||'').trim();$('who').innerHTML=((nk||rl)?'<b>'+esc(nk||rl)+'</b>':'')+'<small>'+esc(nk&&rl?rl+' · ':'')+esc(ME.email||'')+'</small>'}
  {const nm=((MYA&&MYA.full_name)||ME.email||'?').trim();$('wav').textContent=(nm.includes('@')?nm.slice(0,2):nm.split(/\s+/).map(w=>w[0]).slice(0,2).join('')).toUpperCase()}
@@ -1994,7 +1995,7 @@ const FM={coop:['COOP','Employee savings fund loan','🏦'],leave:['Vacation / S
 const vals=()=>[...$('paper').querySelectorAll('input')].map(i=>i.type==='checkbox'?i.checked:i.value);
 const fill=(d,dis)=>[...$('paper').querySelectorAll('input')].forEach((el,k)=>{if(d){if(el.type==='checkbox')el.checked=!!d[k];else el.value=d[k]||''}el.disabled=dis});
 
-function go(p){if(p==='chat')return chatToggle();if(PG==='att'&&p!=='att'&&window.attUns&&attUns()){attLeave(function(){go(p)});return}if(p!=='dash'&&p!=='chat'&&p!=='addc'&&p!=='m13'&&(p==='bak'?!isAdm():!can(p)))return toast('You do not have access to this page.');if(PG==='pay'&&p!=='pay'){if(!pLeave())return;PV='hist';PU=false}if(PG==='m13'&&p!=='m13'&&!m13Leave())return;PG=p;document.body.setAttribute('data-pg',p);if(p!=='dash')chatClose();$('n0').classList.toggle('on',p==='dash');['req','sub','emp','pay','act','usr','bak','chat'].forEach((k,j)=>$('n'+(j+1)).classList.toggle('on',p===k));$('n9').classList.toggle('on',p==='addc');$('n10').classList.toggle('on',p==='m13');{const a=$('n11');if(a)a.classList.toggle('on',p==='tmk')}{const a=$('n12');if(a)a.classList.toggle('on',p==='mg')}{const a=$('n13');if(a)a.classList.toggle('on',p==='ben')}{const a=$('n14');if(a)a.classList.toggle('on',p==='att')}p==='dash'?dash():p==='att'?att():p==='req'?pick():p==='sub'?subs():p==='emp'?emps():p==='act'?acts():p==='usr'?users():p==='bak'?backups():p==='chat'?chatOpen():p==='tmk'?tmk():p==='mg'?mg():p==='ben'?ben():p==='addc'?(can('addc')?addc():noAcc('Additional Compensation')):p==='m13'?(can('m13')?m13():noAcc('13th Month Pay')):pays();scrollTo(0,0)}
+function go(p){if(p==='chat')return chatToggle();if(PG==='att'&&p!=='att'&&window.attUns&&attUns()){attLeave(function(){go(p)});return}if(p!=='dash'&&p!=='chat'&&p!=='addc'&&p!=='m13'&&(p==='bak'?!isAdm():!can(p)))return toast('You do not have access to this page.');if(PG==='pay'&&p!=='pay'){if(!pLeave())return;PV='hist';PU=false}if(PG==='m13'&&p!=='m13'&&!m13Leave())return;PG=p;document.body.setAttribute('data-pg',p);if(p!=='dash')chatClose();$('n0').classList.toggle('on',p==='dash');['req','sub','emp','pay','act','usr','bak','chat'].forEach((k,j)=>$('n'+(j+1)).classList.toggle('on',p===k));$('n9').classList.toggle('on',p==='addc');$('n10').classList.toggle('on',p==='m13');{const a=$('n11');if(a)a.classList.toggle('on',p==='tmk')}{const a=$('n12');if(a)a.classList.toggle('on',p==='mg')}{const a=$('n13');if(a)a.classList.toggle('on',p==='ben')}{const a=$('n14');if(a)a.classList.toggle('on',p==='att')}{const a=$('n15');if(a)a.classList.toggle('on',p==='psm')}if(p==='psm'&&can('pay'))$('n4').classList.add('on');p==='dash'?dash():p==='psm'?psm():p==='att'?att():p==='req'?pick():p==='sub'?subs():p==='emp'?emps():p==='act'?acts():p==='usr'?users():p==='bak'?backups():p==='chat'?chatOpen():p==='tmk'?tmk():p==='mg'?mg():p==='ben'?ben():p==='addc'?(can('addc')?addc():noAcc('Additional Compensation')):p==='m13'?(can('m13')?m13():noAcc('13th Month Pay')):pays();scrollTo(0,0)}
 /* ===== PAYROLL DEPARTMENTS: manage, add, auto icons ===== */
 let PDS=(()=>{try{const o=JSON.parse(localStorage.getItem('hrd_pay_depts')||'{}');return o&&typeof o==='object'?o:{}}catch(e){return{}}})(),PDI='';
 let PDOK=null,PDSNAP='{}';
@@ -3636,8 +3637,7 @@ const pNew0=f=>{const h=(PH||[]).filter(p=>p.data&&pFo(p.data)===f).sort((a,b)=>
  return{from:pD(a),to:pD(b),title:(h&&h.data&&String(h.data.title||'').trim())||f,prep:(h&&h.data&&h.data.prep)||PP.prep||'EG Mesinas',chk:(h&&h.data&&h.data.chk)||PP.chk||'Janeth Roncale',rows:pCarry(f,h),lk:{},open:pxOpen(f,h),m:C.m||'r',gpd:C.m==='g'?pGpdBuild(f):null,lay:2,
   xc:lh?cl(lh.data.xc):cl(C.xc),t:lh?(()=>{const t={...(lh.data.t||{})};delete t.per;return t})():{},det:[...(h&&h.data.det||[])],hc:(y=>{if(isMg(f)&&h&&h.data&&Array.isArray(h.data.hc)){const PR=h.data.rows||{};y=y.filter(z=>!PLM_K.includes(z));PLM_K.forEach(z=>{if(h.data.hc.includes(z)||!Object.values(PR).some(r=>r&&pn(r[z])>0))y.push(z)})}return y})((x=>C.m==='g'&&!x.includes('days')?[...x,'days']:x)(lh&&!isMg(f)?[...(lh.data.hc||[])]:[...(C.hc||[])])),ord:lh&&lh.data.ord?[...lh.data.ord]:(C.ord?[...C.ord]:null),
   sm:(h&&h.data&&h.data.sm)?cl(h.data.sm):smDefault(f),smx:null,cs:(h&&h.data&&h.data.cs)?cl(h.data.cs):null,la:Object.fromEntries(Object.entries((h&&h.data&&h.data.rows)||{}).filter(([,r])=>r&&r.acct).map(([k,r])=>[k,r.acct])),lo:Object.fromEntries(Object.entries((h&&h.data&&h.data.rows)||{}).filter(([,r])=>r&&r.aown).map(([k,r])=>[k,r.aown])),dirty:false,init:1}};
-function pElbFix(f,o){if(!/^BROILER$/i.test(f)||!Array.isArray(o.xc)||o.xc.some(c=>c&&c.id==='e_elbal'))return;const i=o.xc.findIndex(c=>c&&c.id==='e_elec');if(i<0)return;o.xc.forEach(c=>{if(c&&c.id!=='e_elec'&&c.a==='e_elec')c.a='e_elbal'});o.xc.splice(i+1,0,{id:'e_elbal',h:'Electricity Balance',m:'info',a:'e_elec'})}
-const pNew=f=>{const o=pNew0(f);try{pElecFix(f,o)}catch(e){}try{pElbFix(f,o)}catch(e){}return o};
+function pElbFix(f,o){if(!/^BROILER$/i.test(f)||!Array.isArray(o.xc))return;if(o.xc.some(c=>c&&(c.id==='e_elbal'||/electric\w*\s*bal/i.test(c.h||''))))return;const ec=o.xc.find(c=>c&&c.id==='e_elec')||o.xc.find(c=>c&&pElecRx.test(c.h||''));if(!ec)return;o.xc.forEach(c=>{if(c&&c.id!==ec.id&&c.a===ec.id)c.a='e_elbal'});o.xc.splice(o.xc.indexOf(ec)+1,0,{id:'e_elbal',h:'Electricity Balance',m:'info',a:ec.id})} const pNew=f=>{const o=pNew0(f);try{pElecFix(f,o)}catch(e){}try{pElbFix(f,o)}catch(e){}return o};
 const pT=(k,d)=>PP.t&&PP.t[k]!=null?PP.t[k]:d;
 const pTx=(k,d,c)=>`<input class="pi t ${c||''}${PU?' ed':''}"${PU?'':' readonly tabindex="-1"'} value="${esc(pT(k,d))}" oninput="pTset('${k}',this.value)">`;
 const pFolders=()=>[...new Set([...PORD,...PSEED.map(x=>x[0]),...Object.keys(PDS).filter(k=>PDS[k].custom),...(STF||[]).map(s=>s.dept).filter(Boolean)])].filter(f=>can('mgp')||!isMgt(f));
@@ -4111,7 +4111,7 @@ async function pImp(){const dp=$('i_d').value.trim(),P=pParse($('i_t').value),ba
 async function loadH(q){try{PH=hVis(await api('/rest/v1/hrd_payroll?select=id,label,data,created_at&order=created_at.desc&limit=500'))}catch(e){PH=null}if(!q)drawP()}
 function drawHist(){
  $('main').innerHTML=`<h1>Payroll</h1><p class="sub">Click <b>+ New Payroll</b> to choose a form and cutoff. Saved payrolls appear in the history below.</p>
-<div class="pz-bar no-print"><button class="btn ok" onclick="pStart()">+ New Payroll</button></div>
+<div class="pz-bar no-print"><button class="btn ok" onclick="pStart()">+ New Payroll</button> <button class="btn o" onclick="go('psm')">✔ Payslip Monitoring</button></div>
 ${pSeedBar()}
 <div id="runs" class="no-print"></div>`;drawRuns()}
 function drawRuns(){const r=$('runs');if(!r)return;const F=pFolders(),dp=x=>pFo(x.d),ix=f=>{const k=F.indexOf(f);return k<0?99:k},cn=f=>(PH||[]).filter(p=>p.data&&pFo(p.data)===f).length,
@@ -4148,7 +4148,7 @@ async function saveP(){if(!PP.from||!PP.to||PP.from>PP.to)return alert('Please s
   else{const j=await api('/rest/v1/hrd_payroll',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(body)});PP.runId=j&&j[0]&&j[0].id}
   await loadH(1);if(!PP.runId){const m=(PH||[]).find(p=>p.label===body.label&&p.data&&p.data.from===PP.from);PP.runId=m&&m.id}
   PP.dirty=false;PU=false;pDraftClear();logAct('Saved payroll run','Payroll',body.label);toast('Saved ✔ Added to Payroll History · locked');drawP()}catch(x){alert('Could not save: '+x.message)}}
-function openP(i){const d=PH[i].data||{};if(!d.rows||!d.rates)return alert('This saved run uses an old format and cannot be opened.');PF=pFo(d);PU=false;PP={...PP,from:d.from,to:d.to,cm:d.cm||null,fdL:d.fd||7,title:d.title,prep:d.prep,chk:d.chk,rows:d.rows,tmd:d.tmd||{},sm:d.sm||smDefault(PF),smx:d.smx||null,cs:d.cs||null,xb:d.xb||null,xbk:null,lk:d.rates,open:d.open||{},mail:d.mail||{},xc:d.xc||[],hc:d.hc||[],ord:d.ord||null,m:d.m||(PCFG[PF]||{}).m||'r',gpd:d.gpd||null,gpe:d.gpe||null,t:d.t||{},det:d.det||[],dirty:false,init:1,runId:PH[i].id};PV='form';drawP();scrollTo(0,0)}
+function openP(i){const d=PH[i].data||{};if(!d.rows||!d.rates)return alert('This saved run uses an old format and cannot be opened.');PF=pFo(d);PU=false;PP={...PP,from:d.from,to:d.to,cm:d.cm||null,fdL:d.fd||7,title:d.title,prep:d.prep,chk:d.chk,rows:d.rows,tmd:d.tmd||{},sm:d.sm||smDefault(PF),smx:d.smx||null,cs:d.cs||null,xb:d.xb||null,xbk:null,lk:d.rates,open:d.open||{},mail:d.mail||{},xc:JSON.parse(JSON.stringify(d.xc||[])),hc:d.hc||[],ord:d.ord||null,m:d.m||(PCFG[PF]||{}).m||'r',gpd:d.gpd||null,gpe:d.gpe||null,t:d.t||{},det:d.det||[],dirty:false,init:1,runId:PH[i].id};try{pElbFix(PF,PP)}catch(e){}PV='form';drawP();scrollTo(0,0)}
 async function delP(i){if(!confirm('Are you sure you want to delete this saved payroll run? This cannot be undone.'))return;try{const lbl=PH[i].label;await api('/rest/v1/hrd_payroll?id=eq.'+PH[i].id,{method:'DELETE'});logAct('Deleted payroll run','Payroll',lbl);loadH()}catch(x){alert(x.message)}}
 let PPZ='13in 8.5in',PPZU=false;
 const PZO=[['13in 8.5in','Long bond 8.5 × 13 (landscape)'],['14in 8.5in','Legal 8.5 × 14 (landscape)'],['8.5in 13in','Long bond 8.5 × 13 (portrait)'],['8.5in 14in','Legal 8.5 × 14 (portrait)']];
@@ -6020,10 +6020,10 @@ function mXlsx(){const M=m13Model();if(!M.D.length)return toast('Nothing to expo
  const bl=m13XlsxBuild(M),a=document.createElement('a');a.href=URL.createObjectURL(bl);
  a.download='13th-Month-Pay-'+MY+(MD!=='all'?'-'+String(MD).replace(/[^A-Za-z0-9]+/g,'_'):'')+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
  logAct('Exported 13th month pay (Excel)','13th Month Pay',MY);toast('Exported \u2714')}
-const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['att','Attendance'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['dash','Dashboard: full access (click the cards, see Recent activity)'],['act','Activity']];
-const ROLES={admin:['Admin','Full access, including Users & Access',['req','sub','emp','pay','att','addc','m13','mg','tmk','tma','tmp','mgp','mge','dash','act']],hr:['HR Staff','Requests, 201 Files, Attendance (lock / sync to Payroll), Timemark Check, Activity',['req','sub','emp','att','tmk','act']],payroll:['Payroll','Request Form, Payroll, Attendance, Additional Compensation, 13th Month Pay and Monthly Gross',['req','pay','att','addc','m13','mg']],staff:['Staff','Request Form only',['req']]};
+const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['att','Attendance'],['psm','Payslip Monitoring'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['dash','Dashboard: full access (click the cards, see Recent activity)'],['act','Activity']];
+const ROLES={admin:['Admin','Full access, including Users & Access',['req','sub','emp','pay','att','psm','addc','m13','mg','tmk','tma','tmp','mgp','mge','dash','act']],hr:['HR Staff','Requests, 201 Files, Attendance (lock / sync to Payroll), Timemark Check, Payslip Monitoring, Activity',['req','sub','emp','att','psm','tmk','act']],payroll:['Payroll','Request Form, Payroll, Attendance, Additional Compensation, 13th Month Pay and Monthly Gross',['req','pay','att','addc','m13','mg']],staff:['Staff','Request Form only',['req']]};
 let MYA=null,ACC=false,UL=null;
-const can0=k=>SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||(k!=='usr'&&(MYA.pages||[]).includes(k))||(MYA.role==='hr'&&k==='att')))||(!MYA&&k==='req');const can=k=>k==='mg'?(can0('mg')||can0('pay')):k==='ben'?can0('emp'):can0(k);
+const can0=k=>SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||(k!=='usr'&&(MYA.pages||[]).includes(k))||(MYA.role==='hr'&&(k==='att'||k==='psm'))))||(!MYA&&k==='req');const can=k=>k==='psm'?(can0('psm')||can0('pay')):k==='mg'?(can0('mg')||can0('pay')):k==='ben'?can0('emp'):can0(k);
 /* Management department: only users with the special permission can see it (Payroll / 201 Files / Monthly Gross history) */
 const isMgt=d=>/^\s*(top\s+)?management(\W|$)/i.test(String(d||''));
 const eVis=L=>Array.isArray(L)?L.filter(e=>can('mge')||!isMgt(e.dept)):L;
@@ -9680,6 +9680,162 @@ window.atSyncPay=async keys=>{
 
 /* ---------- lock guard: every editing action is blocked while the open attendance is locked ---------- */
 ['atV','atT','atR','atFd','atRm','atVp','atFillRow','atFillCol','atCm','atCmSave','atRc','atRcSave','atRcDel','atRemove','atMv','atMvSave','atRnm','atRnmSave','atGrpRen','atGrpRenSave','atSyncNames','atAdd','atAddSave','atCl','atSp','atSpAdd','atSpSet','atSpDel','atPb','atSave'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;window[n]=function(){if(noEd())return;return f.apply(this,arguments)}});
+})();
+</script>
+
+<script>
+/* ===== PAYSLIP MONITORING: HR ticks each person whose SIGNED payslip was returned, per department + cutoff.
+   Names come from the saved payroll. Ticks are saved in hrd_attendance under the name "_psm|<payroll id>" (no new SQL needed). ===== */
+(function(){
+const PS={d:'',r:'',f:'all',q:'',ret:{},bad:false,busy:false,v:'list',sc:'',all:{},sbad:false};
+const key=id=>'_psm|'+id,lb=(f,t)=>{try{return pLabOf(f,t).replace(/[A-Z]{2,}/g,w=>w[0]+w.slice(1).toLowerCase())}catch(e){return f+' → '+t}};
+const me=()=>{try{return(MYA&&MYA.full_name)||((ME&&ME.user_metadata)||{}).full_name||(ME&&ME.email)||''}catch(e){return''}};
+const runs=d=>(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&pFo(p.data)===d).sort((a,b)=>String(b.data.to).localeCompare(String(a.data.to)));
+const cur=()=>(PH||[]).find(p=>String(p.id)===String(PS.r));
+const people=p=>{const ids=Object.keys((p.data&&p.data.rates)||{});return ids.map(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id));return{id:String(id),n:s?s.name:'(removed from payroll) '+id}}).sort((a,b)=>a.n.localeCompare(b.n))};
+async function getRet(id){const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(key(id))+'&select=data');return(Array.isArray(r)&&r[0]&&r[0].data&&r[0].data.ret)||{}}
+async function putRet(id,ret){await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{name:key(id),data:{ret:ret},updated_at:new Date().toISOString()}])})}
+window.psm=async function(){
+ PS.d='';PS.r='';PS.f='all';PS.q='';PS.v='list';PS.ret={};PS.all={};
+ $('main').innerHTML='<h1>Payslip Monitoring</h1><p class="sub">Loading…</p>';
+ try{if(STF===undefined||STF===null)await loadS();if(!Array.isArray(PH))await loadH(1)}catch(e){}
+ if(PG!=='psm')return;
+ if(!Array.isArray(PH)||!Array.isArray(STF)){$('main').innerHTML='<h1>Payslip Monitoring</h1><p class="sub">The saved payrolls could not be loaded. Check your connection and open this page again.</p>';return}
+ const F=pFolders().filter(f=>runs(f).length);
+ if(!F.includes(PS.d)){PS.d='';PS.r=''}
+ const R=runs(PS.d);if(!R.some(p=>String(p.id)===String(PS.r)))PS.r='';
+ await psmLoad()};
+async function psmLoad(){PS.ret={};PS.bad=false;if(PS.r){try{PS.ret=await getRet(PS.r)}catch(e){PS.bad=true}}if(PG==='psm')psmDraw()}
+window.psmSel=async(k,v)=>{PS[k]=v;if(k==='d'){PS.r='';await psmLoad()}else if(k==='r')await psmLoad();else psmDraw()};
+window.psmTog=async(id,on)=>{await psmSet([id],on)};
+window.psmAll=async on=>{const p=cur();if(!p)return;const L=psmShown(p).map(x=>x.id);if(!L.length)return;if(!confirm((on?'Mark ':'Clear ')+L.length+' name(s) as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(L,on)};
+async function psmSet(ids,on){if(PS.busy)return;PS.busy=true;const p=cur();if(!p){PS.busy=false;return}
+ try{const ret=await getRet(p.id);const at=new Date().toISOString(),by=me();
+  ids.forEach(id=>{if(on){if(!ret[id])ret[id]={at:at,by:by}}else delete ret[id]});
+  await putRet(p.id,ret);PS.ret=ret;try{logAct((on?'Marked payslip returned':'Cleared payslip returned'),'Payslip Monitoring',PS.d+' — '+lb(p.data.from,p.data.to)+' ('+ids.length+')')}catch(e){}}
+ catch(e){alert('Could not save: '+(e.message||e))}
+ PS.busy=false;psmDraw()}
+function psmShown(p){const q=(PS.q||'').trim().toUpperCase();return people(p).filter(x=>(!q||x.n.toUpperCase().includes(q))&&(PS.f==='all'||(PS.f==='no'?!PS.ret[x.id]:!!PS.ret[x.id])))}
+const psmCss=`
+.psm{max-width:1100px}
+.psm-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:0 0 22px}
+.psm-hd h1{margin:0 0 4px}.psm-hd .sub{margin:0}
+.psm-rule{width:44px;height:2px;background:var(--au);margin:12px 0 0}
+.psm-act{display:flex;gap:10px;flex-wrap:wrap}
+.psm-card{background:var(--sf);border:1px solid var(--ln);border-radius:16px;box-shadow:0 18px 40px -28px #12305c66,0 1px 3px #12305c0d;padding:20px 22px;margin:0 0 18px}
+.psm-warn{border-color:#f1cbc5;color:#c0392b;font-size:14px}
+.psm-fl{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px 18px;align-items:end}
+.psm-fl label,.psm-tb label{display:block;font-size:11px;letter-spacing:.9px;text-transform:uppercase;font-weight:700;color:var(--mu);margin:0 0 6px}
+.psm .fi{width:100%;margin:0;height:42px;border-radius:10px}
+.psm-pg{display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+.psm-big{font-family:Georgia,serif;font-size:38px;line-height:1;color:var(--h)}.psm-big small{font-size:18px;color:var(--mu)}
+.psm-cap{font:600 11px/1 'Segoe UI',sans-serif;letter-spacing:.9px;text-transform:uppercase;color:var(--mu);margin-top:8px}
+.psm-bw{flex:1;min-width:220px}
+.psm-bar{height:10px;border-radius:999px;background:var(--soft);overflow:hidden}
+.psm-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--au),#dcbc6c);transition:width .4s}
+.psm-bar i.c{background:linear-gradient(90deg,#2e7d4f,#52b280)}
+.psm-bl{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:12.5px;color:var(--mu)}
+.psm-pill{display:inline-flex;align-items:center;justify-content:center;padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.4px;white-space:nowrap}
+.psm-pill.lg{font-size:15px;padding:8px 20px;min-width:62px}
+.psm-pill.c{background:rgba(46,125,79,.13);color:#2e7d4f;border:1px solid rgba(46,125,79,.34)}
+.psm-pill.i{background:rgba(192,57,43,.1);color:#c0392b;border:1px solid rgba(192,57,43,.3)}
+.psm-pill.p{background:rgba(184,146,58,.14);color:#8a6a1c;border:1px solid rgba(184,146,58,.38)}
+[data-theme=dark] .psm-pill.c{color:#6fd39a}[data-theme=dark] .psm-pill.i{color:#ff8f82}[data-theme=dark] .psm-pill.p{color:#e3bd62}
+.psm-tc{padding:16px 8px 8px}
+.psm-tb{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:0 14px 14px}
+.psm-tb .fi{width:auto;min-width:190px}
+.psm-t{width:100%;border-collapse:separate;border-spacing:0}
+.psm-t th{font-size:11px;letter-spacing:.9px;text-transform:uppercase;color:var(--mu);font-weight:700;text-align:left;padding:10px 14px;border-bottom:1px solid var(--ln)}
+.psm-t td{padding:10px 14px;border-bottom:1px solid var(--ln);vertical-align:middle}
+.psm-t tr:last-child td{border-bottom:0}
+.psm-t tr:hover td{background:var(--sf2)}
+.psm-n{width:44px;color:var(--mu);font-size:13px}.psm-c{width:92px;text-align:center!important}
+.psm-nm{display:flex;align-items:center;gap:12px;font-weight:600;color:var(--ink)}
+.psm-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--soft);color:var(--lk);font-size:12px;font-weight:700;letter-spacing:.3px}
+.psm-t tr.ok .psm-av{background:rgba(46,125,79,.14);color:#2e7d4f}
+.psm-dt{font-size:12.5px;color:var(--mu);margin-left:6px}.psm-by{color:var(--mu);font-size:13px}
+.psm-ck{position:relative;display:inline-block;width:24px;height:24px;vertical-align:middle}
+.psm-ck input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
+.psm-ck span{display:block;width:24px;height:24px;border-radius:8px;border:1.5px solid var(--ln2);background:var(--sf);transition:.15s}
+.psm-ck input:hover+span{border-color:var(--g2)}
+.psm-ck input:checked+span{background:#2e7d4f;border-color:#2e7d4f}
+.psm-ck input:checked+span::after{content:"";position:absolute;left:8px;top:4px;width:6px;height:11px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.psm-ck input:disabled{cursor:not-allowed}.psm-ck input:focus-visible+span{outline:2px solid var(--au);outline-offset:2px}
+.psm-em{text-align:center;padding:48px 16px;color:var(--mu);display:flex;flex-direction:column;gap:6px;align-items:center}
+.psm-em b{color:var(--h);font-family:Georgia,serif;font-size:19px;font-weight:600}.psm-ei{font-size:30px;opacity:.7}
+.psm-st{display:flex;gap:12px}
+.psm-sc{flex:1;border-radius:12px;padding:10px 16px;border:1px solid var(--ln);display:flex;align-items:baseline;gap:10px}
+.psm-sc b{font-family:Georgia,serif;font-size:26px}.psm-sc span{font-size:12px;letter-spacing:.8px;text-transform:uppercase;font-weight:700;color:var(--mu)}
+.psm-sc.c{background:rgba(46,125,79,.09)}.psm-sc.c b{color:#2e7d4f}.psm-sc.i{background:rgba(192,57,43,.07)}.psm-sc.i b{color:#c0392b}
+.psm-gd{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.psm-dc{background:var(--sf);border:1px solid var(--ln);border-top:3px solid #c0392b;border-radius:14px;padding:16px 18px;box-shadow:0 14px 30px -26px #12305c80}
+.psm-dc.c{border-top-color:#2e7d4f}
+.psm-dh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.psm-dh b{color:var(--h);font-size:15px}
+.psm-dn{font-family:Georgia,serif;font-size:26px;color:var(--ink);margin-bottom:10px}.psm-dn small{font-family:inherit;font-size:13px;color:var(--mu)}
+.psm-open{background:none;border:0;color:var(--lk);font-weight:600;font-size:13px;padding:0;cursor:pointer}.psm-open:hover{text-decoration:underline}
+@media(max-width:640px){.psm-by,.psm-n{display:none}.psm-st{flex-direction:column}.psm-big{font-size:30px}}
+`;
+(function(){const e=document.createElement('style');e.id='psmcss';e.textContent=psmCss;document.head.appendChild(e)})();
+const ini=n=>{const a=String(n).replace(/\(.*?\)\s*/,'').split(',');return(((a[0]||'').trim()[0]||'')+((a[1]||'').trim()[0]||'')).toUpperCase()||'?'};
+function psmDraw(){
+ if(PS.v==='sum')return psmSumDraw();
+ const F=pFolders().filter(f=>runs(f).length),R=runs(PS.d),p=cur(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
+ const all=p?people(p):[],tot=all.length,done=all.filter(x=>PS.ret[x.id]).length,pct=tot?Math.round(done/tot*100):0,comp=tot>0&&done===tot,L=p?psmShown(p):[];
+ const ed=(typeof hrx==='function'&&hrx())||can('psm');
+ const fd=r=>new Date(r.at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+ const rows=L.map((x,i)=>{const r=PS.ret[x.id];return`<tr class="${r?'ok':''}"><td class="psm-n">${i+1}</td><td><div class="psm-nm"><span class="psm-av">${esc(ini(x.n))}</span>${esc(x.n)}</div></td><td class="psm-c"><label class="psm-ck"><input type="checkbox"${r?' checked':''}${ed&&!PS.bad?'':' disabled'} onchange="psmTog('${esc(x.id)}',this.checked)"><span></span></label></td><td>${r?`<span class="psm-pill c">Returned</span><span class="psm-dt">${esc(fd(r))}</span>`:'<span class="psm-pill p">Pending</span>'}</td><td class="psm-by">${r?esc(r.by||''):''}</td></tr>`}).join('');
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Tick each name once the <b>signed payslip</b> has been returned.</p><div class="psm-rule"></div></div><div class="psm-act">${can('pay')?`<button class="btn o sm" onclick="go('pay')">← Back to Payroll</button>`:''}<button class="btn sm" onclick="psmView('sum')">Summary · all departments</button></div></div>
+${PS.bad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). Do not tick anything until this is fixed — reopen this page.</div>':''}
+<div class="psm-card"><div class="psm-fl"><div><label>Department</label><select class="fi" onchange="psmSel('d',this.value)">${op('','— Select department —',!PS.d)}${F.map(f=>op(f,f,f===PS.d)).join('')}</select></div><div><label>Cutoff</label><select class="fi" ${PS.d?'':'disabled'} onchange="psmSel('r',this.value)">${op('','— Select cutoff —',!PS.r)}${R.map(x=>op(x.id,lb(x.data.from,x.data.to),String(x.id)===String(PS.r))).join('')}</select></div></div></div>
+${p?`<div class="psm-card"><div class="psm-pg"><div><div class="psm-big">${done}<small> / ${tot}</small></div><div class="psm-cap">Signed payslips returned</div></div><div class="psm-bw"><div class="psm-bar"><i class="${comp?'c':''}" style="width:${pct}%"></i></div><div class="psm-bl"><span>${pct}% complete</span><span>${tot-done} pending</span></div></div><span class="psm-pill lg ${comp?'c':'i'}">${comp?'C':'INC'}</span></div></div>
+<div class="psm-card psm-tc"><div class="psm-tb"><input id="psmq" class="fi" placeholder="Search name…" value="${esc(PS.q)}" oninput="PSMQ(this.value)"><select class="fi" onchange="psmSel('f',this.value)">${[['all','All names'],['no','Not yet returned'],['yes','Returned']].map(([v,l])=>op(v,l,PS.f===v)).join('')}</select><span style="flex:1"></span>${ed&&L.length?`<button class="btn o sm" onclick="psmAll(true)">Mark shown as returned</button><button class="btn o sm" onclick="psmAll(false)">Clear shown</button>`:''}</div>${L.length?`<div style="overflow-x:auto"><table class="psm-t"><tr><th class="psm-n">#</th><th>Name</th><th class="psm-c">Returned</th><th>Status</th><th class="psm-by">Checked by</th></tr>${rows}</table></div>`:'<div class="psm-em">No names to show.</div>'}</div>`:`<div class="psm-card psm-em"><div class="psm-ei">📄</div><b>${F.length?'Choose a department and a cutoff':'No saved payroll yet'}</b><span>${F.length?'The list of names will appear here.':'Save a payroll first.'}</span></div>`}</div>`}
+const cuts=()=>{const m={};(PH||[]).forEach(p=>{if(p.data&&p.data.from&&p.data.to&&pFolders().includes(pFo(p.data)))m[p.data.from+'|'+p.data.to]=1});return Object.keys(m).sort((a,b)=>b.split('|')[1].localeCompare(a.split('|')[1]))};
+window.psmView=async v=>{PS.v=v;if(v==='sum'){const C=cuts();if(!C.includes(PS.sc))PS.sc=C[0]||'';PS.sbad=false;PS.all={};$('main').innerHTML='<h1>Payslip Monitoring</h1><p class="sub">Loading summary…</p>';try{const rows=await api('/rest/v1/hrd_attendance?name=like.'+encodeURIComponent('_psm|*')+'&select=name,data');(Array.isArray(rows)?rows:[]).forEach(r=>{if(r&&r.name)PS.all[r.name.slice(5)]=(r.data&&r.data.ret)||{}})}catch(e){PS.sbad=true}if(PG==='psm')psmDraw()}else psmLoad()};
+window.psmSc=v=>{PS.sc=v;psmDraw()};
+window.psmOpen=(d,id)=>{PS.d=d;PS.r=id;PS.v='list';psmLoad()};
+function psmSumDraw(){
+ const C=cuts(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
+ const ord=pFolders(),R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{p:p,d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
+ const nc=R.filter(x=>x.c).length,ni=R.length-nc;
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Summary of all departments · <b>C</b> complete · <b>INC</b> incomplete</p><div class="psm-rule"></div></div><div class="psm-act"><button class="btn o sm" onclick="psmView('list')">← Back to list</button><button class="btn sm" onclick="psmPrint()">🖨 Print summary</button><button class="btn sm" onclick="psmExport()">⬇ Export to Excel</button></div></div>
+${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). The summary may be wrong — reopen this page.</div>':''}
+<div class="psm-card"><div class="psm-fl"><div><label>Cutoff</label><select class="fi" onchange="psmSc(this.value)">${C.map(k=>{const[f,t]=k.split('|');return op(k,lb(f,t),k===PS.sc)}).join('')}</select></div><div class="psm-st"><div class="psm-sc c"><b>${nc}</b><span>Complete</span></div><div class="psm-sc i"><b>${ni}</b><span>Incomplete</span></div></div></div></div>
+${R.length?`<div class="psm-gd">${R.map(x=>{const pc=x.tot?Math.round(x.done/x.tot*100):0;return`<div class="psm-dc ${x.c?'c':''}"><div class="psm-dh"><b>${esc(x.d)}</b><span class="psm-pill ${x.c?'c':'i'}">${x.c?'C':'INC'}</span></div><div class="psm-dn">${x.done}<small> / ${x.tot} returned</small></div><div class="psm-bar"><i class="${x.c?'c':''}" style="width:${pc}%"></i></div><div class="psm-bl"><span>${x.tot-x.done} pending</span><button class="psm-open" onclick="psmOpen('${esc(x.d).replace(/'/g,"\\'")}','${esc(String(x.p.id))}')">Open →</button></div></div>`}).join('')}</div>`:'<div class="psm-card psm-em">No saved payroll for this cutoff.</div>'}</div>`}
+window.psmExport=()=>{
+ const ord=pFolders(),cl=(()=>{const[f,t]=String(PS.sc).split('|');return f&&t?lb(f,t):''})();
+ const R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
+ if(!R.length)return toast('Nothing to export for this cutoff.');
+ const rows=[['Payslip Monitoring Summary - Signed Payslips'],['Rayanton Farms & Livestock Corp.'],[],['Cutoff','Department','Total','Returned','Pending','Status'],...R.map(x=>[cl,x.d,x.tot,x.done,x.tot-x.done,x.c?'C':'INC']),[],['C = Complete, INC = Incomplete','','','','Complete',R.filter(x=>x.c).length],['','','','','Incomplete',R.filter(x=>!x.c).length]];
+ cxCsv('Payslip-Monitoring-'+cl.replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.csv',rows);
+ try{logAct('Exported payslip monitoring summary','Payslip Monitoring',cl)}catch(e){}toast('Exported ✔')};
+window.psmPrint=()=>{
+ const ord=pFolders(),cl=(()=>{const[f,t]=String(PS.sc).split('|');return f&&t?lb(f,t):''})();
+ const R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
+ if(!R.length)return toast('Nothing to print for this cutoff.');
+ const nc=R.filter(x=>x.c).length,now=new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
+ const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Payslip Monitoring Summary</title><style>
+@page{size:A4;margin:14mm}
+body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;margin:0}
+h1{font-size:16px;margin:0 0 2px}.s{font-size:11px;color:#333;margin:0 0 12px}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid #666;padding:5px 9px;text-align:left}
+th{background:#e7e7e7;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+td.c,th.c{text-align:center}
+.C{font-weight:bold;color:#0a6b2f}.I{font-weight:bold;color:#b3261e}
+tr.i td{background:#fdeceb;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+tr.k td{background:#eaf6ee;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.f{margin-top:10px;font-size:11px}
+</style></head><body>
+<h1>Payslip Monitoring Summary — Signed Payslips</h1>
+<p class="s">Rayanton Farms &amp; Livestock Corp. &nbsp;|&nbsp; Printed ${esc(now)} by ${esc(me())}</p>
+<table><tr><th>Cutoff</th><th>Department</th><th class="c">Pending</th><th class="c">Status</th></tr>
+${R.map(x=>`<tr class="${x.c?'k':'i'}"><td>${esc(cl)}</td><td>${esc(x.d)}</td><td class="c">${x.tot-x.done}</td><td class="c ${x.c?'C':'I'}">${x.c?'C':'INC'}</td></tr>`).join('')}
+</table>
+<p class="f">C = Complete (all signed payslips returned) &nbsp;&nbsp; INC = Incomplete &nbsp;&nbsp;|&nbsp;&nbsp; Complete: ${nc} &nbsp; Incomplete: ${R.length-nc}</p>
+</body></html>`;
+ const w=window.open('','_blank');if(!w)return alert('Please allow pop-ups for this site, then press Print again.');
+ w.document.write(html);w.document.close();w.focus();setTimeout(()=>{try{w.print()}catch(e){}},350)};
+let _t=0;window.PSMQ=v=>{PS.q=v;clearTimeout(_t);_t=setTimeout(()=>{psmDraw();const e=$('psmq');if(e){e.focus();e.setSelectionRange(v.length,v.length)}},180)};
 })();
 </script>
 </body></html>
