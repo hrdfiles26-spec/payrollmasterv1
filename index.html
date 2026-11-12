@@ -9616,7 +9616,10 @@ async function syncOne(k){
   if(g&&(!row.rem||row.remD)){const f=e.pd?7:(pn(row.fd)>0?pn(row.fd):(pn(d.fd)>0?pn(d.fd):7)),txt=t.days!==f?dy3(nrx(t.days))+' day'+(t.days===1?'':'s')+(e.pd?'':' (fixed '+f+')'):'';if(txt){row.rem=txt;row.remD=1}else{delete row.rem;delete row.remD}}
   r.up++});
  if(clsCh||gpCh){try{pdSave()}catch(e){}}
- ids.forEach(id=>{if(!used.has(id)&&!fz.has(id)){const x=stf(id);r.gone.push(x?x.name:'Employee #'+id)}});
+ {const gn=ids.filter(id=>!used.has(id)&&!fz.has(id)),mis=gn.filter(id=>!stf(id)),fnd={};
+  /* not in the loaded staff list (left out of it, or removed): look the name up directly so the review shows WHO it is */
+  if(mis.length){try{const q=await api('/rest/v1/hrd_pay_staff?id=in.('+mis.map(encodeURIComponent).join(',')+')&select=id,name,dept');(Array.isArray(q)?q:[]).forEach(z=>{fnd[String(z.id)]=z})}catch(e){}}
+  gn.forEach(id=>{const x=stf(id)||fnd[id];r.gone.push(x?x.name+(!stf(id)&&x.dept?' ('+x.dept+')':''):'Unknown employee (removed from the staff list) \u00b7 #'+String(id).slice(0,8))})}
  r.add=add.map(x=>x.n);
  const gap=r2(ag-pgT);r.ag=r2(ag);r.pg=r2(pgT);r.run=run.id;r.iss={c:chg.length,a:add.length,sm:add.filter(x=>x.sm).length,k:kch.length,gp:Math.abs(gap)>=.01};
  /* a whole class changed its name in the attendance: every current member of the old class goes to the same new class */
