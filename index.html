@@ -4361,7 +4361,7 @@ addEventListener('beforeprint',()=>{if(PG==='pay'&&PV==='slip')pSlipPage()});
 function pSlipRef(dn){const ks=Array.from({length:10},(_,i)=>'k'+i),v={pay:1,net:1,a0:1,a1:1};ks.forEach(k=>v[k]=1);
  return pSlipHtml({s:{name:'MMMMMMMMMM, MMMMMMMMM MMMMMM'},g:'MAINTENANCE',v,r:{rem:'Remarks'},lab:k=>k==='k0'?'Vale':'HDMF Loan',adds:['a0','a1'],lss:ks,gross:1,td:1,bal:k=>k==='k0'?1:0,rd:[1,1],dn:dn?'CB-500 500.00 · XXXXXXXX 500.00 · XXXXXXXX 500.00':''})}
 function pFitSlips(){const L=[...document.querySelectorAll('.slip')];if(!L.length)return;let m=0;const MG=isMg(PF);
- const fit=e=>{e.style.fontSize='';let px=parseFloat(getComputedStyle(e).fontSize);while((e.scrollHeight>e.clientHeight+1||(MG&&e.scrollWidth>e.clientWidth+1))&&px>5){px-=.3;e.style.fontSize=px+'px'}return px};
+ const fit=e=>{e.style.fontSize='';let px=parseFloat(getComputedStyle(e).fontSize);while((e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1)&&px>5){px-=.3;e.style.fontSize=px+'px'}return px};
  L.forEach(e=>{const px=fit(e);m=m?Math.min(m,px):px});
  if(!MG){const e0=L[0],keep=e0.innerHTML;e0.innerHTML=pSlipRef(!!document.querySelector('.slip .sl-dn')).replace(/^<div class="slip">/,'').replace(/<\/div>$/,'');const pr=fit(e0);e0.innerHTML=keep;
  m=Math.min(m,pr)}L.forEach(e=>e.style.fontSize=m+'px')}
@@ -4462,13 +4462,16 @@ function pSlipXlsx(){const b=pXlsxBuild();if(!b)return toast('No payslips to exp
 let PSQ='';const pSqN=t=>String(t||'').toLowerCase().replace(/[^a-z0-9ñ]+/g,' ').trim();
 function pSlipView(){const L=pSlipList();if(!isMg(PF)||!PSQ)return L;const q=pSqN(PSQ).split(' ').filter(Boolean);return L.filter(x=>{const n=pSqN(x.s.name);return q.every(w=>n.includes(w))})}
 function pSlSearch(v){PSQ=v;drawSlips();const e=$('pslq');if(e){e.focus();try{e.setSelectionRange(v.length,v.length)}catch(_){}}}
-function drawSlips(){const ALL=pSlipList().length,L=pSlipView(),pages=[],MG=isMg(PF),per=MG?+PMGN:12,[cc,rr]=PLY[per]||PLY[12];if(PMKR!==PP.runId){PMK={};PMKR=PP.runId;PSQ=''}for(let i=0;i<L.length;i+=per)pages.push(L.slice(i,i+per));
+/* payslip = fixed physical size (same on every paper, font never changes); as many as fit per page, the rest go to the next page, none is ever cut */
+const SLW=66,SLH=78,SLGP=1.2,SLPD=3;
+function pSlipGrid(){const mm=v=>{const n=parseFloat(v);return/in$/.test(v)?n*25.4:n},z=String(PSZ).split('|'),W=mm(z[0]),H=mm(z[1])-.6;return[Math.max(1,Math.floor((W-2*SLPD+SLGP)/(SLW+SLGP))),Math.max(1,Math.floor((H-2*SLPD+SLGP)/(SLH+SLGP)))]}
+function drawSlips(){const ALL=pSlipList().length,L=pSlipView(),pages=[],MG=isMg(PF),FX=!MG||PMGN==='12',[fc,fr]=pSlipGrid(),per=FX?fc*fr:+PMGN,[cc,rr]=FX?[fc,fr]:(PLY[per]||PLY[12]);if(PMKR!==PP.runId){PMK={};PMKR=PP.runId;PSQ=''}for(let i=0;i<L.length;i+=per)pages.push(L.slice(i,i+per));
  $('main').innerHTML=`<div class="pz-bar no-print"><button class="btn o" onclick="pSlipBack()">← Back to payroll</button><span class="pz-sep"></span><b style="font-size:15px;color:var(--h)">Payslips · ${esc(PF)} · ${esc(pPeriod())}</b><span class="sp1"></span>
 <label style="font-size:13px"><input type="checkbox" ${PSK?'checked':''} onchange="PSK=this.checked;drawSlips()"> Skip employees with no pay</label>
 <select class="fi" style="width:auto;margin:0" title="Paper size" onchange="pSetSz(this.value)">${[['8.5in|11in','Letter 8.5 × 11'],['210mm|297mm','A4'],['8.5in|13in','Long bond 8.5 × 13'],['8.5in|14in','Legal 8.5 × 14']].map(([v,l])=>`<option value="${v}"${PSZ===v?' selected':''}>${l}</option>`).join('')}</select>
 ${MG?pSlMgBar():''}<button class="btn" onclick="pSlipPrint()"${L.length?'':' disabled'}>Print</button><button class="btn ok" onclick="pSlipXlsx()"${L.length?'':' disabled'}>Export to Excel</button></div>
 <p class="pz-note no-print"><span>${MG&&PSQ?`Showing ${L.length} of ${ALL} payslips for “${esc(PSQ)}”. Print prints what is shown; Export to Excel still includes everyone. `:''}${L.length} payslip${L.length===1?'':'s'} · ${pages.length} page${pages.length===1?'':'s'} (${per} per page, ${cc} × ${rr}), from the saved payroll of this cutoff. Print uses the preview below as it is: in the print window set the Paper size to match the one above, Scale to 100% and Margins to None, and turn off Headers and footers. Export to Excel saves an .xlsx file (3 × 4 per page, ready to print from Excel); the amounts are real numbers you can edit.</span></p>
-${L.length?`<div class="slwrap" style="--pw:${PSZ.split('|')[0]};--ph:${PSZ.split('|')[1]}">${pages.map(pg=>`<div class="slpage"><div class="slg n${per}${MG&&per!==12?' mgl':''}" style="grid-template-columns:repeat(${cc},1fr);grid-template-rows:repeat(${rr},1fr)">${pg.map(MG?pSlipMg:pSlip).join('')}</div></div>`).join('')}</div>`:`<p class="empty no-print" style="padding:14px">${MG&&PSQ?'No name matches “'+esc(PSQ)+'”.':'No employees with pay in this payroll.'}</p>`}`;pFitSlips();pMkSync();pMkBadges();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pFitSlips)}
+${L.length?`<div class="slwrap" style="--pw:${PSZ.split('|')[0]};--ph:${PSZ.split('|')[1]}">${pages.map(pg=>`<div class="slpage"><div class="slg n${per}${FX?' fx':''}${MG&&!FX?' mgl':''}" style="--cc:${cc};--rr:${rr}">${pg.map(MG?pSlipMg:pSlip).join('')}</div></div>`).join('')}</div>`:`<p class="empty no-print" style="padding:14px">${MG&&PSQ?'No name matches “'+esc(PSQ)+'”.':'No employees with pay in this payroll.'}</p>`}`;pFitSlips();pMkSync();pMkBadges();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pFitSlips)}
 
 // ===== MANAGEMENT PAYSLIPS: bigger individual slips + mark & email to the address in 201 Files =====
 let PMGN=(()=>{try{const v=localStorage.getItem('hrd_pslip_mg');if(['12','6','4','2'].includes(v))return v}catch(e){}return'6'})();
@@ -6747,7 +6750,9 @@ seasonUI();
 /* payslips */
 .slwrap{overflow-x:auto;padding-bottom:10px}
 .slpage{width:var(--pw,8.5in);height:calc(var(--ph,13in) - .6mm);padding:3mm;box-sizing:border-box;background:#fff;color:#000;margin:0 auto 18px;box-shadow:0 4px 20px #0002;overflow:hidden}
-.slg{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,1fr);gap:1.2mm;height:100%}
+.slg{--cc:3;--rr:4;--sg:1.2mm;display:flex;flex-wrap:wrap;align-content:flex-start;gap:var(--sg);height:100%;width:100%}
+.slg.fx{display:grid;grid-template-columns:repeat(var(--cc),66mm);grid-auto-rows:78mm;justify-content:center;align-content:start;justify-items:stretch;align-items:stretch;gap:var(--sg)}.slg.fx>.slip{width:auto;height:auto;margin:0}
+.slg>.slip{flex:none;min-width:0;max-width:none;width:calc((100% - (var(--cc) - 1)*var(--sg))/var(--cc));height:calc((100% - (var(--rr) - 1)*var(--sg))/var(--rr))}
 .slip{font-family:Arial,Helvetica,sans-serif;font-size:10.2pt;line-height:1.25;color:#000;background:#fff;border:1.3px solid #000;height:100%;min-height:0;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .slip>div{padding-left:1.3mm;padding-right:1.3mm;flex-shrink:0}.slip.dense{font-size:7.7pt}.slip.dense .sl-co{font-size:9.4pt}.slip.dense .sl-nm{font-size:8.4pt}.slip.dense .sl-net b{font-size:10.5pt}.slip.dense .sl-sg{padding-top:1.6mm}.slip.dense .sl-r{margin-top:.2mm}
 .sl-co{font-weight:700;font-size:1.2em;padding-top:1mm}
@@ -6853,7 +6858,7 @@ seasonUI();
 html[data-theme=dark] .psgp{color-scheme:light;color:#000}
 #psgprint{display:none}
 @media print{body.psg-on>*:not(#psgprint){display:none!important}body.psg-on #psgprint{display:block!important}body.psg-on{background:#fff!important}#psgm{display:none!important}}
-@media print{.slwrap{overflow:visible;padding:0}.slpage{margin:0;box-shadow:none;break-after:page;page-break-after:always}.slpage:last-child{break-after:auto;page-break-after:auto}}
+@media print{.slwrap{overflow:visible;padding:0;margin:0;width:var(--pw)}.slpage{margin:0!important;box-shadow:none;break-after:page;page-break-after:always}.slpage:last-child{break-after:auto;page-break-after:auto}}
 
 /* header of every department form: same layout on screen, in print/PDF */
 @media print{.pw .ph,.pw .pm,.pw .ph::after,.pw .ph img,.pw .ps th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
