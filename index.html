@@ -500,6 +500,44 @@ html[data-theme=dark] .paper [style*="#66738a"],html[data-theme=dark] .pw [style
 @media(max-width:860px){html[data-theme=dark] .lf{background:radial-gradient(90% 40% at 50% 0%,#14213a,var(--bg))}}
 @media print{html[data-theme=dark]{--bg:#fff;--ink:#1a2233;--ink2:#2f3b52;--h:#12305c;--mu:#66738a;--sf:#fff;--sf2:#f8f9fc;--ln:#e3e7ef;--ln2:#d3d9e6;--soft:#eaf0f9;--lk:#1e4f94}html[data-theme=dark] body{background:#fff!important;color:#000!important}}
 
+
+/* ===== Users & Access — organized (collapsible cards, grouped permissions) ===== */
+.ux-leg{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px 26px;padding:16px 20px}
+.ux-leg span{align-items:flex-start;line-height:1.5}
+.ux-leg i{margin-top:5px}
+.ux-leg b{display:block}
+.ux-top{cursor:pointer;gap:16px}
+.ux-sum{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--mu);min-width:150px;line-height:1.35}
+.ux-sum b{color:var(--ink2);font-weight:600}
+.ux-chev{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--ln2);background:var(--sf);color:var(--mu);display:grid;place-items:center;transition:.2s}
+.ux-chev svg{transition:transform .25s}
+.ux-top:hover .ux-chev{border-color:var(--au);color:var(--h)}
+.ux-card.open .ux-chev{background:var(--g);border-color:var(--g);color:#fff}
+.ux-card.open .ux-chev svg{transform:rotate(180deg)}
+.ux-body{display:none;margin-top:22px;border-top:1px solid var(--ln);padding-top:6px}
+.ux-card.open .ux-body{display:block;animation:lin .25s ease both}
+.ux-card.off .ux-body{opacity:.62}
+.ux-adm{display:flex;align-items:center;gap:10px;margin:16px 0 0;padding:11px 16px;border-radius:12px;background:#f6efdc;border:1px solid #ecd9a3;color:#7a5a12;font-size:13px}
+.ux-pn{padding:22px 0 20px;border-bottom:1px solid var(--ln)}
+.ux-pn:last-of-type{border-bottom:0}
+.ux-sh{display:flex;gap:14px;align-items:flex-start;margin:0 0 16px}
+.ux-sn{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:600 13px Georgia,serif;color:var(--au);border:1.5px solid var(--au);background:var(--sf)}
+.ux-sh h4{margin:0;font:600 16px Georgia,serif;color:var(--h);letter-spacing:-.1px}
+.ux-sh p{margin:3px 0 0;font-size:13px;line-height:1.5;color:var(--mu);max-width:620px}
+.ux-gr{display:flex;flex-direction:column;border:1px solid var(--ln);border-radius:14px;background:var(--sf2);overflow:hidden}
+.ux-g{display:grid;grid-template-columns:170px minmax(0,1fr);gap:10px 18px;padding:14px 18px;align-items:start}
+.ux-g+.ux-g{border-top:1px solid var(--ln)}
+.ux-gt{font-size:13px;font-weight:600;color:var(--ink2);padding-top:7px;line-height:1.3}
+.ux-gt small{display:block;margin-top:3px;font-size:11.5px;font-weight:400;color:var(--mu)}
+.ux-g .ux-chips{margin-top:0;gap:8px}
+.ux-chip em{font-style:normal;font-size:11.5px;font-weight:400;color:var(--mu);padding-left:8px;border-left:1px solid var(--ln2)}
+.ux-card .ux-ft{margin-top:6px}
+html[data-theme=dark] .ux-adm{background:#33290f;border-color:#5b4a1c;color:#e6c97a}
+html[data-theme=dark] .ux-chev{background:var(--sf2)}
+html[data-theme=dark] .ux-card.open .ux-chev{background:var(--g2);border-color:var(--g2)}
+@media(max-width:860px){.ux-sum{display:none}}
+@media(max-width:640px){.ux-g{grid-template-columns:1fr;padding:12px 14px}.ux-gt{padding-top:0}.ux-top{gap:12px}.ux-chev{margin-left:auto}}
+
 /* ===== Payroll — elegant screen layout (print layout unchanged) ===== */
 @media screen{
 #main .pz-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:12px 16px;margin:0 0 14px;box-shadow:0 1px 2px #12305c0a,0 8px 24px #12305c08}
@@ -6574,27 +6612,48 @@ const UI={
 let UF={q:'',r:'all'};
 const uIni=u=>{const n=(u.full_name||'').trim();if(n){const p=n.split(/\s+/);return((p[0][0]||'')+(p.length>1?p[p.length-1][0]:'')).toUpperCase()}return String(u.email||'?').slice(0,2).toUpperCase()};
 const uRK=r=>ROLES[r]?r:'staff';
+const UXO=new Set();
+const UXL={tma:['Timemark Audit','Audit / delete'],tmp:['Timemark Approval','Days / approve'],mgp:['Payroll','MANAGEMENT dept. · view'],mge:['201 Files','MANAGEMENT dept. · view'],dash:['Dashboard','Full access · cards &amp; recent activity']};
+const UXG=[['General',['req','sub','dash','act']],['HR &amp; records',['emp','att','psm','tmk','tma','tmp']],['Payroll &amp; compensation',['pay','addc','m13','mg']],['Management department',['mgp','mge']]];
+window.uTog=(i,ev)=>{if(ev&&ev.target.closest&&ev.target.closest('select,option,.ux-rolebox'))return;const c=document.getElementById('uc_'+i),u=UL&&UL[i];if(!c||!u)return;const o=c.classList.toggle('open');o?UXO.add(u.user_id):UXO.delete(u.user_id);const b=c.querySelector('.ux-chev');if(b)b.setAttribute('aria-expanded',o);uxAllLbl()};
+window.uxAllLbl=()=>{const b=$('uxall');if(b)b.textContent=UL&&UL.length&&UL.every(u=>UXO.has(u.user_id))?'Collapse all':'Expand all'};
+window.uTogAll=()=>{const cs=[...document.querySelectorAll('.urow')].filter(e=>e.style.display!=='none'),open=cs.some(e=>!e.classList.contains('open'));cs.forEach(e=>{e.classList.toggle('open',open);const u=UL[+e.id.slice(3)];if(u)open?UXO.add(u.user_id):UXO.delete(u.user_id);const b=e.querySelector('.ux-chev');if(b)b.setAttribute('aria-expanded',open)});uxAllLbl()};
 function drawU(){uDirty=false;
  if(UL===null)return $('main').innerHTML=`<h1>Users &amp; Access</h1><p class="sub">The access table needs to be created first.</p><div class="panel" style="max-width:none"><h3>Run this in Supabase → SQL Editor</h3><pre style="white-space:pre-wrap;font-size:12px;background:#f3f5f9;padding:12px;border-radius:8px;max-height:360px;overflow:auto" id="usqlbox">${esc(USQLALL)}</pre><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn o" onclick="copySql(USQLALL)">📋 Copy SQL</button><button class="btn" onclick="users()">I've run it — reload</button></div></div>`;
- const row=(u,i)=>{const self=u.user_id===ME.sub,ad=u.role==='admin',rk=uRK(u.role),nm=u.full_name||u.email;return`<div class="ux-card urow r-${rk}${u.active?'':' off'}" data-s="${esc((u.email+' '+(u.full_name||'')).toLowerCase())}" data-r="${esc(u.role)}">
- <div class="ux-top"><div class="ux-av"${okImg(u.avatar)?' style="background:center/cover no-repeat url(\''+u.avatar+'\')"':''}>${okImg(u.avatar)?'':esc(uIni(u))}</div>
+ const rest=PGS.filter(([k])=>!UXG.some(g=>g[1].includes(k))).map(p=>p[0]);
+ const UXGR=UXG.map(g=>[g[0],g[1].filter(k=>PGS.some(p=>p[0]===k))]).concat(rest.length?[['Other',rest]]:[]);
+ const chev='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+ const row=(u,i)=>{const self=u.user_id===ME.sub,ad=u.role==='admin',rk=uRK(u.role),nm=u.full_name||u.email,pg=u.pages||[],lock=self||ad,open=UXO.has(u.user_id),
+ nP=ad?PGS.length:PGS.filter(([k])=>pg.includes(k)).length,aD=pg.filter(x=>String(x).indexOf('attd:')===0).map(x=>String(x).slice(5)),
+ sc=ad?'Full access':aD.length?(aD.length<=2?aD.join(', '):aD.length+' departments'):'All departments';
+ const chip=(k,l)=>{const x=UXL[k]||[l];return`<label class="ux-chip"><input type="checkbox" id="up_${i}_${k}"${ad||pg.includes(k)?' checked':''}${lock?' disabled':''}> ${x[0]}${x[1]?`<em>${x[1]}</em>`:''}</label>`};
+ const sh=(n,t,p)=>`<header class="ux-sh"><span class="ux-sn">${n}</span><div><h4>${t}</h4><p>${p}</p></div></header>`;
+ return`<div class="ux-card urow r-${rk}${u.active?'':' off'}${open?' open':''}" id="uc_${i}" data-s="${esc((u.email+' '+(u.full_name||'')).toLowerCase())}" data-r="${esc(u.role)}">
+ <div class="ux-top" onclick="uTog(${i},event)"><div class="ux-av"${okImg(u.avatar)?' style="background:center/cover no-repeat url(\''+u.avatar+'\')"':''}>${okImg(u.avatar)?'':esc(uIni(u))}</div>
  <div class="ux-id"><div class="ux-nm"><b>${esc(nm)}</b>${self?'<span class="ux-tag you">You</span>':''}${u.active?'':'<span class="ux-tag offt">Disabled</span>'}</div>${u.full_name?`<div class="ux-em">${esc(u.email)}</div>`:''}
  ${u.signed_up_at?`<div class="ux-meta"><span>${UI.cal} Signed up ${esc(new Date(u.signed_up_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}))}</span>${u.confirmed_at?`<span class="ux-ok">${UI.ok} Email confirmed</span>`:`<span class="ux-wait">${UI.clock} Email not confirmed yet</span>`}</div>`:''}</div>
- <div class="ux-rolebox"><span class="ux-lbl">Role</span><select class="ux-sel" id="ur_${i}" ${self?'disabled':''} onchange="uRole(${i})">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}"${u.role===k?' selected':''}>${v[0]}</option>`).join('')}</select></div></div>
- <div class="ux-sec"><span class="ux-lbl">Pages this user can view</span><div class="ux-chips">${PGS.map(([k,l])=>`<label class="ux-chip"><input type="checkbox" id="up_${i}_${k}"${ad||(u.pages||[]).includes(k)?' checked':''}${self||ad?' disabled':''}> ${l}</label>`).join('')}</div></div>
- <div class="ux-sec"><span class="ux-lbl">Attendance: departments this user can open &amp; edit <small style="font-weight:400">(none ticked = all departments)</small></span><div class="ux-chips" id="uad_${i}">${attDeptChips(u.pages||[],self||ad)}</div></div>
- <div class="ux-sec"><span class="ux-lbl">13th Month Pay: departments this user can view <small style="font-weight:400">(none ticked = all departments)</small></span><div class="ux-chips" id="uad13_${i}">${m13DeptChips(u.pages||[],self||ad)}</div></div>
- <div class="ux-sec"><span class="ux-lbl">Payroll: what this user can open <small style="font-weight:400">(ticking any turns <b>Payroll</b> on; none ticked = everything. Departments shown = the <b>Attendance departments</b> ticked above)</small></span><div class="ux-chips" id="uapx_${i}">${pxChips(u.pages||[],self||ad)}</div></div>
- <div class="ux-ft"><label class="ux-sw"><input type="checkbox" id="ua_${i}"${u.active?' checked':''}${self?' disabled':''}><i></i><span>Account active</span></label>${self?`<span class="ux-note">${UI.lock} You can't change your own access.</span>`:`<div class="ux-ac"><button class="ux-b" onclick="uPw(${i})">${UI.key} Set password</button><button class="ux-b" onclick="uReset(${i})">${UI.mail} Send reset link</button><button class="ux-b danger" onclick="uDel(${i})">${UI.trash} Delete</button><button class="btn sm ux-save" onclick="uSave(${i})">Save changes</button></div>`}</div></div>`};
+ <div class="ux-sum"><span><b>${nP}</b> of ${PGS.length} pages</span><span>Attendance: <b>${esc(sc)}</b></span></div>
+ <div class="ux-rolebox"><span class="ux-lbl">Role</span><select class="ux-sel" id="ur_${i}" ${self?'disabled':''} onchange="uRole(${i})">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}"${u.role===k?' selected':''}>${v[0]}</option>`).join('')}</select></div>
+ <button type="button" class="ux-chev" aria-label="Show or hide access settings" aria-expanded="${open}">${chev}</button></div>
+ <div class="ux-body">
+ ${ad?`<div class="ux-adm">${UI.lock}<span>Admins always have full access, so these settings are locked.</span></div>`:''}
+ <section class="ux-pn">${sh(1,'Page access','Choose which pages appear in this user&rsquo;s menu.')}
+  <div class="ux-gr">${UXGR.map(([t,ks])=>`<div class="ux-g"><span class="ux-gt">${t}</span><div class="ux-chips">${ks.map(k=>chip(k,PGS.find(p=>p[0]===k)[1])).join('')}</div></div>`).join('')}</div></section>
+ <section class="ux-pn">${sh(2,'Department access','Limit which departments this user can open. Leave a list empty to allow every department.')}
+  <div class="ux-gr"><div class="ux-g"><span class="ux-gt">Attendance<small>Open &amp; edit</small></span><div class="ux-chips" id="uad_${i}">${attDeptChips(pg,lock)}</div></div>
+  <div class="ux-g"><span class="ux-gt">13th Month Pay<small>View only</small></span><div class="ux-chips" id="uad13_${i}">${m13DeptChips(pg,lock)}</div></div></div></section>
+ <section class="ux-pn">${sh(3,'Payroll permissions','Ticking any option turns Payroll on; leave all unticked for full Payroll access. Departments follow the Attendance departments above.')}
+  <div class="ux-gr"><div class="ux-g"><span class="ux-gt">What they can do</span><div class="ux-chips" id="uapx_${i}">${pxChips(pg,lock)}</div></div></div></section>
+ <div class="ux-ft"><label class="ux-sw"><input type="checkbox" id="ua_${i}"${u.active?' checked':''}${self?' disabled':''}><i></i><span>Account active</span></label>${self?`<span class="ux-note">${UI.lock} You can't change your own access.</span>`:`<div class="ux-ac"><button class="ux-b" onclick="uPw(${i})">${UI.key} Set password</button><button class="ux-b" onclick="uReset(${i})">${UI.mail} Send reset link</button><button class="ux-b danger" onclick="uDel(${i})">${UI.trash} Delete</button><button class="btn sm ux-save" onclick="uSave(${i})">Save changes</button></div>`}</div></div></div>`};
  const nAct=UL.filter(u=>u.active).length,nAdm=UL.filter(u=>u.role==='admin').length,nPen=UL.filter(u=>u.signed_up_at&&!u.confirmed_at).length;
- $('main').innerHTML=`<div class="ux-wrap"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap"><h1>Users &amp; Access</h1><button class="btn" onclick="uNew()" style="margin-top:6px">+ Create user</button></div><p class="ux-lead">Choose a role and the pages each user can view. Use <b>Create user</b> to add an account yourself, or wait for people to sign up on their own.</p>
+ $('main').innerHTML=`<div class="ux-wrap"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap"><h1>Users &amp; Access</h1><button class="btn" onclick="uNew()" style="margin-top:6px">+ Create user</button></div><p class="ux-lead">Click a user to open their access settings. Pick a role, then fine-tune pages and departments. Use <b>Create user</b> to add an account yourself, or wait for people to sign up on their own.</p>
  ${UL.length&&('signed_up_at' in UL[0])&&!('avatar' in UL[0])?`<div class="panel" style="max-width:none;margin:0 0 18px"><h3>Update required: profile pictures (one time only)</h3><p class="sub" style="margin:0 0 12px;font-size:14px">So every user can add their own photo, run this update in Supabase → SQL Editor.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn o" onclick="copySql(USQL5)">📋 Copy SQL</button><button class="btn" onclick="users()">I've run it — reload</button></div></div>`:''}
  ${UL.length&&!('signed_up_at' in UL[0])?`<div class="panel" style="max-width:none;margin:0 0 18px"><h3>Update required (one time only)</h3><p class="sub" style="margin:0 0 12px;font-size:14px">So that everyone who signed up shows here (even if they haven't logged in yet) and so Set password works, run this update in Supabase → SQL Editor.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn o" onclick="copySql(USQL2)">📋 Copy SQL</button><button class="btn" onclick="users()">I've run it — reload</button></div></div>`:''}
  <div class="ux-stats">${[['Total users',UL.length,'#12305c'],['Active',nAct,'#2e7d4f'],['Admins',nAdm,'#b8923a'],['Pending email',nPen,'#b0792a']].map(([l,n,c])=>`<div class="ux-st" style="--c:${c}"><b>${n}</b><span>${l}</span></div>`).join('')}</div>
  <div class="ux-tools"><div class="ux-search">${UI.search}<input placeholder="Search name or email" value="${esc(UF.q)}" oninput="uFind(this.value)"></div>
- <div class="ux-fl"><button class="ux-f" data-r="all" onclick="uRoleF('all')">All<i>${UL.length}</i></button>${Object.entries(ROLES).map(([k,v])=>`<button class="ux-f" data-r="${k}" onclick="uRoleF('${k}')">${v[0]}<i>${UL.filter(u=>u.role===k).length}</i></button>`).join('')}</div><span id="ucount"></span></div>
+ <div class="ux-fl"><button class="ux-f" data-r="all" onclick="uRoleF('all')">All<i>${UL.length}</i></button>${Object.entries(ROLES).map(([k,v])=>`<button class="ux-f" data-r="${k}" onclick="uRoleF('${k}')">${v[0]}<i>${UL.filter(u=>u.role===k).length}</i></button>`).join('')}</div><span id="ucount"></span><button type="button" class="ux-f" id="uxall" onclick="uTogAll()">Expand all</button></div>
  <div class="ux-leg">${Object.entries(ROLES).map(([k,v])=>`<span class="r-${k}"><i></i><b>${v[0]}</b> ${esc(v[1])}</span>`).join('')}</div>
- ${UL.map(row).join('')||'<p class="empty">No users yet.</p>'}<p class="empty" id="uempty" style="display:none">No matching users.</p></div>`;uApply()}
+ ${UL.map(row).join('')||'<p class="empty">No users yet.</p>'}<p class="empty" id="uempty" style="display:none">No matching users.</p></div>`;uApply();uxAllLbl()}
 function uApply(){let n=0;document.querySelectorAll('.urow').forEach(e=>{const ok=(!UF.q||e.dataset.s.includes(UF.q))&&(UF.r==='all'||e.dataset.r===UF.r);e.style.display=ok?'':'none';if(ok)n++});const c=$('ucount');if(c)c.textContent=n+' of '+UL.length+' shown';document.querySelectorAll('.ux-f').forEach(b=>b.classList.toggle('on',b.dataset.r===UF.r));const em=$('uempty');if(em)em.style.display=n||!UL.length?'none':''}
 function uRoleF(r){UF.r=r;uApply()}
 async function uPw(i){const u=UL[i],n=prompt('New password for '+u.email+' (min. 8 characters):');if(n===null)return;if(n.length<8)return alert('Too short. Must be at least 8 characters.');
@@ -10116,8 +10175,8 @@ window.psm=async function(){
 async function psmLoad(){PS.ret={};PS.bad=false;if(PS.r){try{PS.ret=await getRet(PS.r)}catch(e){PS.bad=true}}if(PG==='psm')psmDraw()}
 window.psmSel=async(k,v)=>{PS[k]=v;if(k==='d'||k==='r')PS.sg='';if(k==='d'){PS.cl='';PS.r=v&&runs(v)[0]?String(runs(v)[0].id):'';await psmLoad()}else if(k==='r'){PS.cl='';await psmLoad()}else psmDraw()};
 window.psmTog=async(id,on)=>{await psmSet([id],on)};
-window.psmAll=async on=>{const p=cur();if(!p)return;const L=psmShown(p).map(x=>x.id);if(!L.length)return;if(!confirm((on?'Mark ':'Clear ')+L.length+' name(s) as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(L,on)};
-async function psmSet(ids,on){if(PS.busy)return;PS.busy=true;const p=cur();if(!p){PS.busy=false;return}
+window.psmAll=async on=>{if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can mark payslips.');const p=cur();if(!p)return;const L=psmShown(p).map(x=>x.id);if(!L.length)return;if(!confirm((on?'Mark ':'Clear ')+L.length+' name(s) as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(L,on)};
+async function psmSet(ids,on){if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can mark payslips.');if(PS.busy)return;PS.busy=true;const p=cur();if(!p){PS.busy=false;return}
  try{const ret=await getRet(p.id);const at=new Date().toISOString(),by=me();
   ids.forEach(id=>{if(on){if(!ret[id])ret[id]={at:at,by:by}}else delete ret[id]});
   await putRet(p.id,ret);PS.ret=ret;try{logAct((on?'Marked payslip returned':'Cleared payslip returned'),'Payslip Monitoring',PS.d+' — '+lb(p.data.from,p.data.to)+' ('+ids.length+')')}catch(e){}}
@@ -10125,7 +10184,7 @@ async function psmSet(ids,on){if(PS.busy)return;PS.busy=true;const p=cur();if(!p
  PS.busy=false;psmDraw()}
 function psmCl(x){const s=(STF||[]).find(y=>String(y.id)===String(x.id));return gCls(s?pGrp(s):'')||'(no class)'}
 let PCL=[];
-window.psmCAll=async k=>{const ids=PCL[k]||[];if(!ids.length)return;const on=!ids.every(id=>PS.ret[id]);if(!confirm((on?'Mark ':'Clear ')+ids.length+' name(s) of this class as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(ids,on)};
+window.psmCAll=async k=>{if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can mark payslips.');const ids=PCL[k]||[];if(!ids.length)return;const on=!ids.every(id=>PS.ret[id]);if(!confirm((on?'Mark ':'Clear ')+ids.length+' name(s) of this class as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(ids,on)};
 /* scope opened from the Dashboard: '2' = classes with 14 days (B2/B4/B7/B14), '1' = classes with 7 days, '' = all classes */
 function psmGrp(x){const s0=(STF||[]).find(y=>String(y.id)===String(x.id));return psm2w(s0,x)?'2':'1'}
 function psmShown(p){const q=(PS.q||'').trim().toUpperCase();return people(p).filter(x=>(!q||x.n.toUpperCase().includes(q))&&(!PS.sg||psmGrp(x)===PS.sg)&&(!PS.cl||psmCl(x)===PS.cl)&&(PS.f==='all'||(PS.f==='no'?!PS.ret[x.id]:!!PS.ret[x.id])))}
@@ -10233,7 +10292,7 @@ function psmDraw(){
  if(PS.v==='due')return psmDueDraw();
  const F=pFolders().filter(f=>runs(f).length),R=runs(PS.d),p=cur(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
  const all=p?people(p).filter(x=>!PS.sg||psmGrp(x)===PS.sg):[],tot=all.length,done=all.filter(x=>PS.ret[x.id]).length,pct=tot?Math.round(done/tot*100):0,comp=tot>0&&done===tot,L=p?psmShown(p):[];
- const ed=(typeof hrx==='function'&&hrx())||can('psm');
+ const ed=!!(typeof hrx==='function'&&hrx());
  const fd=r=>new Date(r.at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
  const rowOf=(x,i)=>{const r=PS.ret[x.id];return`<tr class="${r?'ok':''}"><td class="psm-n">${i+1}</td><td><div class="psm-nm"><span class="psm-av">${esc(ini(x.n))}</span>${esc(x.n)}</div></td><td class="psm-c"><label class="psm-ck"><input type="checkbox"${r?' checked':''}${ed&&!PS.bad?'':' disabled'} onchange="psmTog('${esc(x.id)}',this.checked)"><span></span></label></td><td>${r?`<span class="psm-pill c">Returned</span><span class="psm-dt">${esc(fd(r))}</span>`:'<span class="psm-pill p">Pending</span>'}</td><td class="psm-by">${r?esc(r.by||''):''}</td></tr>`};
  PCL=[];const gm=new Map(),tm=new Map(),nat=(a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});
@@ -10255,7 +10314,7 @@ function psmSumDraw(){
  const C=cuts(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
  const ord=pFolders(),R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{p:p,d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
  const nc=R.filter(x=>x.c).length,ni=R.length-nc;
- $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Summary of all departments · <b>C</b> complete · <b>INC</b> incomplete</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('grid')}<span class="psm-gap"></span><button class="btn sm" onclick="psmPrint()">🖨 Print</button><button class="btn sm" onclick="psmExport()" title="Choose the cutoff(s) to export">⬇ Export to Excel</button></div></div>
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Summary of all departments · <b>C</b> complete · <b>INC</b> incomplete</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('grid')}<span class="psm-gap"></span>${(typeof hrx==='function'&&hrx())?`<button class="btn sm" onclick="psmPrint()">🖨 Print</button><button class="btn sm" onclick="psmExport()" title="Choose the cutoff(s) to export">⬇ Export to Excel</button>`:''}</div></div>
 ${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). The summary may be wrong — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Cutoff</label><select class="fi" onchange="psmSc(this.value)">${C.map(k=>{const[f,t]=k.split('|');return op(k,lb(f,t),k===PS.sc)}).join('')}</select></div><div class="psm-st"><div class="psm-sc c"><b>${nc}</b><span>Complete</span></div><div class="psm-sc i"><b>${ni}</b><span>Incomplete</span></div></div></div></div>
 ${R.length?`<div class="psm-gd">${R.map(x=>{const pc=x.tot?Math.round(x.done/x.tot*100):0;return`<div class="psm-dc ${x.c?'c':''}"><div class="psm-dh"><b>${esc(x.d)}</b><span class="psm-pill ${x.c?'c':'i'}">${x.c?'C':'INC'}</span></div><div class="psm-dn">${x.done}<small> / ${x.tot} returned</small></div><div class="psm-bar"><i class="${x.c?'c':''}" style="width:${pc}%"></i></div><div class="psm-bl"><span>${x.tot-x.done} pending</span><button class="psm-open" onclick="psmOpen('${esc(x.d).replace(/'/g,"\\'")}','${esc(String(x.p.id))}')">Open →</button></div></div>`}).join('')}</div>`:'<div class="psm-card psm-em">No saved payroll for this cutoff.</div>'}</div>`}
@@ -10264,7 +10323,7 @@ const gCls=c=>String(c||'').replace(/^.*\s:\s*/,'').trim();
 const gDt=t=>{const a=String(t).split('-');return a.length===3?(+a[1])+'/'+(+a[2])+'/'+a[0]:String(t)};
 let GK=[],GDL=[],GM=null;
 function psmGridDraw(){
- const ord=pFolders(),allC=cuts(),selC=PS.gs?allC.filter(k=>PS.gs.includes(k)):allC.slice(0,6),C=selC.slice().reverse(),ed=(typeof hrx==='function'&&hrx())||can('psm');
+ const ord=pFolders(),allC=cuts(),selC=PS.gs?allC.filter(k=>PS.gs.includes(k)):allC.slice(0,6),C=selC.slice().reverse(),ed=!!(typeof hrx==='function'&&hrx());
  const D=new Map();
  C.forEach(k=>{(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===k&&ord.includes(pFo(p.data))).forEach(p=>{
   const d=pFo(p.data);if((PS.gh||[]).includes(d))return;
@@ -10277,7 +10336,7 @@ function psmGridDraw(){
   return`<tr class="dh"><td colspan="${C.length+2}">${esc(d)}<button type="button" class="psm-open" style="float:right;font-weight:600" onclick="psmGDep(${GDL.indexOf(d)},false)" title="Hide this department">Hide ✕</button></td></tr>`+names.map(cn=>{const row=cm.get(cn),i=GK.push(d+'|'+cn)-1;
    return`<tr><td class="cl">${esc(gLbl(cn,d,cm))}</td>${C.map(k=>{const c=row[k];if(!c)return'<td class="na"></td>';const ok=c.t>0&&c.d===c.t,ar=z=>esc(z).replace(/'/g,"\\'"),ind=cn==='~',go=`onclick="psmOpen('${ar(d)}','${esc(c.pid)}','${ind?(cm.size>1?'(no class)':''):ar(cn)}','')"`;
      return ok?`<td class="ok go" ${go} title="Complete · ${c.d}/${c.t} returned">✓</td>`:`<td class="bad${c.d>0?' part':''} go" ${go} title="${c.t-c.d} pending">${c.d}/${c.t}</td>`}).join('')}<td class="rmk"><input value="${esc(PS.rm[d+'|'+cn]||'')}" ${ed?'':'disabled'} onchange="psmRm(${i},this.value)" placeholder="${ed?'Add remarks…':''}"></td></tr>`}).join('')}).join('');
- $('main').innerHTML=`<div class="psm wide"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">By class · <b>✓</b> all signed payslips returned · <b style="color:#b3392f">rose/amber</b> still pending (returned/total)</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('grid')}<span class="psm-gap"></span><button class="btn sm" onclick="psmGPrint()" title="Print what is shown below">🖨 Print</button><button class="btn sm" onclick="psmGExport()" title="Export what is shown below">⬇ Export to Excel</button></div></div>
+ $('main').innerHTML=`<div class="psm wide"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">By class · <b>✓</b> all signed payslips returned · <b style="color:#b3392f">rose/amber</b> still pending (returned/total)</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('grid')}<span class="psm-gap"></span>${(typeof hrx==='function'&&hrx())?`<button class="btn sm" onclick="psmGPrint()" title="Print what is shown below">🖨 Print</button><button class="btn sm" onclick="psmGExport()" title="Export what is shown below">⬇ Export to Excel</button>`:''}</div></div>
 ${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). The grid may be wrong — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div class="psg-dd"><label>Departments shown</label><details ${PS.go2?'open':''} ontoggle="psmGOpen2(this.open)"><summary class="fi">${GDL.filter(f=>!(PS.gh||[]).includes(f)).length===GDL.length?'All departments':GDL.filter(f=>!(PS.gh||[]).includes(f)).length+' of '+GDL.length+' departments shown'}</summary><div class="psg-pnl"><div class="psg-q"><button type="button" class="btn o sm" onclick="psmGDepAll(true)">Show all</button><button type="button" class="btn o sm" onclick="psmGDepAll(false)">Hide all</button></div>${GDL.map((f,i)=>`<label class="row"><input type="checkbox" ${(PS.gh||[]).includes(f)?'':'checked'} onchange="psmGDep(${i},this.checked)"> <span>${esc(f)}</span></label>`).join('')}</div></details></div><div class="psg-dd"><label>Cutoffs shown</label><details ${PS.go?'open':''} ontoggle="psmGOpen(this.open)"><summary class="fi">${selC.length?selC.length+' of '+allC.length+' cutoff'+(selC.length===1?'':'s')+' selected':'Choose cutoff(s)'}</summary><div class="psg-pnl"><div class="psg-q"><button type="button" class="btn o sm" onclick="psmGQuick(1)">Latest</button><button type="button" class="btn o sm" onclick="psmGQuick(4)">Last 4</button><button type="button" class="btn o sm" onclick="psmGQuick(6)">Last 6</button><button type="button" class="btn o sm" onclick="psmGQuick(12)">Last 12</button><button type="button" class="btn o sm" onclick="psmGQuick(999)">All</button><button type="button" class="btn o sm" onclick="psmGNone()">Clear</button></div>${allC.map(k=>{const[f,t]=k.split('|');return`<label class="row"><input type="checkbox" ${selC.includes(k)?'checked':''} onchange="psmGTog('${k}',this.checked)"> <span>${esc(gDt(t))} <span style="color:var(--mu)">· ${esc(lb(f,t))}</span></span></label>`}).join('')}</div></details></div></div></div>
 ${depts.length?`<div class="psg-w"><table class="psg"><tr><th style="text-align:left">Class</th>${C.map(k=>{const[f,t]=k.split('|');return`<th title="${esc(lb(f,t))}">${esc(gDt(t))}</th>`}).join('')}<th class="rm">REMARKS</th></tr>${body}</table></div><div class="psg-lg"><span>✓ complete</span><span>Rose = none returned yet · Amber = partly returned (returned/total)</span><span>Blank = class has no payroll in that cutoff</span><span>Click a cell to open only that class's names</span></div><div class="psg-sig"><div><span>Prepared by:</span><b>Eg Mesinas</b></div><div><span>Checked By:</span><b>Nicolette Raya</b></div></div>`:`<div class="psm-card psm-em">${!selC.length?'Choose at least one cutoff above.':(PS.gh&&PS.gh.length?'No department to show — pick some in the Departments list above.':'No saved payroll to show.')}</div>`}</div>`}
@@ -10317,7 +10376,7 @@ ${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check 
 ${B.length?`<div class="psm-card psm-tc"><div style="overflow-x:auto"><table class="psm-t"><tr><th style="text-align:left">Department</th><th>Cutoff</th><th>Payslip given</th><th>Deadline</th><th>Returned</th><th>Status</th></tr>${rows}</table></div></div>`:`<div class="psm-card psm-em"><div class="psm-ei">✅</div><b>Nothing past due</b><span>All departments are on time.</span></div>`}</div>`}
 const gNat=(a,b)=>(a[0]==='~')-(b[0]==='~')||a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});
 const gLbl=(cn,d,cm)=>cn==='~'?(cm&&cm.size>1?'Others':d):cn;
-window.psmGPrint=()=>{
+window.psmGPrint=()=>{if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can print.');
  if(!GM||!GM.depts.length)return toast('Nothing to print.');
  const C=GM.C,now=new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
  const cell=c=>!c?'<td class="n"></td>':(c.t>0&&c.d===c.t?'<td class="k">&#10003;</td>':`<td class="${c.d>0?'a':'b'}">${c.d}/${c.t}</td>`);
@@ -10345,7 +10404,7 @@ tr{break-inside:avoid;page-break-inside:avoid}thead{display:table-header-group}
  const w=window.open('','_blank');if(!w)return alert('Please allow pop-ups for this site, then press Print again.');
  w.document.write(html);w.document.close();w.focus();setTimeout(()=>{try{w.print()}catch(e){}},350);
  try{logAct('Printed payslip monitoring grid','Payslip Monitoring',C.length+' cutoff(s)')}catch(e){}};
-window.psmGExport=()=>{
+window.psmGExport=()=>{if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can export.');
  if(!GM||!GM.depts.length)return toast('Nothing to export.');
  const C=GM.C,HD={fill:'FF12305C',col:'FFFFFFFF',b:1,h:'center',bt:'thin',bb:'thin',bl:'thin',br:'thin'},BX={bt:'thin',bb:'thin',bl:'thin',br:'thin'};
  const S=xgSheet('Summary'),W=C.length+2;
@@ -10378,13 +10437,13 @@ window.psmGDepAll=on=>{PS.gh=on?[]:[...GDL];psmDraw()};
 window.psmGTog=(k,on)=>{const c=new Set(PS.gs||cuts().slice(0,6));if(on)c.add(k);else c.delete(k);PS.gs=[...c];psmDraw()};
 window.psmGQuick=n=>{PS.gs=cuts().slice(0,n);psmDraw()};
 window.psmGNone=()=>{PS.gs=[];psmDraw()};
-window.psmRm=async(i,v)=>{const k=GK[i];if(!k)return;v=String(v||'').trim();
+window.psmRm=async(i,v)=>{if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can edit remarks.');const k=GK[i];if(!k)return;v=String(v||'').trim();
  try{const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent('_psmrm|grid')+'&select=data');const rm=(Array.isArray(r)&&r[0]&&r[0].data&&r[0].data.rm)||{};
   if(v)rm[k]=v;else delete rm[k];
   await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{name:'_psmrm|grid',data:{rm:rm},updated_at:new Date().toISOString()}])});PS.rm=rm}
  catch(e){alert('Could not save the remark: '+(e.message||e))}};
 /* Export picker: choose which cutoff(s) to export, or Select all */
-window.psmExport=()=>{const C=cuts();if(!C.length)return toast('Nothing to export.');
+window.psmExport=()=>{if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can export.');const C=cuts();if(!C.length)return toast('Nothing to export.');
  const d=ovl('psxm');
  d.innerHTML=`<div role="dialog" aria-modal="true" style="background:var(--sf);color:var(--ink);border-radius:16px;max-width:460px;width:100%;max-height:86vh;display:flex;flex-direction:column;padding:22px 24px;box-shadow:0 20px 60px #0004">
 <h3 style="margin:0 0 4px;color:var(--h)">Export to Excel</h3>
@@ -10395,8 +10454,8 @@ window.psmExport=()=>{const C=cuts();if(!C.length)return toast('Nothing to expor
 window.psmExClose=()=>{const o=$('psxm');if(o)o.remove()};
 window.psmExAll=on=>{document.querySelectorAll('#psxm .psx_c').forEach(c=>c.checked=on);psmExSync()};
 window.psmExSync=()=>{const L=[...document.querySelectorAll('#psxm .psx_c')],n=L.filter(c=>c.checked).length,a=$('psx_all'),g=$('psx_go');if(a){a.checked=L.length>0&&n===L.length;a.indeterminate=n>0&&n<L.length}if(g){g.disabled=!n;g.textContent=n?'Export ('+n+')':'Export'}};
-window.psmExGo=()=>{const k=[...document.querySelectorAll('#psxm .psx_c:checked')].map(c=>c.value);if(!k.length)return;const all=k.length===cuts().length;psmExClose();psmExportRun(all?null:k)};
-window.psmExportRun=async keys=>{
+window.psmExGo=()=>{if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can export.');const k=[...document.querySelectorAll('#psxm .psx_c:checked')].map(c=>c.value);if(!k.length)return;const all=k.length===cuts().length;psmExClose();psmExportRun(all?null:k)};
+window.psmExportRun=async keys=>{if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can export.');
  const ord=pFolders(),R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&ord.includes(pFo(p.data))&&(!keys||keys.includes(p.data.from+'|'+p.data.to))).sort((a,b)=>String(b.data.to).localeCompare(String(a.data.to))||String(b.data.from).localeCompare(String(a.data.from))||ord.indexOf(pFo(a.data))-ord.indexOf(pFo(b.data)));
  if(!R.length)return toast('Nothing to export.');
  toast('Preparing Excel…');
@@ -10430,7 +10489,7 @@ window.psmExportRun=async keys=>{
  S1.freeze=4;S1.fit=1;S1.orient='portrait';
  const b=xgBuild([S1].concat(DL.map(x=>x.sh))),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Payslip-Monitoring-'+(keys?(keys.length===1?keys[0].replace('|','_to_'):keys.length+'-cutoffs'):'All')+'-'+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
  try{logAct('Exported payslip monitoring (Excel, '+(keys?keys.length+' cutoff(s)':'all')+')','Payslip Monitoring',R.length+' payroll(s)')}catch(e){}toast('Exported ✔')};
-window.psmPrint=()=>{
+window.psmPrint=()=>{if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can print.');
  const ord=pFolders(),cl=(()=>{const[f,t]=String(PS.sc).split('|');return f&&t?lb(f,t):''})();
  const R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length,names:L.map(x=>({n:x.n,r:!!ret[x.id]}))}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
  if(!R.length)return toast('Nothing to print for this cutoff.');
