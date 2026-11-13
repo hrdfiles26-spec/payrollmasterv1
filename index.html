@@ -4170,12 +4170,12 @@ async function saveP(){if(!PP.from||!PP.to||PP.from>PP.to)return alert('Please s
   if(!confirm('⚠ NEGATIVE Net Pay ('+bad.length+'):\n\n'+bad.slice(0,25).map(x=>'• '+x.s.name+' — Net Pay '+fm(x.v.net)+' (Total Amt. '+fm(x.v.tot)+', Vale '+fm(x.v.vale)+', COOP '+fm(x.v.coop)+')').join('\n')+(bad.length>25?'\n• and '+(bad.length-25)+' more':'')+'\n\nYou can still save this payroll, but please check the Vale, deductions or COOP of the employee(s) listed above.\n\nPress OK to save anyway, or Cancel to go back and fix it.'))return}}
  {const nt=pNotices(),na=pAtmMiss(),nat=na.length?'\n\n\u26A0 NO ATM ACCOUNT yet ('+na.length+'):\n'+na.slice(0,25).map(x=>'\u2022 '+x.name).join('\n')+(na.length>25?'\n\u2022 and '+(na.length-25)+' more':'')+'\n\nSet them in \ud83c\udfe7 ATM Accounts first, or press OK to save anyway.':'';if(!confirm((PP.runId?'Save your changes to this payroll?':'Save this payroll? It will be added to Payroll History.')+'\n\nCutoff: '+pLab()+(nt?'\n\n⚠ Please note:\n'+nt:'')+nat))return}
  STF.filter(s=>s.dept===PF).forEach(s=>{const r=pRow(s),a=pAcctV(s);if(r.acct==null&&a)r.acct=a});
- const body={label:(PP.title||PF)+' — '+pLab(),data:{from:PP.from,to:PP.to,cm:pCmVal()||null,title:PP.title,prep:PP.prep,chk:PP.chk,folder:PF,lay:2,m:PP.m,gpd:PP.gpd||null,gpe:PP.gpe||null,hc:PP.hc,ord:PP.ord,xc:PP.xc,t:PP.t,det:PP.det,rows:PP.rows,tmd:PP.tmd||{},sm:smGet()||null,smx:PP.smx||null,cs:PP.cs||null,xb:PP.xb||null,rates:Object.fromEntries(STF.filter(s=>s.dept===PF).map(s=>[s.id,pRate(s)])),open:PP.open||{},mail:PP.mail||{},sig:(((PH||[]).find(q=>q.id===PP.runId)||{}).data||{}).sig||null,...((((PH||[]).find(q=>q.id===PP.runId)||{}).data||{}).ok?{ok:(((PH||[]).find(q=>q.id===PP.runId)||{}).data||{}).ok}:{}),sy:(((PH||[]).find(q=>q.id===PP.runId)||{}).data||{}).sy||null,bals:Object.fromEntries(STF.filter(s=>s.dept===PF).map(s=>{const v=pVals(s,1),o0=(PP.open&&PP.open[s.id])||{},h0=pHeld(s);return[s.id,{vale:h0?pn(o0.vale):v.bal,coop:h0?pn(o0.coop):v.cbal,...(v.sbal!=null?{sloan:v.sbal}:{}),...(v.hbal!=null?{hloan:v.hbal}:{})}]}))}};
+ const body={label:(PP.title||PF)+' — '+pLab(),data:{from:PP.from,to:PP.to,cm:pCmVal()||null,title:PP.title,prep:PP.prep,chk:PP.chk,folder:PF,lay:2,m:PP.m,gpd:PP.gpd||null,gpe:PP.gpe||null,slt:(PP.sltD===PF&&PP.slt)||null,hc:PP.hc,ord:PP.ord,xc:PP.xc,t:PP.t,det:PP.det,rows:PP.rows,tmd:PP.tmd||{},sm:smGet()||null,smx:PP.smx||null,cs:PP.cs||null,xb:PP.xb||null,rates:Object.fromEntries(STF.filter(s=>s.dept===PF).map(s=>[s.id,pRate(s)])),open:PP.open||{},mail:PP.mail||{},sig:(((PH||[]).find(q=>q.id===PP.runId)||{}).data||{}).sig||null,...((((PH||[]).find(q=>q.id===PP.runId)||{}).data||{}).ok?{ok:(((PH||[]).find(q=>q.id===PP.runId)||{}).data||{}).ok}:{}),sy:(((PH||[]).find(q=>q.id===PP.runId)||{}).data||{}).sy||null,bals:Object.fromEntries(STF.filter(s=>s.dept===PF).map(s=>{const v=pVals(s,1),o0=(PP.open&&PP.open[s.id])||{},h0=pHeld(s);return[s.id,{vale:h0?pn(o0.vale):v.bal,coop:h0?pn(o0.coop):v.cbal,...(v.sbal!=null?{sloan:v.sbal}:{}),...(v.hbal!=null?{hloan:v.hbal}:{})}]}))}};
  try{if(PP.runId)await api('/rest/v1/hrd_payroll?id=eq.'+PP.runId,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(body)});
   else{const j=await api('/rest/v1/hrd_payroll',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(body)});PP.runId=j&&j[0]&&j[0].id}
   await loadH(1);if(!PP.runId){const m=(PH||[]).find(p=>p.label===body.label&&p.data&&p.data.from===PP.from);PP.runId=m&&m.id}
   PP.dirty=false;PU=false;pDraftClear();logAct('Saved payroll run','Payroll',body.label);toast('Saved ✔ Added to Payroll History · locked');drawP()}catch(x){alert('Could not save: '+x.message)}}
-function openP(i){const d=PH[i].data||{};if(!d.rows||!d.rates)return alert('This saved run uses an old format and cannot be opened.');PF=pFo(d);PU=false;PP={...PP,from:d.from,to:d.to,cm:d.cm||null,fdL:d.fd||7,title:d.title,prep:d.prep,chk:d.chk,rows:d.rows,tmd:d.tmd||{},sm:d.sm||smDefault(PF),smx:d.smx||null,cs:d.cs||null,xb:d.xb||null,xbk:null,lk:d.rates,open:d.open||{},mail:d.mail||{},xc:JSON.parse(JSON.stringify(d.xc||[])),hc:d.hc||[],ord:d.ord||null,m:d.m||(PCFG[PF]||{}).m||'r',gpd:d.gpd||null,gpe:d.gpe||null,t:d.t||{},det:d.det||[],dirty:false,init:1,runId:PH[i].id};try{pElbFix(PF,PP)}catch(e){}PV='form';drawP();scrollTo(0,0)}
+function openP(i){const d=PH[i].data||{};if(!d.rows||!d.rates)return alert('This saved run uses an old format and cannot be opened.');PF=pFo(d);PU=false;PP={...PP,from:d.from,to:d.to,cm:d.cm||null,fdL:d.fd||7,title:d.title,prep:d.prep,chk:d.chk,rows:d.rows,tmd:d.tmd||{},sm:d.sm||smDefault(PF),smx:d.smx||null,cs:d.cs||null,xb:d.xb||null,xbk:null,lk:d.rates,open:d.open||{},mail:d.mail||{},xc:JSON.parse(JSON.stringify(d.xc||[])),hc:d.hc||[],ord:d.ord||null,m:d.m||(PCFG[PF]||{}).m||'r',gpd:d.gpd||null,gpe:d.gpe||null,slt:d.slt||null,sltD:PF,t:d.t||{},det:d.det||[],dirty:false,init:1,runId:PH[i].id};try{pElbFix(PF,PP)}catch(e){}PV='form';drawP();scrollTo(0,0)}
 async function delP(i){if(!confirm('Are you sure you want to delete this saved payroll run? This cannot be undone.'))return;try{const lbl=PH[i].label;await api('/rest/v1/hrd_payroll?id=eq.'+PH[i].id,{method:'DELETE'});logAct('Deleted payroll run','Payroll',lbl);loadH()}catch(x){alert(x.message)}}
 let PPZ='13in 8.5in',PPZU=false;
 const PZO=[['13in 8.5in','Long bond 8.5 × 13 (landscape)'],['14in 8.5in','Legal 8.5 × 14 (landscape)'],['8.5in 13in','Long bond 8.5 × 13 (portrait)'],['8.5in 14in','Legal 8.5 × 14 (portrait)']];
@@ -4415,11 +4415,13 @@ function pSlipPrint(){pSlipPage();const t=document.title;document.title='Payslip
 addEventListener('beforeprint',()=>{if(PG==='pay'&&PV==='slip')pSlipPage()});
 function pSlipRef(dn){const ks=Array.from({length:10},(_,i)=>'k'+i),v={pay:1,net:1,a0:1,a1:1};ks.forEach(k=>v[k]=1);
  return pSlipHtml({s:{name:'MMMMMMMMMM, MMMMMMMMM MMMMMM'},g:'MAINTENANCE',v,r:{rem:'Remarks'},lab:k=>k==='k0'?'Vale':'HDMF Loan',adds:['a0','a1'],lss:ks,gross:1,td:1,bal:k=>k==='k0'?1:0,rd:[1,1],dn:dn?'CB-500 500.00 · XXXXXXXX 500.00 · XXXXXXXX 500.00':''})}
-function pFitSlips(){const L=[...document.querySelectorAll('.slip')];if(!L.length)return;let m=0;const MG=isMg(PF);
+function pFitSlips(){const L=[...document.querySelectorAll('.slip')];if(!L.length)return;const MG=isMg(PF),gp={cv:0,rg:0},kd=e=>e.classList.contains('cv')?'cv':'rg';
  const fit=e=>{e.style.fontSize='';let px=parseFloat(getComputedStyle(e).fontSize);while((e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1)&&px>5){px-=.3;e.style.fontSize=px+'px'}return px};
- L.forEach(e=>{const px=fit(e);m=m?Math.min(m,px):px});
- if(!MG){const e0=L[0],keep=e0.innerHTML;e0.innerHTML=pSlipRef(!!document.querySelector('.slip .sl-dn')).replace(/^<div class="slip">/,'').replace(/<\/div>$/,'');const pr=fit(e0);e0.innerHTML=keep;
- m=Math.min(m,pr)}L.forEach(e=>e.style.fontSize=m+'px')}
+ L.forEach(e=>{const px=fit(e),k=kd(e);gp[k]=gp[k]?Math.min(gp[k],px):px});
+ const e0=L.find(e=>!e.classList.contains('cv'));
+ if(!MG&&e0){const keep=e0.innerHTML;e0.innerHTML=pSlipRef(!!document.querySelector('.slip .sl-dn')).replace(/^<div class="slip">/,'').replace(/<\/div>$/,'');const pr=fit(e0);e0.innerHTML=keep;
+  gp.rg=Math.min(gp.rg,pr)}
+ L.forEach(e=>e.style.fontSize=gp[kd(e)]+'px')}
 addEventListener('beforeprint',()=>{if(PG==='pay'&&PV==='slip')try{pFitSlips()}catch(x){}});
 function pSlipList(){const out=[];pGroups().forEach(([g,L])=>L.forEach(s=>{if(pHeld(s))return;const v=pVals(s);if(PSK&&!v.pay&&!v.tot&&!v.net&&!v.adj)return;out.push({s,g,v})}));return out}
 function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.includes(k)||(/^BROILER$/i.test(PF)&&k===(((PP.xc||[]).find(c=>c&&c.id==='e_elbal'))||{}).a&&pn(r.e_elbal)>0),xc=PP.xc||[],
@@ -4430,7 +4432,8 @@ function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.inclu
  gross=r2(v.pay+adds.reduce((a,k)=>a+(v[k]||0),0)),td=r2(gross-v.net),eb=((xc.find(c=>c&&c.id==='e_elbal'))||{}).a||'e_elec',bal=k=>k==='vale'?v.bal:k==='coop'?v.cbal:k===eb&&xc.some(c=>c.id==='e_elbal')?pn(r.e_elbal):0,
  rd=PP.m==='r'&&vis('days')?[pRate(s),dy3(pn(r.days))]:null,dn=v.ded>0?((()=>{try{return String(dnTxt(s)||'').trim()}catch(e){return''}})()||dedNote(s,v.ded)):'';
  return{s,g,v,r,lab,adds,lss,gross,td,bal,eb,rd,dn}}
-function pSlip(x){return pSlipHtml(pSlipModel(x))}
+function pSltOne(id){const m=pSE(),cur=m[id]||pSlt();pSltSet(id,cur==='cv'?'reg':'cv');const y=scrollY;drawSlips();scrollTo(0,y)}
+function pSlip(x){const cv=pIsCvX(x),h=cv?pCvHtml(pSlipModel(x)):pSlipHtml(pSlipModel(x)),id=esc(x.s.id),b=`<button type="button" class="sl-ty no-print" title="Switch this employee between Regular payslip and Cash voucher" onclick="pSltOne('${id}')">⇄ ${cv?'Regular':'Voucher'}</button>`;return h.replace(/^(<div class="slip[^"]*")>/,'$1>'+b)}
 function pSlipHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,eb,rd:rdv,dn}=M,n=Math.ceil(lss.length/2)||1,
  anyBal=lss.some(k=>bal(k)),dnm=dn?String(dn).split(' · ').map(q=>q.replace(/\s+-?[\d,]*\.?\d+$/,'').trim()).filter(q=>q&&!/^Other$/i.test(q)):[],
  ll=k=>esc(lab(k))+(k==='ded'&&dnm.length===1?` <small class="sl-dl">(${esc(dnm[0])})</small>`:''),rd=rdv?`<small>${pf(rdv[0])} × ${rdv[1]}</small>`:'';
@@ -4442,6 +4445,95 @@ ${adds.length?`<div class="sl-r"><span>Gross Salary${rd}</span><em>${pf(v.pay)}<
 <div class="sl-r td"><span>Total Deductions :</span><b>${pf(td)}</b></div>
 <div class="sl-net"><span>Net Pay</span><b>${pf(v.net)}</b></div>${r.rem?`<div class="sl-rm">Remarks: ${esc(r.rem)}</div>`:''}${dn&&dnm.length!==1?`<div class="sl-rm sl-dn">Deduction details: ${esc(dn)}</div>`:''}
 <div class="sl-sg">Signature:</div></div>`}
+
+// ===== CASH VOUCHER: alternative layout of the payslip (default for EXTRA PAYROLL; any department can switch) =====
+const pSltKey=()=>'hrd_slt_'+String(PF).toUpperCase().replace(/[^A-Z0-9]+/g,'_');
+function pSlt(){if(PP&&PP.slt&&PP.sltD===PF)return PP.slt;let v=null;try{v=localStorage.getItem(pSltKey())}catch(e){}if(v==='cv'||v==='reg')return v;return String(PF).toUpperCase()==='EXTRA PAYROLL'?'cv':'reg'}
+function pIsCv(){try{return !isMg(PF)&&pSlt()==='cv'}catch(e){return false}}
+/* per-employee override: each payslip can be a Regular payslip or a Cash voucher on its own (saved per department) */
+let PSE={k:'',m:{}};
+function pSE(){const k=pSltKey()+'_E';if(PSE.k!==k){PSE={k:k,m:{}};try{PSE.m=JSON.parse(localStorage.getItem(k)||'{}')||{}}catch(e){PSE.m={}}}return PSE.m}
+function pSEsave(){try{if(Object.keys(PSE.m).length)localStorage.setItem(PSE.k,JSON.stringify(PSE.m));else localStorage.removeItem(PSE.k)}catch(e){}}
+function pTyOf(x){const o=pSE()[x&&x.s&&x.s.id];return o==='cv'||o==='reg'?o:pSlt()}
+function pIsCvX(x){try{return !isMg(PF)&&pTyOf(x)==='cv'}catch(e){return false}}
+function pSltSet(id,v){const m=pSE();if(v!=='cv'&&v!=='reg')return;if(v===pSlt())delete m[id];else m[id]=v;pSEsave();try{logAct('Changed payslip type (individual)','Payroll',PF+' · '+(v==='cv'?'Cash voucher':'Regular payslip'))}catch(e){}}
+const pSEcount=()=>Object.keys(pSE()).length;
+
+/* panel: choose Regular payslip or Cash voucher for each employee */
+let PSTQ='';
+function pTyOpen(){PSTQ='';let o=document.getElementById('pstm');if(o)o.remove();o=document.createElement('div');o.id='pstm';o.className='no-print';
+ o.innerHTML='<div class="pst-box"><div class="pst-h"><b>Payslip type per employee</b><span id="psts"></span><button type="button" class="btn o" onclick="pTyClose()">Done</button></div><div class="pst-t"><input id="pstq" class="fi" type="search" autocomplete="off" placeholder="🔍 Search name…" oninput="PSTQ=this.value;pTyDraw()" style="margin:0;flex:1"><button type="button" class="btn o" onclick="pSetSlt(\'reg\');pTyDraw()">All Regular</button><button type="button" class="btn o" onclick="pSetSlt(\'cv\');pTyDraw()">All Voucher</button></div><div id="pstb" class="pst-b"></div></div>';
+ document.body.appendChild(o);pTyDraw()}
+function pTyDraw(){const b=document.getElementById('pstb');if(!b)return;const all=pSlipList(),q=pSqN(PSTQ).split(' ').filter(Boolean),L=all.filter(x=>{const n=pSqN(x.s.name);return q.every(w=>n.includes(w))}),nc=all.filter(pIsCvX).length;
+ document.getElementById('psts').textContent=nc+' voucher · '+(all.length-nc)+' regular';
+ b.innerHTML=L.map(x=>{const cv=pIsCvX(x),id=esc(x.s.id);return`<div class="pst-r"><span class="pst-n">${esc(x.s.name)}</span><span class="pst-g"><button type="button" class="${cv?'':'on'}" onclick="pTyPick('${id}','reg')">Regular</button><button type="button" class="${cv?'on':''}" onclick="pTyPick('${id}','cv')">Voucher</button></span></div>`}).join('')||'<p style="padding:14px;margin:0">No match.</p>'}
+function pTyPick(id,v){pSltSet(id,v);pTyDraw()}
+function pTyClose(){const o=document.getElementById('pstm');if(o)o.remove();drawSlips()}
+/* mixed pages: regular slips (66x78) and cash vouchers (100x72) share the same page in their original order, rows wrap and move down so nothing overlaps or is cut */
+function pFlowPages(L){const mm=v=>{const n=parseFloat(v);return/in$/.test(v)?n*25.4:n},z=String(PSZ).split('|'),Wa=mm(z[0])-2*SLPD,Ha=mm(z[1])-.6-2*SLPD,pages=[];let pg=[],rowW=0,rowH=0,usedH=0,rowN=0;
+ L.forEach(x=>{const cv=pIsCvX(x),w=cv?CVW:SLW,h=cv?CVH:SLH;let nw=rowN?rowW+SLGP+w:w;
+  if(rowN&&nw>Wa+.01){usedH+=rowH+SLGP;rowW=0;rowH=0;rowN=0;nw=w}
+  if(pg.length&&usedH+Math.max(rowH,h)>Ha+.01){pages.push(pg);pg=[];rowW=0;rowH=0;rowN=0;usedH=0;nw=w}
+  pg.push(x);rowW=nw;rowH=Math.max(rowH,h);rowN++});
+ if(pg.length)pages.push(pg);return pages}
+function pSetSlt(v){if(v!=='cv'&&v!=='reg')return;PP.slt=v;PP.sltD=PF;pSE();PSE.m={};pSEsave();try{localStorage.setItem(pSltKey(),v)}catch(e){}try{logAct('Changed payslip type','Payroll',PF+' · '+(v==='cv'?'Cash voucher':'Regular payslip'))}catch(e){}drawSlips()}
+/* label in the blue box: EXTRA LAYERS -> Layers, EXTRA HAULING : CINCO -> Hauling/Cinco */
+function pCvTag(g){const s=String(g||'').replace(/^\s*extra\s*[-:]?\s*/i,'').trim(),i=s.indexOf(':'),A=i<0?s:s.slice(0,i),B=i<0?'':s.slice(i+1),tc=w=>w.split(/\s+/).map(x=>/\d/.test(x)||x.length<=3?x:x.charAt(0).toUpperCase()+x.slice(1).toLowerCase()).join(' ');return[tc(A.trim()),tc(B.trim())].filter(Boolean).join('/')||'Extra'}
+function pCvHtml(M){const {s,g,v,r}=M,rm=r&&r.rem?`<div class="cv-rm">Remarks: ${esc(r.rem)}</div>`:'';
+ return`<div class="slip cv"><div class="cv-t">CASH VOUCHER</div><div class="cv-co"><span class="cv-pr">${esc(pPeriod())}</span><b class="cv-tag">${esc(pCvTag(g))}</b></div><div class="cv-nm"><span>Name</span><b>${esc(s.name)}</b></div>
+<div class="cv-h"><span>PARTICULARS</span><span>AMOUNT</span></div><div class="cv-r"><span>Salary</span><b>${pf(v.net)}</b></div>${rm}
+<div class="cv-sg"><div>Approved by <i></i></div><div class="rc">Received by <i></i></div></div></div>`}
+/* ----- generic multi-sheet .xlsx writer (fonts, fills, borders, merges, filters, print setup) ----- */
+function xgSheet(name){const S={name:name,cells:new Map(),merges:[],hts:{},cols:[],breaks:[],freeze:0,af:'',fit:0,grid:0,paper:9,scale:100,orient:'portrait'};
+ S.put=(r,c1,c2,v,st)=>{const k=r+','+c1;let o=S.cells.get(k);if(!o){o={st:{}};S.cells.set(k,o)}if(v!==undefined&&v!==null&&v!=='')o.v=v;Object.assign(o.st,st||{});for(let c=c1+1;c<=c2;c++){const k2=r+','+c;let o2=S.cells.get(k2);if(!o2){o2={st:{}};S.cells.set(k2,o2)}Object.assign(o2.st,st||{})}if(c2>c1)S.merges.push(pColL(c1)+r+':'+pColL(c2)+r)};
+ S.st=(r,c,st)=>{const k=r+','+c;let o=S.cells.get(k);if(!o){o={st:{}};S.cells.set(k,o)}Object.assign(o.st,st)};
+ return S}
+function xgBuild(sheets){
+ const fonts=['Calibri|11|0|FF000000|0|0'],bords=['|||'],fills=['none','gray125'],xfs=['0|0|0|0|general|center|0'];
+ const idx=(a,k)=>{let i=a.indexOf(k);if(i<0){i=a.length;a.push(k)}return i};
+ const xi=o=>{o=o||{};return idx(xfs,[idx(fonts,[o.fn||'Calibri',o.sz||11,o.b?1:0,o.col||'FF000000',o.u?1:0,o.i?1:0].join('|')),idx(bords,[o.bl||'',o.br||'',o.bt||'',o.bb||''].join('|')),o.fill?idx(fills,o.fill):0,o.nf||0,o.h||'general',o.v||'center',o.wrap?1:0].join('|'))};
+ const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+ const sx=sheets.map(S=>{const rows=new Map();S.cells.forEach((o,k)=>{const a=k.split(',').map(Number);if(!rows.has(a[0]))rows.set(a[0],[]);rows.get(a[0]).push([a[1],o])});Object.keys(S.hts).forEach(r=>{if(!rows.has(+r))rows.set(+r,[])});
+  const rowsX=[...rows.keys()].sort((a,b)=>a-b).map(r=>{const cs=rows.get(r).sort((a,b)=>a[0]-b[0]).map(([c,o])=>{const ref=pColL(c)+r,st=xi(o.st);return o.v===undefined?`<c r="${ref}" s="${st}"/>`:typeof o.v==='number'?`<c r="${ref}" s="${st}"><v>${isFinite(o.v)?o.v:0}</v></c>`:`<c r="${ref}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${esc(o.v)}</t></is></c>`}).join('');return`<row r="${r}"${S.hts[r]?` ht="${S.hts[r]}" customHeight="1"`:''}>${cs}</row>`}).join('');
+  const cols=S.cols.length?`<cols>${S.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>`:'';
+  return H+`<worksheet xmlns="${NS}">${S.fit?'<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>':''}<sheetViews><sheetView showGridLines="${S.grid?1:0}" workbookViewId="0">${S.freeze?`<pane ySplit="${S.freeze}" topLeftCell="A${S.freeze+1}" activePane="bottomLeft" state="frozen"/>`:''}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>${cols}<sheetData>${rowsX}</sheetData>${S.af?`<autoFilter ref="${S.af}"/>`:''}${S.merges.length?`<mergeCells count="${S.merges.length}">${S.merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}<printOptions horizontalCentered="1"/><pageMargins left="0.2" right="0.2" top="0.25" bottom="0.25" header="0" footer="0"/><pageSetup paperSize="${S.paper}" ${S.fit?'fitToWidth="1" fitToHeight="0"':'scale="'+S.scale+'"'} orientation="${S.orient}"/>${S.breaks.length?`<rowBreaks count="${S.breaks.length}" manualBreakCount="${S.breaks.length}">${S.breaks.map(b=>`<brk id="${b}" max="16383" man="1"/>`).join('')}</rowBreaks>`:''}</worksheet>`});
+ const fontX=fonts.map(k=>{const a=k.split('|');return`<font>${+a[2]?'<b/>':''}${+a[5]?'<i/>':''}${+a[4]?'<u/>':''}<sz val="${a[1]}"/><color rgb="${a[3]}"/><name val="${a[0]}"/></font>`}).join('');
+ const fillX=fills.map((f,i)=>i<2?(i?'<fill><patternFill patternType="gray125"/></fill>':'<fill><patternFill patternType="none"/></fill>'):`<fill><patternFill patternType="solid"><fgColor rgb="${f}"/><bgColor indexed="64"/></patternFill></fill>`).join('');
+ const side=(n,t)=>{if(!t)return`<${n}/>`;const q=String(t).split(":");return`<${n} style="${q[0]}"><color rgb="${q[1]||"FF000000"}"/></${n}>`};
+ const bordX=bords.map(k=>{const a=k.split('|');return`<border>${side('left',a[0])}${side('right',a[1])}${side('top',a[2])}${side('bottom',a[3])}<diagonal/></border>`}).join('');
+ const NF={0:0,1:164,2:1};
+ const xfX=xfs.map(k=>{const a=k.split('|');return`<xf numFmtId="${NF[a[3]]||0}" fontId="${a[0]}" fillId="${a[2]}" borderId="${a[1]}" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${a[4]}" vertical="${a[5]}"${+a[6]?' wrapText="1"':''}/></xf>`}).join('');
+ const styles=H+`<styleSheet xmlns="${NS}"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00;-#,##0.00;&quot;-&quot;"/></numFmts><fonts count="${fonts.length}">${fontX}</fonts><fills count="${fills.length}">${fillX}</fills><borders count="${bords.length}">${bordX}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfX}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+ const used={},nm=S=>{let b=String(S.name||'Sheet').replace(/[\[\]:*?\/\\]/g,' ').trim().slice(0,31)||'Sheet',n=b,k=2;while(used[n.toLowerCase()]){n=b.slice(0,28)+' '+k++}used[n.toLowerCase()]=1;return n};
+ const names=sheets.map(nm),RT='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+ return pZip([{name:'[Content_Types].xml',data:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+sheets.map((S,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')+'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
+  {name:'_rels/.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+RT+'/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
+  {name:'xl/workbook.xml',data:H+'<workbook xmlns="'+NS+'" xmlns:r="'+RT+'"><sheets>'+names.map((n,i)=>'<sheet name="'+esc(n)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join('')+'</sheets></workbook>'},
+  {name:'xl/_rels/workbook.xml.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((S,i)=>'<Relationship Id="rId'+(i+1)+'" Type="'+RT+'/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+'<Relationship Id="rId'+(sheets.length+1)+'" Type="'+RT+'/styles" Target="styles.xml"/></Relationships>'},
+  {name:'xl/styles.xml',data:styles}].concat(sx.map((x,i)=>({name:'xl/worksheets/sheet'+(i+1)+'.xml',data:x}))))}
+/* cash vouchers -> Excel: 2 across, same look as the printed voucher */
+function pCvXlsx(LL){const L=LL||pSlipList();if(!L.length)return null;const M=L.map(pSlipModel),per=pPeriod().toUpperCase(),S=xgSheet('Cash Vouchers');
+ const BW=[14,10,10,10,10],GW=2,H=[32,22,10,22,8,20,26,10,10,8,26,26,6],R=H.length,GAP=8,bandH=H.reduce((a,b)=>a+b,0),z=PXP[PSZ]||PXP['8.5in|11in'],bands=z[2]>=13?4:3,pageRows=bands*(R+1),perPage=bands*2;
+ S.cols=[...BW,GW,...BW];S.paper=z[0];S.fit=1;
+ const px=w=>Math.round(w*7+5),Wpt=(BW.reduce((a,w)=>a+px(w),0)*2+px(GW))*.75,Hpt=bands*(bandH+GAP);
+ S.scale=Math.max(10,Math.min(100,Math.floor(100*Math.min((z[1]-.4)*72/Wpt,(z[2]-.5)*72/Hpt))));
+ M.forEach((m,ix)=>{const pg=Math.floor(ix/perPage),k=ix%perPage,band=Math.floor(k/2),side=k%2,r0=pg*pageRows+band*(R+1)+1,c0=1+side*6,c4=c0+4,v=m.v,T='thin';
+  H.forEach((h,i)=>{S.hts[r0+i]=h});
+  const NAVY='FF12305C',GOLD='FFB8923A',GRY='FF66738A';
+  S.put(r0,c0,c4,'CASH VOUCHER',{fn:'Georgia',sz:18,b:1,h:'center',col:NAVY,bb:'thin:'+GOLD});
+  S.put(r0+1,c0,c0+2,per,{fn:'Calibri',sz:per.length>28?9:per.length>24?10:11,b:1,col:'FF1E4F94',h:'left'});
+  S.put(r0+1,c0+3,c4,pCvTag(m.g).toUpperCase(),{fn:'Calibri',sz:8,b:1,col:NAVY,h:'center',fill:'FFF6EFDC',bt:'thin:'+GOLD,bb:'thin:'+GOLD,bl:'thin:'+GOLD,br:'thin:'+GOLD});
+  S.put(r0+3,c0,c0,'NAME',{fn:'Calibri',sz:8,b:1,col:GRY});S.put(r0+3,c0+1,c4,m.s.name,{fn:'Georgia',sz:(()=>{const n=String(m.s.name||'').length;let z=12;while(z>6&&n*z*.7>218)z-=.5;return z})(),b:1,col:NAVY,bb:'thin:FFD3D9E6'});
+  S.put(r0+5,c0,c0+2,'PARTICULARS',{fn:'Calibri',sz:9,b:1,h:'center',col:'FFFFFFFF',fill:NAVY});S.put(r0+5,c0+3,c4,'AMOUNT',{fn:'Calibri',sz:9,b:1,h:'center',col:'FFFFFFFF',fill:NAVY});
+  S.put(r0+6,c0,c0+2,'Salary',{fn:'Georgia',sz:12,b:1,h:'center',col:'FF2F3B52',bb:'thin:FFE3E7EF'});S.put(r0+6,c0+3,c4,v.net,{fn:'Georgia',sz:14,b:1,h:'center',nf:1,col:NAVY,bb:'thin:FFE3E7EF'});
+  if(false){S.put(r0+7,c0,c0+2,'Less : Deductions',{fn:'Georgia',sz:11,b:1,h:'center',col:'FFC00000'});S.put(r0+7,c0+3,c4,m.td,{fn:'Georgia',sz:11,b:1,h:'center',nf:1,col:'FFC00000'});
+   S.put(r0+8,c0,c0+2,'Net Pay',{fn:'Georgia',sz:12,b:1,h:'center',bt:T});S.put(r0+8,c0+3,c4,v.net,{fn:'Georgia',sz:12,b:1,h:'center',nf:1,bt:T})}
+  S.put(r0+10,c0,c0+1,'APPROVED BY',{fn:'Calibri',sz:8,b:1,col:GRY,v:'bottom'});S.put(r0+10,c0+2,c0+3,'',{bb:'thin:FF8A94A8'});
+  S.put(r0+11,c0+1,c0+2,'RECEIVED BY',{fn:'Calibri',sz:8,b:1,col:GRY,h:'right',v:'bottom'});S.put(r0+11,c0+3,c4,'',{bb:'thin:FF8A94A8'});
+  for(let rr=r0;rr<r0+R;rr++)for(let c=c0;c<=c4;c++){const o={};if(c===c0)o.bl='medium:FF12305C';if(c===c4)o.br='medium:FF12305C';if(rr===r0)o.bt='medium:FF12305C';if(rr===r0+R-1)o.bb='medium:FF12305C';S.st(rr,c,o)}});
+ const pages=Math.ceil(M.length/perPage);for(let pg=1;pg<pages;pg++)S.breaks.push(pg*pageRows);
+ for(let pg=0;pg<pages;pg++)for(let b=0;b<bands;b++)S.hts[pg*pageRows+b*(R+1)+R+1]=GAP;
+ return xgBuild([S])}
 // ----- Export the payslips to Excel (.xlsx): same 3 x 4 layout per page as the preview -----
 /* Excel refuses files that contain control characters or NaN/Infinity numbers; clean them so every Excel export still opens */
 function pXmlClean(t){return String(t).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g,'').replace(/<v>\s*(NaN|-?Infinity|undefined|null)\s*<\/v>/g,'<v>0</v>')}
@@ -4454,7 +4546,7 @@ function pZip(files){const enc=new TextEncoder(),u16=n=>[n&255,(n>>8)&255],u32=n
  return new Blob([...parts,...cp,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
 const pColL=n=>{let t='';while(n>0){const m=(n-1)%26;t=String.fromCharCode(65+m)+t;n=(n-m-1)/26|0}return t};
 const PXP={'8.5in|11in':[1,8.5,11],'210mm|297mm':[9,8.27,11.69],'8.5in|13in':[14,8.5,13],'8.5in|14in':[5,8.5,14]};
-function pXlsxBuild(X){const L=X?X.M:pSlipList();if(!L.length)return null;const M=X?X.M:L.map(pSlipModel),per=pPeriod();
+function pXlsxBuild(X,LL){const L=X?X.M:(LL||pSlipList());if(!L.length)return null;const M=X?X.M:L.map(pSlipModel),per=pPeriod();
  const A=Math.max(0,...M.map(m=>m.adds.length)),N=Math.max(5,...M.map(m=>Math.ceil(m.lss.length/2))),anyBal=M.some(m=>m.lss.some(k=>m.bal(k))),anyRem=M.some(m=>m.r.rem),anyDn=M.some(m=>m.dn);
  const plan=[['co',19],['pr',13],['nm',18],['dep',15],...(A?[['g1',15],...Array.from({length:A},()=>['ad',15]),['g2',16]]:[['g2',16]]),...(M.some(m=>m.cm)?[['cm',11]]:[]),['ls',15],...Array.from({length:N},()=>['dd',14.5]),['td',15],['net',24],...(anyRem?[['rm',13]]:[]),...(anyDn?[['dn',13]]:[]),['sg',32]];
  const R=plan.length,GAP=6,slipH=plan.reduce((a,p)=>a+p[1],0),cw=[10.7,9.3,10.7,9.3,9.3],SP=1.3;
@@ -4495,7 +4587,7 @@ function pXlsxBuild(X){const L=X?X.M:pSlipList();if(!L.length)return null;const 
    cs.push(o.v===undefined?`<c r="${ref}" s="${st}"/>`:typeof o.v==='number'?`<c r="${ref}" s="${st}"><v>${o.v}</v></c>`:`<c r="${ref}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${esc(o.v)}</t></is></c>`)}
   if(cs.length||hts[r])rowsX.push(`<row r="${r}"${hts[r]?` ht="${hts[r]}" customHeight="1"`:''}>${cs.join('')}</row>`)}
   const fontX=fonts.map(k=>{const [n,z,b,c]=k.split('|');return`<font>${+b?'<b/>':''}<sz val="${z}"/><color rgb="${c}"/><name val="${n}"/></font>`}).join('');
- const side=(n,t)=>t?`<${n} style="${t}"><color rgb="FF000000"/></${n}>`:`<${n}/>`;
+ const side=(n,t)=>{if(!t)return`<${n}/>`;const q=String(t).split(":");return`<${n} style="${q[0]}"><color rgb="${q[1]||"FF000000"}"/></${n}>`};
  const bordX=bords.map(k=>{const [l,r,t,b]=k.split('|');return`<border>${side('left',l)}${side('right',r)}${side('top',t)}${side('bottom',b)}<diagonal/></border>`}).join('');
  const xfX=xfs.map(k=>{const [f,b,n,h,v]=k.split('|');return`<xf numFmtId="${n}" fontId="${f}" fillId="0" borderId="${b}" xfId="0" applyNumberFormat="1" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${h}" vertical="${v}"/></xf>`}).join('');
  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00;-#,##0.00;&quot;-&quot;"/></numFmts><fonts count="${fonts.length}">${fontX}</fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="${bords.length}">${bordX}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfX}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
@@ -4511,23 +4603,25 @@ function pXlsxBuild(X){const L=X?X.M:pSlipList();if(!L.length)return null;const 
   {name:'xl/workbook.xml',data:H+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Payslips" sheetId="1" r:id="rId1"/></sheets></workbook>'},
   {name:'xl/_rels/workbook.xml.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'},
   {name:'xl/styles.xml',data:styles},{name:'xl/worksheets/sheet1.xml',data:sheet}])}
-function pSlipXlsx(){const b=pXlsxBuild();if(!b)return toast('No payslips to export.');
- const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='payslips_'+String(PF).replace(/[^A-Za-z0-9]+/g,'_')+'_'+PP.from+'_to_'+PP.to+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
- logAct('Exported payslips (Excel)','Payroll',PF+' · '+pPeriod());toast('Exported ✔')}
+function pSlipXlsx(){const all=pSlipList(),cv=all.filter(pIsCvX),rg=all.filter(x=>!pIsCvX(x)),jobs=[];
+ if(rg.length)jobs.push(['payslips_',pXlsxBuild(null,rg)]);if(cv.length)jobs.push(['cash_vouchers_',pCvXlsx(cv)]);
+ if(!jobs.length)return toast('No payslips to export.');
+ jobs.forEach(([pre,b],i)=>setTimeout(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=pre+String(PF).replace(/[^A-Za-z0-9]+/g,'_')+'_'+PP.from+'_to_'+PP.to+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)},i*700));
+ logAct('Exported payslips (Excel)','Payroll',PF+' · '+pPeriod());toast(jobs.length>1?'Exported 2 files ✔':'Exported ✔')}
 let PSQ='';const pSqN=t=>String(t||'').toLowerCase().replace(/[^a-z0-9ñ]+/g,' ').trim();
 function pSlipView(){const L=pSlipList();if(!PSQ)return L;const q=pSqN(PSQ).split(' ').filter(Boolean);return L.filter(x=>{const n=pSqN(x.s.name);return q.every(w=>n.includes(w))})}
 function pSlSearch(v){PSQ=v;drawSlips();const e=$('pslq');if(e){e.focus();try{e.setSelectionRange(v.length,v.length)}catch(_){}}}
 /* payslip = fixed physical size (same on every paper, font never changes); as many as fit per page, the rest go to the next page, none is ever cut */
-const SLW=66,SLH=78,SLGP=1.2,SLPD=3;
-function pSlipGrid(){const mm=v=>{const n=parseFloat(v);return/in$/.test(v)?n*25.4:n},z=String(PSZ).split('|'),W=mm(z[0]),H=mm(z[1])-.6;return[Math.max(1,Math.floor((W-2*SLPD+SLGP)/(SLW+SLGP))),Math.max(1,Math.floor((H-2*SLPD+SLGP)/(SLH+SLGP)))]}
-function drawSlips(){const ALL=pSlipList().length,L=pSlipView(),pages=[],MG=isMg(PF),FX=!MG||PMGN==='12',[fc,fr]=pSlipGrid(),per=FX?fc*fr:+PMGN,[cc,rr]=FX?[fc,fr]:(PLY[per]||PLY[12]);if(PMKR!==PP.runId){PMK={};PMKR=PP.runId;PSQ=''}for(let i=0;i<L.length;i+=per)pages.push(L.slice(i,i+per));
+const SLW=66,SLH=78,SLGP=1.2,SLPD=3,CVW=100,CVH=72;
+function pSlipGrid(cv){const mm=v=>{const n=parseFloat(v);return/in$/.test(v)?n*25.4:n},z=String(PSZ).split('|'),W=mm(z[0]),H=mm(z[1])-.6;return[Math.max(1,Math.floor((W-2*SLPD+SLGP)/((cv?CVW:SLW)+SLGP))),Math.max(1,Math.floor((H-2*SLPD+SLGP)/((cv?CVH:SLH)+SLGP)))]}
+function drawSlips(){const ALL=pSlipList().length,L=pSlipView(),pages=[],MG=isMg(PF),FX=!MG||PMGN==='12',grp=(MG?[{cv:false,L:L}]:[{cv:false,L:L.filter(x=>!pIsCvX(x))},{cv:true,L:L.filter(pIsCvX)}]).filter(g=>g.L.length),nCv=grp.filter(g=>g.cv).reduce((a,g)=>a+g.L.length,0),nRg=L.length-nCv;let per=0,cc=0,rr=0;if(!MG&&grp.length>1)pFlowPages(L).forEach(pg=>pages.push({pg:pg,mix:true,per:0,cc:0,rr:0}));else grp.forEach((g,gi)=>{const [fc,fr]=pSlipGrid(g.cv),pr=FX?fc*fr:+PMGN,[c1,r1]=FX?[fc,fr]:(PLY[pr]||PLY[12]);if(!gi){per=pr;cc=c1;rr=r1}for(let i=0;i<g.L.length;i+=pr)pages.push({pg:g.L.slice(i,i+pr),cv:g.cv,per:pr,cc:c1,rr:r1})});if(PMKR!==PP.runId){PMK={};PMKR=PP.runId;PSQ=''}
  $('main').innerHTML=`<div class="pz-bar no-print"><button class="btn o" onclick="pSlipBack()">← Back to payroll</button><span class="pz-sep"></span><b style="font-size:15px;color:var(--h)">Payslips · ${esc(PF)} · ${esc(pPeriod())}</b><span class="sp1"></span>
 <label style="font-size:13px"><input type="checkbox" ${PSK?'checked':''} onchange="PSK=this.checked;drawSlips()"> Skip employees with no pay</label>
 ${MG?'':`<input id="pslq" class="fi" type="search" autocomplete="off" placeholder="🔍 Search name…" value="${esc(PSQ)}" style="width:180px;margin:0" oninput="pSlSearch(this.value)" title="Find an employee in this payslip list">`}
 <select class="fi" style="width:auto;margin:0" title="Paper size" onchange="pSetSz(this.value)">${[['8.5in|11in','Letter 8.5 × 11'],['210mm|297mm','A4'],['8.5in|13in','Long bond 8.5 × 13'],['8.5in|14in','Legal 8.5 × 14']].map(([v,l])=>`<option value="${v}"${PSZ===v?' selected':''}>${l}</option>`).join('')}</select>
-${MG?pSlMgBar():''}<button class="btn" onclick="pSlipPrint()"${L.length?'':' disabled'}>Print</button><button class="btn ok" onclick="pSlipXlsx()"${L.length?'':' disabled'}>Export to Excel</button></div>
-<p class="pz-note no-print"><span>${PSQ?`Showing ${L.length} of ${ALL} payslips for “${esc(PSQ)}”. Print prints what is shown; Export to Excel still includes everyone. `:''}${L.length} payslip${L.length===1?'':'s'} · ${pages.length} page${pages.length===1?'':'s'} (${per} per page, ${cc} × ${rr}), from the saved payroll of this cutoff. Print uses the preview below as it is: in the print window set the Paper size to match the one above, Scale to 100% and Margins to None, and turn off Headers and footers. Export to Excel saves an .xlsx file (3 × 4 per page, ready to print from Excel); the amounts are real numbers you can edit.</span></p>
-${L.length?`<div class="slwrap" style="--pw:${PSZ.split('|')[0]};--ph:${PSZ.split('|')[1]}">${pages.map(pg=>`<div class="slpage"><div class="slg n${per}${FX?' fx':''}${MG&&!FX?' mgl':''}" style="--cc:${cc};--rr:${rr}">${pg.map(MG?pSlipMg:pSlip).join('')}</div></div>`).join('')}</div>`:`<p class="empty no-print" style="padding:14px">${PSQ?'No name matches “'+esc(PSQ)+'”.':'No employees with pay in this payroll.'}</p>`}`;pFitSlips();pMkSync();pMkBadges();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pFitSlips)}
+${MG?'':`<select class="fi" style="width:auto;margin:0" title="Payslip type: Regular payslip or Cash voucher" onchange="pSetSlt(this.value)"><option value="reg"${!pSEcount()&&!pIsCv()?' selected':''}>All Regular payslip</option><option value="cv"${!pSEcount()&&pIsCv()?' selected':''}>All Cash voucher</option>${pSEcount()?'<option value="mix" selected disabled>Mixed (per employee)</option>':''}</select><button class="btn o" onclick="pTyOpen()" title="Choose Regular payslip or Cash voucher for each employee">Type per employee</button>`}${MG?pSlMgBar():''}<button class="btn" onclick="pSlipPrint()"${L.length?'':' disabled'}>Print</button><button class="btn ok" onclick="pSlipXlsx()"${L.length?'':' disabled'}>Export to Excel</button></div>
+<p class="pz-note no-print"><span>${PSQ?`Showing ${L.length} of ${ALL} payslips for “${esc(PSQ)}”. Print prints what is shown; Export to Excel still includes everyone. `:''}${L.length} payslip${L.length===1?'':'s'} · ${pages.length} page${pages.length===1?'':'s'} (${grp.length>1?nRg+' regular payslip'+(nRg===1?'':'s')+' + '+nCv+' cash voucher'+(nCv===1?'':'s'):per+' per page, '+cc+' × '+rr}), from the saved payroll of this cutoff.${MG?'':' Use “Type per employee” to choose Regular payslip or Cash voucher for each person; the dropdown applies one type to everyone.'} Print uses the preview below as it is: in the print window set the Paper size to match the one above, Scale to 100% and Margins to None, and turn off Headers and footers. Export to Excel saves an .xlsx file (${grp.length>1?'regular payslips and cash vouchers share the pages here and are saved as 2 separate Excel files':pIsCv()?'cash vouchers, 2 across':'3 × 4 per page'}, ready to print from Excel); the amounts are real numbers you can edit.</span></p>
+${L.length?`<div class="slwrap${nCv?' cvw':''}" style="--pw:${PSZ.split('|')[0]};--ph:${PSZ.split('|')[1]}">${pages.map(P=>`<div class="slpage${P.cv?' cvp':''}${P.mix?' mixp':''}"><div class="slg n${P.per}${P.mix?' mix':FX?' fx':''}${P.cv?' cvg':''}${MG&&!FX?' mgl':''}" style="--cc:${P.cc};--rr:${P.rr}">${P.pg.map(MG?pSlipMg:pSlip).join('')}</div></div>`).join('')}</div>`:`<p class="empty no-print" style="padding:14px">${PSQ?'No name matches “'+esc(PSQ)+'”.':'No employees with pay in this payroll.'}</p>`}`;pFitSlips();pMkSync();pMkBadges();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pFitSlips)}
 
 // ===== MANAGEMENT PAYSLIPS: bigger individual slips + mark & email to the address in 201 Files =====
 let PMGN=(()=>{try{const v=localStorage.getItem('hrd_pslip_mg');if(['12','6','4','2'].includes(v))return v}catch(e){}return'6'})();
@@ -6854,6 +6948,31 @@ seasonUI();
 .sl-dl{display:block;white-space:normal;font-size:.8em;font-weight:600;color:#c00000;line-height:1.15}
 .sl-rm.sl-dn{color:#c00000;font-weight:600;font-size:.9em;white-space:normal;display:block;line-height:1.2}
 .sl-sg{border-top:1px solid #000;font-size:.85em;padding-top:3.2mm;padding-bottom:.6mm}
+/* cash voucher layout (elegant: navy + gold, double frame, serif) */
+.slg.fx.cvg{grid-template-columns:repeat(var(--cc),100mm);grid-auto-rows:72mm}
+.slip.cv{font-family:Georgia,'Times New Roman',serif;font-size:10.5pt;line-height:1.2;color:#1a2233;border:1.5px solid #12305c;box-shadow:inset 0 0 0 1.1mm #fff,inset 0 0 0 1.4mm #b8923a;padding:2mm 0 2.4mm}
+.slip.cv>div{padding-left:6mm;padding-right:6mm}
+.cv-t{text-align:center;font:600 1.5em Georgia,'Times New Roman',serif;letter-spacing:.32em;text-indent:.32em;color:#12305c;padding-top:1.2mm}
+.cv-t::after{content:'';display:block;width:34mm;height:1px;margin:1.4mm auto 0;background:linear-gradient(90deg,transparent,#b8923a,transparent)}
+.cv-co{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1mm 3mm;margin-top:2mm}
+.cv-pr{font:700 .98em Calibri,'Segoe UI',Arial,sans-serif;letter-spacing:.05em;color:#1e4f94;text-transform:uppercase;white-space:nowrap}
+.cv-tag{display:inline-flex;align-items:center;justify-content:center;background:#f6efdc;color:#12305c;font:700 .68em Calibri,'Segoe UI',Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;padding:.7mm 3.2mm;border:1px solid #b8923a;border-radius:999px;white-space:nowrap}
+.cv-nm{display:flex;align-items:baseline;gap:3mm;margin-top:3mm}
+.cv-nm span{font:600 .66em Calibri,'Segoe UI',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#66738a}
+.cv-nm b{flex:1;font:700 1.12em Georgia,'Times New Roman',serif;color:#12305c;border-bottom:1px solid #d3d9e6;padding-bottom:.5mm;overflow-wrap:break-word}
+.slip.cv>.cv-h,.slip.cv>.cv-r{padding-left:0;padding-right:0;margin-left:6mm;margin-right:6mm;display:flex}
+.slip.cv>.cv-h{margin-top:3mm;background:#12305c;color:#fff;padding-top:.9mm;padding-bottom:.9mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cv-h span{font:600 .64em Calibri,'Segoe UI',Arial,sans-serif;letter-spacing:.16em;text-align:center}
+.cv-h span:first-child,.cv-r span:first-child{flex:0 0 52%}.cv-h span:last-child{flex:1}
+.slip.cv>.cv-r{margin-top:1.8mm;padding-bottom:1.1mm;border-bottom:1px solid #e3e7ef;align-items:baseline}
+.cv-r span:first-child{font:600 1.08em Georgia,'Times New Roman',serif;text-align:center;color:#2f3b52}
+.cv-r b{flex:1;text-align:center;font:700 1.5em Georgia,'Times New Roman',serif;color:#12305c;letter-spacing:.02em}
+.cv-r.ded b,.cv-r.ded span:first-child{color:#c00000}.cv-r.net{border-top:1px solid #000;margin-top:.8mm;padding-top:.4mm}
+.cv-rm{font:italic .72em Calibri,'Segoe UI',Arial,sans-serif;color:#66738a;margin-top:.9mm}
+.cv-sg{margin-top:auto;display:flex;flex-direction:column;gap:2.2mm;padding-top:1.4mm}
+.cv-sg div{display:flex;align-items:flex-end;gap:2mm;font:600 .64em Calibri,'Segoe UI',Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#66738a}
+.cv-sg i{display:block;flex:1;border-bottom:1px solid #8a94a8;height:3.8mm}
+.cv-sg .rc{justify-content:flex-end;padding-left:30%}.cv-sg .rc i{flex:0 0 55%}
 /* payslip: management = individual slips, bigger & roomier; email controls */
 .slip{position:relative}
 .slg.n6 .slip{font-size:12.2pt}.slg.n4 .slip{font-size:13.6pt}.slg.n2 .slip{font-size:15pt}
@@ -6870,6 +6989,18 @@ seasonUI();
 .slg.mgl .sl-net{padding-top:1.8mm;padding-bottom:1.8mm}
 .slg.mgl .sl-rm{padding-top:.8mm;padding-bottom:.8mm}
 .slg.mgl .sl-sg{padding-top:7mm;padding-bottom:1.6mm}
+.sl-ty{position:absolute;z-index:3;font:700 10.5px/1.2 Arial,Helvetica,sans-serif;color:#12305c;background:#fff;border:1px solid #b8923a;border-radius:999px;padding:2px 9px;cursor:pointer;box-shadow:0 1px 3px #0003}.sl-ty:hover{background:#f6efdc}
+.slip:not(.cv)>.sl-ty{bottom:1.2mm;right:1.5mm}.slip.cv>.sl-ty{bottom:17mm;right:6mm}
+.slg.mgl .sl-ty{display:none}
+.slg.mix{display:flex!important;flex-wrap:wrap;justify-content:center;align-content:flex-start;align-items:flex-start;gap:var(--sg)}
+.slg.mix>.slip{flex:none!important;margin:0!important;width:66mm!important;height:78mm!important}.slg.mix>.slip.cv{width:100mm!important;height:72mm!important}
+#pstm{position:fixed;inset:0;z-index:130;background:#0a111f99;display:flex;align-items:center;justify-content:center;padding:16px}
+.pst-box{background:var(--sf,#fff);color:var(--ink,#1a2233);width:min(580px,100%);max-height:86vh;display:flex;flex-direction:column;border-radius:14px;box-shadow:0 20px 60px #0006;overflow:hidden}
+.pst-h{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--ln,#e3e7ef)}.pst-h b{font-size:15px}.pst-h span{flex:1;font-size:12px;color:var(--mu,#66738a)}
+.pst-t{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--ln,#e3e7ef)}
+.pst-b{overflow:auto;padding:4px 6px}.pst-r{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 8px;border-bottom:1px solid var(--ln,#e3e7ef)}.pst-r:last-child{border-bottom:0}
+.pst-n{font-size:13px;font-weight:600;overflow-wrap:anywhere}.pst-g{display:inline-flex;flex:none;border:1px solid var(--ln2,#d3d9e6);border-radius:999px;overflow:hidden}
+.pst-g button{border:0;background:transparent;color:inherit;font:600 12px Arial,sans-serif;padding:5px 12px;cursor:pointer}.pst-g button.on{background:#12305c;color:#fff}
 .sl-mk{position:absolute;top:5px;right:6px;z-index:2;display:flex;align-items:center;margin:0;cursor:pointer;background:#fff;border-radius:4px;padding:1px}
 .sl-mk input{width:18px;height:18px;margin:0;cursor:pointer;accent-color:#1e4f94}
 .sl-bd{position:absolute;right:7px;bottom:5px;z-index:2;font:700 11px/1.2 Arial,Helvetica,sans-serif;background:#fff;padding:1px 4px;border-radius:4px}
@@ -6936,7 +7067,7 @@ seasonUI();
 html[data-theme=dark] .psgp{color-scheme:light;color:#000}
 #psgprint{display:none}
 @media print{body.psg-on>*:not(#psgprint){display:none!important}body.psg-on #psgprint{display:block!important}body.psg-on{background:#fff!important}#psgm{display:none!important}}
-@media print{.slwrap{overflow:visible;padding:0;margin:0;width:var(--pw)}.slpage{margin:0!important;box-shadow:none;break-after:page;page-break-after:always}.slpage:last-child{break-after:auto;page-break-after:auto}}
+@media print{.cvw.slwrap{width:auto!important}.slpage.cvp,.slpage.mixp{width:auto!important;height:auto!important;min-height:0;overflow:visible!important}.slpage.mixp .slg.mix{height:auto!important;width:auto!important}.slpage.mixp .slg.mix>.slip{break-inside:avoid;page-break-inside:avoid}.slpage.cvp .slg.fx.cvg{display:flex!important;flex-wrap:wrap;justify-content:center;align-content:flex-start;height:auto!important;width:auto!important}.slpage.cvp .slg.fx.cvg>.slip.cv{width:100mm!important;height:72mm!important;flex:none;break-inside:avoid;page-break-inside:avoid}.slwrap{overflow:visible;padding:0;margin:0;width:var(--pw)}.slpage{margin:0!important;box-shadow:none;break-after:page;page-break-after:always}.slpage:last-child{break-after:auto;page-break-after:auto}}
 
 /* header of every department form: same layout on screen, in print/PDF */
 @media print{.pw .ph,.pw .pm,.pw .ph::after,.pw .ph img,.pw .ps th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -9992,7 +10123,7 @@ function psmDraw(){
  const ed=(typeof hrx==='function'&&hrx())||can('psm');
  const fd=r=>new Date(r.at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
  const rows=L.map((x,i)=>{const r=PS.ret[x.id];return`<tr class="${r?'ok':''}"><td class="psm-n">${i+1}</td><td><div class="psm-nm"><span class="psm-av">${esc(ini(x.n))}</span>${esc(x.n)}</div></td><td class="psm-c"><label class="psm-ck"><input type="checkbox"${r?' checked':''}${ed&&!PS.bad?'':' disabled'} onchange="psmTog('${esc(x.id)}',this.checked)"><span></span></label></td><td>${r?`<span class="psm-pill c">Returned</span><span class="psm-dt">${esc(fd(r))}</span>`:'<span class="psm-pill p">Pending</span>'}</td><td class="psm-by">${r?esc(r.by||''):''}</td></tr>`}).join('');
- $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Tick each name once the <b>signed payslip</b> has been returned.</p><div class="psm-rule"></div></div><div class="psm-act">${can('pay')?`<button class="btn o sm" onclick="go('pay')">← Back to Payroll</button>`:''}<button class="btn sm" onclick="psmView('sum')">Summary · all departments</button></div></div>
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Tick each name once the <b>signed payslip</b> has been returned.</p><div class="psm-rule"></div></div><div class="psm-act">${can('pay')?`<button class="btn o sm" onclick="go('pay')">← Back to Payroll</button>`:''}<button class="btn sm" onclick="psmView('sum')">Summary · all departments</button><button class="btn sm" onclick="psmExport()" title="Excel file with every department, cutoff and name">⬇ Export to Excel</button></div></div>
 ${PS.bad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). Do not tick anything until this is fixed — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Department</label><select class="fi" onchange="psmSel('d',this.value)">${op('','— Select department —',!PS.d)}${F.map(f=>op(f,f,f===PS.d)).join('')}</select></div><div><label>Cutoff</label><select class="fi" ${PS.d?'':'disabled'} onchange="psmSel('r',this.value)">${op('','— Select cutoff —',!PS.r)}${R.map(x=>op(x.id,lb(x.data.from,x.data.to),String(x.id)===String(PS.r))).join('')}</select></div></div></div>
 ${p?`<div class="psm-card"><div class="psm-pg"><div><div class="psm-big">${done}<small> / ${tot}</small></div><div class="psm-cap">Signed payslips returned</div></div><div class="psm-bw"><div class="psm-bar"><i class="${comp?'c':''}" style="width:${pct}%"></i></div><div class="psm-bl"><span>${pct}% complete</span><span>${tot-done} pending</span></div></div><span class="psm-pill lg ${comp?'c':'i'}">${comp?'C':'INC'}</span></div></div>
@@ -10005,17 +10136,37 @@ function psmSumDraw(){
  const C=cuts(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
  const ord=pFolders(),R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{p:p,d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
  const nc=R.filter(x=>x.c).length,ni=R.length-nc;
- $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Summary of all departments · <b>C</b> complete · <b>INC</b> incomplete</p><div class="psm-rule"></div></div><div class="psm-act"><button class="btn o sm" onclick="psmView('list')">← Back to list</button><button class="btn sm" onclick="psmPrint()">🖨 Print summary</button><button class="btn sm" onclick="psmExport()">⬇ Export to Excel</button></div></div>
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Summary of all departments · <b>C</b> complete · <b>INC</b> incomplete</p><div class="psm-rule"></div></div><div class="psm-act"><button class="btn o sm" onclick="psmView('list')">← Back to list</button><button class="btn sm" onclick="psmPrint()">🖨 Print summary</button><button class="btn sm" onclick="psmExport()" title="Excel file with every department, cutoff and name">⬇ Export to Excel (all)</button></div></div>
 ${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). The summary may be wrong — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Cutoff</label><select class="fi" onchange="psmSc(this.value)">${C.map(k=>{const[f,t]=k.split('|');return op(k,lb(f,t),k===PS.sc)}).join('')}</select></div><div class="psm-st"><div class="psm-sc c"><b>${nc}</b><span>Complete</span></div><div class="psm-sc i"><b>${ni}</b><span>Incomplete</span></div></div></div></div>
 ${R.length?`<div class="psm-gd">${R.map(x=>{const pc=x.tot?Math.round(x.done/x.tot*100):0;return`<div class="psm-dc ${x.c?'c':''}"><div class="psm-dh"><b>${esc(x.d)}</b><span class="psm-pill ${x.c?'c':'i'}">${x.c?'C':'INC'}</span></div><div class="psm-dn">${x.done}<small> / ${x.tot} returned</small></div><div class="psm-bar"><i class="${x.c?'c':''}" style="width:${pc}%"></i></div><div class="psm-bl"><span>${x.tot-x.done} pending</span><button class="psm-open" onclick="psmOpen('${esc(x.d).replace(/'/g,"\\'")}','${esc(String(x.p.id))}')">Open →</button></div></div>`}).join('')}</div>`:'<div class="psm-card psm-em">No saved payroll for this cutoff.</div>'}</div>`}
-window.psmExport=()=>{
- const ord=pFolders(),cl=(()=>{const[f,t]=String(PS.sc).split('|');return f&&t?lb(f,t):''})();
- const R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
- if(!R.length)return toast('Nothing to export for this cutoff.');
- const rows=[['Payslip Monitoring Summary - Signed Payslips'],['Rayanton Farms & Livestock Corp.'],[],['Cutoff','Department','Total','Returned','Pending','Status'],...R.map(x=>[cl,x.d,x.tot,x.done,x.tot-x.done,x.c?'C':'INC']),[],['C = Complete, INC = Incomplete','','','','Complete',R.filter(x=>x.c).length],['','','','','Incomplete',R.filter(x=>!x.c).length]];
- cxCsv('Payslip-Monitoring-'+cl.replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.csv',rows);
- try{logAct('Exported payslip monitoring summary','Payslip Monitoring',cl)}catch(e){}toast('Exported ✔')};
+window.psmExport=async()=>{
+ const ord=pFolders(),R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&ord.includes(pFo(p.data))).sort((a,b)=>String(b.data.to).localeCompare(String(a.data.to))||String(b.data.from).localeCompare(String(a.data.from))||ord.indexOf(pFo(a.data))-ord.indexOf(pFo(b.data)));
+ if(!R.length)return toast('Nothing to export.');
+ toast('Preparing Excel…');
+ const all={};
+ try{const rows=await api('/rest/v1/hrd_attendance?name=like.'+encodeURIComponent('_psm|*')+'&select=name,data');(Array.isArray(rows)?rows:[]).forEach(r=>{if(r&&r.name)all[r.name.slice(5)]=(r.data&&r.data.ret)||{}})}
+ catch(e){return alert('Could not load the saved ticks, so nothing was exported (check the connection and try again).')}
+ PS.all=all;
+ const fd=r=>{try{return new Date(r.at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}catch(e){return''}};
+ const HD={fill:'FF12305C',col:'FFFFFFFF',b:1,h:'center',bt:'thin',bb:'thin',bl:'thin',br:'thin'},BX={bt:'thin',bb:'thin',bl:'thin',br:'thin'};
+ const S1=xgSheet('Summary'),S2=xgSheet('All names');
+ S1.cols=[30,26,10,11,10,10];S2.cols=[30,26,6,42,11,16,26];
+ S1.put(1,1,6,'Payslip Monitoring - Signed Payslips (all departments, all cutoffs)',{fn:'Georgia',sz:14,b:1,col:'FF12305C'});
+ S1.put(2,1,6,'Rayanton Farms & Livestock Corp.  |  Exported '+new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})+' by '+me(),{sz:9,col:'FF666666'});
+ ['Cutoff','Department','Total','Returned','Pending','Status'].forEach((h,i)=>S1.put(4,i+1,i+1,h,HD));
+ ['Cutoff','Department','#','Name','Returned','Date returned','Checked by'].forEach((h,i)=>S2.put(1,i+1,i+1,h,HD));
+ let r1=5,r2=2,nc=0,ni=0,last='';
+ R.forEach(p=>{const L=people(p),ret=all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length,tot=L.length,c=tot>0&&done===tot,cl=lb(p.data.from,p.data.to),d=pFo(p.data);
+  if(c)nc++;else ni++;
+  const fill=c?'FFEAF6EE':'FFFDECEB',st=Object.assign({fill:fill},BX);
+  S1.put(r1,1,1,cl,st);S1.put(r1,2,2,d,st);S1.put(r1,3,3,tot,Object.assign({nf:2,h:'center'},st));S1.put(r1,4,4,done,Object.assign({nf:2,h:'center'},st));S1.put(r1,5,5,tot-done,Object.assign({nf:2,h:'center'},st));S1.put(r1,6,6,c?'C':'INC',Object.assign({b:1,h:'center',col:c?'FF0A6B2F':'FFB3261E'},st));r1++;
+  L.forEach((x,i)=>{const t=ret[x.id],s2=t?BX:Object.assign({fill:'FFFFF4D6'},BX);S2.put(r2,1,1,cl,s2);S2.put(r2,2,2,d,s2);S2.put(r2,3,3,i+1,Object.assign({nf:2,h:'center'},s2));S2.put(r2,4,4,x.n,s2);S2.put(r2,5,5,t?'Yes':'No',Object.assign({b:1,h:'center',col:t?'FF0A6B2F':'FFB3261E'},s2));S2.put(r2,6,6,t?fd(t):'',Object.assign({h:'center'},s2));S2.put(r2,7,7,t?(t.by||''):'',s2);r2++})});
+ r1++;S1.put(r1,1,2,'C = Complete (all signed payslips returned)   INC = Incomplete',{sz:9,col:'FF444444'});r1++;
+ S1.put(r1,1,2,'Complete',{b:1});S1.put(r1,3,3,nc,{b:1,nf:2,h:'center'});r1++;S1.put(r1,1,2,'Incomplete',{b:1});S1.put(r1,3,3,ni,{b:1,nf:2,h:'center'});
+ S1.freeze=4;S2.freeze=1;S2.af='A1:G'+Math.max(2,r2-1);S1.fit=1;S2.fit=1;S1.orient='portrait';S2.orient='portrait';
+ const b=xgBuild([S1,S2]),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Payslip-Monitoring-All-'+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+ try{logAct('Exported payslip monitoring (Excel, all)','Payslip Monitoring',R.length+' payroll(s)')}catch(e){}toast('Exported ✔')};
 window.psmPrint=()=>{
  const ord=pFolders(),cl=(()=>{const[f,t]=String(PS.sc).split('|');return f&&t?lb(f,t):''})();
  const R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
