@@ -726,6 +726,19 @@ div.chd{padding:13px 16px;border-bottom:1px solid var(--ln);display:flex;align-i
 .rqdt{grid-column:1/-1;display:none;padding:2px 0 4px 62px}.rqrow.open .rqdt{display:block}
 html[data-theme=dark] .rqst.done .rqdot{background:#12301f;color:#7fd3a1}html[data-theme=dark] .rqst.now .rqdot{background:#3b2f10}html[data-theme=dark] .rqst.no .rqdot{background:#3a1713;color:#f0a39b}
 @media(max-width:900px){.rqrow{grid-template-columns:40px 1fr auto}.rqsteps{grid-column:1/-1;order:5;overflow-x:auto;padding-bottom:4px}.rqdt{padding-left:0}}
+.rvtw{overflow:auto;border:1px solid var(--ln2);border-radius:10px;background:var(--sf);max-height:calc(100vh - 250px)}
+.rvt{border-collapse:separate;border-spacing:0;width:100%;min-width:1100px;font-size:13px}
+.rvt th{position:sticky;top:0;z-index:2;background:var(--soft);color:var(--h);text-align:left;font-weight:600;font-size:12px;letter-spacing:.3px;padding:9px 12px;border-bottom:1px solid var(--ln2);border-right:1px solid var(--ln);white-space:nowrap}
+.rvt td{padding:6px 12px;border-bottom:1px solid var(--ln);border-right:1px solid var(--ln);white-space:nowrap;vertical-align:middle;color:var(--ink2)}
+.rvt tbody tr:nth-child(even) td{background:var(--sf2)}.rvt tbody tr:hover td{background:var(--soft)}
+.rvt .c{text-align:center;color:var(--mu);width:44px}.rvt td.nm b{color:var(--h)}
+.rvt td.rm{max-width:240px;overflow:hidden;text-overflow:ellipsis;color:var(--mu)}
+.rvt tr.pending td:first-child{box-shadow:inset 3px 0 0 #d9a63a}.rvt tr.approved td:first-child{box-shadow:inset 3px 0 0 #2e7d4f}.rvt tr.rejected td:first-child{box-shadow:inset 3px 0 0 #b3392f}
+.rvt .rvst{min-width:0;padding:2px 10px;font-size:11.5px;text-transform:none;display:inline-block}
+.rvt .rvx{padding:3px 10px;font-size:12px;border-radius:6px}.rvt .rvac{flex-wrap:nowrap;width:auto}.rvt .rqw{font-size:11.5px}
+.rvt .ac{position:sticky;right:0;background:var(--sf);box-shadow:-1px 0 0 var(--ln)}.rvt th.ac{z-index:3;background:var(--soft)}
+.rvt tbody tr:nth-child(even) td.ac{background:var(--sf2)}.rvt tbody tr:hover td.ac{background:var(--soft)}
+.rvedit{font-size:11px;color:var(--mu);border:1px solid var(--ln2);border-radius:10px;padding:0 6px;margin-left:6px}
 .rqflow{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;margin:0 0 12px}
 .rqs1{display:flex;gap:10px;align-items:center;flex:1 1 170px;background:var(--sf);border:1px solid var(--ln2);border-radius:10px;padding:10px 12px;color:var(--mu)}
 .rqs1 i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--soft);font-size:13px;flex:none}
@@ -2545,8 +2558,7 @@ function drawSubs(){
 <div class="rvbar"><div class="rvtabs" role="tablist">${(RQ_WF(fld)?rqTabs(fld):['pending','approved','rejected','all']).map(s=>`<button class="${flt===s?'on':''}" role="tab" aria-selected="${flt===s}" onclick="flt='${s}';drawSubs()">${({check:'For Checking',approval:'For Approval',status:'Status',hist:'History'})[s]||s[0].toUpperCase()+s.slice(1)}<i>${cnt(s)}</i></button>`).join('')}</div>
 <div class="rvtools"><label class="rvs">${SIC}<input id="q" placeholder="Search name" value="${esc(q)}" oninput="q=this.value;drawSubs();const e=$('q');e.focus();e.setSelectionRange(q.length,q.length)"></label>
 <select class="rvsel" aria-label="Sort" onchange="srt=this.value;drawSubs()">${[['new','Newest first'],['old','Oldest first'],['name','Name: A–Z']].map(([v,t])=>`<option value="${v}"${srt===v?' selected':''}>${t}</option>`).join('')}</select></div></div>
-<section class="rvl">${L.map(([r,i])=>`<div class="rvr ${r.status}"><div class="rva">${esc(ini(r.requester))}</div><div class="rvn"><b>${esc(r.requester)}</b><small>${dt(r.created_at)}${r.form==='leave'&&lvMeta(r)?' · '+(lvMeta(r).t==='sick'?'Sick':'Vacation')+' · '+lvMeta(r).d+' day(s) · '+esc(lvMeta(r).f)+' → '+esc(lvMeta(r).to||''):''}</small></div>${rqStLbl(r)}${(()=>{const m=rqMeta(r),rj=m.filter(x=>x.rv&&x.rv.s==='rejected').pop(),ed=m.filter(x=>x.ed).pop(),ck=m.filter(x=>x.rv&&x.rv.s==='checked').pop();return (ck&&RQ_WF(r.form)?`<div class="rqs">✔ Checked by ${esc(ck.rv.by||'')}${ck.rv.note?' · Note: '+esc(ck.rv.note):''}</div>`:'')+(rj&&r.status==='rejected'&&rj.rv.note?`<div class="rqs no">Reason: ${esc(rj.rv.note)}</div>`:'')+(ed?`<div class="rqs">✏ Edited by ${esc(ed.ed.by||'')}</div>`:'')})()}
-<div class="rvac"><button class="rvx" onclick="viewReq(${i})">View</button><button class="rvx" onclick="getFile(${i})">📎 File</button>${rqBtns(r,i)}<button class="rvx dl" onclick="delReq(${i})">Delete</button></div></div>`).join('')||`<div class="rve"><div class="fi2">${FIC}</div><b>No ${flt==='all'?'':(({check:'to check ',approval:'waiting for approval ',status:'checked and waiting for approval ',hist:'finished '})[flt]||flt+' ')}requests here</b><small>${q?'Try a different name.':'Submitted requests for this form will appear here.'}</small></div>`}</section>`}
+${L.length?rqTable(L,dt):`<div class="rve"><div class="fi2">${FIC}</div><b>No ${flt==='all'?'':(({check:'to check ',approval:'waiting for approval ',status:'checked and waiting for approval ',hist:'finished '})[flt]||flt+' ')}requests here</b><small>${q?'Try a different name.':'Submitted requests for this form will appear here.'}</small></div>`}`;rqSubWarm()}
 /* ===== LEAVE REQUEST + LEAVE CREDITS (approved leave is deducted from the employee's credits) ===== */
 let LVY=new Date().getFullYear();const LVD={v:5,s:5};
 const lvK=n=>String(n||'').trim().toLowerCase().replace(/\s+/g,' ');
@@ -2612,6 +2624,17 @@ function rqDefFlt(k){
  if(!RQ_WF(k))return R.some(r=>r.form===k&&r.status==='pending')?'pending':'all';
  const c=R.filter(r=>r.form===k&&r.status==='pending'),n={check:c.filter(r=>rqStage(r)==='check').length,approval:c.filter(r=>rqStage(r)==='approval').length,status:c.filter(r=>fltOk(r,'status')).length},mc=rqCan('chk',k),ma=rqCan('apr',k);
  const o=((ma&&!mc)?['approval','check']:['check','status','approval']).filter(x=>rqTabs(k).includes(x));return o.find(x=>n[x])||'hist'}
+function rqTable(L,dt){
+ /* COOP > History: only the Name and the Loan Amount are shown (Loan Amount = 3rd field of the COOP form) */
+ if(fld==='coop'&&flt==='hist')return '<div class="rvtw"><table class="rvt"><thead><tr><th class="c">#</th><th>Name</th><th>Loan Amount</th><th class="ac">Actions</th></tr></thead><tbody>'+L.map(([r,i],k)=>{const d=Array.isArray(r.data)?r.data:[],amt=String(d[2]==null?'':d[2]).trim();return '<tr class="'+r.status+'"><td class="c">'+(k+1)+'</td><td class="nm"><b>'+esc(r.requester)+'</b></td><td>'+(amt?esc(amt):'—')+'</td><td class="ac"><div class="rvac"><button class="rvx" onclick="viewReq('+i+')">View</button><button class="rvx dl" onclick="delReq('+i+')">Delete</button></div></td></tr>'}).join('')+'</tbody></table></div>';
+ return '<div class="rvtw"><table class="rvt"><thead><tr><th class="c">#</th><th>Name</th><th>Submitted</th><th>Submitted by</th><th>Checked by</th><th>Approved / Rejected by</th><th>Remarks</th><th>Status</th><th class="ac">Actions</th></tr></thead><tbody>'+L.map(([r,i],k)=>{
+  const m=rqMeta(r),last=x=>m.filter(y=>y.rv&&y.rv.s===x).pop(),ck=last('checked'),ap=last('approved'),rj=last('rejected'),ed=m.filter(y=>y.ed).pop(),wf=RQ_WF(r.form),lm=r.form==='leave'?lvMeta(r):null;
+  const lv=lm?(lm.t==='sick'?'Sick':'Vacation')+' · '+lm.d+' day(s) · '+lm.f+' → '+(lm.to||''):'';
+  const rem=[lv,ck&&ck.rv.note?'Note: '+ck.rv.note:'',rj&&r.status==='rejected'&&rj.rv.note?'Reason: '+rj.rv.note:''].filter(Boolean).join(' · ');
+  const dec=r.status==='approved'&&ap?ap.rv.by:r.status==='rejected'&&rj?rj.rv.by:'';
+  return '<tr class="'+r.status+'"><td class="c">'+(k+1)+'</td><td class="nm"><b>'+esc(r.requester)+'</b>'+(ed?' <span class="rvedit" title="Edited by '+esc(ed.ed.by||'')+'">✏ Edited</span>':'')+'</td><td>'+dt(r.created_at)+'</td><td>'+esc(rqSubName(r))+'</td><td>'+(wf&&ck?esc(ck.rv.by||''):'—')+'</td><td>'+(dec?esc(dec):'—')+'</td><td class="rm" title="'+esc(rem)+'">'+esc(rem)+'</td><td>'+rqStLbl(r)+'</td><td class="ac"><div class="rvac"><button class="rvx" onclick="viewReq('+i+')">View</button><button class="rvx" onclick="getFile('+i+')">📎 File</button>'+rqBtns(r,i)+'<button class="rvx dl" onclick="delReq('+i+')">Delete</button></div></td></tr>'}).join('')+'</tbody></table></div>'}
+let rqCUw=0;
+function rqSubWarm(){if(rqCUw)return;rqCUw=1;(async()=>{try{if(!((typeof CU!=='undefined'&&Array.isArray(CU)&&CU.length)||(window.__rqCU&&window.__rqCU.length))){const C=await api('/rest/v1/rpc/hrd_chat_users',{method:'POST',body:'{}',_quiet:true});if(Array.isArray(C)&&C.length){window.__rqCU=C;if(PG==='sub'&&fld&&!typing())drawSubs()}}}catch(e){}})()}
 const rqSubO=r=>{const o=(Array.isArray(r.data)?r.data:[]).find(x=>x&&typeof x==='object'&&x.sub);return o?o.sub:null};
 function rqSubName(r){const o=rqSubO(r);if(!o)return '—';if(o.n)return o.n;const em=String(o.e||'').toLowerCase(),L=[].concat((typeof CU!=='undefined'&&Array.isArray(CU))?CU:[],window.__rqCU||[]);
  const u=L.find(x=>x&&String(x.email||'').toLowerCase()===em);return (u&&u.full_name)||o.e||'—'}
