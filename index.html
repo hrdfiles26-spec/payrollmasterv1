@@ -4438,7 +4438,7 @@ function pFitSlips(){const L=[...document.querySelectorAll('.slip')];if(!L.lengt
  L.forEach(e=>e.style.fontSize=gp[kd(e)]+'px')}
 addEventListener('beforeprint',()=>{if(PG==='pay'&&PV==='slip')try{pFitSlips()}catch(x){}});
 /* page group of a payslip: normally its class; in EXTRA PAYROLL every class of the same kind (EXTRA HAULING : A / B -> HAULING, EXTRA BROILER : B1 / B2 -> BROILER, EXTRA LAYERS) shares one group, so they fill the same sheet instead of wasting paper */
-const pClsKey=g=>{g=String(g||'');if(PF!=='EXTRA PAYROLL')return g;const t=g.replace(/^\s*extra\s*[-:]?\s*/i,'').trim(),i=t.indexOf(':');return(i<0?t:t.slice(0,i)).trim().toLowerCase()};
+const pClsKey=g=>{g=String(g||'');/* FM | VM (Feedmill + VetMed): all classes share the same sheet, no page break per class */if(pCanon(PF)==='FMVM')return'';if(PF!=='EXTRA PAYROLL')return g;const t=g.replace(/^\s*extra\s*[-:]?\s*/i,'').trim(),i=t.indexOf(':');return(i<0?t:t.slice(0,i)).trim().toLowerCase()};
 const pRegroup=A=>{const m=new Map();A.forEach(x=>{const k=pClsKey(x.g);if(!m.has(k))m.set(k,[]);m.get(k).push(x)});return[].concat(...m.values())};
 function pSlipList(){const out=[];pGroups().forEach(([g,L])=>L.forEach(s=>{if(pHeld(s))return;const v=pVals(s);if(PSK&&!v.pay&&!v.tot&&!v.net&&!v.adj)return;out.push({s,g,v})}));return pRegroup(out)}
 function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.includes(k)||(/^BROILER$/i.test(PF)&&k===(((PP.xc||[]).find(c=>c&&c.id==='e_elbal'))||{}).a&&pn(r.e_elbal)>0),xc=PP.xc||[],
@@ -4449,7 +4449,7 @@ function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.inclu
  gross=r2(v.pay+adds.reduce((a,k)=>a+(v[k]||0),0)),td=r2(gross-v.net),eb=((xc.find(c=>c&&c.id==='e_elbal'))||{}).a||'e_elec',bal=k=>k==='vale'?v.bal:k==='coop'?v.cbal:k===eb&&xc.some(c=>c.id==='e_elbal')?pn(r.e_elbal):0,
  rd=PP.m==='r'&&vis('days')?[pRate(s),dy3(pn(r.days))]:null,dn=v.ded>0?((()=>{try{return String(dnTxt(s)||'').trim()}catch(e){return''}})()||dedNote(s,v.ded)):'';
  return{s,g,v,r,lab,adds,lss,gross,td,bal,eb,rd,dn}}
-function pSltOne(id){const m=pSE(),cur=m[id]||pSlt();pSltSet(id,cur==='cv'?'reg':'cv');const y=scrollY;drawSlips();scrollTo(0,y)}
+function pSltOne(id){const m=pSE(),cur=m[id]||pDefTyId(id);pSltSet(id,cur==='cv'?'reg':'cv');const y=scrollY;drawSlips();scrollTo(0,y)}
 function pSlip(x){const cv=pIsCvX(x),h=cv?pCvHtml(pSlipModel(x)):pSlipHtml(pSlipModel(x)),id=esc(x.s.id),b=`<button type="button" class="sl-ty no-print" title="Switch this employee between Regular payslip and Cash voucher" onclick="pSltOne('${id}')">⇄ ${cv?'Regular':'Voucher'}</button>`;return h.replace(/^(<div class="slip[^"]*")>/,'$1>'+b)}
 function pSlipHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,eb,rd:rdv,dn}=M,n=Math.ceil(lss.length/2)||1,
  anyBal=lss.some(k=>bal(k)),dnm=dn?String(dn).split(' · ').map(q=>q.replace(/\s+-?[\d,]*\.?\d+$/,'').trim()).filter(q=>q&&!/^Other$/i.test(q)):[],
@@ -4471,9 +4471,13 @@ function pIsCv(){try{return !isMg(PF)&&pSlt()==='cv'}catch(e){return false}}
 let PSE={k:'',m:{}};
 function pSE(){const k=pSltKey()+'_E';if(PSE.k!==k){PSE={k:k,m:{}};try{PSE.m=JSON.parse(localStorage.getItem(k)||'{}')||{}}catch(e){PSE.m={}}}return PSE.m}
 function pSEsave(){try{if(Object.keys(PSE.m).length)localStorage.setItem(PSE.k,JSON.stringify(PSE.m));else localStorage.removeItem(PSE.k)}catch(e){}}
-function pTyOf(x){const o=pSE()[x&&x.s&&x.s.id];return o==='cv'||o==='reg'?o:pSlt()}
+/* people who always get a Cash voucher by default in FM | VM (can still be switched per person with the button on the payslip) */
+const PCV_AUTO=[/VELASCO.*\bRE[YN]?NANTE|\bRE[YN]?NANTE.*VELASCO/i];
+function pDefTyS(s){try{if(s&&pCanon(PF)==='FMVM'&&PCV_AUTO.some(r=>r.test(String(s.name||''))))return'cv'}catch(e){}return pSlt()}
+function pDefTyId(id){return pDefTyS((STF||[]).find(x=>String(x.id)===String(id)))}
+function pTyOf(x){const o=pSE()[x&&x.s&&x.s.id];return o==='cv'||o==='reg'?o:pDefTyS(x&&x.s)}
 function pIsCvX(x){try{return !isMg(PF)&&pTyOf(x)==='cv'}catch(e){return false}}
-function pSltSet(id,v){const m=pSE();if(v!=='cv'&&v!=='reg')return;if(v===pSlt())delete m[id];else m[id]=v;pSEsave();try{logAct('Changed payslip type (individual)','Payroll',PF+' · '+(v==='cv'?'Cash voucher':'Regular payslip'))}catch(e){}}
+function pSltSet(id,v){const m=pSE();if(v!=='cv'&&v!=='reg')return;if(v===pDefTyId(id))delete m[id];else m[id]=v;pSEsave();try{logAct('Changed payslip type (individual)','Payroll',PF+' · '+(v==='cv'?'Cash voucher':'Regular payslip'))}catch(e){}}
 const pSEcount=()=>Object.keys(pSE()).length;
 
 /* panel: choose Regular payslip or Cash voucher for each employee */
@@ -4632,7 +4636,7 @@ function pSlSearch(v){PSQ=v;drawSlips();const e=$('pslq');if(e){e.focus();try{e.
 const SLW=66,SLH=75,SLGP=1.2,SLPD=3,CVW=100,CVH=72,SLSAFE=12; /* SLSAFE = mm kept free at the bottom of every sheet, so a printer's top offset / unprintable area never cuts the last row */
 function pSlipGrid(cv){const mm=v=>{const n=parseFloat(v);return/in$/.test(v)?n*25.4:n},z=String(PSZ).split('|'),W=mm(z[0]),H=mm(z[1])-.6-SLSAFE;return[Math.max(1,Math.floor((W-2*SLPD+SLGP)/((cv?CVW:SLW)+SLGP))),Math.max(1,Math.floor((H-2*SLPD+SLGP)/((cv?CVH:SLH)+SLGP)))]}
 function drawSlips(){const ALL=pSlipList().length,L=pSlipView(),pages=[],MG=isMg(PF),FX=!MG||PMGN==='12',grp=(MG?[{cv:false,L:L}]:[{cv:false,L:L.filter(x=>!pIsCvX(x))},{cv:true,L:L.filter(pIsCvX)}]).filter(g=>g.L.length),nCv=grp.filter(g=>g.cv).reduce((a,g)=>a+g.L.length,0),nRg=L.length-nCv;let per=0,cc=0,rr=0;const byCls=A=>{const m=new Map();A.forEach(x=>{const k=pClsKey(x.g);if(!m.has(k))m.set(k,[]);m.get(k).push(x)});return[...m.values()]};/* each class (B1, B2, Breeders, Hauling \u2026) starts on its own sheet */if(!MG&&grp.length>1)byCls(L).forEach(c=>pFlowPages(c).forEach(pg=>pages.push({pg:pg,mix:true,per:0,cc:0,rr:0})));else grp.forEach((g,gi)=>{const [fc,fr]=pSlipGrid(g.cv),pr=FX?fc*fr:+PMGN,[c1,r1]=FX?[fc,fr]:(PLY[pr]||PLY[12]);if(!gi){per=pr;cc=c1;rr=r1}(MG?[g.L]:byCls(g.L)).forEach(c=>{for(let i=0;i<c.length;i+=pr)pages.push({pg:c.slice(i,i+pr),cv:g.cv,per:pr,cc:c1,rr:r1})})});if(PMKR!==PP.runId){PMK={};PMKR=PP.runId;PSQ=''}
- const pgLab=P=>{const g=P.pg&&P.pg[0]?P.pg[0].g:'';return String(PF==='EXTRA PAYROLL'?pClsKey(g).toUpperCase():(g||PF))},bc=new Map();pages.forEach(P=>{const l=pgLab(P);bc.set(l,(bc.get(l)||0)+1)});const pgTxt=pages.length+' page'+(pages.length===1?'':'s'),bcTxt=bc.size>1?[...bc].map(([l,n])=>esc(l)+': <b>'+n+'</b>').join(' \u00b7 '):'';
+ const pgLab=P=>{const g=P.pg&&P.pg[0]?P.pg[0].g:'';return String(PF==='EXTRA PAYROLL'?pClsKey(g).toUpperCase():pCanon(PF)==='FMVM'?PF:(g||PF))},bc=new Map();pages.forEach(P=>{const l=pgLab(P);bc.set(l,(bc.get(l)||0)+1)});const pgTxt=pages.length+' page'+(pages.length===1?'':'s'),bcTxt=bc.size>1?[...bc].map(([l,n])=>esc(l)+': <b>'+n+'</b>').join(' \u00b7 '):'';
  $('main').innerHTML=`<div class="pz-bar no-print"><button class="btn o" onclick="pSlipBack()">← Back to payroll</button><span class="pz-sep"></span><b style="font-size:15px;color:var(--h)">Payslips · ${esc(PF)} · ${esc(pPeriod())}</b><span class="sp1"></span>
 <label style="font-size:13px"><input type="checkbox" ${PSK?'checked':''} onchange="PSK=this.checked;drawSlips()"> Skip employees with no pay</label>
 ${MG?'':`<input id="pslq" class="fi" type="search" autocomplete="off" placeholder="🔍 Search name…" value="${esc(PSQ)}" style="width:180px;margin:0" oninput="pSlSearch(this.value)" title="Find an employee in this payslip list">`}
@@ -10064,26 +10068,48 @@ window.atSyncPay=async keys=>{
 /* ===== PAYSLIP MONITORING: HR ticks each person whose SIGNED payslip was returned, per department + cutoff.
    Names come from the saved payroll. Ticks are saved in hrd_attendance under the name "_psm|<payroll id>" (no new SQL needed). ===== */
 (function(){
-const PS={d:'',r:'',f:'all',q:'',ret:{},bad:false,busy:false,v:'list',sc:'',all:{},sbad:false};
+const PS={d:'',r:'',f:'all',q:'',ret:{},bad:false,busy:false,v:'list',sc:'',all:{},sbad:false,gn:6,gd:'',rm:{},cl:'',gs:null,go:false,gh:[],go2:false,nm:{}};
 const key=id=>'_psm|'+id,lb=(f,t)=>{try{return pLabOf(f,t).replace(/[A-Z]{2,}/g,w=>w[0]+w.slice(1).toLowerCase())}catch(e){return f+' → '+t}};
 const me=()=>{try{return(MYA&&MYA.full_name)||((ME&&ME.user_metadata)||{}).full_name||(ME&&ME.email)||''}catch(e){return''}};
 const runs=d=>(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&pFo(p.data)===d).sort((a,b)=>String(b.data.to).localeCompare(String(a.data.to)));
 const cur=()=>(PH||[]).find(p=>String(p.id)===String(PS.r));
-const people=p=>{const ids=Object.keys((p.data&&p.data.rates)||{});return ids.filter(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id));return !s||pxGrpOk(s.dept,pGrp(s))}).map(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id));return{id:String(id),n:s?s.name:'(removed from payroll) '+id}}).sort((a,b)=>a.n.localeCompare(b.n))};
+/* Only people who actually have a payslip in that cutoff (not on hold, with actual pay for days worked (pay > 0) and a net pay above zero; people no longer in payroll only if that cutoff has pay entries for them). Computed from the saved payroll by briefly loading it into PP/PF, then restoring them. */
+const PAYC=new WeakMap();
+const psmHasRow=r=>!!r&&Object.keys(r).some(k=>!['rem','remD','remA','ssp','hold'].includes(k)&&r[k]!==''&&r[k]!=null&&r[k]!==0&&r[k]!=='0');
+function psmPaid(p){const d=p&&p.data;if(!d||!d.rows||!d.rates)return null;let c=PAYC.get(d);if(c)return c;
+ const oP=PP,oF=PF,ids=new Set();let okc=true;
+ try{PF=pFo(d);const o={...PP,from:d.from,to:d.to,cm:d.cm||null,fdL:d.fd||7,title:d.title,prep:d.prep,chk:d.chk,rows:{...d.rows},tmd:d.tmd||{},sm:d.sm||null,smx:d.smx||null,cs:d.cs||null,xb:d.xb||null,xbk:null,lk:d.rates,open:d.open||{},mail:d.mail||{},xc:JSON.parse(JSON.stringify(d.xc||[])),hc:d.hc||[],ord:d.ord||null,m:d.m||(PCFG[PF]||{}).m||'r',gpd:d.gpd||null,gpe:d.gpe||null,t:d.t||{},det:d.det||[],dirty:false,init:1,runId:p.id};
+  try{pElbFix(PF,o)}catch(e){}PP=o;
+  Object.keys(d.rates).forEach(id=>{const s0=(STF||[]).find(x=>String(x.id)===String(id)),s=s0||{id:id,dept:PF,name:''};
+   /* no longer in the staff list: only count him if that cutoff really has pay entries for him */
+   if(!s0&&!psmHasRow(d.rows[id]))return;
+   try{if(pHeld(s))return;const v=pVals0(s);if(v.net>0&&v.pay>0)ids.add(String(id))}catch(e){ids.add(String(id))}})}
+ catch(e){okc=false}finally{PP=oP;PF=oF}
+ if(!okc)return null;PAYC.set(d,ids);return ids}
+const people=p=>{const PD=psmPaid(p),ids=Object.keys((p.data&&p.data.rates)||{}).filter(id=>!PD||PD.has(String(id)));return ids.filter(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id));return !s||pxGrpOk(s.dept,pGrp(s))}).map(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id));return{id:String(id),n:s?s.name:(PS.nm&&PS.nm[String(id)]?PS.nm[String(id)]+' (removed)':'(removed from payroll) '+id)}}).sort((a,b)=>a.n.localeCompare(b.n))};
 async function getRet(id){const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(key(id))+'&select=data');return(Array.isArray(r)&&r[0]&&r[0].data&&r[0].data.ret)||{}}
 async function putRet(id,ret){await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{name:key(id),data:{ret:ret},updated_at:new Date().toISOString()}])})}
+/* names of employees who were removed from payroll: looked up from the move log and the attendance sheets (they store each person's name beside the id) */
+async function psmNm(){PS.nm={};
+ const miss=new Set();(PH||[]).forEach(p=>Object.keys((p.data&&p.data.rates)||{}).forEach(id=>{if(!(STF||[]).some(x=>String(x.id)===String(id)))miss.add(String(id))}));
+ if(!miss.size)return;
+ try{((PDS&&PDS._mv&&PDS._mv.L)||[]).forEach(e=>{if(e&&e.n&&miss.has(String(e.id)))PS.nm[String(e.id)]=e.n})}catch(e){}
+ if([...miss].every(id=>PS.nm[id]))return;
+ try{const rows=await api('/rest/v1/hrd_attendance?select=name,emps:data->emps');
+  (Array.isArray(rows)?rows:[]).forEach(r=>{(Array.isArray(r&&r.emps)?r.emps:[]).forEach(e=>{if(e&&e.k!=null&&e.n&&miss.has(String(e.k))&&!PS.nm[String(e.k)])PS.nm[String(e.k)]=String(e.n)})})}catch(e){}}
 window.psm=async function(){
- PS.d='';PS.r='';PS.f='all';PS.q='';PS.v='list';PS.ret={};PS.all={};
+ PS.d='';PS.r='';PS.f='all';PS.q='';PS.cl='';PS.v='list';PS.ret={};PS.all={};PS.dd='';PS.ds='all';
  $('main').innerHTML='<h1>Payslip Monitoring</h1><p class="sub">Loading…</p>';
  try{if(STF===undefined||STF===null)await loadS();if(!Array.isArray(PH))await loadH(1)}catch(e){}
  if(PG!=='psm')return;
  if(!Array.isArray(PH)||!Array.isArray(STF)){$('main').innerHTML='<h1>Payslip Monitoring</h1><p class="sub">The saved payrolls could not be loaded. Check your connection and open this page again.</p>';return}
+ try{await psmNm()}catch(e){}
  const F=pFolders().filter(f=>runs(f).length);
  if(!F.includes(PS.d)){PS.d='';PS.r=''}
  const R=runs(PS.d);if(!R.some(p=>String(p.id)===String(PS.r)))PS.r='';
- await psmLoad()};
+ await psmView('due')};
 async function psmLoad(){PS.ret={};PS.bad=false;if(PS.r){try{PS.ret=await getRet(PS.r)}catch(e){PS.bad=true}}if(PG==='psm')psmDraw()}
-window.psmSel=async(k,v)=>{PS[k]=v;if(k==='d'){PS.r='';await psmLoad()}else if(k==='r')await psmLoad();else psmDraw()};
+window.psmSel=async(k,v)=>{PS[k]=v;if(k==='d'){PS.cl='';PS.r=v&&runs(v)[0]?String(runs(v)[0].id):'';await psmLoad()}else if(k==='r'){PS.cl='';await psmLoad()}else psmDraw()};
 window.psmTog=async(id,on)=>{await psmSet([id],on)};
 window.psmAll=async on=>{const p=cur();if(!p)return;const L=psmShown(p).map(x=>x.id);if(!L.length)return;if(!confirm((on?'Mark ':'Clear ')+L.length+' name(s) as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(L,on)};
 async function psmSet(ids,on){if(PS.busy)return;PS.busy=true;const p=cur();if(!p){PS.busy=false;return}
@@ -10092,7 +10118,10 @@ async function psmSet(ids,on){if(PS.busy)return;PS.busy=true;const p=cur();if(!p
   await putRet(p.id,ret);PS.ret=ret;try{logAct((on?'Marked payslip returned':'Cleared payslip returned'),'Payslip Monitoring',PS.d+' — '+lb(p.data.from,p.data.to)+' ('+ids.length+')')}catch(e){}}
  catch(e){alert('Could not save: '+(e.message||e))}
  PS.busy=false;psmDraw()}
-function psmShown(p){const q=(PS.q||'').trim().toUpperCase();return people(p).filter(x=>(!q||x.n.toUpperCase().includes(q))&&(PS.f==='all'||(PS.f==='no'?!PS.ret[x.id]:!!PS.ret[x.id])))}
+function psmCl(x){const s=(STF||[]).find(y=>String(y.id)===String(x.id));return gCls(s?pGrp(s):'')||'(no class)'}
+let PCL=[];
+window.psmCAll=async k=>{const ids=PCL[k]||[];if(!ids.length)return;const on=!ids.every(id=>PS.ret[id]);if(!confirm((on?'Mark ':'Clear ')+ids.length+' name(s) of this class as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(ids,on)};
+function psmShown(p){const q=(PS.q||'').trim().toUpperCase();return people(p).filter(x=>(!q||x.n.toUpperCase().includes(q))&&(!PS.cl||psmCl(x)===PS.cl)&&(PS.f==='all'||(PS.f==='no'?!PS.ret[x.id]:!!PS.ret[x.id])))}
 const psmCss=`
 .psm{max-width:1100px}
 .psm-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:0 0 22px}
@@ -10114,6 +10143,17 @@ const psmCss=`
 .psm-bl{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:12.5px;color:var(--mu)}
 .psm-pill{display:inline-flex;align-items:center;justify-content:center;padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.4px;white-space:nowrap}
 .psm-pill.lg{font-size:15px;padding:8px 20px;min-width:62px}
+.psm-seg{display:inline-flex;border:1px solid var(--ln2);border-radius:10px;overflow:hidden;background:var(--sf)}.psm-seg button{border:0;background:transparent;padding:7px 16px;font:600 13px inherit;font-family:inherit;color:var(--ink);cursor:pointer;border-right:1px solid var(--ln2)}.psm-seg button:last-child{border-right:0}.psm-seg button.on{background:#12305c;color:#fff}.psm-seg button:not(.on):hover{background:var(--soft)}.psm-gap{flex:1;min-width:12px}
+.psm-pill.o{background:rgba(192,57,43,.14);color:#b3392f;border:1px solid rgba(192,57,43,.4)}.psm-pill.w{background:rgba(224,160,30,.16);color:#8a6a1c;border:1px solid rgba(224,160,30,.45)}
+[data-theme=dark] .psm-pill.o{color:#ff8f82}[data-theme=dark] .psm-pill.w{color:#e3bd62}
+.psm-sc.w{background:rgba(224,160,30,.1)}.psm-sc.w b{color:#8a6a1c}
+.psm-dr{cursor:pointer}.psm-dr:hover td{background:var(--soft)}.psm-dl{display:flex;flex-direction:column;gap:10px}
+.psm-dd2{background:var(--sf);border:1px solid var(--ln);border-left:4px solid #c0392b;border-radius:12px;padding:0}.psm-dd2.w{border-left-color:#e0a01e}
+.psm-dd2 summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:12px 16px;cursor:pointer;list-style:none;font-size:14px}
+.psm-dd2 summary::-webkit-details-marker{display:none}.psm-dd2 summary::before{content:"▸";color:var(--mu)}.psm-dd2[open] summary::before{content:"▾"}
+.psm-dn2{min-width:200px;color:var(--h)}.psm-dm{color:var(--mu);font-size:13px}
+.psm-dbd{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;padding:4px 16px 14px 34px;border-top:1px solid var(--ln)}
+.psm-chip{background:var(--soft);border:1px solid var(--ln);border-radius:999px;padding:3px 10px;font-size:12.5px;color:var(--ink)}
 .psm-pill.c{background:rgba(46,125,79,.13);color:#2e7d4f;border:1px solid rgba(46,125,79,.34)}
 .psm-pill.i{background:rgba(192,57,43,.1);color:#c0392b;border:1px solid rgba(192,57,43,.3)}
 .psm-pill.p{background:rgba(184,146,58,.14);color:#8a6a1c;border:1px solid rgba(184,146,58,.38)}
@@ -10150,34 +10190,185 @@ const psmCss=`
 .psm-dh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.psm-dh b{color:var(--h);font-size:15px}
 .psm-dn{font-family:Georgia,serif;font-size:26px;color:var(--ink);margin-bottom:10px}.psm-dn small{font-family:inherit;font-size:13px;color:var(--mu)}
 .psm-open{background:none;border:0;color:var(--lk);font-weight:600;font-size:13px;padding:0;cursor:pointer}.psm-open:hover{text-decoration:underline}
+.psm-ch td{background:var(--soft);border-bottom:1px solid var(--ln2)}.psm-ch .psm-cn{font-weight:700;color:var(--h);margin-right:10px}.psm-ch .psm-open{margin-left:12px}
+.psm.wide{max-width:none}
+.psg-dd{position:relative}.psg-dd summary.fi{display:flex;align-items:center;cursor:pointer;list-style:none;padding:0 14px;border:1px solid #cdd5e3;background:var(--sf);color:var(--ink)}
+.psg-dd summary.fi::-webkit-details-marker{display:none}.psg-dd summary.fi::after{content:"▾";margin-left:auto;color:var(--mu)}
+.psg-pnl{position:absolute;z-index:30;left:0;right:0;top:48px;max-height:360px;overflow:auto;background:var(--sf);border:1px solid var(--ln2);border-radius:12px;box-shadow:0 18px 40px -18px #12305c66;padding:10px 12px}
+.psg-q{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--ln)}
+.psm-fl .psg-pnl label.row{display:flex;gap:10px;align-items:center;padding:7px 2px;border-bottom:1px solid var(--ln);font-size:14px;text-transform:none;letter-spacing:0;color:var(--ink);font-weight:500;margin:0;cursor:pointer}
+.psm-fl .psg-pnl label.row:last-child{border-bottom:0}
+.psg-w{overflow:auto;border:1px solid var(--ln2);border-radius:12px;background:var(--sf)}
+.psg{border-collapse:collapse;width:100%;min-width:640px}
+.psg th:first-child{width:230px}.psg th:not(:first-child):not(.rm){width:130px}.psg th.rm{width:99%}
+.psg th,.psg td{border:1px solid var(--ln2);padding:7px 10px;text-align:center;font-size:14px}
+.psg th{background:var(--sf2);font-size:12px;font-weight:700;color:var(--h);white-space:nowrap}
+.psg th.rm{min-width:200px}
+.psg td.cl{text-align:left;font-weight:600;color:var(--ink);white-space:nowrap;width:230px;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.psg tr.dh td{background:var(--soft);color:var(--h);text-align:left;font-weight:800;letter-spacing:.6px;font-size:12.5px;border-left:3px solid var(--au)}
+.psg td.ok{background:#eaf5ee;color:#2e7d4f;font-size:16px;font-weight:700}
+.psg td.bad{background:#fbeceb;color:#b3392f;font-weight:600;font-size:12.5px}.psg td.bad.part{background:#fdf3dc;color:#8a6a1c}
+.psg td.go{cursor:pointer}.psg td.go:hover{filter:brightness(.96);box-shadow:inset 0 0 0 1px var(--ln2)}
+.psg td.na{background:var(--sf2)}
+.psg td.rmk{padding:3px;min-width:200px}.psg td.rmk input{width:100%;border:0;background:transparent;padding:6px 8px;font:inherit;font-size:13px;color:var(--ink)}
+.psg td.rmk input:focus{outline:2px solid var(--au);background:var(--sf)}
+[data-theme=dark] .psg td.ok{background:#173326;color:#6fd39a}[data-theme=dark] .psg td.bad{background:#3a1f21;color:#ff9d92}[data-theme=dark] .psg td.bad.part{background:#3a3016;color:#e3bd62}
+.psg-lg{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--mu);margin:12px 2px 0}
 @media(max-width:640px){.psm-by,.psm-n{display:none}.psm-st{flex-direction:column}.psm-big{font-size:30px}}
 `;
 (function(){const e=document.createElement('style');e.id='psmcss';e.textContent=psmCss;document.head.appendChild(e)})();
 const ini=n=>{const a=String(n).replace(/\(.*?\)\s*/,'').split(',');return(((a[0]||'').trim()[0]||'')+((a[1]||'').trim()[0]||'')).toUpperCase()||'?'};
 function psmDraw(){
  if(PS.v==='sum')return psmSumDraw();
+ if(PS.v==='grid')return psmGridDraw();
+ if(PS.v==='due')return psmDueDraw();
  const F=pFolders().filter(f=>runs(f).length),R=runs(PS.d),p=cur(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
  const all=p?people(p):[],tot=all.length,done=all.filter(x=>PS.ret[x.id]).length,pct=tot?Math.round(done/tot*100):0,comp=tot>0&&done===tot,L=p?psmShown(p):[];
  const ed=(typeof hrx==='function'&&hrx())||can('psm');
  const fd=r=>new Date(r.at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
- const rows=L.map((x,i)=>{const r=PS.ret[x.id];return`<tr class="${r?'ok':''}"><td class="psm-n">${i+1}</td><td><div class="psm-nm"><span class="psm-av">${esc(ini(x.n))}</span>${esc(x.n)}</div></td><td class="psm-c"><label class="psm-ck"><input type="checkbox"${r?' checked':''}${ed&&!PS.bad?'':' disabled'} onchange="psmTog('${esc(x.id)}',this.checked)"><span></span></label></td><td>${r?`<span class="psm-pill c">Returned</span><span class="psm-dt">${esc(fd(r))}</span>`:'<span class="psm-pill p">Pending</span>'}</td><td class="psm-by">${r?esc(r.by||''):''}</td></tr>`}).join('');
- $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Tick each name once the <b>signed payslip</b> has been returned.</p><div class="psm-rule"></div></div><div class="psm-act">${can('pay')?`<button class="btn o sm" onclick="go('pay')">← Back to Payroll</button>`:''}<button class="btn sm" onclick="psmView('sum')">Summary · all departments</button><button class="btn sm" onclick="psmExport()" title="Choose the cutoff(s) to export">⬇ Export to Excel</button></div></div>
+ const rowOf=(x,i)=>{const r=PS.ret[x.id];return`<tr class="${r?'ok':''}"><td class="psm-n">${i+1}</td><td><div class="psm-nm"><span class="psm-av">${esc(ini(x.n))}</span>${esc(x.n)}</div></td><td class="psm-c"><label class="psm-ck"><input type="checkbox"${r?' checked':''}${ed&&!PS.bad?'':' disabled'} onchange="psmTog('${esc(x.id)}',this.checked)"><span></span></label></td><td>${r?`<span class="psm-pill c">Returned</span><span class="psm-dt">${esc(fd(r))}</span>`:'<span class="psm-pill p">Pending</span>'}</td><td class="psm-by">${r?esc(r.by||''):''}</td></tr>`};
+ PCL=[];const gm=new Map(),tm=new Map(),nat=(a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});
+ L.forEach(x=>{const c=psmCl(x);if(!gm.has(c))gm.set(c,[]);gm.get(c).push(x)});
+ all.forEach(x=>{const c=psmCl(x),o=tm.get(c)||{t:0,d:0};o.t++;if(PS.ret[x.id])o.d++;tm.set(c,o)});
+ const clsAll=[...tm.keys()].sort(nat);
+ const rows=[...gm.keys()].sort((a,b)=>(a==='(no class)')-(b==='(no class)')||nat(a,b)).map(c=>{const o=tm.get(c),ids=gm.get(c).map(x=>x.id),k=PCL.push(ids)-1,cp=o.t>0&&o.d===o.t;
+  return(c==='(no class)'?'':`<tr class="psm-ch"><td colspan="5"><span class="psm-cn">${esc(c)}</span><span class="psm-pill ${cp?'c':'i'}">${o.d}/${o.t}${cp?' ✓':''}</span>${ed&&!PS.bad?`<button class="psm-open" onclick="psmCAll(${k})">${ids.every(id=>PS.ret[id])?'Clear class':'Mark class returned'}</button>`:''}</td></tr>`)+gm.get(c).map((x,i)=>rowOf(x,i)).join('')}).join('');
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring · Checklist</h1><p class="sub">Choose a department and a cutoff, then tick each name once the <b>signed payslip</b> has been returned.</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('list')}</div></div>
 ${PS.bad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). Do not tick anything until this is fixed — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Department</label><select class="fi" onchange="psmSel('d',this.value)">${op('','— Select department —',!PS.d)}${F.map(f=>op(f,f,f===PS.d)).join('')}</select></div><div><label>Cutoff</label><select class="fi" ${PS.d?'':'disabled'} onchange="psmSel('r',this.value)">${op('','— Select cutoff —',!PS.r)}${R.map(x=>op(x.id,lb(x.data.from,x.data.to),String(x.id)===String(PS.r))).join('')}</select></div></div></div>
 ${p?`<div class="psm-card"><div class="psm-pg"><div><div class="psm-big">${done}<small> / ${tot}</small></div><div class="psm-cap">Signed payslips returned</div></div><div class="psm-bw"><div class="psm-bar"><i class="${comp?'c':''}" style="width:${pct}%"></i></div><div class="psm-bl"><span>${pct}% complete</span><span>${tot-done} pending</span></div></div><span class="psm-pill lg ${comp?'c':'i'}">${comp?'C':'INC'}</span></div></div>
-<div class="psm-card psm-tc"><div class="psm-tb"><input id="psmq" class="fi" placeholder="Search name…" value="${esc(PS.q)}" oninput="PSMQ(this.value)"><select class="fi" onchange="psmSel('f',this.value)">${[['all','All names'],['no','Not yet returned'],['yes','Returned']].map(([v,l])=>op(v,l,PS.f===v)).join('')}</select><span style="flex:1"></span>${ed&&L.length?`<button class="btn o sm" onclick="psmAll(true)">Mark shown as returned</button><button class="btn o sm" onclick="psmAll(false)">Clear shown</button>`:''}</div>${L.length?`<div style="overflow-x:auto"><table class="psm-t"><tr><th class="psm-n">#</th><th>Name</th><th class="psm-c">Returned</th><th>Status</th><th class="psm-by">Checked by</th></tr>${rows}</table></div>`:'<div class="psm-em">No names to show.</div>'}</div>`:`<div class="psm-card psm-em"><div class="psm-ei">📄</div><b>${F.length?'Choose a department and a cutoff':'No saved payroll yet'}</b><span>${F.length?'The list of names will appear here.':'Save a payroll first.'}</span></div>`}</div>`}
+<div class="psm-card psm-tc"><div class="psm-tb"><input id="psmq" class="fi" placeholder="Search name…" value="${esc(PS.q)}" oninput="PSMQ(this.value)"><select class="fi" onchange="psmSel('cl',this.value)">${op('','All classes',!PS.cl)}${clsAll.map(c=>op(c,c+' ('+tm.get(c).d+'/'+tm.get(c).t+')',c===PS.cl)).join('')}</select><select class="fi" onchange="psmSel('f',this.value)">${[['all','All names'],['no','Not yet returned'],['yes','Returned']].map(([v,l])=>op(v,l,PS.f===v)).join('')}</select><span style="flex:1"></span>${ed&&L.length?`<button class="btn o sm" onclick="psmAll(true)">Mark shown as returned</button><button class="btn o sm" onclick="psmAll(false)">Clear shown</button>`:''}</div>${L.length?`<div style="overflow-x:auto"><table class="psm-t"><tr><th class="psm-n">#</th><th>Name</th><th class="psm-c">Returned</th><th>Status</th><th class="psm-by">Checked by</th></tr>${rows}</table></div>`:'<div class="psm-em">No names to show.</div>'}</div>`:`<div class="psm-card psm-em"><div class="psm-ei">📄</div><b>${F.length?'Choose a department and a cutoff':'No saved payroll yet'}</b><span>${F.length?'The list of names will appear here.':'Save a payroll first.'}</span></div>`}</div>`}
 const cuts=()=>{const m={};(PH||[]).forEach(p=>{if(p.data&&p.data.from&&p.data.to&&pFolders().includes(pFo(p.data)))m[p.data.from+'|'+p.data.to]=1});return Object.keys(m).sort((a,b)=>b.split('|')[1].localeCompare(a.split('|')[1]))};
-window.psmView=async v=>{PS.v=v;if(v==='sum'){const C=cuts();if(!C.includes(PS.sc))PS.sc=C[0]||'';PS.sbad=false;PS.all={};$('main').innerHTML='<h1>Payslip Monitoring</h1><p class="sub">Loading summary…</p>';try{const rows=await api('/rest/v1/hrd_attendance?name=like.'+encodeURIComponent('_psm|*')+'&select=name,data');(Array.isArray(rows)?rows:[]).forEach(r=>{if(r&&r.name)PS.all[r.name.slice(5)]=(r.data&&r.data.ret)||{}})}catch(e){PS.sbad=true}if(PG==='psm')psmDraw()}else psmLoad()};
+window.psmView=async v=>{PS.v=v;if(v==='sum'||v==='grid'||v==='due'){const C=cuts();if(!C.includes(PS.sc))PS.sc=C[0]||'';PS.sbad=false;PS.all={};$('main').innerHTML='<h1>Payslip Monitoring</h1><p class="sub">Loading summary…</p>';try{const rows=await api('/rest/v1/hrd_attendance?name=like.'+encodeURIComponent('_psm|*')+'&select=name,data');(Array.isArray(rows)?rows:[]).forEach(r=>{if(r&&r.name)PS.all[r.name.slice(5)]=(r.data&&r.data.ret)||{}})}catch(e){PS.sbad=true}if(v==='grid'){try{const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent('_psmrm|grid')+'&select=data');PS.rm=(Array.isArray(r)&&r[0]&&r[0].data&&r[0].data.rm)||{}}catch(e){PS.rm={}}}if(PG==='psm')psmDraw()}else psmLoad()};
 window.psmSc=v=>{PS.sc=v;psmDraw()};
-window.psmOpen=(d,id)=>{PS.d=d;PS.r=id;PS.v='list';psmLoad()};
+window.psmOpen=(d,id,cl,q)=>{PS.d=d;PS.r=id;PS.cl=cl||'';PS.q=q||'';PS.f='all';PS.v='list';psmLoad()};
 function psmSumDraw(){
  const C=cuts(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
  const ord=pFolders(),R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{p:p,d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
  const nc=R.filter(x=>x.c).length,ni=R.length-nc;
- $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Summary of all departments · <b>C</b> complete · <b>INC</b> incomplete</p><div class="psm-rule"></div></div><div class="psm-act"><button class="btn o sm" onclick="psmView('list')">← Back to list</button><button class="btn sm" onclick="psmPrint()">🖨 Print summary</button><button class="btn sm" onclick="psmExport()" title="Choose the cutoff(s) to export">⬇ Export to Excel</button></div></div>
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Summary of all departments · <b>C</b> complete · <b>INC</b> incomplete</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('grid')}<span class="psm-gap"></span><button class="btn sm" onclick="psmPrint()">🖨 Print</button><button class="btn sm" onclick="psmExport()" title="Choose the cutoff(s) to export">⬇ Export to Excel</button></div></div>
 ${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). The summary may be wrong — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Cutoff</label><select class="fi" onchange="psmSc(this.value)">${C.map(k=>{const[f,t]=k.split('|');return op(k,lb(f,t),k===PS.sc)}).join('')}</select></div><div class="psm-st"><div class="psm-sc c"><b>${nc}</b><span>Complete</span></div><div class="psm-sc i"><b>${ni}</b><span>Incomplete</span></div></div></div></div>
 ${R.length?`<div class="psm-gd">${R.map(x=>{const pc=x.tot?Math.round(x.done/x.tot*100):0;return`<div class="psm-dc ${x.c?'c':''}"><div class="psm-dh"><b>${esc(x.d)}</b><span class="psm-pill ${x.c?'c':'i'}">${x.c?'C':'INC'}</span></div><div class="psm-dn">${x.done}<small> / ${x.tot} returned</small></div><div class="psm-bar"><i class="${x.c?'c':''}" style="width:${pc}%"></i></div><div class="psm-bl"><span>${x.tot-x.done} pending</span><button class="psm-open" onclick="psmOpen('${esc(x.d).replace(/'/g,"\\'")}','${esc(String(x.p.id))}')">Open →</button></div></div>`}).join('')}</div>`:'<div class="psm-card psm-em">No saved payroll for this cutoff.</div>'}</div>`}
+const gCls=c=>String(c||'').replace(/^.*:\s*/,'').trim();
+const gDt=t=>{const a=String(t).split('-');return a.length===3?(+a[1])+'/'+(+a[2])+'/'+a[0]:String(t)};
+let GK=[],GDL=[],GM=null;
+function psmGridDraw(){
+ const ord=pFolders(),allC=cuts(),selC=PS.gs?allC.filter(k=>PS.gs.includes(k)):allC.slice(0,6),C=selC.slice().reverse(),ed=(typeof hrx==='function'&&hrx())||can('psm');
+ const D=new Map();
+ C.forEach(k=>{(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===k&&ord.includes(pFo(p.data))).forEach(p=>{
+  const d=pFo(p.data);if((PS.gh||[]).includes(d))return;
+  const ret=PS.all[String(p.id)]||{};if(!D.has(d))D.set(d,new Map());const cm=D.get(d);
+  people(p).forEach(x=>{const st=(STF||[]).find(y=>String(y.id)===x.id),cn=gCls(st?pGrp(st):'')||'~';
+   if(!cm.has(cn))cm.set(cn,{});const row=cm.get(cn);const c=row[k]||(row[k]={t:0,d:0,pid:String(p.id)});c.t++;if(ret[x.id])c.d++;c.pid=String(p.id)})})});
+ const depts=[...D.keys()].sort((a,b)=>ord.indexOf(a)-ord.indexOf(b));GK=[];GDL=ord.filter(f=>runs(f).length);GM={C:C,depts:depts,D:D};
+ const op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
+ const body=depts.map(d=>{const cm=D.get(d),names=[...cm.keys()].sort((a,b)=>(a[0]==='~')-(b[0]==='~')||a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}));
+  return`<tr class="dh"><td colspan="${C.length+2}">${esc(d)}<button type="button" class="psm-open" style="float:right;font-weight:600" onclick="psmGDep(${GDL.indexOf(d)},false)" title="Hide this department">Hide ✕</button></td></tr>`+names.map(cn=>{const row=cm.get(cn),i=GK.push(d+'|'+cn)-1;
+   return`<tr><td class="cl">${esc(gLbl(cn,d,cm))}</td>${C.map(k=>{const c=row[k];if(!c)return'<td class="na"></td>';const ok=c.t>0&&c.d===c.t,ar=z=>esc(z).replace(/'/g,"\\'"),ind=cn==='~',go=`onclick="psmOpen('${ar(d)}','${esc(c.pid)}','${ind?(cm.size>1?'(no class)':''):ar(cn)}','')"`;
+     return ok?`<td class="ok go" ${go} title="Complete · ${c.d}/${c.t} returned">✓</td>`:`<td class="bad${c.d>0?' part':''} go" ${go} title="${c.t-c.d} pending">${c.d}/${c.t}</td>`}).join('')}<td class="rmk"><input value="${esc(PS.rm[d+'|'+cn]||'')}" ${ed?'':'disabled'} onchange="psmRm(${i},this.value)" placeholder="${ed?'Add remarks…':''}"></td></tr>`}).join('')}).join('');
+ $('main').innerHTML=`<div class="psm wide"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">By class · <b>✓</b> all signed payslips returned · <b style="color:#b3392f">rose/amber</b> still pending (returned/total)</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('grid')}<span class="psm-gap"></span><button class="btn sm" onclick="psmGPrint()" title="Print what is shown below">🖨 Print</button><button class="btn sm" onclick="psmGExport()" title="Export what is shown below">⬇ Export to Excel</button></div></div>
+${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). The grid may be wrong — reopen this page.</div>':''}
+<div class="psm-card"><div class="psm-fl"><div class="psg-dd"><label>Departments shown</label><details ${PS.go2?'open':''} ontoggle="psmGOpen2(this.open)"><summary class="fi">${GDL.filter(f=>!(PS.gh||[]).includes(f)).length===GDL.length?'All departments':GDL.filter(f=>!(PS.gh||[]).includes(f)).length+' of '+GDL.length+' departments shown'}</summary><div class="psg-pnl"><div class="psg-q"><button type="button" class="btn o sm" onclick="psmGDepAll(true)">Show all</button><button type="button" class="btn o sm" onclick="psmGDepAll(false)">Hide all</button></div>${GDL.map((f,i)=>`<label class="row"><input type="checkbox" ${(PS.gh||[]).includes(f)?'':'checked'} onchange="psmGDep(${i},this.checked)"> <span>${esc(f)}</span></label>`).join('')}</div></details></div><div class="psg-dd"><label>Cutoffs shown</label><details ${PS.go?'open':''} ontoggle="psmGOpen(this.open)"><summary class="fi">${selC.length?selC.length+' of '+allC.length+' cutoff'+(selC.length===1?'':'s')+' selected':'Choose cutoff(s)'}</summary><div class="psg-pnl"><div class="psg-q"><button type="button" class="btn o sm" onclick="psmGQuick(1)">Latest</button><button type="button" class="btn o sm" onclick="psmGQuick(4)">Last 4</button><button type="button" class="btn o sm" onclick="psmGQuick(6)">Last 6</button><button type="button" class="btn o sm" onclick="psmGQuick(12)">Last 12</button><button type="button" class="btn o sm" onclick="psmGQuick(999)">All</button><button type="button" class="btn o sm" onclick="psmGNone()">Clear</button></div>${allC.map(k=>{const[f,t]=k.split('|');return`<label class="row"><input type="checkbox" ${selC.includes(k)?'checked':''} onchange="psmGTog('${k}',this.checked)"> <span>${esc(gDt(t))} <span style="color:var(--mu)">· ${esc(lb(f,t))}</span></span></label>`}).join('')}</div></details></div></div></div>
+${depts.length?`<div class="psg-w"><table class="psg"><tr><th style="text-align:left">Class</th>${C.map(k=>{const[f,t]=k.split('|');return`<th title="${esc(lb(f,t))}">${esc(gDt(t))}</th>`}).join('')}<th class="rm">REMARKS</th></tr>${body}</table></div><div class="psg-lg"><span>✓ complete</span><span>Rose = none returned yet · Amber = partly returned (returned/total)</span><span>Blank = class has no payroll in that cutoff</span><span>Click a cell to open only that class's names</span></div>`:`<div class="psm-card psm-em">${!selC.length?'Choose at least one cutoff above.':(PS.gh&&PS.gh.length?'No department to show — pick some in the Departments list above.':'No saved payroll to show.')}</div>`}</div>`}
+/* ===== DASHBOARD: who is past due in returning the signed payslip =====
+   Payslips are given out on the Friday 3 days after the cutoff ends (e.g. cutoff Oct 28 - Nov 3 -> Friday Nov 6).
+   Time allowed from that Friday: 14 days for B2 / B4 / B7 / B14, 7 days for everyone else. DUE_WARN = days before the deadline when the warning starts. */
+const psmNav=a=>`<div class="psm-seg">${[['due','Dashboard'],['list','Checklist'],['grid','Summary']].map(([v,l])=>`<button type="button" class="${v===a?'on':''}" onclick="psmView('${v}')">${l}</button>`).join('')}</div>${can('pay')?`<button class="btn o sm" onclick="go('pay')">← Payroll</button>`:''}`;
+const DUE_WARN=2;
+const psm2w=(s,x)=>{let g='';try{g=[s&&s.dept,s&&pGrp(s),psmCl(x)].join(' ')}catch(e){}return /(^|[^A-Z0-9])B(2|4|7|14)(?![0-9])/i.test(g)};
+function psmDueRows(){const t0=new Date();t0.setHours(0,0,0,0);const out=[];
+ (PH||[]).forEach(p=>{const d=p.data;if(!d||!d.from||!d.to||!pFolders().includes(pFo(d)))return;
+  const e=new Date(d.to+'T00:00:00');if(isNaN(e))return;
+  const st=new Date(e.getTime());st.setDate(st.getDate()+3);if(t0<st)return;
+  const ret=PS.all[String(p.id)]||{};
+  people(p).forEach(x=>{if(ret[x.id])return;const s=(STF||[]).find(y=>String(y.id)===String(x.id)),w2=psm2w(s,x),dl=new Date(st.getTime());dl.setDate(dl.getDate()+(w2?14:7));
+   const left=Math.round((dl-t0)/864e5);
+   out.push({pid:String(p.id),x,dept:pFo(d),cls:psmCl(x),from:d.from,to:d.to,st,dl,w2,left,over:left<0,soon:left>=0&&left<=DUE_WARN})})});
+ return out}
+window.psmDd=(k,v)=>{PS[k]=v;psmDraw()};
+function psmDueDraw(){
+ const fd=dt=>dt.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}),ar=z=>esc(z).replace(/'/g,"\\'"),
+  op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`,
+  M=new Map();
+ psmDueRows().forEach(r=>{let g=M.get(r.pid);if(!g){const p=(PH||[]).find(y=>String(y.id)===r.pid);g={pid:r.pid,dept:r.dept,from:r.from,to:r.to,st:r.st,tot:p?people(p).length:0,pend:0,left:1e9,dl:null};M.set(r.pid,g);}
+  g.pend++;if(r.left<g.left){g.left=r.left;g.dl=r.dl}});
+ const A=[...M.values()].filter(g=>g.left<=DUE_WARN).map(g=>(g.over=g.left<0,g)),
+  dpt=PS.dd||'',stt=PS.ds||'all',depts=[...new Set(A.map(g=>g.dept))].sort(),
+  B=A.filter(g=>(!dpt||g.dept===dpt)&&(stt==='all'||(stt==='over'?g.over:!g.over))).sort((a,b)=>a.left-b.left||a.dept.localeCompare(b.dept)),
+  nO=B.filter(g=>g.over).length,nS=B.length-nO,
+  txt=g=>g.over?`${-g.left} day${g.left===-1?'':'s'} overdue`:g.left===0?'Due today':`${g.left} day${g.left===1?'':'s'} left`,
+  rows=B.map(g=>`<tr class="psm-dr" onclick="psmOpen('${ar(g.dept)}','${esc(g.pid)}','','')" title="Open this cutoff to tick returned payslips"><td style="text-align:left"><b>${esc(g.dept)}</b></td><td>${esc(lb(g.from,g.to))}</td><td>${esc(fd(g.st))}</td><td><b>${esc(fd(g.dl))}</b></td><td>${g.pend} / ${g.tot}</td><td><span class="psm-pill ${g.over?'o':'w'}">${esc(txt(g))}</span></td></tr>`).join('');
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring · Dashboard</h1><p class="sub">Departments and cutoffs with signed payslips <b style="color:#b3392f">past due</b> or <b style="color:#8a6a1c">due within ${DUE_WARN} days</b>. A row disappears once all payslips of that cutoff are returned.</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('due')}</div></div>
+${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). This dashboard may be wrong — reopen this page.</div>':''}
+<div class="psm-card"><div class="psm-st"><div class="psm-sc i"><b>${nO}</b><span>Past due</span></div><div class="psm-sc w"><b>${nS}</b><span>Due soon</span></div></div>
+<div class="psm-fl" style="margin-top:14px"><div><label>Department</label><select class="fi" onchange="psmDd('dd',this.value)">${op('','All departments',!dpt)}${depts.map(d=>op(d,d,d===dpt)).join('')}</select></div><div><label>Show</label><select class="fi" onchange="psmDd('ds',this.value)">${[['all','Past due + due soon'],['over','Past due only'],['soon','Due soon only']].map(([v,l])=>op(v,l,stt===v)).join('')}</select></div></div></div>
+${B.length?`<div class="psm-card psm-tc"><div style="overflow-x:auto"><table class="psm-t"><tr><th style="text-align:left">Department</th><th>Cutoff</th><th>Payslip given</th><th>Deadline</th><th>Pending</th><th>Status</th></tr>${rows}</table></div></div>`:`<div class="psm-card psm-em"><div class="psm-ei">✅</div><b>Nothing past due</b><span>All departments are on time.</span></div>`}</div>`}
+const gNat=(a,b)=>(a[0]==='~')-(b[0]==='~')||a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});
+const gLbl=(cn,d,cm)=>cn==='~'?(cm&&cm.size>1?'Others':d):cn;
+window.psmGPrint=()=>{
+ if(!GM||!GM.depts.length)return toast('Nothing to print.');
+ const C=GM.C,now=new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
+ const cell=c=>!c?'<td class="n"></td>':(c.t>0&&c.d===c.t?'<td class="k">&#10003;</td>':`<td class="${c.d>0?'a':'b'}">${c.d}/${c.t}</td>`);
+ const body=GM.depts.map(d=>{const cm=GM.D.get(d);return`<tr class="dh"><td colspan="${C.length+2}">${esc(d)}</td></tr>`+[...cm.keys()].sort(gNat).map(cn=>{const row=cm.get(cn);return`<tr><td class="cl">${esc(gLbl(cn,d,cm))}</td>${C.map(k=>cell(row[k])).join('')}<td class="rm">${esc(PS.rm[d+'|'+cn]||'')}</td></tr>`}).join('')}).join('');
+ const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Payslip Monitoring Summary</title><style>
+@page{size:A4 landscape;margin:12mm 12mm 16mm;@bottom-center{content:"Page " counter(page) " of " counter(pages);font:9pt Arial,Helvetica,sans-serif;color:#333}}
+body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#000;margin:0}
+h1{font-size:15px;margin:0 0 2px}.s{font-size:10.5px;color:#333;margin:0 0 10px}
+table{border-collapse:collapse;width:100%;table-layout:fixed}th:first-child{width:24%}th:last-child{width:26%}th,td{border:1px solid #777;padding:4px 7px;text-align:center}
+th{background:#e7e7e7;font-weight:bold;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+td.cl{text-align:left;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}td.rm{text-align:left}
+tr.dh td{background:#dfe8f5;font-weight:bold;text-align:left;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+td.k{color:#1b7a3f;font-weight:bold;background:#eaf5ee}td.b{background:#fbeceb;color:#a3302a}td.a{background:#fdf3dc;color:#7a5b00}td.n{background:#f3f3f3}
+td.k,td.b,td.a,td.n{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+tr{break-inside:avoid;page-break-inside:avoid}thead{display:table-header-group}
+.f{margin-top:8px;font-size:10px;color:#333}
+</style></head><body>
+<h1>Payslip Monitoring Summary</h1>
+<p class="s">Rayanton Farms &amp; Livestock Corp. &nbsp;|&nbsp; Printed ${esc(now)} by ${esc(me())}</p>
+<table><thead><tr><th style="text-align:left">Class</th>${C.map(k=>{const[f,t]=k.split('|');return`<th>${esc(gDt(t))}</th>`}).join('')}<th>REMARKS</th></tr></thead><tbody>${body}</tbody></table>
+<p class="f">&#10003; = all signed payslips returned &nbsp;|&nbsp; Red = none returned yet &nbsp;|&nbsp; Amber = partly returned (returned/total) &nbsp;|&nbsp; Blank = no payroll for that class in that cutoff</p>
+</body></html>`;
+ const w=window.open('','_blank');if(!w)return alert('Please allow pop-ups for this site, then press Print again.');
+ w.document.write(html);w.document.close();w.focus();setTimeout(()=>{try{w.print()}catch(e){}},350);
+ try{logAct('Printed payslip monitoring grid','Payslip Monitoring',C.length+' cutoff(s)')}catch(e){}};
+window.psmGExport=()=>{
+ if(!GM||!GM.depts.length)return toast('Nothing to export.');
+ const C=GM.C,HD={fill:'FF12305C',col:'FFFFFFFF',b:1,h:'center',bt:'thin',bb:'thin',bl:'thin',br:'thin'},BX={bt:'thin',bb:'thin',bl:'thin',br:'thin'};
+ const S=xgSheet('Summary'),W=C.length+2;
+ S.cols=[34].concat(C.map(()=>13),[44]);
+ S.put(1,1,W,'Payslip Monitoring Summary',{fn:'Georgia',sz:14,b:1,col:'FF12305C'});
+ S.put(2,1,W,'Rayanton Farms & Livestock Corp.  |  Exported '+new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})+' by '+me(),{sz:9,col:'FF666666'});
+ S.put(4,1,1,'Class',Object.assign({},HD,{h:'left'}));
+ C.forEach((k,i)=>S.put(4,i+2,i+2,gDt(k.split('|')[1]),HD));
+ S.put(4,W,W,'REMARKS',HD);
+ let r=5;
+ GM.depts.forEach(d=>{const cm=GM.D.get(d);
+  S.put(r,1,W,d,Object.assign({b:1,fill:'FFEAF0F9',col:'FF12305C'},BX));r++;
+  [...cm.keys()].sort(gNat).forEach(cn=>{const row=cm.get(cn);
+   S.put(r,1,1,gLbl(cn,d,cm),Object.assign({b:1},BX));
+   C.forEach((k,i)=>{const c=row[k];
+    if(!c)S.put(r,i+2,i+2,'',Object.assign({fill:'FFF3F5F9'},BX));
+    else if(c.t>0&&c.d===c.t)S.put(r,i+2,i+2,'\u2713',Object.assign({fill:'FFEAF5EE',col:'FF2E7D4F',b:1,h:'center'},BX));
+    else S.put(r,i+2,i+2,c.d+'/'+c.t,Object.assign({fill:c.d>0?'FFFDF3DC':'FFFBECEB',col:c.d>0?'FF8A6A1C':'FFB3392F',h:'center'},BX))});
+   S.put(r,W,W,PS.rm[d+'|'+cn]||'',BX);r++})});
+ r++;S.put(r,1,W,'\u2713 = all signed payslips returned   Red = none returned yet   Amber = partly returned (returned/total)   Blank = no payroll in that cutoff',{sz:9,col:'FF444444',i:1});
+ S.freeze=4;S.fit=1;S.orient='landscape';
+ const b=xgBuild([S]),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Payslip-Monitoring-ByClass-'+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+ try{logAct('Exported payslip monitoring grid (Excel)','Payslip Monitoring',C.length+' cutoff(s)')}catch(e){}toast('Exported ✔')};
+window.psmGSel=(k,v)=>{PS[k]=v;psmDraw()};
+window.psmGOpen=o=>{PS.go=!!o};
+window.psmGOpen2=o=>{PS.go2=!!o};
+window.psmGDep=(i,on)=>{const f=GDL[i];if(f===undefined)return;const h=new Set(PS.gh||[]);if(on)h.delete(f);else h.add(f);PS.gh=[...h];psmDraw()};
+window.psmGDepAll=on=>{PS.gh=on?[]:[...GDL];psmDraw()};
+window.psmGTog=(k,on)=>{const c=new Set(PS.gs||cuts().slice(0,6));if(on)c.add(k);else c.delete(k);PS.gs=[...c];psmDraw()};
+window.psmGQuick=n=>{PS.gs=cuts().slice(0,n);psmDraw()};
+window.psmGNone=()=>{PS.gs=[];psmDraw()};
+window.psmRm=async(i,v)=>{const k=GK[i];if(!k)return;v=String(v||'').trim();
+ try{const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent('_psmrm|grid')+'&select=data');const rm=(Array.isArray(r)&&r[0]&&r[0].data&&r[0].data.rm)||{};
+  if(v)rm[k]=v;else delete rm[k];
+  await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{name:'_psmrm|grid',data:{rm:rm},updated_at:new Date().toISOString()}])});PS.rm=rm}
+ catch(e){alert('Could not save the remark: '+(e.message||e))}};
 /* Export picker: choose which cutoff(s) to export, or Select all */
 window.psmExport=()=>{const C=cuts();if(!C.length)return toast('Nothing to export.');
  const d=ovl('psxm');
