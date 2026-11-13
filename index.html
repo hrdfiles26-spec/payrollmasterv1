@@ -3655,7 +3655,7 @@ const pT=(k,d)=>PP.t&&PP.t[k]!=null?PP.t[k]:d;
 const pTx=(k,d,c)=>`<input class="pi t ${c||''}${PU?' ed':''}"${PU?'':' readonly tabindex="-1"'} value="${esc(pT(k,d))}" oninput="pTset('${k}',this.value)">`;
 const pFolders=()=>[...new Set([...PORD,...PSEED.map(x=>x[0]),...Object.keys(PDS).filter(k=>PDS[k].custom),...(STF||[]).map(s=>s.dept).filter(Boolean)])].filter(f=>can('mgp')||!isMgt(f));
 const pCm=(d,g)=>/^\s*broiler/i.test(String(d||''))&&/common/i.test(String(g||''))?1:0; /* Broiler: the COMMON group always goes last */
-const pGroups=()=>{const G={},ord=PGO[PF]||[],ix=g=>{const k=ord.indexOf(g);return k<0?99:k};(STF||[]).filter(s=>s.dept===PF).sort((a,b)=>a.name.localeCompare(b.name)).forEach(s=>{const g=pGrp(s)||PF;(G[g]=G[g]||[]).push(s)});return Object.entries(G).sort((a,b)=>pCm(PF,a[0])-pCm(PF,b[0])||ix(a[0])-ix(b[0]))};
+const pGroups=()=>{const G={},ord=PGO[PF]||[],ix=g=>{const k=ord.indexOf(g);return k<0?99:k};(STF||[]).filter(s=>s.dept===PF).sort((a,b)=>a.name.localeCompare(b.name)).forEach(s=>{const g=pGrp(s)||PF;if(!pxGrpOk(PF,g))return;(G[g]=G[g]||[]).push(s)});return Object.entries(G).sort((a,b)=>pCm(PF,a[0])-pCm(PF,b[0])||ix(a[0])-ix(b[0]))};
 /* same order as the payroll form (class/group order, then A-Z) - used by the COOP / Vale / Deductions / SSP / Loans windows */
 const pOrdL=()=>[].concat(...pGroups().map(g=>g[1]));
 function pCalc(){const GT=Object.fromEntries(PKs().map(k=>[k,0]));
@@ -6191,6 +6191,10 @@ const pxSet=()=>{if(SUPER||!MYA||MYA.role==='admin'||MYA.role==='hr')return null
 const pxCan=k=>{const a=pxSet();return !a||a.includes(k)};
 /* Payroll / Payslip departments = the Attendance departments ('attd:<DEPARTMENT>') ticked for the user. None ticked = all departments. Admin and HR are never restricted. */
 const pxDepts=()=>{if(SUPER||!MYA||MYA.role==='admin'||MYA.role==='hr')return null;const a=(MYA.pages||[]).filter(x=>String(x).indexOf('attd:')===0).map(x=>String(x).slice(5).trim().toUpperCase());return a.length?a:null};
+/* EXTRA PAYROLL is split into groups named after the real department (EXTRA HAULING : CINCO, EXTRA LAYERS, EXTRA BROILER : B1 ...).
+   A restricted user sees only the groups of the other departments ticked for them in Attendance (HAULING, LAYERS, BROILER ...). Only EXTRA PAYROLL ticked = all groups. */
+const PXA={FMVM:['FMVM','FEEDMILL','VETMED','FM | VM','FM|VM']};
+const pxGrpOk=(dept,g)=>{const a=pxDepts();if(!a||String(dept||'').trim().toUpperCase()!=='EXTRA PAYROLL')return true;const w=a.filter(x=>x!=='EXTRA PAYROLL'&&x!=='EXTRA BREEDER');if(!w.length)return true;const G=String(g||'').toUpperCase();return w.some(x=>(PXA[x]||[x]).some(y=>G.includes(y)))};
 const pxDeptOk=d=>{const a=pxDepts();return !a||a.includes(String(d||'').trim().toUpperCase())};
 window.pxDeptChips=(pg,dis)=>{let F=[];try{F=pFolders()}catch(e){}return F.map(f=>`<label class="ux-chip"><input type="checkbox" class="uapd" data-d="${esc(f)}" onchange="pxAuto(this)"${(pg||[]).includes('payd:'+f)?' checked':''}${dis?' disabled':''}> ${esc(f)}</label>`).join('')};
 window.pxDeptSel=id=>[...document.querySelectorAll('#'+id+' .uapd:checked')].map(c=>'payd:'+c.dataset.d);
@@ -10047,7 +10051,7 @@ const key=id=>'_psm|'+id,lb=(f,t)=>{try{return pLabOf(f,t).replace(/[A-Z]{2,}/g,
 const me=()=>{try{return(MYA&&MYA.full_name)||((ME&&ME.user_metadata)||{}).full_name||(ME&&ME.email)||''}catch(e){return''}};
 const runs=d=>(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&pFo(p.data)===d).sort((a,b)=>String(b.data.to).localeCompare(String(a.data.to)));
 const cur=()=>(PH||[]).find(p=>String(p.id)===String(PS.r));
-const people=p=>{const ids=Object.keys((p.data&&p.data.rates)||{});return ids.map(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id));return{id:String(id),n:s?s.name:'(removed from payroll) '+id}}).sort((a,b)=>a.n.localeCompare(b.n))};
+const people=p=>{const ids=Object.keys((p.data&&p.data.rates)||{});return ids.filter(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id));return !s||pxGrpOk(s.dept,pGrp(s))}).map(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id));return{id:String(id),n:s?s.name:'(removed from payroll) '+id}}).sort((a,b)=>a.n.localeCompare(b.n))};
 async function getRet(id){const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(key(id))+'&select=data');return(Array.isArray(r)&&r[0]&&r[0].data&&r[0].data.ret)||{}}
 async function putRet(id,ret){await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{name:key(id),data:{ret:ret},updated_at:new Date().toISOString()}])})}
 window.psm=async function(){
