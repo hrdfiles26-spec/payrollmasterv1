@@ -2557,7 +2557,7 @@ function drawSubs(){
  $('main').innerHTML=`<div class="rvh"><button class="rvb" onclick="fld=null;drawSubs()">← Folders</button><div class="rvi"><div class="fi2 sm">${FIC}</div><div><h2>${esc(FM[fld][0])}</h2><small>${esc(FM[fld][1])}</small></div></div>${fld==='leave'?'<button class="btn o sm" style="margin-left:auto" onclick="lvBal()">🏖 Leave Balances</button>':''}</div>
 <div class="rvbar"><div class="rvtabs" role="tablist">${(RQ_WF(fld)?rqTabs(fld):['pending','approved','rejected','all']).map(s=>`<button class="${flt===s?'on':''}" role="tab" aria-selected="${flt===s}" onclick="flt='${s}';drawSubs()">${({check:'For Checking',approval:'For Approval',status:'Status',hist:'History'})[s]||s[0].toUpperCase()+s.slice(1)}<i>${cnt(s)}</i></button>`).join('')}</div>
 <div class="rvtools"><label class="rvs">${SIC}<input id="q" placeholder="Search name" value="${esc(q)}" oninput="q=this.value;drawSubs();const e=$('q');e.focus();e.setSelectionRange(q.length,q.length)"></label>
-<select class="rvsel" aria-label="Sort" onchange="srt=this.value;drawSubs()">${[['new','Newest first'],['old','Oldest first'],['name','Name: A–Z']].map(([v,t])=>`<option value="${v}"${srt===v?' selected':''}>${t}</option>`).join('')}</select></div></div>
+${fld==='coop'&&flt==='hist'?'<button class="btn o sm" onclick="rqCoopExport()">⬇ Export Excel</button>':''}<select class="rvsel" aria-label="Sort" onchange="srt=this.value;drawSubs()">${[['new','Newest first'],['old','Oldest first'],['name','Name: A–Z']].map(([v,t])=>`<option value="${v}"${srt===v?' selected':''}>${t}</option>`).join('')}</select></div></div>
 ${L.length?rqTable(L,dt):`<div class="rve"><div class="fi2">${FIC}</div><b>No ${flt==='all'?'':(({check:'to check ',approval:'waiting for approval ',status:'checked and waiting for approval ',hist:'finished '})[flt]||flt+' ')}requests here</b><small>${q?'Try a different name.':'Submitted requests for this form will appear here.'}</small></div>`}`;rqSubWarm()}
 /* ===== LEAVE REQUEST + LEAVE CREDITS (approved leave is deducted from the employee's credits) ===== */
 let LVY=new Date().getFullYear();const LVD={v:5,s:5};
@@ -2624,6 +2624,20 @@ function rqDefFlt(k){
  if(!RQ_WF(k))return R.some(r=>r.form===k&&r.status==='pending')?'pending':'all';
  const c=R.filter(r=>r.form===k&&r.status==='pending'),n={check:c.filter(r=>rqStage(r)==='check').length,approval:c.filter(r=>rqStage(r)==='approval').length,status:c.filter(r=>fltOk(r,'status')).length},mc=rqCan('chk',k),ma=rqCan('apr',k);
  const o=((ma&&!mc)?['approval','check']:['check','status','approval']).filter(x=>rqTabs(k).includes(x));return o.find(x=>n[x])||'hist'}
+/* COOP > History: export Name + Loan Amount to Excel (respects the name search) */
+function rqCoopExport(){
+ const L=R.filter(r=>r.form==='coop'&&rqHist(r)&&String(r.requester||'').toLowerCase().includes(q.toLowerCase())).sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
+ if(!L.length)return toast('Nothing to export.');
+ const HD={fill:'FF12305C',col:'FFFFFFFF',b:1,h:'center',bt:'thin',bb:'thin',bl:'thin',br:'thin'},BX={bt:'thin',bb:'thin',bl:'thin',br:'thin'},S=xgSheet('COOP History');
+ S.cols=[6,44,20];
+ S.put(1,1,3,'COOP History - Name and Loan Amount',{fn:'Georgia',sz:14,b:1,col:'FF12305C'});
+ S.put(2,1,3,'Rayanton Farms & Livestock Corp.  |  Exported '+new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'}),{sz:9,col:'FF666666'});
+ ['#','Name','Loan Amount'].forEach((h,i)=>S.put(4,i+1,i+1,h,HD));
+ L.forEach((r,k)=>{const d=Array.isArray(r.data)?r.data:[],amt=String(d[2]==null?'':d[2]).trim();
+  S.put(5+k,1,1,k+1,Object.assign({nf:2,h:'center'},BX));S.put(5+k,2,2,r.requester||'',BX);S.put(5+k,3,3,amt,Object.assign({h:'right'},BX))});
+ S.freeze=4;S.fit=1;S.orient='portrait';
+ const b=xgBuild([S]),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='COOP-History-'+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+ try{logAct('Exported COOP history (Excel)','COOP',L.length+' record(s)')}catch(e){}toast('Exported ✔')}
 function rqTable(L,dt){
  /* COOP > History: only the Name and the Loan Amount are shown (Loan Amount = 3rd field of the COOP form) */
  if(fld==='coop'&&flt==='hist')return '<div class="rvtw"><table class="rvt"><thead><tr><th class="c">#</th><th>Name</th><th>Loan Amount</th><th class="ac">Actions</th></tr></thead><tbody>'+L.map(([r,i],k)=>{const d=Array.isArray(r.data)?r.data:[],amt=String(d[2]==null?'':d[2]).trim();return '<tr class="'+r.status+'"><td class="c">'+(k+1)+'</td><td class="nm"><b>'+esc(r.requester)+'</b></td><td>'+(amt?esc(amt):'—')+'</td><td class="ac"><div class="rvac"><button class="rvx" onclick="viewReq('+i+')">View</button><button class="rvx dl" onclick="delReq('+i+')">Delete</button></div></td></tr>'}).join('')+'</tbody></table></div>';
