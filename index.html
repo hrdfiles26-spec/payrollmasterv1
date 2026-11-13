@@ -2455,7 +2455,7 @@ async function dash(){PG='dash';$('main').innerHTML='<h1>Dashboard</h1><p class=
 let WARM=0;
 function warmAll(){if(WARM)return;WARM=1;setTimeout(async()=>{const t=async f=>{try{await f()}catch(e){}};
  if((can('emp')||can('pay'))&&!Array.isArray(STF))await t(loadS);
- if(can('pay')&&!PH)await t(()=>loadH(true));
+ if((can('emp')||can('pay'))&&!PH)await t(()=>loadH(true));
  if(can('pay')&&!window.__payWarm&&Array.isArray(STF)&&PH)await t(async()=>{await pdLoad();pApplyDS();window.__payWarm=1});
  if(can('m13')&&M13H==null)await t(m13Load);
  if(isAdm()&&!(Array.isArray(UL)&&UL.length))await t(async()=>{UL=await api('/rest/v1/hrd_access?select=*&order=email')});
@@ -2474,12 +2474,12 @@ function dHero(){const h=new Date().getHours(),g=h>=5&&h<12?'Good morning':h>=12
 // ===== Dashboard: incomplete requirements + newly hired =====
 const REQF=[['sss','SSS'],['pagibig','Pag-IBIG'],['philhealth','PhilHealth']]; // add ['tin','TIN'] here to also require the TIN
 const reqBlank=v=>{v=String(v==null?'':v).trim();return !v||/^(none|n\/?a|na|wala|-+|\u2014+)$/i.test(v)};
-/* v588: resigned / AWOL / end of contract / terminated people are NOT counted in Incomplete requirements or 201 notifications. Also catches records that carry resignation data (date or amounts) but whose status was never set. */
+/* v588: resigned / AWOL / end of contract / terminated people are NOT counted in Incomplete requirements or 201 notifications. Also catches records that carry resignation amounts but whose status was never set (a Separation Date alone does not count). */
 const SLC=new WeakMap();
 const sepLike=e=>{const k=(e.emp_status||'')+'\u0001'+(e.status_date||'')+'\u0001'+(e.notes||''),c=SLC.get(e);if(c&&c.k===k)return c.v;
  let v=false;const t=String(e.emp_status||'').trim().toLowerCase();
  if(SEP.some(x=>x.toLowerCase()===t)||/^(resign|terminat|awol|end of contract)/.test(t))v=true;
- else if(t!=='returnee'){if(e.status_date)v=true;else{try{const x=splitN(e.notes).x;v=RSF.some(([k])=>x[k])}catch(_){v=false}}}
+ else if(t!=='returnee'){try{const x=splitN(e.notes).x;v=RSF.some(([k])=>x[k])}catch(_){v=false}}/* a Separation Date alone no longer marks an Active employee as separated: only HR changing the Employment Status does */
  SLC.set(e,{k,v});return v};
 const reqMiss=e=>REQF.filter(([k])=>reqBlank(e[k])).map(([,l])=>l);
 const reqChips=m=>m.map(l=>`<span class="pn" style="margin:2px 4px 2px 0;background:#fbe9e6;color:#a3302a">${esc(l)}</span>`).join('');
@@ -2506,10 +2506,12 @@ let M13DL=0;
 const m13SavedMiss=()=>{try{if(!Array.isArray(M13H)||!M13H.length)return null;const r=M13H[0],G=(r.data||{}).gen||{},o=[];Object.keys(G).sort().forEach(d=>(G[d].rows||[]).forEach(x=>{if(gnStat(x)!=='no'&&!String(x.acct||'').trim())o.push({dept:d,name:x.name,year:r.year})}));return o}catch(e){return null}};
 const dTog=k=>{if(!can('dash'))return;const v=!DB[k];DB.open=DB.ntf=DB.rq=DB.nh=DB.n2=DB.atm=DB.m13=DB.sp=false;DB[k]=v;drawDash()};
 /* Recent separations (Resigned / AWOL / End of Contract / Terminated): stay on the dashboard until HR presses Done on that name (shared via hrd_notif_done, same as the 201 notifications). Shows the status, the separation date and how many days it has been up to today. SPWIN = how many days back to show. */
-const SPWIN=60;
+const SPFROM='2026-09-01';/* only separations dated from September 2026 up are shown; older ones are left out */
 const spKey=e=>'x|'+e.id+'|'+e.emp_status+'|'+(e.status_date||'');
-const spList=()=>E.filter(e=>SEP.includes(e.emp_status)&&e.status_date&&!NDONE.has(spKey(e))&&-days(e.status_date)<=SPWIN).sort((a,b)=>String(b.status_date).localeCompare(String(a.status_date))||String(a.name).localeCompare(String(b.name)));
-const spAgo=d=>{const n=-days(d);return n===0?'today':n>0?plural(n)+' ago':'in '+plural(-n)};
+/* Only people who are in the LATEST payroll run of any department (and so in the cutoffs that follow) show here; those who resigned long ago and are no longer in payroll are left out. */
+const spPayKeys=()=>{if(!Array.isArray(STF)||!Array.isArray(PH))return null;const M={};STF.forEach(s=>{M[s.id]=s});const F=new Set(),K=new Set(),S=new Set();PH.forEach(p=>{if(p&&p.data&&p.data.rows)F.add(pFo(p.data))});[...F].forEach(f=>{const p=pLastH(f);if(!p||!p.data||!p.data.rows)return;Object.keys(p.data.rows).forEach(id=>{const s=M[id];if(!s)return;const k=n2Key(s.name);if(k)K.add(k);const q=n2Sf(s.name);if(q)S.add(q)})});return{K,S}};
+const spList=()=>{const PK=spPayKeys();return E.filter(e=>SEP.includes(e.emp_status)&&!NDONE.has(spKey(e))&&(!e.status_date||String(e.status_date).slice(0,10)>=SPFROM)&&(!PK||PK.K.has(n2Key(e.name))||(n2Sf(e.name)&&PK.S.has(n2Sf(e.name))))).sort((a,b)=>(!a.status_date)-(!b.status_date)||String(b.status_date||'').localeCompare(String(a.status_date||''))||String(a.name).localeCompare(String(b.name)))};
+const spAgo=d=>{if(!d)return'\u2014';const n=-days(d);return n===0?'today':n>0?plural(n)+' ago':'in '+plural(-n)};
 async function spDone(id){const e=E.find(x=>x.id===id);if(!e)return;const k=spKey(e);let ok=false;
  if(NDB!==false){try{await api('/rest/v1/hrd_notif_done',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k,done_by:ME.email||''})});ok=true;NDB=true}catch(x){NDB=false}}
  NDONE.add(k);
@@ -2523,7 +2525,7 @@ function dReqPanels(){
  h+=inc.length?`<p class="sub" style="margin:0 0 10px;font-size:13px">Active employees missing: ${REQF.map(r=>r[1]).join(', ')}. Click a name to open the 201 File.</p><div style="overflow:auto;max-height:420px"><table class="dt"><thead><tr><th ${th}>Employee</th><th ${th}>Department</th><th ${th}>Missing</th></tr></thead><tbody>${inc.map(({e,m})=>`<tr onclick="dEmp('${e.id}')"><td><b>${esc(e.name)}</b></td><td>${esc(nd(e.dept||'No Department'))}</td><td>${reqChips(m)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty" style="padding:6px 0">Everyone has complete requirements \u2705</p>';
  h+='</div>'}
  if(DB.sp){const sp=spList();h+=`<div class="panel dp"><h3>Resigned / AWOL / End of Contract <small style="font-weight:400;color:var(--mu);font-size:14px">(${sp.length})</small></h3>`;
- h+=sp.length?`<p class="sub" style="margin:0 0 10px;font-size:13px">Separations in the last ${SPWIN} days, latest first. Press <b>201 File</b> to update the record, then <b>Done</b> \u2014 the name leaves the dashboard.</p><div style="overflow:auto;max-height:420px"><table class="dt"><thead><tr><th ${th}>Employee</th><th ${th}>Department</th><th ${th}>Status</th><th ${th}>Date</th><th ${th}>Days</th><th ${th}></th></tr></thead><tbody>${sp.map(e=>{const c=CC[e.emp_status]||CC['\u2014'];return `<tr onclick="dEmp('${e.id}')"><td><b>${esc(e.name)}</b></td><td>${esc(nd(e.dept||'No Department'))}</td><td><span class="pn" style="background:${c[0]};color:${c[1]}">${c[3]} ${esc(lb(e.emp_status))}</span></td><td>${esc(fdS(e.status_date))}</td><td>${esc(spAgo(e.status_date))}</td><td style="white-space:nowrap"><button class="btn o sm" onclick="event.stopPropagation();dEmp('${e.id}')" title="Open the 201 File to update the record">\ud83d\udcc4 201 File</button> <button class="btn ok sm" onclick="event.stopPropagation();spDone('${e.id}')">\u2714 Done</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="empty" style="padding:6px 0">No new resigned / AWOL / end of contract \u2705</p>';
+ h+=sp.length?`<p class="sub" style="margin:0 0 10px;font-size:13px">Only people in the latest payroll (and the cutoffs after it), latest first. Names with <b>no Separation Date</b> stay here, at the top, until HR sets the date. Press <b>201 File</b> to update the record, then <b>Done</b> \u2014 the name leaves the dashboard.</p><div style="overflow:auto;max-height:420px"><table class="dt"><thead><tr><th ${th}>Employee</th><th ${th}>Department</th><th ${th}>Status</th><th ${th}>Date</th><th ${th}>Days</th><th ${th}></th></tr></thead><tbody>${sp.map(e=>{const c=CC[e.emp_status]||CC['\u2014'];return `<tr onclick="dEmp('${e.id}')"><td><b>${esc(e.name)}</b></td><td>${esc(nd(e.dept||'No Department'))}</td><td><span class="pn" style="background:${c[0]};color:${c[1]}">${c[3]} ${esc(lb(e.emp_status))}</span></td><td>${e.status_date?esc(fdS(e.status_date)):'<span class="pn" style="background:#fff1b8;color:#7a5b00">\u26a0 No separation date yet</span>'}</td><td>${esc(spAgo(e.status_date))}</td><td style="white-space:nowrap"><button class="btn o sm" onclick="event.stopPropagation();dEmp('${e.id}')" title="Open the 201 File to update the record">\ud83d\udcc4 201 File</button> <button class="btn ok sm" onclick="event.stopPropagation();spDone('${e.id}')">\u2714 Done</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="empty" style="padding:6px 0">No new resigned / AWOL / end of contract \u2705</p>';
  h+='</div>'}
  if(DB.n2){const nr=noRec();h+=`<div class="panel dp"><h3>In payroll but no 201 record <small style="font-weight:400;color:var(--mu);font-size:14px">(${nr.length})</small></h3>`;
  h+=!Array.isArray(STF)?'<p class="empty" style="padding:6px 0">Loading payroll names\u2026</p>':nr.length?`<p class="sub" style="margin:0 0 10px;font-size:13px">Employees in a payroll folder whose name was not found in 201 Files. Add their 201 record (or fix the spelling so the names match).</p><div style="overflow:auto;max-height:420px"><table class="dt"><thead><tr><th ${th}>Employee</th><th ${th}>Payroll department</th></tr></thead><tbody>${nr.map(x=>`<tr style="cursor:default"><td><b>${esc(x.name)}</b></td><td>${esc(x.dept||'')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty" style="padding:6px 0">Everyone in payroll has a 201 record \u2705</p>';
@@ -2567,7 +2569,7 @@ ${vT!=null?tl(ce,'',"dTog('open')",HI.emp,'Total employees',vT,'',DB.open?'Click
 ${vP>0?tl(cs,'al al-b',"go('sub')",HI.req,'Pending requests',vP,'waiting for approval'):''}
 ${nN>0?tl(ce,'al al-a',"dTog('ntf');if(DB.ntf){const p=$('ntfp');p&&p.scrollIntoView({behavior:'smooth',block:'center'})}",HI.bell,'201 notifications',nN,'employee(s) to review','employee(s) to review \u2014 '+(DB.ntf?'click to close':'click to view')):''}
 ${vI>0?tl(ce,'al al-r',"dTog('rq')",HI.inc,'Incomplete requirements',vI,'',DB.rq?'Click to close':'Click to see who'):''}
-${vS>0?tl(ce,'al al-r',"dTog('sp')",HI.inc,'Resigned / AWOL / EOC',vS,'last '+SPWIN+' days',DB.sp?'Click to close':'last '+SPWIN+' days \u2014 click to see'):''}
+${vS>0?tl(ce,'al al-r',"dTog('sp')",HI.inc,'Resigned / AWOL / EOC',vS,'since Sep 2026',DB.sp?'Click to close':'since Sep 2026 \u2014 click to see'):''}
 ${vH>0?tl(ce,'al al-p',"dTog('nh')",HI.nw,'Newly hired',vH,'last 30 days',DB.nh?'Click to close':'last 30 days \u2014 click to see'):''}
 ${vR>0?tl(ce,'al al-g',"dTog('n2')",HI.inc,'In payroll, no 201',ce&&!Array.isArray(STF)?'\u2026':vR,'',DB.n2?'Click to close':'Click to see who'):''}
 ${vM>0?tl(!!NM,'al al-r',"dTog('m13')",HI.inc,'13th Month: no ATM account',vM,y13?'saved '+y13:'',DB.m13?'Click to close':'saved '+y13+' \u2014 click to see'):''}
