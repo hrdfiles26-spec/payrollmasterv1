@@ -2377,7 +2377,7 @@ async function delReq(i){if(!confirm('Are you sure you want to delete this reque
  try{await api('/rest/v1/hrd_requests?id=eq.'+R[i].id,{method:'DELETE'});api('/storage/v1/object/attachments/'+R[i].file_path,{method:'DELETE'}).catch(()=>{});logAct('Deleted request',FM[R[i].form][0],R[i].requester);R.splice(i,1);toast('Deleted');drawSubs()}catch(e){alert(e.message)}}
 // ===== DASHBOARD =====
 let PRES={},PT=false,presReady=false,RL=false,pendF=null,pendE=null;
-const DB={open:false,ntf:false,n2:false,atm:false,m13:false};
+const DB={open:false,ntf:false,n2:false,atm:false,m13:false,sp:false};
 const isExtra=e=>/EXTRA/i.test(e.dept||'')||/^\s*EXTRA/i.test(e.position||'');
 const catOf=e=>SEP.includes(e.emp_status)?e.emp_status:isExtra(e)?'Extra':stage(e);
 const DCATS=['Regular','Probationary','Training','Extra','End of Contract','Resigned','AWOL','Terminated'];
@@ -2466,13 +2466,26 @@ function bdTicker(L0){const L=L0||bdList();if(!L.length)return'';const it=L.map(
 /* 13th Month Pay: employees with no ATM account in the SAVED record of the latest year */
 let M13DL=0;
 const m13SavedMiss=()=>{try{if(!Array.isArray(M13H)||!M13H.length)return null;const r=M13H[0],G=(r.data||{}).gen||{},o=[];Object.keys(G).sort().forEach(d=>(G[d].rows||[]).forEach(x=>{if(gnStat(x)!=='no'&&!String(x.acct||'').trim())o.push({dept:d,name:x.name,year:r.year})}));return o}catch(e){return null}};
-const dTog=k=>{if(!can('dash'))return;const v=!DB[k];DB.open=DB.ntf=DB.rq=DB.nh=DB.n2=DB.atm=DB.m13=false;DB[k]=v;drawDash()};
+const dTog=k=>{if(!can('dash'))return;const v=!DB[k];DB.open=DB.ntf=DB.rq=DB.nh=DB.n2=DB.atm=DB.m13=DB.sp=false;DB[k]=v;drawDash()};
+/* Recent separations (Resigned / AWOL / End of Contract / Terminated): stay on the dashboard until HR presses Done on that name (shared via hrd_notif_done, same as the 201 notifications). Shows the status, the separation date and how many days it has been up to today. SPWIN = how many days back to show. */
+const SPWIN=60;
+const spKey=e=>'x|'+e.id+'|'+e.emp_status+'|'+(e.status_date||'');
+const spList=()=>E.filter(e=>SEP.includes(e.emp_status)&&e.status_date&&!NDONE.has(spKey(e))&&-days(e.status_date)<=SPWIN).sort((a,b)=>String(b.status_date).localeCompare(String(a.status_date))||String(a.name).localeCompare(String(b.name)));
+const spAgo=d=>{const n=-days(d);return n===0?'today':n>0?plural(n)+' ago':'in '+plural(-n)};
+async function spDone(id){const e=E.find(x=>x.id===id);if(!e)return;const k=spKey(e);let ok=false;
+ if(NDB!==false){try{await api('/rest/v1/hrd_notif_done',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({k,done_by:ME.email||''})});ok=true;NDB=true}catch(x){NDB=false}}
+ NDONE.add(k);
+ if(!ok){try{localStorage.hrdND=JSON.stringify([...NDONE])}catch(x){}if(confirm('Marked as done on this device only, because the notification table has not been created in Supabase yet.\n\nClick OK to copy the one-time SQL, then paste it in Supabase \u2192 SQL Editor and Run it so "Done" is shared with all users.'))copySql(NSQL)}
+ try{logAct('Separation done','201 Files',e.name+' \u2014 '+e.emp_status)}catch(x){}toast('Marked as done \u2714');if(PG==='dash')drawDash()}
 function dReqPanels(){
  const inc=reqInc(),nw=nhList();
  const th='style="text-align:left"';
  let h='';
  if(DB.rq){h+=`<div class="panel dp"><h3>Incomplete requirements <small style="font-weight:400;color:var(--mu);font-size:14px">(${inc.length})</small></h3>`;
  h+=inc.length?`<p class="sub" style="margin:0 0 10px;font-size:13px">Active employees missing: ${REQF.map(r=>r[1]).join(', ')}. Click a name to open the 201 File.</p><div style="overflow:auto;max-height:420px"><table class="dt"><thead><tr><th ${th}>Employee</th><th ${th}>Department</th><th ${th}>Missing</th></tr></thead><tbody>${inc.map(({e,m})=>`<tr onclick="dEmp('${e.id}')"><td><b>${esc(e.name)}</b></td><td>${esc(nd(e.dept||'No Department'))}</td><td>${reqChips(m)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty" style="padding:6px 0">Everyone has complete requirements \u2705</p>';
+ h+='</div>'}
+ if(DB.sp){const sp=spList();h+=`<div class="panel dp"><h3>Resigned / AWOL / End of Contract <small style="font-weight:400;color:var(--mu);font-size:14px">(${sp.length})</small></h3>`;
+ h+=sp.length?`<p class="sub" style="margin:0 0 10px;font-size:13px">Separations in the last ${SPWIN} days, latest first. Press <b>Done</b> once you have checked a name \u2014 it leaves the dashboard.</p><div style="overflow:auto;max-height:420px"><table class="dt"><thead><tr><th ${th}>Employee</th><th ${th}>Department</th><th ${th}>Status</th><th ${th}>Date</th><th ${th}>Days</th><th ${th}></th></tr></thead><tbody>${sp.map(e=>{const c=CC[e.emp_status]||CC['\u2014'];return `<tr onclick="dEmp('${e.id}')"><td><b>${esc(e.name)}</b></td><td>${esc(nd(e.dept||'No Department'))}</td><td><span class="pn" style="background:${c[0]};color:${c[1]}">${c[3]} ${esc(lb(e.emp_status))}</span></td><td>${esc(fdS(e.status_date))}</td><td>${esc(spAgo(e.status_date))}</td><td><button class="btn ok sm" onclick="event.stopPropagation();spDone('${e.id}')">\u2714 Done</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="empty" style="padding:6px 0">No new resigned / AWOL / end of contract \u2705</p>';
  h+='</div>'}
  if(DB.n2){const nr=noRec();h+=`<div class="panel dp"><h3>In payroll but no 201 record <small style="font-weight:400;color:var(--mu);font-size:14px">(${nr.length})</small></h3>`;
  h+=!Array.isArray(STF)?'<p class="empty" style="padding:6px 0">Loading payroll names\u2026</p>':nr.length?`<p class="sub" style="margin:0 0 10px;font-size:13px">Employees in a payroll folder whose name was not found in 201 Files. Add their 201 record (or fix the spelling so the names match).</p><div style="overflow:auto;max-height:420px"><table class="dt"><thead><tr><th ${th}>Employee</th><th ${th}>Payroll department</th></tr></thead><tbody>${nr.map(x=>`<tr style="cursor:default"><td><b>${esc(x.name)}</b></td><td>${esc(x.dept||'')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty" style="padding:6px 0">Everyone in payroll has a 201 record \u2705</p>';
@@ -2501,7 +2514,7 @@ async function dSnapPush(o){if(DSNOK===false||Date.now()-DSNP<60000)return;if(DS
  try{const at=new Date().toISOString();await api('/rest/v1/hrd_dash?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{id:'main',data:nx,updated_at:at,updated_by:ME.email||''}])});DSNAP={data:nx,updated_at:at};DSNOK=true}
  catch(e){if(/hrd_dash|PGRST205|relation|404/i.test(String(e&&e.message)))DSNOK=false}}
 function drawDash(){if(PG!=='dash')return;b0();
- const FA=can('dash'),ce=can('emp'),cs=can('sub'),A=ce?alerts():[],P=cs?R.filter(r=>r.status==='pending'):[],RI=ce?reqInc():[],NH=ce?nhList():[],NR=ce?noRec():[],NA=can('pay')?atmNoAcct():null;
+ const FA=can('dash'),ce=can('emp'),cs=can('sub'),A=ce?alerts():[],P=cs?R.filter(r=>r.status==='pending'):[],RI=ce?reqInc():[],NH=ce?nhList():[],NR=ce?noRec():[],NA=can('pay')?atmNoAcct():null,SP=ce?spList():[];
  try{if(can('m13')&&M13H==null&&!M13DL){M13DL=1;m13Load().then(()=>{if(PG==='dash')drawDash()}).catch(()=>{})}}catch(_){}
  const NM=can('m13')?m13SavedMiss():null;
  const tot=E.length,cnt={};E.forEach(e=>{const c=catOf(e);cnt[c]=(cnt[c]||0)+1});
@@ -2516,6 +2529,7 @@ ${vT!=null?tl(ce,'',"dTog('open')",HI.emp,'Total employees',vT,'',DB.open?'Click
 ${vP>0?tl(cs,'al al-b',"go('sub')",HI.req,'Pending requests',vP,'waiting for approval'):''}
 ${nN>0?tl(ce,'al al-a',"dTog('ntf');if(DB.ntf){const p=$('ntfp');p&&p.scrollIntoView({behavior:'smooth',block:'center'})}",HI.bell,'201 notifications',nN,'employee(s) to review','employee(s) to review \u2014 '+(DB.ntf?'click to close':'click to view')):''}
 ${vI>0?tl(ce,'al al-r',"dTog('rq')",HI.inc,'Incomplete requirements',vI,'',DB.rq?'Click to close':'Click to see who'):''}
+${SP.length>0?tl(ce,'al al-r',"dTog('sp')",HI.inc,'Resigned / AWOL / EOC',SP.length,'last '+SPWIN+' days',DB.sp?'Click to close':'last '+SPWIN+' days \u2014 click to see'):''}
 ${vH>0?tl(ce,'al al-p',"dTog('nh')",HI.nw,'Newly hired',vH,'last 30 days',DB.nh?'Click to close':'last 30 days \u2014 click to see'):''}
 ${vR>0?tl(ce,'al al-g',"dTog('n2')",HI.inc,'In payroll, no 201',ce&&!Array.isArray(STF)?'\u2026':vR,'',DB.n2?'Click to close':'Click to see who'):''}
 ${vM>0?tl(!!NM,'al al-r',"dTog('m13')",HI.inc,'13th Month: no ATM account',vM,y13?'saved '+y13:'',DB.m13?'Click to close':'saved '+y13+' \u2014 click to see'):''}
@@ -10143,7 +10157,7 @@ function psmDraw(){
  const ed=(typeof hrx==='function'&&hrx())||can('psm');
  const fd=r=>new Date(r.at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
  const rows=L.map((x,i)=>{const r=PS.ret[x.id];return`<tr class="${r?'ok':''}"><td class="psm-n">${i+1}</td><td><div class="psm-nm"><span class="psm-av">${esc(ini(x.n))}</span>${esc(x.n)}</div></td><td class="psm-c"><label class="psm-ck"><input type="checkbox"${r?' checked':''}${ed&&!PS.bad?'':' disabled'} onchange="psmTog('${esc(x.id)}',this.checked)"><span></span></label></td><td>${r?`<span class="psm-pill c">Returned</span><span class="psm-dt">${esc(fd(r))}</span>`:'<span class="psm-pill p">Pending</span>'}</td><td class="psm-by">${r?esc(r.by||''):''}</td></tr>`}).join('');
- $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Tick each name once the <b>signed payslip</b> has been returned.</p><div class="psm-rule"></div></div><div class="psm-act">${can('pay')?`<button class="btn o sm" onclick="go('pay')">← Back to Payroll</button>`:''}<button class="btn sm" onclick="psmView('sum')">Summary · all departments</button><button class="btn sm" onclick="psmExport()" title="Excel file with every department, cutoff and name">⬇ Export to Excel</button></div></div>
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Tick each name once the <b>signed payslip</b> has been returned.</p><div class="psm-rule"></div></div><div class="psm-act">${can('pay')?`<button class="btn o sm" onclick="go('pay')">← Back to Payroll</button>`:''}<button class="btn sm" onclick="psmView('sum')">Summary · all departments</button><button class="btn sm" onclick="psmExport()" title="Choose the cutoff(s) to export">⬇ Export to Excel</button></div></div>
 ${PS.bad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). Do not tick anything until this is fixed — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Department</label><select class="fi" onchange="psmSel('d',this.value)">${op('','— Select department —',!PS.d)}${F.map(f=>op(f,f,f===PS.d)).join('')}</select></div><div><label>Cutoff</label><select class="fi" ${PS.d?'':'disabled'} onchange="psmSel('r',this.value)">${op('','— Select cutoff —',!PS.r)}${R.map(x=>op(x.id,lb(x.data.from,x.data.to),String(x.id)===String(PS.r))).join('')}</select></div></div></div>
 ${p?`<div class="psm-card"><div class="psm-pg"><div><div class="psm-big">${done}<small> / ${tot}</small></div><div class="psm-cap">Signed payslips returned</div></div><div class="psm-bw"><div class="psm-bar"><i class="${comp?'c':''}" style="width:${pct}%"></i></div><div class="psm-bl"><span>${pct}% complete</span><span>${tot-done} pending</span></div></div><span class="psm-pill lg ${comp?'c':'i'}">${comp?'C':'INC'}</span></div></div>
@@ -10156,12 +10170,25 @@ function psmSumDraw(){
  const C=cuts(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
  const ord=pFolders(),R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{p:p,d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
  const nc=R.filter(x=>x.c).length,ni=R.length-nc;
- $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Summary of all departments · <b>C</b> complete · <b>INC</b> incomplete</p><div class="psm-rule"></div></div><div class="psm-act"><button class="btn o sm" onclick="psmView('list')">← Back to list</button><button class="btn sm" onclick="psmPrint()">🖨 Print summary</button><button class="btn sm" onclick="psmExport()" title="Excel file with every department, cutoff and name">⬇ Export to Excel (all)</button></div></div>
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring</h1><p class="sub">Summary of all departments · <b>C</b> complete · <b>INC</b> incomplete</p><div class="psm-rule"></div></div><div class="psm-act"><button class="btn o sm" onclick="psmView('list')">← Back to list</button><button class="btn sm" onclick="psmPrint()">🖨 Print summary</button><button class="btn sm" onclick="psmExport()" title="Choose the cutoff(s) to export">⬇ Export to Excel</button></div></div>
 ${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). The summary may be wrong — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Cutoff</label><select class="fi" onchange="psmSc(this.value)">${C.map(k=>{const[f,t]=k.split('|');return op(k,lb(f,t),k===PS.sc)}).join('')}</select></div><div class="psm-st"><div class="psm-sc c"><b>${nc}</b><span>Complete</span></div><div class="psm-sc i"><b>${ni}</b><span>Incomplete</span></div></div></div></div>
 ${R.length?`<div class="psm-gd">${R.map(x=>{const pc=x.tot?Math.round(x.done/x.tot*100):0;return`<div class="psm-dc ${x.c?'c':''}"><div class="psm-dh"><b>${esc(x.d)}</b><span class="psm-pill ${x.c?'c':'i'}">${x.c?'C':'INC'}</span></div><div class="psm-dn">${x.done}<small> / ${x.tot} returned</small></div><div class="psm-bar"><i class="${x.c?'c':''}" style="width:${pc}%"></i></div><div class="psm-bl"><span>${x.tot-x.done} pending</span><button class="psm-open" onclick="psmOpen('${esc(x.d).replace(/'/g,"\\'")}','${esc(String(x.p.id))}')">Open →</button></div></div>`}).join('')}</div>`:'<div class="psm-card psm-em">No saved payroll for this cutoff.</div>'}</div>`}
-window.psmExport=async()=>{
- const ord=pFolders(),R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&ord.includes(pFo(p.data))).sort((a,b)=>String(b.data.to).localeCompare(String(a.data.to))||String(b.data.from).localeCompare(String(a.data.from))||ord.indexOf(pFo(a.data))-ord.indexOf(pFo(b.data)));
+/* Export picker: choose which cutoff(s) to export, or Select all */
+window.psmExport=()=>{const C=cuts();if(!C.length)return toast('Nothing to export.');
+ const d=ovl('psxm');
+ d.innerHTML=`<div role="dialog" aria-modal="true" style="background:var(--sf);color:var(--ink);border-radius:16px;max-width:460px;width:100%;max-height:86vh;display:flex;flex-direction:column;padding:22px 24px;box-shadow:0 20px 60px #0004">
+<h3 style="margin:0 0 4px;color:var(--h)">Export to Excel</h3>
+<p class="sub" style="margin:0 0 12px;font-size:13.5px">Choose the cutoff(s) to export. Every department of the chosen cutoff is included.</p>
+<label style="display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--ln);border-radius:10px;font-weight:600;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="psx_all" onchange="psmExAll(this.checked)"> Select all (${C.length})</label>
+<div style="overflow:auto;border:1px solid var(--ln);border-radius:10px;padding:2px 10px">${C.map(k=>{const[f,t]=k.split('|');return`<label style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--ln);cursor:pointer"><input type="checkbox" class="psx_c" value="${esc(k)}"${k===PS.sc?' checked':''} onchange="psmExSync()"> ${esc(lb(f,t))}</label>`}).join('')}</div>
+<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button class="btn o" type="button" onclick="psmExClose()">Cancel</button><button class="btn" type="button" id="psx_go" onclick="psmExGo()">Export</button></div></div>`;psmExSync()};
+window.psmExClose=()=>{const o=$('psxm');if(o)o.remove()};
+window.psmExAll=on=>{document.querySelectorAll('#psxm .psx_c').forEach(c=>c.checked=on);psmExSync()};
+window.psmExSync=()=>{const L=[...document.querySelectorAll('#psxm .psx_c')],n=L.filter(c=>c.checked).length,a=$('psx_all'),g=$('psx_go');if(a){a.checked=L.length>0&&n===L.length;a.indeterminate=n>0&&n<L.length}if(g){g.disabled=!n;g.textContent=n?'Export ('+n+')':'Export'}};
+window.psmExGo=()=>{const k=[...document.querySelectorAll('#psxm .psx_c:checked')].map(c=>c.value);if(!k.length)return;const all=k.length===cuts().length;psmExClose();psmExportRun(all?null:k)};
+window.psmExportRun=async keys=>{
+ const ord=pFolders(),R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&ord.includes(pFo(p.data))&&(!keys||keys.includes(p.data.from+'|'+p.data.to))).sort((a,b)=>String(b.data.to).localeCompare(String(a.data.to))||String(b.data.from).localeCompare(String(a.data.from))||ord.indexOf(pFo(a.data))-ord.indexOf(pFo(b.data)));
  if(!R.length)return toast('Nothing to export.');
  toast('Preparing Excel…');
  const all={};
@@ -10170,26 +10197,33 @@ window.psmExport=async()=>{
  PS.all=all;
  const fd=r=>{try{return new Date(r.at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}catch(e){return''}};
  const HD={fill:'FF12305C',col:'FFFFFFFF',b:1,h:'center',bt:'thin',bb:'thin',bl:'thin',br:'thin'},BX={bt:'thin',bb:'thin',bl:'thin',br:'thin'};
- const S1=xgSheet('Summary'),S2=xgSheet('All names');
- S1.cols=[30,26,10,11,10,10];S2.cols=[30,26,6,42,11,16,26];
- S1.put(1,1,6,'Payslip Monitoring - Signed Payslips (all departments, all cutoffs)',{fn:'Georgia',sz:14,b:1,col:'FF12305C'});
- S1.put(2,1,6,'Rayanton Farms & Livestock Corp.  |  Exported '+new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})+' by '+me(),{sz:9,col:'FF666666'});
+ const S1=xgSheet('Summary'),DS={},used=new Set(['summary']),mkName=d=>{const base=String(d).replace(/[\\\/?*\[\]:]/g,'-').trim().slice(0,31)||'Dept';let n=base,i=2;while(used.has(n.toLowerCase())){const sx=' ('+i+')';n=base.slice(0,31-sx.length)+sx;i++}used.add(n.toLowerCase());return n};
+ S1.cols=[30,26,10,11,10,10];
+ const stamp='Rayanton Farms & Livestock Corp.  |  Exported '+new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})+' by '+me();
+ S1.put(1,1,6,'Payslip Monitoring - Signed Payslips (all departments, '+(keys?(keys.length===1?lb(...keys[0].split('|')):keys.length+' cutoffs'):'all cutoffs')+')',{fn:'Georgia',sz:14,b:1,col:'FF12305C'});
+ S1.put(2,1,6,stamp,{sz:9,col:'FF666666'});
  ['Cutoff','Department','Total','Returned','Pending','Status'].forEach((h,i)=>S1.put(4,i+1,i+1,h,HD));
- ['Cutoff','Department','#','Name','Returned','Date returned','Checked by'].forEach((h,i)=>S2.put(1,i+1,i+1,h,HD));
- let r1=5,r2=2,nc=0,ni=0,last='';
+ let r1=5,nc=0,ni=0;
  R.forEach(p=>{const L=people(p),ret=all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length,tot=L.length,c=tot>0&&done===tot,cl=lb(p.data.from,p.data.to),d=pFo(p.data);
   if(c)nc++;else ni++;
   const fill=c?'FFEAF6EE':'FFFDECEB',st=Object.assign({fill:fill},BX);
   S1.put(r1,1,1,cl,st);S1.put(r1,2,2,d,st);S1.put(r1,3,3,tot,Object.assign({nf:2,h:'center'},st));S1.put(r1,4,4,done,Object.assign({nf:2,h:'center'},st));S1.put(r1,5,5,tot-done,Object.assign({nf:2,h:'center'},st));S1.put(r1,6,6,c?'C':'INC',Object.assign({b:1,h:'center',col:c?'FF0A6B2F':'FFB3261E'},st));r1++;
-  L.forEach((x,i)=>{const t=ret[x.id],s2=t?BX:Object.assign({fill:'FFFFF4D6'},BX);S2.put(r2,1,1,cl,s2);S2.put(r2,2,2,d,s2);S2.put(r2,3,3,i+1,Object.assign({nf:2,h:'center'},s2));S2.put(r2,4,4,x.n,s2);S2.put(r2,5,5,t?'Yes':'No',Object.assign({b:1,h:'center',col:t?'FF0A6B2F':'FFB3261E'},s2));S2.put(r2,6,6,t?fd(t):'',Object.assign({h:'center'},s2));S2.put(r2,7,7,t?(t.by||''):'',s2);r2++})});
+  /* one sheet per department: the names with their status (Returned / Pending) for every selected cutoff */
+  let D=DS[d];if(!D){const sh=xgSheet(mkName(d));sh.cols=[34,6,42,12,16,26];sh.put(1,1,6,d+' - Payslip Monitoring (signed payslips)',{fn:'Georgia',sz:14,b:1,col:'FF12305C'});sh.put(2,1,6,stamp,{sz:9,col:'FF666666'});['Cutoff','#','Name','Status','Date returned','Checked by'].forEach((h,i)=>sh.put(4,i+1,i+1,h,HD));sh.freeze=4;sh.fit=1;sh.orient='portrait';D=DS[d]={sh:sh,r:5,d:d}}
+  const sh=D.sh;
+  sh.put(D.r,1,6,cl+'  |  '+done+' of '+tot+' returned  |  '+(c?'C (Complete)':'INC (Incomplete)'),{b:1,fill:c?'FFEAF6EE':'FFFDECEB',col:c?'FF0A6B2F':'FFB3261E',bt:'thin',bb:'thin',bl:'thin',br:'thin'});D.r++;
+  L.forEach((x,i)=>{const t=ret[x.id],s2=t?BX:Object.assign({fill:'FFFFF4D6'},BX);
+   sh.put(D.r,1,1,cl,s2);sh.put(D.r,2,2,i+1,Object.assign({nf:2,h:'center'},s2));sh.put(D.r,3,3,x.n,s2);sh.put(D.r,4,4,t?'Returned':'Pending',Object.assign({b:1,h:'center',col:t?'FF0A6B2F':'FFB3261E'},s2));sh.put(D.r,5,5,t?fd(t):'',Object.assign({h:'center'},s2));sh.put(D.r,6,6,t?(t.by||''):'',s2);D.r++})});
+ const DL=Object.values(DS).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
  r1++;S1.put(r1,1,2,'C = Complete (all signed payslips returned)   INC = Incomplete',{sz:9,col:'FF444444'});r1++;
- S1.put(r1,1,2,'Complete',{b:1});S1.put(r1,3,3,nc,{b:1,nf:2,h:'center'});r1++;S1.put(r1,1,2,'Incomplete',{b:1});S1.put(r1,3,3,ni,{b:1,nf:2,h:'center'});
- S1.freeze=4;S2.freeze=1;S2.af='A1:G'+Math.max(2,r2-1);S1.fit=1;S2.fit=1;S1.orient='portrait';S2.orient='portrait';
- const b=xgBuild([S1,S2]),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Payslip-Monitoring-All-'+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
- try{logAct('Exported payslip monitoring (Excel, all)','Payslip Monitoring',R.length+' payroll(s)')}catch(e){}toast('Exported ✔')};
+ S1.put(r1,1,2,'Complete',{b:1});S1.put(r1,3,3,nc,{b:1,nf:2,h:'center'});r1++;S1.put(r1,1,2,'Incomplete',{b:1});S1.put(r1,3,3,ni,{b:1,nf:2,h:'center'});r1+=2;
+ S1.put(r1,1,6,'The names and status (Returned / Pending) of each department are on its own sheet.',{sz:9,col:'FF444444',i:1});
+ S1.freeze=4;S1.fit=1;S1.orient='portrait';
+ const b=xgBuild([S1].concat(DL.map(x=>x.sh))),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Payslip-Monitoring-'+(keys?(keys.length===1?keys[0].replace('|','_to_'):keys.length+'-cutoffs'):'All')+'-'+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+ try{logAct('Exported payslip monitoring (Excel, '+(keys?keys.length+' cutoff(s)':'all')+')','Payslip Monitoring',R.length+' payroll(s)')}catch(e){}toast('Exported ✔')};
 window.psmPrint=()=>{
  const ord=pFolders(),cl=(()=>{const[f,t]=String(PS.sc).split('|');return f&&t?lb(f,t):''})();
- const R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
+ const R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length,names:L.map(x=>({n:x.n,r:!!ret[x.id]}))}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
  if(!R.length)return toast('Nothing to print for this cutoff.');
  const nc=R.filter(x=>x.c).length,now=new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Payslip Monitoring Summary</title><style>
@@ -10204,6 +10238,8 @@ td.c,th.c{text-align:center}
 tr.i td{background:#fdeceb;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 tr.k td{background:#eaf6ee;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .f{margin-top:10px;font-size:11px}
+.dp{page-break-before:always;break-before:page}.dp h2{font-size:14px;margin:0 0 2px}.dp .s{margin-bottom:8px}
+tr.pd td{background:#fff4d6;-webkit-print-color-adjust:exact;print-color-adjust:exact}.R{font-weight:bold;color:#0a6b2f}.P{font-weight:bold;color:#b3261e}
 </style></head><body>
 <h1>Payslip Monitoring Summary — Signed Payslips</h1>
 <p class="s">Rayanton Farms &amp; Livestock Corp. &nbsp;|&nbsp; Printed ${esc(now)} by ${esc(me())}</p>
@@ -10211,6 +10247,7 @@ tr.k td{background:#eaf6ee;-webkit-print-color-adjust:exact;print-color-adjust:e
 ${R.map(x=>`<tr class="${x.c?'k':'i'}"><td>${esc(cl)}</td><td>${esc(x.d)}</td><td class="c">${x.tot-x.done}</td><td class="c ${x.c?'C':'I'}">${x.c?'C':'INC'}</td></tr>`).join('')}
 </table>
 <p class="f">C = Complete (all signed payslips returned) &nbsp;&nbsp; INC = Incomplete &nbsp;&nbsp;|&nbsp;&nbsp; Complete: ${nc} &nbsp; Incomplete: ${R.length-nc}</p>
+${R.map(x=>`<div class="dp"><h2>${esc(x.d)} — Signed Payslips</h2><p class="s">${esc(cl)} &nbsp;|&nbsp; ${x.done} of ${x.tot} returned &nbsp;|&nbsp; <b class="${x.c?'C':'I'}">${x.c?'C (Complete)':'INC (Incomplete)'}</b></p><table><tr><th class="c" style="width:36px">#</th><th>Name</th><th class="c" style="width:90px">Status</th></tr>${x.names.map((y,i)=>`<tr class="${y.r?'':'pd'}"><td class="c">${i+1}</td><td>${esc(y.n)}</td><td class="c ${y.r?'R':'P'}">${y.r?'Returned':'Pending'}</td></tr>`).join('')}</table></div>`).join('')}
 </body></html>`;
  const w=window.open('','_blank');if(!w)return alert('Please allow pop-ups for this site, then press Print again.');
  w.document.write(html);w.document.close();w.focus();setTimeout(()=>{try{w.print()}catch(e){}},350)};
