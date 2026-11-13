@@ -4138,7 +4138,7 @@ async function pImp(){const dp=$('i_d').value.trim(),P=pParse($('i_t').value),ba
 async function loadH(q){try{PH=hVis(await api('/rest/v1/hrd_payroll?select=id,label,data,created_at&order=created_at.desc&limit=500'))}catch(e){PH=null}if(!q)drawP()}
 function drawHist(){
  $('main').innerHTML=`<h1>Payroll</h1><p class="sub">Click <b>+ New Payroll</b> to choose a form and cutoff. Saved payrolls stay under <b>Ongoing</b> until HR staff presses <b>✔ OK</b>, then they move to <b>Payroll History</b>.</p>
-<div class="pz-bar no-print">${pxCan('edit')?'<button class="btn ok" onclick="pStart()">+ New Payroll</button> ':''}<button class="btn o" onclick="go('psm')">✔ Payslip Monitoring</button></div>
+<div class="pz-bar no-print">${pxCan('edit')?'<button class="btn ok" onclick="pStart()">+ New Payroll</button> ':''}<span class="sp1"></span><button class="btn o" onclick="go('psm')">✔ Payslip Monitoring</button></div>
 ${pSeedBar()}
 <div id="runs" class="no-print"></div>`;drawRuns()}
 const pOk=d=>!!(d&&d.ok);
@@ -4160,7 +4160,7 @@ function drawRuns(){const r=$('runs');if(!r)return;const F=pFolders(),dp=x=>pFo(
  C={new:cu,old:(a,b)=>cu(b,a),az:(a,b)=>dp(a).localeCompare(dp(b))||cu(a,b),za:(a,b)=>dp(b).localeCompare(dp(a))||cu(a,b),ord:(a,b)=>ix(dp(a))-ix(dp(b))||cu(a,b)};L.sort(C[PS]||C.new);
  const op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
  const tc=h=>(PH||[]).filter(p=>p.data&&(h?pOk(p.data):!pOk(p.data))).length,tb=(h,l)=>`<button type="button" class="${PHT===h?'on':''}" onclick="PHTm(${h?1:0})">${l}<span>${tc(h)}</span></button>`;
- r.innerHTML=`<div class="attabs no-print">${tb(false,'Ongoing')}${tb(true,'Payroll History')}</div><div class="panel phist" style="max-width:none;margin:0"><div class="phf" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px"><h3 style="margin:0;flex:1">${PHT?'Payroll History':'Ongoing Payroll'} <span style="font-size:13px;color:#888;font-family:inherit">(${L.length})</span></h3>
+ r.innerHTML=`<div class="attabs no-print" style="display:flex;width:fit-content;margin-left:auto">${tb(false,'Ongoing')}${tb(true,'Payroll History')}</div><div class="panel phist" style="max-width:none;margin:0"><div class="phf" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px"><h3 style="margin:0;flex:1">${PHT?'Payroll History':'Ongoing Payroll'} <span style="font-size:13px;color:#888;font-family:inherit">(${L.length})</span></h3>
 <label style="font-size:13px">Department <select class="fi" style="width:auto;margin:0 0 0 6px" onchange="PHF=this.value;drawRuns()">${op('all','All departments ('+(PH||[]).filter(p=>PHT?pOk(p.data):!pOk(p.data)).length+')',PHF==='all')}${F.filter(f=>cn(f)||f===PHF).map(f=>op(f,f+' ('+cn(f)+')',PHF===f)).join('')}</select></label>
 <label style="font-size:13px">Date from <input type="date" class="fi" style="width:auto;margin:0 0 0 6px" value="${esc(PHFROM)}" onchange="PHFROM=this.value;drawRuns()"></label>
 <label style="font-size:13px">Date to <input type="date" class="fi" style="width:auto;margin:0 0 0 6px" value="${esc(PHTO)}" onchange="PHTO=this.value;drawRuns()"></label>
@@ -10097,8 +10097,13 @@ async function psmNm(){PS.nm={};
  if([...miss].every(id=>PS.nm[id]))return;
  try{const rows=await api('/rest/v1/hrd_attendance?select=name,emps:data->emps');
   (Array.isArray(rows)?rows:[]).forEach(r=>{(Array.isArray(r&&r.emps)?r.emps:[]).forEach(e=>{if(e&&e.k!=null&&e.n&&miss.has(String(e.k))&&!PS.nm[String(e.k)])PS.nm[String(e.k)]=String(e.n)})})}catch(e){}}
+let PSVIS=false;
 window.psm=async function(){
- PS.d='';PS.r='';PS.f='all';PS.q='';PS.cl='';PS.v='list';PS.ret={};PS.all={};PS.dd='';PS.ds='all';
+ /* remember what was open (department, cutoff, class, view): coming back to Payslip Monitoring shows the same checklist again */
+ if(!PSVIS){try{const j=JSON.parse(SES.psm_last||'null');if(j&&j.r){PS.d=j.d||'';PS.r=j.r||'';PS.cl=j.cl||'';PS.v=j.v||'due'}}catch(e){}}
+ const wasList=PSVIS||!!PS.r;PSVIS=true;
+ if(PS.f==null)PS.f='all';if(PS.q==null)PS.q='';if(PS.cl==null)PS.cl='';if(PS.dd==null)PS.dd='';if(PS.ds==null)PS.ds='all';
+ PS.ret={};PS.all={};
  $('main').innerHTML='<h1>Payslip Monitoring</h1><p class="sub">Loading…</p>';
  try{if(STF===undefined||STF===null)await loadS();if(!Array.isArray(PH))await loadH(1)}catch(e){}
  if(PG!=='psm')return;
@@ -10107,9 +10112,9 @@ window.psm=async function(){
  const F=pFolders().filter(f=>runs(f).length);
  if(!F.includes(PS.d)){PS.d='';PS.r=''}
  const R=runs(PS.d);if(!R.some(p=>String(p.id)===String(PS.r)))PS.r='';
- await psmView('due')};
+ await psmView(PS.r&&PS.v==='list'?'list':(wasList&&['sum','grid','due'].includes(PS.v)?PS.v:'due'))};
 async function psmLoad(){PS.ret={};PS.bad=false;if(PS.r){try{PS.ret=await getRet(PS.r)}catch(e){PS.bad=true}}if(PG==='psm')psmDraw()}
-window.psmSel=async(k,v)=>{PS[k]=v;if(k==='d'){PS.cl='';PS.r=v&&runs(v)[0]?String(runs(v)[0].id):'';await psmLoad()}else if(k==='r'){PS.cl='';await psmLoad()}else psmDraw()};
+window.psmSel=async(k,v)=>{PS[k]=v;if(k==='d'||k==='r')PS.sg='';if(k==='d'){PS.cl='';PS.r=v&&runs(v)[0]?String(runs(v)[0].id):'';await psmLoad()}else if(k==='r'){PS.cl='';await psmLoad()}else psmDraw()};
 window.psmTog=async(id,on)=>{await psmSet([id],on)};
 window.psmAll=async on=>{const p=cur();if(!p)return;const L=psmShown(p).map(x=>x.id);if(!L.length)return;if(!confirm((on?'Mark ':'Clear ')+L.length+' name(s) as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(L,on)};
 async function psmSet(ids,on){if(PS.busy)return;PS.busy=true;const p=cur();if(!p){PS.busy=false;return}
@@ -10121,13 +10126,15 @@ async function psmSet(ids,on){if(PS.busy)return;PS.busy=true;const p=cur();if(!p
 function psmCl(x){const s=(STF||[]).find(y=>String(y.id)===String(x.id));return gCls(s?pGrp(s):'')||'(no class)'}
 let PCL=[];
 window.psmCAll=async k=>{const ids=PCL[k]||[];if(!ids.length)return;const on=!ids.every(id=>PS.ret[id]);if(!confirm((on?'Mark ':'Clear ')+ids.length+' name(s) of this class as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(ids,on)};
-function psmShown(p){const q=(PS.q||'').trim().toUpperCase();return people(p).filter(x=>(!q||x.n.toUpperCase().includes(q))&&(!PS.cl||psmCl(x)===PS.cl)&&(PS.f==='all'||(PS.f==='no'?!PS.ret[x.id]:!!PS.ret[x.id])))}
+/* scope opened from the Dashboard: '2' = classes with 14 days (B2/B4/B7/B14), '1' = classes with 7 days, '' = all classes */
+function psmGrp(x){const s0=(STF||[]).find(y=>String(y.id)===String(x.id));return psm2w(s0,x)?'2':'1'}
+function psmShown(p){const q=(PS.q||'').trim().toUpperCase();return people(p).filter(x=>(!q||x.n.toUpperCase().includes(q))&&(!PS.sg||psmGrp(x)===PS.sg)&&(!PS.cl||psmCl(x)===PS.cl)&&(PS.f==='all'||(PS.f==='no'?!PS.ret[x.id]:!!PS.ret[x.id])))}
 const psmCss=`
 .psm{max-width:1100px}
-.psm-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:0 0 22px}
+.psm-hd{display:flex;flex-direction:column;align-items:stretch;gap:16px;margin:0 0 22px}/* nav always sits under the title, same spot in every view (no jumping left/right) */
 .psm-hd h1{margin:0 0 4px}.psm-hd .sub{margin:0}
 .psm-rule{width:44px;height:2px;background:var(--au);margin:12px 0 0}
-.psm-act{display:flex;gap:10px;flex-wrap:wrap}
+.psm-act{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.psm-act .psm-gap{flex:1 1 auto}
 .psm-card{background:var(--sf);border:1px solid var(--ln);border-radius:16px;box-shadow:0 18px 40px -28px #12305c66,0 1px 3px #12305c0d;padding:20px 22px;margin:0 0 18px}
 .psm-warn{border-color:#f1cbc5;color:#c0392b;font-size:14px}
 .psm-fl{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px 18px;align-items:end}
@@ -10219,11 +10226,12 @@ const psmCss=`
 (function(){const e=document.createElement('style');e.id='psmcss';e.textContent=psmCss;document.head.appendChild(e)})();
 const ini=n=>{const a=String(n).replace(/\(.*?\)\s*/,'').split(',');return(((a[0]||'').trim()[0]||'')+((a[1]||'').trim()[0]||'')).toUpperCase()||'?'};
 function psmDraw(){
+ try{SES.psm_last=JSON.stringify({v:PS.v,d:PS.d,r:PS.r,cl:PS.cl})}catch(e){}
  if(PS.v==='sum')return psmSumDraw();
  if(PS.v==='grid')return psmGridDraw();
  if(PS.v==='due')return psmDueDraw();
  const F=pFolders().filter(f=>runs(f).length),R=runs(PS.d),p=cur(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
- const all=p?people(p):[],tot=all.length,done=all.filter(x=>PS.ret[x.id]).length,pct=tot?Math.round(done/tot*100):0,comp=tot>0&&done===tot,L=p?psmShown(p):[];
+ const all=p?people(p).filter(x=>!PS.sg||psmGrp(x)===PS.sg):[],tot=all.length,done=all.filter(x=>PS.ret[x.id]).length,pct=tot?Math.round(done/tot*100):0,comp=tot>0&&done===tot,L=p?psmShown(p):[];
  const ed=(typeof hrx==='function'&&hrx())||can('psm');
  const fd=r=>new Date(r.at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
  const rowOf=(x,i)=>{const r=PS.ret[x.id];return`<tr class="${r?'ok':''}"><td class="psm-n">${i+1}</td><td><div class="psm-nm"><span class="psm-av">${esc(ini(x.n))}</span>${esc(x.n)}</div></td><td class="psm-c"><label class="psm-ck"><input type="checkbox"${r?' checked':''}${ed&&!PS.bad?'':' disabled'} onchange="psmTog('${esc(x.id)}',this.checked)"><span></span></label></td><td>${r?`<span class="psm-pill c">Returned</span><span class="psm-dt">${esc(fd(r))}</span>`:'<span class="psm-pill p">Pending</span>'}</td><td class="psm-by">${r?esc(r.by||''):''}</td></tr>`};
@@ -10237,11 +10245,11 @@ function psmDraw(){
 ${PS.bad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). Do not tick anything until this is fixed — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Department</label><select class="fi" onchange="psmSel('d',this.value)">${op('','— Select department —',!PS.d)}${F.map(f=>op(f,f,f===PS.d)).join('')}</select></div><div><label>Cutoff</label><select class="fi" ${PS.d?'':'disabled'} onchange="psmSel('r',this.value)">${op('','— Select cutoff —',!PS.r)}${R.map(x=>op(x.id,lb(x.data.from,x.data.to),String(x.id)===String(PS.r))).join('')}</select></div></div></div>
 ${p?`<div class="psm-card"><div class="psm-pg"><div><div class="psm-big">${done}<small> / ${tot}</small></div><div class="psm-cap">Signed payslips returned</div></div><div class="psm-bw"><div class="psm-bar"><i class="${comp?'c':''}" style="width:${pct}%"></i></div><div class="psm-bl"><span>${pct}% complete</span><span>${tot-done} pending</span></div></div><span class="psm-pill lg ${comp?'c':'i'}">${comp?'C':'INC'}</span></div></div>
-<div class="psm-card psm-tc"><div class="psm-tb"><input id="psmq" class="fi" placeholder="Search name…" value="${esc(PS.q)}" oninput="PSMQ(this.value)"><select class="fi" onchange="psmSel('cl',this.value)">${op('','All classes',!PS.cl)}${clsAll.map(c=>op(c,c+' ('+tm.get(c).d+'/'+tm.get(c).t+')',c===PS.cl)).join('')}</select><select class="fi" onchange="psmSel('f',this.value)">${[['all','All names'],['no','Not yet returned'],['yes','Returned']].map(([v,l])=>op(v,l,PS.f===v)).join('')}</select><span style="flex:1"></span>${ed&&L.length?`<button class="btn o sm" onclick="psmAll(true)">Mark shown as returned</button><button class="btn o sm" onclick="psmAll(false)">Clear shown</button>`:''}</div>${L.length?`<div style="overflow-x:auto"><table class="psm-t"><tr><th class="psm-n">#</th><th>Name</th><th class="psm-c">Returned</th><th>Status</th><th class="psm-by">Checked by</th></tr>${rows}</table></div>`:'<div class="psm-em">No names to show.</div>'}</div>`:`<div class="psm-card psm-em"><div class="psm-ei">📄</div><b>${F.length?'Choose a department and a cutoff':'No saved payroll yet'}</b><span>${F.length?'The list of names will appear here.':'Save a payroll first.'}</span></div>`}</div>`}
+<div class="psm-card psm-tc">${PS.sg?`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:0 0 12px"><span style="font-size:13px;color:var(--ink2)">Showing only: <b>${PS.sg==='2'?'2-week classes':'Regular classes (7 days)'}</b>${clsAll.length?' · '+esc(clsAll.filter(c=>c!=='(no class)').join(' · ')):''}</span><button class="btn o sm" onclick="psmSel('sg','')">Show all classes</button></div>`:''}<div class="psm-tb"><input id="psmq" class="fi" placeholder="Search name…" value="${esc(PS.q)}" oninput="PSMQ(this.value)"><select class="fi" onchange="psmSel('cl',this.value)">${op('','All classes',!PS.cl)}${clsAll.map(c=>op(c,c+' ('+tm.get(c).d+'/'+tm.get(c).t+')',c===PS.cl)).join('')}</select><select class="fi" onchange="psmSel('f',this.value)">${[['all','All names'],['no','Not yet returned'],['yes','Returned']].map(([v,l])=>op(v,l,PS.f===v)).join('')}</select><span style="flex:1"></span>${ed&&L.length?`<button class="btn o sm" onclick="psmAll(true)">Mark shown as returned</button><button class="btn o sm" onclick="psmAll(false)">Clear shown</button>`:''}</div>${L.length?`<div style="overflow-x:auto"><table class="psm-t"><tr><th class="psm-n">#</th><th>Name</th><th class="psm-c">Returned</th><th>Status</th><th class="psm-by">Checked by</th></tr>${rows}</table></div>`:'<div class="psm-em">No names to show.</div>'}</div>`:`<div class="psm-card psm-em"><div class="psm-ei">📄</div><b>${F.length?'Choose a department and a cutoff':'No saved payroll yet'}</b><span>${F.length?'The list of names will appear here.':'Save a payroll first.'}</span></div>`}</div>`}
 const cuts=()=>{const m={};(PH||[]).forEach(p=>{if(p.data&&p.data.from&&p.data.to&&pFolders().includes(pFo(p.data)))m[p.data.from+'|'+p.data.to]=1});return Object.keys(m).sort((a,b)=>b.split('|')[1].localeCompare(a.split('|')[1]))};
-window.psmView=async v=>{PS.v=v;if(v==='sum'||v==='grid'||v==='due'){const C=cuts();if(!C.includes(PS.sc))PS.sc=C[0]||'';PS.sbad=false;PS.all={};$('main').innerHTML='<h1>Payslip Monitoring</h1><p class="sub">Loading summary…</p>';try{const rows=await api('/rest/v1/hrd_attendance?name=like.'+encodeURIComponent('_psm|*')+'&select=name,data');(Array.isArray(rows)?rows:[]).forEach(r=>{if(r&&r.name)PS.all[r.name.slice(5)]=(r.data&&r.data.ret)||{}})}catch(e){PS.sbad=true}if(v==='grid'){try{const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent('_psmrm|grid')+'&select=data');PS.rm=(Array.isArray(r)&&r[0]&&r[0].data&&r[0].data.rm)||{}}catch(e){PS.rm={}}}if(PG==='psm')psmDraw()}else psmLoad()};
+window.psmView=async v=>{PS.v=v;PS.sg='';if(v==='sum'||v==='grid'||v==='due'){const C=cuts();if(!C.includes(PS.sc))PS.sc=C[0]||'';PS.sbad=false;PS.all={};$('main').innerHTML='<h1>Payslip Monitoring</h1><p class="sub">Loading summary…</p>';try{const rows=await api('/rest/v1/hrd_attendance?name=like.'+encodeURIComponent('_psm|*')+'&select=name,data');(Array.isArray(rows)?rows:[]).forEach(r=>{if(r&&r.name)PS.all[r.name.slice(5)]=(r.data&&r.data.ret)||{}})}catch(e){PS.sbad=true}if(v==='grid'){try{const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent('_psmrm|grid')+'&select=data');PS.rm=(Array.isArray(r)&&r[0]&&r[0].data&&r[0].data.rm)||{}}catch(e){PS.rm={}}}if(PG==='psm')psmDraw()}else psmLoad()};
 window.psmSc=v=>{PS.sc=v;psmDraw()};
-window.psmOpen=(d,id,cl,q)=>{PS.d=d;PS.r=id;PS.cl=cl||'';PS.q=q||'';PS.f='all';PS.v='list';psmLoad()};
+window.psmOpen=(d,id,cl,q,sg)=>{PS.d=d;PS.r=id;PS.cl=cl||'';PS.q=q||'';PS.sg=sg||'';PS.f='all';PS.v='list';psmLoad()};
 function psmSumDraw(){
  const C=cuts(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
  const ord=pFolders(),R=(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===PS.sc).map(p=>{const L=people(p),ret=PS.all[String(p.id)]||{},done=L.filter(x=>ret[x.id]).length;return{p:p,d:pFo(p.data),tot:L.length,done:done,c:L.length>0&&done===L.length}}).sort((a,b)=>ord.indexOf(a.d)-ord.indexOf(b.d));
@@ -10250,7 +10258,8 @@ function psmSumDraw(){
 ${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). The summary may be wrong — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Cutoff</label><select class="fi" onchange="psmSc(this.value)">${C.map(k=>{const[f,t]=k.split('|');return op(k,lb(f,t),k===PS.sc)}).join('')}</select></div><div class="psm-st"><div class="psm-sc c"><b>${nc}</b><span>Complete</span></div><div class="psm-sc i"><b>${ni}</b><span>Incomplete</span></div></div></div></div>
 ${R.length?`<div class="psm-gd">${R.map(x=>{const pc=x.tot?Math.round(x.done/x.tot*100):0;return`<div class="psm-dc ${x.c?'c':''}"><div class="psm-dh"><b>${esc(x.d)}</b><span class="psm-pill ${x.c?'c':'i'}">${x.c?'C':'INC'}</span></div><div class="psm-dn">${x.done}<small> / ${x.tot} returned</small></div><div class="psm-bar"><i class="${x.c?'c':''}" style="width:${pc}%"></i></div><div class="psm-bl"><span>${x.tot-x.done} pending</span><button class="psm-open" onclick="psmOpen('${esc(x.d).replace(/'/g,"\\'")}','${esc(String(x.p.id))}')">Open →</button></div></div>`}).join('')}</div>`:'<div class="psm-card psm-em">No saved payroll for this cutoff.</div>'}</div>`}
-const gCls=c=>String(c||'').replace(/^.*:\s*/,'').trim();
+/* class name = what follows the department prefix ("Breeder : John Myr" -> "John Myr", "EXTRA BROILER : B4:192" -> "B4:192"); a code like "B2:191" keeps its class (B2) and is no longer cut down to "191" */
+const gCls=c=>String(c||'').replace(/^.*\s:\s*/,'').trim();
 const gDt=t=>{const a=String(t).split('-');return a.length===3?(+a[1])+'/'+(+a[2])+'/'+a[0]:String(t)};
 let GK=[],GDL=[],GM=null;
 function psmGridDraw(){
@@ -10291,14 +10300,15 @@ function psmDueDraw(){
  const fd=dt=>dt.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}),ar=z=>esc(z).replace(/'/g,"\\'"),
   op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`,
   M=new Map();
- psmDueRows().forEach(r=>{let g=M.get(r.pid);if(!g){const p=(PH||[]).find(y=>String(y.id)===r.pid);g={pid:r.pid,dept:r.dept,from:r.from,to:r.to,st:r.st,tot:p?people(p).length:0,pend:0,left:1e9,dl:null};M.set(r.pid,g);}
-  g.pend++;if(r.left<g.left){g.left=r.left;g.dl=r.dl}});
+ /* one row per department + cutoff + deadline type: the 2-week classes (B2 / B4 / B7 / B14) get their own row, separate from the 7-day classes of the same department */
+ psmDueRows().forEach(r=>{const k=r.pid+'|'+(r.w2?2:1);let g=M.get(k);if(!g){const p=(PH||[]).find(y=>String(y.id)===r.pid);g={pid:r.pid,dept:r.dept,from:r.from,to:r.to,st:r.st,w2:r.w2,cls:new Set(),tot:p?people(p).filter(x=>{const s0=(STF||[]).find(y=>String(y.id)===String(x.id));return !!psm2w(s0,x)===!!r.w2}).length:0,pend:0,left:1e9,dl:null};M.set(k,g);}
+  g.pend++;g.cls.add(r.cls);if(r.left<g.left){g.left=r.left;g.dl=r.dl}});
  const A=[...M.values()].filter(g=>g.left<=DUE_WARN).map(g=>(g.over=g.left<0,g)),
   dpt=PS.dd||'',stt=PS.ds||'all',depts=[...new Set(A.map(g=>g.dept))].sort(),
   B=A.filter(g=>(!dpt||g.dept===dpt)&&(stt==='all'||(stt==='over'?g.over:!g.over))).sort((a,b)=>a.left-b.left||a.dept.localeCompare(b.dept)),
   nO=B.filter(g=>g.over).length,nS=B.length-nO,
   txt=g=>g.over?`${-g.left} day${g.left===-1?'':'s'} overdue`:g.left===0?'Due today':`${g.left} day${g.left===1?'':'s'} left`,
-  rows=B.map(g=>`<tr class="psm-dr" onclick="psmOpen('${ar(g.dept)}','${esc(g.pid)}','','')" title="Open this cutoff to tick returned payslips"><td style="text-align:left"><b>${esc(g.dept)}</b></td><td>${esc(lb(g.from,g.to))}</td><td>${esc(fd(g.st))}</td><td><b>${esc(fd(g.dl))}</b></td><td>${g.pend} / ${g.tot}</td><td><span class="psm-pill ${g.over?'o':'w'}">${esc(txt(g))}</span></td></tr>`).join('');
+  rows=B.map(g=>`<tr class="psm-dr" onclick="psmOpen('${ar(g.dept)}','${esc(g.pid)}','','','${g.w2?'2':'1'}')" title="Open this cutoff to tick returned payslips"><td style="text-align:left"><b>${esc(g.dept)}</b>${g.w2?` <span class="psm-pill p" title="These classes have 2 weeks (14 days) to return the signed payslips">${esc([...g.cls].filter(c=>c&&c!=='(no class)').sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).join(' · ')||'2 weeks')} · 2 weeks</span>`:''}</td><td>${esc(lb(g.from,g.to))}</td><td>${esc(fd(g.st))}</td><td><b>${esc(fd(g.dl))}</b></td><td>${g.pend} / ${g.tot}</td><td><span class="psm-pill ${g.over?'o':'w'}">${esc(txt(g))}</span></td></tr>`).join('');
  $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring · Dashboard</h1><p class="sub">Departments and cutoffs with signed payslips <b style="color:#b3392f">past due</b> or <b style="color:#8a6a1c">due within ${DUE_WARN} days</b>. A row disappears once all payslips of that cutoff are returned.</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('due')}</div></div>
 ${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). This dashboard may be wrong — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-st"><div class="psm-sc i"><b>${nO}</b><span>Past due</span></div><div class="psm-sc w"><b>${nS}</b><span>Due soon</span></div></div>
