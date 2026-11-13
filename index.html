@@ -105,6 +105,14 @@ main{margin-left:240px;padding:36px 44px;min-height:100vh}.sub{color:#66738a;mar
 .bar{display:flex;gap:12px;align-items:center;max-width:800px;margin:0 auto 16px}
 .ebar{position:sticky;top:0;z-index:20;background:var(--bg);padding:10px 0;flex-wrap:wrap;border-bottom:1px solid var(--ln)}.ebar h2{margin:0;min-width:0}.ebar .ebtn{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
 .paper{background:#fff;width:100%;max-width:800px;margin:0 auto 22px;padding:36px 40px;box-shadow:0 4px 20px #0000001f;font-size:14px;line-height:1.9;color:#000}
+.nmdd{position:fixed;z-index:99999;max-height:260px;overflow:auto;background:var(--sf,#fff);color:var(--ink,#1a2233);border:1px solid var(--ln2,#d3d9e6);border-radius:10px;box-shadow:0 10px 30px #12305c33;font:13.5px/1.3 system-ui,sans-serif;padding:4px;display:none}
+.nmdd div{padding:7px 10px;border-radius:7px;cursor:pointer;display:flex;justify-content:space-between;gap:10px}
+.nmdd div small{color:var(--mu,#66738a);font-size:11.5px;white-space:nowrap}
+.nmdd div.on,.nmdd div:hover{background:var(--soft,#eaf0f9)}.nmdd em{display:block;padding:8px 10px;color:var(--mu,#66738a);font-style:normal}
+@media print{.nmdd{display:none!important}}
+.rqn{border-left:4px solid #d9a63a;background:var(--sf2,#f8f9fc);border-radius:8px;padding:9px 12px;margin:8px 0;font-size:13px}.rqn.no{border-color:#b3392f}.rqn.ok{border-color:#2e7d4f}.rqn ul{margin:6px 0 0 18px;padding:0}
+.rqh{max-width:800px;margin:16px auto}.rqh h3{font-family:Georgia,serif;color:var(--h)}.rqw{font-size:12px;color:var(--mu);align-self:center;padding:0 6px}.rqs{flex-basis:100%;font-size:12px;color:var(--mu);margin:2px 0 0 52px}.rqs.no{color:#a3302a}
+.rqp{max-width:1000px;margin:0 auto 18px;background:var(--sf,#fff);border:1px solid var(--ln,#e3e7ef);border-radius:14px;padding:14px 18px}.rqp h3{margin:0 0 8px;font-family:Georgia,serif;color:var(--h)}.rqp .new{background:#d93a3a;color:#fff;border-radius:999px;font-size:10.5px;padding:1px 7px;margin-left:6px}
 .panel{max-width:800px;margin:0 auto 40px;background:#fff;border-radius:14px;padding:22px 26px;border-top:4px solid var(--au);box-shadow:0 2px 10px #0000000d}
 .panel h3{margin:0 0 14px;font-family:Georgia,serif;color:var(--h)}.pr{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
 .panel label{font-size:13px;color:#555;display:block}.fi{width:100%;padding:10px;margin-top:5px;border:1px solid #cdd6e5;border-radius:8px;font-size:14px;background:#f9fafc}
@@ -702,6 +710,14 @@ div.chd{padding:13px 16px;border-bottom:1px solid var(--ln);display:flex;align-i
 .rvl{display:flex;flex-direction:column;gap:10px}
 .rvr{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--sf);border:1px solid var(--ln);border-left:3px solid var(--ln2);border-radius:14px;padding:14px 18px;box-shadow:0 1px 3px #12305c0d;transition:.2s}
 .rvr:hover{box-shadow:0 8px 22px #12305c1f;transform:translateY(-1px)}
+.rqflow{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;margin:0 0 12px}
+.rqs1{display:flex;gap:10px;align-items:center;flex:1 1 170px;background:var(--sf);border:1px solid var(--ln2);border-radius:10px;padding:10px 12px;color:var(--mu)}
+.rqs1 i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--soft);font-size:13px;flex:none}
+.rqs1 b{display:block;font-size:13px;color:var(--h)}.rqs1 small{font-size:12px}
+.rqs1.done{border-color:#2e7d4f}.rqs1.done i{background:#d8f0e0;color:#1d6b49}
+.rqs1.now{border-color:#d9a63a;background:var(--soft)}.rqs1.now i{background:#fff3d6;color:#8a6410}
+.rqs1.no{border-color:#b3392f}.rqs1.no i{background:#f8dcd8;color:#a3302a}
+.rqact{flex-basis:100%;display:flex;gap:8px;flex-wrap:wrap}
 .rvr.pending{border-left-color:#d9a63a}.rvr.approved{border-left-color:#2e7d4f}.rvr.rejected{border-left-color:#b3392f}
 .rva{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--soft);border:1px solid var(--au);color:var(--h);font-family:Georgia,serif;font-weight:600;font-size:15px}
 .rvn{flex:1;min-width:190px}.rvn b{display:block;color:var(--h);font-size:15.5px}.rvn small{color:var(--mu);font-size:12.5px}
@@ -1542,7 +1558,7 @@ html[data-theme=dark] #main .stat.al-g .si{background:#1f4a31;color:#7fdca4}
   <div class="brand"><img class="lg" alt="Rayanton"><b>Rayanton</b><small>HRD FILES</small></div>
  <a id="n0" tabindex="0" onclick="go('dash')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Dashboard</span><i id="b0"></i></a>
  <a id="n14" tabindex="0" onclick="window.ATH=0;window.ATHm?ATHm(0):go('att')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><path d="M8.5 15l2.2 2.2L15.5 12.5"/></svg><span>Attendance</span><i id="b14"></i></a>
- <a id="n1" tabindex="0" onclick="go('req')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg><span>Request Form</span></a>
+ <a id="n1" tabindex="0" onclick="go('req')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg><span>Request Form</span><i id="brq"></i></a>
  <a id="n2" tabindex="0" onclick="go('sub')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span>Submitted Requests</span><i id="bd"></i></a>
  <a id="n9" tabindex="0" onclick="go('addc')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span>Additional Compensation</span></a>
  <a id="n10" tabindex="0" onclick="go('m13')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M10 14.2c0-.9.9-1.4 2-1.4s2 .5 2 1.3c0 1.9-4 1-4 3 0 .8.9 1.4 2 1.4s2-.5 2-1.4"/></svg><span>13th Month Pay</span></a>
@@ -1895,7 +1911,7 @@ async function enter(){
  go('dash');
  try{can('att')&&window.atRvBoot&&window.atRvBoot()}catch(e){}if(can('emp'))loadND().then(()=>loadE(true));if(can('act'))actPoll();setInterval(()=>can('act')&&actPoll(),60000);can('tmk')&&tmNotifSync(true);can('tma')&&tmDecSync(true);Promise.all([pdLoad().catch(()=>0),chatLoad()]).then(()=>{chatBadge();liveStart()})}
 function applyNav(){ADM=can('usr');{const a=$('ndel');if(a)a.style.display=SUPER?'none':''}
- ['req','sub','emp','pay','act','usr'].forEach((k,j)=>$('n'+(j+1)).style.display=can(k)?'':'none');$('n7').style.display=isAdm()?'':'none';['addc','m13'].forEach((k,j)=>{const a=$('n'+(9+j));a.style.display='';a.classList.toggle('lkd',!can(k));a.title=can(k)?'':'Needs permission from the admin'});{const a=$('n14');if(a)a.style.display=can('att')?'':'none';}{const a=$('n16');if(a)a.style.display=can('att')?'':'none';}{const a=$('n15');if(a)a.style.display=(can('psm')&&!can('pay'))?'':'none';}{const a=$('n11');if(a)a.style.display=can('tmk')?'':'none';}{const a=$('n12');if(a)a.style.display=can('mg')?'':'none';}{const a=$('n13');if(a)a.style.display=can('ben')?'':'none';}
+ ['req','sub','emp','pay','act','usr'].forEach((k,j)=>$('n'+(j+1)).style.display=can(k)?'':'none');$('n7').style.display=isAdm()?'':'none';{const a=$('n2');if(a&&(rqCan('chk')||rqCan('apr')))a.style.display=''}['addc','m13'].forEach((k,j)=>{const a=$('n'+(9+j));a.style.display='';a.classList.toggle('lkd',!can(k));a.title=can(k)?'':'Needs permission from the admin'});{const a=$('n14');if(a)a.style.display=can('att')?'':'none';}{const a=$('n16');if(a)a.style.display=can('att')?'':'none';}{const a=$('n15');if(a)a.style.display=(can('psm')&&!can('pay'))?'':'none';}{const a=$('n11');if(a)a.style.display=can('tmk')?'':'none';}{const a=$('n12');if(a)a.style.display=can('mg')?'':'none';}{const a=$('n13');if(a)a.style.display=can('ben')?'':'none';}
  const rl=SUPER||(MYA&&MYA.role==='admin')?'Admin':MYA?(ROLES[MYA.role]||[MYA.role])[0]:'';
  {const nk=((MYA&&MYA.full_name)||'').trim();$('who').innerHTML=((nk||rl)?'<b>'+esc(nk||rl)+'</b>':'')+'<small>'+esc(nk&&rl?rl+' · ':'')+esc(ME.email||'')+'</small>'}
  {const nm=((MYA&&MYA.full_name)||ME.email||'?').trim();$('wav').textContent=(nm.includes('@')?nm.slice(0,2):nm.split(/\s+/).map(w=>w[0]).slice(0,2).join('')).toUpperCase()}
@@ -2016,7 +2032,7 @@ trip:`<table><tr><td colspan="2" class="c b">RAYANTON FARMS & LIVESTOCK CORP.<br
 <tr><td>${I('f')}</td></tr><tr><td>${I('f')}</td></tr><tr><td>${I('f')}</td></tr></table>`,
 
 coop:`<div class="box" style="font-size:13px"><div class="b" style="font-size:15px">RFC EMPLOYEE SAVINGS FUND</div>
-<div class="row"><div>Date: ${D()}<br>Name: ${I()}<br>Loan Amount: ${I('s')} Payable in: ${I('s')} wks</div>
+<div class="row"><div>Date: ${D()}<br>Name: ${I()}<br>Loan Amount: ${I('s')} <span style="white-space:nowrap">Payable in: ${I('s')} wks</span></div>
 <div>Department: ${I()}<br>Purpose of Loan: ${I()}<br>Interest: ${I('s')} Int. Rate: ${I('s')}</div></div><br>
 Total Loan: ${I()} &nbsp; deduction: ${I('s')}/week<br>start of deduction: ${D()} &nbsp; end of deduction: ${D()}<br>
 Posted by: ${I()} &nbsp; Approved by: ${I('l')}<br><br>
@@ -2046,7 +2062,7 @@ const FM={coop:['COOP','Employee savings fund loan','🏦'],leave:['Vacation / S
 const vals=()=>[...$('paper').querySelectorAll('input')].map(i=>i.type==='checkbox'?i.checked:i.value);
 const fill=(d,dis)=>[...$('paper').querySelectorAll('input')].forEach((el,k)=>{if(d){if(el.type==='checkbox')el.checked=!!d[k];else el.value=d[k]||''}el.disabled=dis});
 
-function go(p){if(p==='chat')return chatToggle();if(PG==='att'&&p!=='att'&&window.attUns&&attUns()){attLeave(function(){go(p)});return}if(p!=='dash'&&p!=='chat'&&p!=='addc'&&p!=='m13'&&(p==='bak'?!isAdm():!can(p)))return toast('You do not have access to this page.');if(PG==='pay'&&p!=='pay'){if(!pLeave())return;PV='hist';PU=false}if(PG==='m13'&&p!=='m13'&&!m13Leave())return;PG=p;document.body.setAttribute('data-pg',p);if(p!=='dash')chatClose();$('n0').classList.toggle('on',p==='dash');['req','sub','emp','pay','act','usr','bak','chat'].forEach((k,j)=>$('n'+(j+1)).classList.toggle('on',p===k));$('n9').classList.toggle('on',p==='addc');$('n10').classList.toggle('on',p==='m13');{const a=$('n11');if(a)a.classList.toggle('on',p==='tmk')}{const a=$('n12');if(a)a.classList.toggle('on',p==='mg')}{const a=$('n13');if(a)a.classList.toggle('on',p==='ben')}{const a=$('n14');if(a)a.classList.toggle('on',p==='att')}{const a=$('n16');if(a)a.classList.toggle('on',p==='att'&&!!window.ATH)}{const a=$('n15');if(a)a.classList.toggle('on',p==='psm')}if(p==='psm'&&can('pay'))$('n4').classList.add('on');p==='dash'?dash():p==='psm'?psm():p==='att'?att():p==='req'?pick():p==='sub'?subs():p==='emp'?emps():p==='act'?acts():p==='usr'?users():p==='bak'?backups():p==='chat'?chatOpen():p==='tmk'?tmk():p==='mg'?mg():p==='ben'?ben():p==='addc'?(can('addc')?addc():noAcc('Additional Compensation')):p==='m13'?(can('m13')?m13():noAcc('13th Month Pay')):pays();scrollTo(0,0)}
+function go(p){if(p==='chk'||p==='apr')p='sub';if(p==='chat')return chatToggle();if(PG==='att'&&p!=='att'&&window.attUns&&attUns()){attLeave(function(){go(p)});return}if(p!=='dash'&&p!=='chat'&&p!=='addc'&&p!=='m13'&&(p==='bak'?!isAdm():!(can(p)||(p==='sub'&&(rqCan('chk')||rqCan('apr'))))))return toast('You do not have access to this page.');if(PG==='pay'&&p!=='pay'){if(!pLeave())return;PV='hist';PU=false}if(PG==='m13'&&p!=='m13'&&!m13Leave())return;PG=p;document.body.setAttribute('data-pg',p);if(p!=='dash')chatClose();$('n0').classList.toggle('on',p==='dash');['req','sub','emp','pay','act','usr','bak','chat'].forEach((k,j)=>$('n'+(j+1)).classList.toggle('on',p===k));$('n9').classList.toggle('on',p==='addc');$('n10').classList.toggle('on',p==='m13');{const a=$('n17');if(a)a.classList.toggle('on',p==='chk')}{const a=$('n18');if(a)a.classList.toggle('on',p==='apr')}{const a=$('n11');if(a)a.classList.toggle('on',p==='tmk')}{const a=$('n12');if(a)a.classList.toggle('on',p==='mg')}{const a=$('n13');if(a)a.classList.toggle('on',p==='ben')}{const a=$('n14');if(a)a.classList.toggle('on',p==='att')}{const a=$('n16');if(a)a.classList.toggle('on',p==='att'&&!!window.ATH)}{const a=$('n15');if(a)a.classList.toggle('on',p==='psm')}if(p==='psm'&&can('pay'))$('n4').classList.add('on');p==='dash'?dash():p==='psm'?psm():p==='att'?att():p==='req'?pick():p==='sub'?subs():(p==='chk'||p==='apr')?rqQueue():p==='emp'?emps():p==='act'?acts():p==='usr'?users():p==='bak'?backups():p==='chat'?chatOpen():p==='tmk'?tmk():p==='mg'?mg():p==='ben'?ben():p==='addc'?(can('addc')?addc():noAcc('Additional Compensation')):p==='m13'?(can('m13')?m13():noAcc('13th Month Pay')):pays();scrollTo(0,0)}
 /* ===== PAYROLL DEPARTMENTS: manage, add, auto icons ===== */
 let PDS=(()=>{try{const o=JSON.parse(localStorage.getItem('hrd_pay_depts')||'{}');return o&&typeof o==='object'?o:{}}catch(e){return{}}})(),PDI='';
 let PDOK=null,PDSNAP='{}';
@@ -2115,23 +2131,138 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')pdClose()});
 function noAcc(t){$('main').innerHTML=`<section class="cx-wrap"><div class="cx-card noacc"><div class="noacc-ic" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div><h1>No access</h1><p class="sub">You do not have permission to open ${esc(t)}.<br>Ask the admin to give you access to this page.</p></div></section>`}
 const RIC=p=>`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 const REQ_IC={coop:RIC('<path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>'),leave:RIC('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8.5 14.5h3"/>'),trip:RIC('<path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2.5"/>'),vale:RIC('<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5h.01M18 14.5h.01"/>'),coe:RIC('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>')};
-function pick(){$('main').innerHTML=`<section class="req-wrap"><div class="req-head"><div><h1>Request Form</h1><p class="sub">Choose a form to submit for approval.</p></div><div class="req-count"><span>${Object.keys(FM).length}</span><small>Available forms</small></div></div><div class="req-grid">${Object.entries(FM).map(([k,v],i)=>`<button type="button" class="req-card" onclick="openForm('${k}')"><span class="req-icon">${REQ_IC[k]||v[2]}</span><span class="req-cardbody"><b>${v[0]}</b><small>${v[1]}</small></span><span class="req-arrow" aria-hidden="true">↗</span></button>`).join('')}</div></section>`}
+function pick(){pick0();rqNotifDraw()}
+
+// ----- requester side: updates (rejection notes, edits) on my own requests -----
+const rqSeenK=()=>'hrd_rq_seen_'+((ME&&ME.email)||'');
+const rqSeen=()=>{try{return JSON.parse(localStorage.getItem(rqSeenK())||'{}')}catch(e){return{}}};
+async function rqMine(){try{const L=await api('/rest/v1/hrd_requests?select=id,form,requester,status,data,created_at&order=created_at.desc&limit=60',{_quiet:true});if(!Array.isArray(L))return[];const em=(ME&&ME.email)||'';
+ return L.filter(r=>Array.isArray(r.data)&&r.data.some(o=>o&&o.sub&&o.sub.e===em)&&r.form in FM)}catch(e){return[]}}
+const rqStep=r=>{const g=rqStage(r);return r.status==='approved'?['approved','Approved']:r.status==='rejected'?['rejected','Rejected']:RQ_WF(r.form)?(g==='approval'?['pending','Checked · waiting for approval']:['pending','Waiting for the checker']):['pending','Waiting for approval']};
+async function rqNotifDraw(){const L=await rqMine();if(!L.length||PG!=='req')return;const seen=rqSeen();
+ const nw=L.filter(r=>rqMeta(r).length>(seen[r.id]||0));
+ const h=document.querySelector('#main .req-wrap');if(!h)return;document.querySelectorAll('#main .rqp').forEach(x=>x.remove());
+ const dt=x=>{const d=new Date(x);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})};
+ const d=document.createElement('div');d.className='rqp';
+ d.innerHTML='<h3>My requests · History'+(nw.length?'<span class="new">'+nw.length+' new</span>':'')+'</h3><p class="sub" style="margin:0 0 6px;font-size:13px">Every request you submitted stays here. You will be notified when it is checked, approved or rejected.</p><div style="max-height:480px;overflow:auto">'+L.map(r=>{const st=rqStep(r),m=rqMeta(r),isN=m.length>(seen[r.id]||0);
+  return '<div style="margin:10px 0;padding-bottom:8px;border-bottom:1px solid var(--ln)"><b>'+esc(FM[r.form][0])+'</b> · '+esc(r.requester)+' <span class="rvst '+st[0]+'">'+st[1]+'</span>'+(isN?'<span class="new">NEW</span>':'')+'<div style="font-size:12px;color:var(--mu)">Submitted '+dt(r.created_at)+'</div>'+m.slice().reverse().map(rqFmt).join('')+'</div>'}).join('')+'</div>'+(nw.length?'<button class="btn o sm" id="rqread" style="margin-top:8px">Mark as read</button>':'');
+ h.insertAdjacentElement('afterend',d);const b=d.querySelector('#rqread');if(b)b.onclick=()=>{const o=rqSeen();L.forEach(r=>o[r.id]=rqMeta(r).length);try{localStorage.setItem(rqSeenK(),JSON.stringify(o))}catch(e){}rqBadgeMine(0);document.querySelectorAll('#main .rqp .new').forEach(x=>x.remove());b.remove()}}
+function rqBadgeMine(n){const e=$('brq');if(e)e.textContent=n||''}
+let rqToastSig='';
+async function rqNotifPoll(){const L=await rqMine(),seen=rqSeen(),msgs=[];
+ L.forEach(r=>{const f=FM[r.form][0];rqMeta(r).slice(seen[r.id]||0).forEach(x=>{
+  if(x.rv){const by=x.rv.by||'the approver';msgs.push(x.rv.s==='checked'?'✔ Your '+f+' request was CHECKED by '+by+' and sent to approval':x.rv.s==='approved'?'✅ Your '+f+' request was APPROVED by '+by:'❌ Your '+f+' request was REJECTED by '+by+(x.rv.note?' — '+x.rv.note:''))}
+  else if(x.ed)msgs.push('✏ Your '+f+' request details were edited by '+(x.ed.by||'HR'))})});
+ rqBadgeMine(L.filter(r=>rqMeta(r).length>(seen[r.id]||0)).length);
+ const sig=msgs.join('|');if(sig===rqToastSig)return;rqToastSig=sig;
+ if(msgs.length){toast(msgs.length>1?'🔔 '+msgs.length+' updates on your requests. Open Request Form to read them.':msgs[0]);clearTimeout(toast.t);toast.t=setTimeout(()=>{$('toast').style.display='none'},8000);try{ping()}catch(e){}}
+ if(PG==='req')rqNotifDraw()}
+function pick0(){$('main').innerHTML=`<section class="req-wrap"><div class="req-head"><div><h1>Request Form</h1><p class="sub">Choose a form to submit for approval.</p></div><div class="req-count"><span>${Object.keys(FM).length}</span><small>Available forms</small></div></div><div class="req-grid">${Object.entries(FM).map(([k,v],i)=>`<button type="button" class="req-card" onclick="openForm('${k}')"><span class="req-icon">${REQ_IC[k]||v[2]}</span><span class="req-cardbody"><b>${v[0]}</b><small>${v[1]}</small></span><span class="req-arrow" aria-hidden="true">↗</span></button>`).join('')}</div></section>`}
+
+// ===== Searchable employee-name dropdown (201 Files names) =====
+let NML=null;
+async function nmLoad(){
+ let L=(typeof EALL!=='undefined'&&EALL&&EALL.length)?EALL:(typeof E!=='undefined'&&E&&E.length?E:null);
+ if(!L){try{L=await apiAll('/rest/v1/hrd_employees?select=name,dept&order=name',{_quiet:true})}catch(e){L=null}}
+ if(!Array.isArray(L))return NML=NML||[];
+ try{if(typeof eVis==='function')L=eVis(L)}catch(e){}
+ const seen=new Set();NML=L.filter(x=>x&&x.name).map(x=>({n:String(x.name).trim(),d:x.dept||''})).filter(x=>{const k=x.n.toLowerCase();if(!x.n||seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>a.n.localeCompare(b.n));
+ return NML}
+function nmIsName(i){
+ const td=i.closest('td');if(td&&td.previousElementSibling&&/name\s+of\s+employee/i.test(td.previousElementSibling.textContent))return true;
+ let n=i.previousSibling,t='';
+ while(n&&t.length<40){if(n.nodeType===1&&/^(BR|INPUT|DIV|TABLE|P)$/.test(n.tagName))break;t=(n.textContent||'')+t;n=n.previousSibling}
+ return /(^|\s)name\s*:\s*$/i.test(t.replace(/\u00a0/g,' '))}
+function nmDepts(){let D=new Set((NML||[]).map(x=>x.d).filter(Boolean));try{if(typeof pFolders==='function')pFolders().forEach(f=>f&&D.add(f))}catch(e){}return [...D].sort((a,b)=>a.localeCompare(b)).map(d=>({n:d,d:''}))}
+function nmIsDept(i){let n=i.previousSibling,t='';while(n&&t.length<40){if(n.nodeType===1&&/^(BR|INPUT|DIV|TABLE|P)$/.test(n.tagName))break;t=(n.textContent||'')+t;n=n.previousSibling}
+ return /(department|dept)\s*:\s*$/i.test(t.replace(/\u00a0/g,' '))}
+// Auto-fit: widen the line (then shrink the font if needed) so the whole text shows
+const nmCv=document.createElement('canvas').getContext('2d');
+function nmFit(i){
+ if(!i||i.type!=='text')return;const cs=getComputedStyle(i);
+ if(i._w0==null){i._w0=i.getBoundingClientRect().width;i._f0=parseFloat(cs.fontSize)||13}
+ const v=i.value;let fs=i._f0;i.style.fontSize='';i.style.width='';i.style.maxWidth='none';
+ if(!v){i.style.maxWidth='';return}
+ const tw=f=>{nmCv.font=(cs.fontStyle||'normal')+' '+(cs.fontWeight||400)+' '+f+'px '+cs.fontFamily;return nmCv.measureText(v).width+14};
+ const par=i.parentElement.getBoundingClientRect(),r=i.getBoundingClientRect();
+ const avail=Math.max(i._w0,par.right-r.left-6);
+ let w=tw(fs);
+ if(w<=i._w0){i.style.maxWidth='';return}
+ while(w>avail&&fs>8){fs-=.5;w=tw(fs)}
+ i.style.width=Math.min(Math.max(w,i._w0),avail)+'px';if(fs!==i._f0)i.style.fontSize=fs+'px'}
+function nmAttach(inp,kind){
+ if(!inp||inp._nm)return;inp._nm=1;inp._k=kind||'n';inp.setAttribute('autocomplete','off');
+ let box=document.createElement('div');box.className='nmdd no-print';document.body.appendChild(box);let idx=-1,items=[];
+ const place=()=>{const r=inp.getBoundingClientRect();box.style.left=r.left+'px';box.style.top=(r.bottom+2)+'px';box.style.minWidth=Math.max(r.width,260)+'px'};
+ const hide=()=>{box.style.display='none';idx=-1};
+ const pick=x=>{if(!x)return;inp._skip=1;inp.value=x.n;hide();inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}));nmFit(inp);inp._skip=0;hide();
+  if(inp._k==='d')return;const nm=$('nm');if(nm&&nm!==inp&&!nm.value.trim())nm.value=x.n;
+  document.querySelectorAll('#paper input').forEach(p=>{if(p._nm&&p!==inp&&p._k==='n'&&!p.value.trim()){p.value=x.n;nmFit(p)}});
+  if(x.d)document.querySelectorAll('#paper input').forEach(p=>{if(p._k==='d'&&!p.value.trim()){p.value=x.d;nmFit(p)}})};
+ const draw=async()=>{if(!NML)await nmLoad();const q=inp.value.trim().toLowerCase().split(/[\s,]+/).filter(Boolean);
+  const SRC=inp._k==='d'?nmDepts():NML;items=SRC.filter(x=>{const h=(x.n+' '+x.d).toLowerCase();return q.every(w=>h.indexOf(w)>=0)}).slice(0,60);idx=items.length?0:-1;
+  box.innerHTML=items.length?items.map((x,k)=>`<div data-k="${k}" class="${k===0?'on':''}"><span>${esc(x.n)}</span><small>${esc(x.d)}</small></div>`).join(''):'<em>'+(SRC.length?(inp._k==='d'?'No matching department — you can type it':'No matching employee'):'No employee list available — you can type it')+'</em>';
+  place();box.style.display='block'};
+ const mark=()=>[...box.children].forEach((c,k)=>{c.classList.toggle('on',k===idx);if(k===idx)c.scrollIntoView({block:'nearest'})});
+ inp.addEventListener('focus',()=>{if(!inp._skip)draw()});inp.addEventListener('input',()=>{if(inp._skip)return;draw();nmFit(inp)});inp.addEventListener('change',()=>nmFit(inp));
+ inp.addEventListener('keydown',e=>{if(box.style.display!=='block')return;
+  if(e.key==='ArrowDown'){e.preventDefault();idx=Math.min(items.length-1,idx+1);mark()}
+  else if(e.key==='ArrowUp'){e.preventDefault();idx=Math.max(0,idx-1);mark()}
+  else if(e.key==='Enter'&&idx>=0&&items[idx]){e.preventDefault();pick(items[idx])}
+  else if(e.key==='Escape'||e.key==='Tab')hide()});
+ let lastT=0;const onDown=e=>{e.stopPropagation();const d=e.target.closest('[data-k]');e.preventDefault();if(!d)return;if(Date.now()-lastT<400)return;lastT=Date.now();pick(items[+d.dataset.k])};
+ ['pointerdown','mousedown','touchstart'].forEach(t=>box.addEventListener(t,onDown,{passive:false}));box.addEventListener('click',e=>{e.stopPropagation();e.preventDefault()});
+ inp.addEventListener('blur',()=>setTimeout(hide,200));
+ addEventListener('scroll',()=>{if(box.style.display==='block')place()},true);addEventListener('resize',hide);
+ new MutationObserver(()=>{if(!document.body.contains(inp)){box.remove()}}).observe($('main'),{childList:true});
+}
+function nmIsSig(i){const td=i.closest('td');if(td&&td.previousElementSibling&&/employee\s*sig/i.test(td.previousElementSibling.textContent))return true;
+ let n=i.nextSibling,pre='';while(n&&!(n.nodeType===1&&/^(BR|INPUT)$/.test(n.tagName))){pre+=(n.textContent||'');n=n.nextSibling}
+ if(pre.replace(/\u00a0/g,' ').trim()||!n||n.tagName!=='BR')return false;
+ let t='';n=n.nextSibling;while(n&&!(n.nodeType===1&&/^(BR|INPUT)$/.test(n.tagName))){t+=(n.textContent||'');n=n.nextSibling}
+ return /requesting\s+employee|employee'?s\s+signature/i.test(t)}
+const nmPaper=()=>[...document.querySelectorAll('#paper input.in')].find(i=>i._k==='n');
+// ----- COOP: Int. Rate is automatic from the weeks (loans below 30,000); HR sets it for 30,000 and up -----
+const COOP_HR_MIN=30000;
+function coopRate(w){return w>=24?20:w>=15?15:w>=8?10:w>=1?5:0}
+function coopEls(){const g=n=>[...document.querySelectorAll('#paper input')].find(i=>new RegExp('^'+n,'i').test(rqLabel(i)));return{A:g('Loan Amount'),W:g('Payable in'),T:g('Int\\. Rate'),N:g('Interest')}}
+function coopComma(el){const v=el.value,pos=el.selectionStart==null?v.length:el.selectionStart,keep=(v.slice(0,pos).match(/[0-9.]/g)||[]).length;
+ let t=v.replace(/[^0-9.]/g,'');const k=t.indexOf('.');if(k>=0)t=t.slice(0,k+1)+t.slice(k+1).replace(/\./g,'').slice(0,2);
+ const parts=t.split('.');parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');const o=parts.join('.');
+ if(o===v)return;el.value=o;let c=0,np=0;while(np<o.length&&c<keep){if(/[0-9.]/.test(o[np]))c++;np++}try{el.setSelectionRange(np,np)}catch(e){}}
+const coopMoney=n=>n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2});
+function coopRed(){const{A,W,T,N}=coopEls();[A,W,T,N].forEach(e=>{if(e){e.style.color='#d00000';e.style.fontWeight='600'}})}
+// mode: undefined = requester form (rate locked), 'edit' = approver/HR editing (rate editable)
+function coopInit(mode){const{A,W,T,N}=coopEls();if(!A||!W||!T||!N)return;const edit=mode==='edit';
+ W.inputMode='numeric';N.readOnly=true;N.title='Loan Amount x Int. Rate';coopRed();
+ const interest=()=>{const a=parseFloat(String(A.value).replace(/[^0-9.]/g,''))||0,r=parseFloat(String(T.value).replace(/[^0-9.]/g,''))||0;N.value=(a&&r)?coopMoney(a*r/100):'';if(typeof nmFit==='function')nmFit(N)};
+ const rate=()=>{const a=parseFloat(String(A.value).replace(/[^0-9.]/g,''))||0,w=parseInt(W.value,10)||0;
+  if(a>=COOP_HR_MIN){if(!edit){T.value='';T.readOnly=true;T.placeholder='HR sets';T.title='Loans of 30,000 and up: HR staff sets the interest rate'}}
+  else{if(!edit)T.readOnly=true;T.placeholder='auto';T.title='Automatic: 1-7 wks 5%, 8-14 wks 10%, 15-23 wks 15%, 24 wks 20%';const r=coopRate(w);T.value=r?r+'%':''}
+  if(typeof nmFit==='function')nmFit(T);interest()};
+ A.addEventListener('input',()=>{coopComma(A);rate()});W.addEventListener('input',rate);T.addEventListener('input',interest);
+ if(edit)interest();else rate()}
+function nmInit(){document.querySelectorAll('.nmdd').forEach(b=>b.remove());document.querySelectorAll('#paper input.in').forEach(i=>{if(nmIsName(i))nmAttach(i,'n');else if(nmIsDept(i))nmAttach(i,'d')});
+ document.querySelectorAll('#paper input.in').forEach(i=>{if(!i._nm)i.addEventListener('input',()=>nmFit(i))});
+const pn0=nmPaper();if(pn0){const sg=[...document.querySelectorAll('#paper input.in')].filter(i=>i!==pn0&&nmIsSig(i));
+  const sync=()=>sg.forEach(i=>{i.value=pn0.value;nmFit(i)});['input','change'].forEach(e=>pn0.addEventListener(e,sync))}
+ const pn=nmPaper();if(pn){const l=$('nm').closest('label');if(l)l.style.display='none';const pr=$('nm').closest('.pr');if(pr)pr.style.gridTemplateColumns='1fr'}else nmAttach($('nm'),'n');nmLoad()}
 function openForm(k){cur=k;$('main').innerHTML=`<div class="bar no-print"><button class="btn o" onclick="go('req')">← Back</button><h2>${FM[k][0]}</h2><span style="flex:1"></span><button class="btn o" onclick="window.print()">🖨 Print</button></div>
 <div id="paper" class="paper">${F[k]}</div>
-<div class="panel no-print"><h3>Submit for Approval</h3><div class="pr"><label>Employee Name *<input id="nm" class="fi" placeholder="Full name"></label>
+<div class="panel no-print"><h3>Submit for Approval</h3><div class="pr"><label>Employee Name *<input id="nm" class="fi" placeholder="Search or type full name" autocomplete="off"></label>
 ${k==='leave'?`<label>Leave type *<select id="lvt" class="fi"><option value="vacation">Vacation Leave</option><option value="sick">Sick Leave</option></select></label><label>From *<input id="lvf" type="date" class="fi" onchange="lvCalc()"></label><label>To *<input id="lvto" type="date" class="fi" onchange="lvCalc()"></label><label>No. of days * <small>(auto; type 0.5 for half-day)</small><input id="lvd" type="number" step="0.5" min="0.5" class="fi"></label>`:''}
 <label>Attachment * <small>(Photo: maximum 100 KB after automatic compression. PDF / Word: maximum 10 MB.)</small><input id="fl" type="file" class="fi" accept=".pdf,image/*,.doc,.docx"></label></div>
-<button id="sb" class="btn" onclick="submit()">Submit Request</button></div>`;scrollTo(0,0)}
+<button id="sb" class="btn" onclick="submit()">Submit Request</button></div>`;nmInit();if(k==='coop')coopInit();scrollTo(0,0)}
 async function submit(){
- const n=$('nm').value.trim();let f=$('fl').files[0];
- if(!n)return toast('Enter the employee name.');
+ const pn=nmPaper(),n=(pn?pn.value:$('nm').value).trim();let f=$('fl').files[0];
+ if(!n)return toast(pn?'Fill in the Name on the form.':'Enter the employee name.');
  if(!f)return toast('Attachment is required.');
  let LV=null;if(cur==='leave'){LV={t:$('lvt').value,f:$('lvf').value,to:$('lvto').value,d:parseFloat($('lvd').value)};
   if(!LV.f||!LV.to||!(LV.d>0))return toast('Fill in the leave dates and number of days.');if(LV.to<LV.f)return toast('The "To" date is earlier than "From".')}
  if(f.type&&f.type.startsWith('image/')){try{f=await compressImageTo100KB(f)}catch(e){alert(e.message);return}}
  if(f.size>10485760)return toast('File is too large (max 10MB).');
  if(!confirm('Are you sure you want to submit this request?'))return;
- const row={form:cur,requester:n,data:LV?vals().concat([{lv:LV}]):vals()};
+ const row={form:cur,requester:n,data:(LV?vals().concat([{lv:LV}]):vals()).concat([{sub:{e:(ME&&ME.email)||''}}])};
  if(STORE_MODE()==='local'){queueSubmit(row,f);refreshFullUI();toast('Saved in this browser for now (pending sync). Please also save a copy to your computer.');go('req');return}
  $('sb').disabled=true;$('sb').textContent='Sinusubmit…';
  const path=ME.sub+'/'+Date.now()+'_'+f.name.replace(/[^\w.-]/g,'_');let up=null;
@@ -2354,29 +2485,31 @@ async function bkRestore(){if(!isAdm()||!BKF)return;
  alert((res.length?'Restored:\n'+res.join('\n'):'')+(fail.length?'\n\nNot restored:\n'+fail.join('\n'):''));toast(fail.length?'Some items were not restored':'Restore done ✔');backups()}
 // ===== ADMIN: SUBMITTED REQUESTS =====
 async function subs(){
- if(RL&&Array.isArray(R)){if(pendF){fld=pendF;flt='pending';pendF=null}drawSubs();api('/rest/v1/hrd_requests?order=created_at.desc&select=*').then(r=>{if(Array.isArray(r)&&JSON.stringify(r)!==JSON.stringify(R)){R=r;if(PG==='sub'&&!typing())drawSubs()}}).catch(()=>{});return}
+ if(RL&&Array.isArray(R)){if(pendF){fld=pendF;flt=rqDefFlt(pendF);pendF=null}drawSubs();api('/rest/v1/hrd_requests?order=created_at.desc&select=*').then(r=>{if(Array.isArray(r)&&JSON.stringify(r)!==JSON.stringify(R)){R=r;if(PG==='sub'&&!typing())drawSubs()}}).catch(()=>{});return}
  $('main').innerHTML='<h1>Submitted Requests</h1><p class="sub">Loading…</p>';
- try{R=await api('/rest/v1/hrd_requests?order=created_at.desc&select=*');fld=null;RL=true;if(pendF){fld=pendF;flt='pending';pendF=null}}catch(e){return $('main').innerHTML='<h1>Submitted Requests</h1><p class="empty">'+esc(e.message)+'</p>'}
+ try{R=await api('/rest/v1/hrd_requests?order=created_at.desc&select=*');fld=null;RL=true;if(pendF){fld=pendF;flt=rqDefFlt(pendF);pendF=null}}catch(e){return $('main').innerHTML='<h1>Submitted Requests</h1><p class="empty">'+esc(e.message)+'</p>'}
  drawSubs()}
 let fld=null,srt='new',q='';
-function openFld(k){fld=k;q='';flt=R.some(r=>r.form===k&&r.status==='pending')?'pending':'all';drawSubs()}
+function openFld(k){fld=k;q='';flt=rqDefFlt(k);drawSubs()}
 function drawSubs(){
+ if(PG==='chk'||PG==='apr')return rqQueueDraw();
  $('bd').textContent=R.filter(r=>r.status==='pending').length||'';b0();
  if(!fld){
   const PN=R.filter(r=>r.status==='pending').length,IC='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
-  $('main').innerHTML=`<div class="sfh"><div><h1>Submitted Requests</h1><p class="sub">Choose a form folder to view its requests.</p></div><div class="sfs"><span><b>${R.filter(r=>r.form!=='leavecr').length}</b>Total</span><span class="${PN?'hot':''}"><b>${PN}</b>Pending</span></div></div><div class="sfg">${Object.entries(FM).map(([k,v])=>{const a=R.filter(r=>r.form===k),p=a.filter(r=>r.status==='pending').length;return `<div class="fcard" tabindex="0" role="button" onclick="openFld('${k}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFld('${k}')}"><div class="ftop"><div class="fi2">${REQ_IC[k]||IC}</div><div class="fn"><b>${a.length}</b><span>request${a.length===1?'':'s'}</span></div></div><div class="fbd"><b>${v[0]}</b><small>${v[1]}</small></div><div class="fft">${p?`<em class="pn">${p} pending</em>`:`<span class="fnone">${a.length?'Nothing pending':'No requests yet'}</span>`}<span class="fgo" aria-hidden="true">Open folder &rarr;</span></div></div>`}).join('')}</div>`;return}
+  $('main').innerHTML=`<div class="sfh"><div><h1>Submitted Requests</h1><p class="sub">Choose a form folder to view its requests.</p></div><div class="sfs"><span><b>${R.filter(r=>r.form!=='leavecr').length}</b>Total</span><span class="${PN?'hot':''}"><b>${PN}</b>Pending</span></div></div><div class="sfg">${Object.entries(FM).map(([k,v])=>{const a=R.filter(r=>r.form===k),p=a.filter(r=>r.status==='pending').length,wf=RQ_WF(k),pc=wf?a.filter(r=>r.status==='pending'&&rqStage(r)==='check').length:0,pa=wf?a.filter(r=>r.status==='pending'&&rqStage(r)==='approval').length:0;return `<div class="fcard" tabindex="0" role="button" onclick="openFld('${k}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFld('${k}')}"><div class="ftop"><div class="fi2">${REQ_IC[k]||IC}</div><div class="fn"><b>${a.length}</b><span>request${a.length===1?'':'s'}</span></div></div><div class="fbd"><b>${v[0]}</b><small>${v[1]}</small></div><div class="fft">${p?(wf?`<em class="pn">${pc?pc+' for checking':''}${pc&&pa?' · ':''}${pa?pa+' for approval':''}</em>`:`<em class="pn">${p} pending</em>`):`<span class="fnone">${a.length?'Nothing pending':'No requests yet'}</span>`}<span class="fgo" aria-hidden="true">Open folder &rarr;</span></div></div>`}).join('')}</div>`;return}
  const all=R.map((r,i)=>[r,i]).filter(([r])=>r.form===fld);
- const cnt=s=>all.filter(([r])=>s==='all'||r.status===s).length;
- const L=all.filter(([r])=>(flt==='all'||r.status===flt)&&r.requester.toLowerCase().includes(q.toLowerCase()));
+ if(RQ_WF(fld)&&!['check','approval','hist'].includes(flt))flt=rqDefFlt(fld);if(!RQ_WF(fld)&&(flt==='check'||flt==='approval'))flt='pending';
+ const cnt=s=>all.filter(([r])=>fltOk(r,s)).length;
+ const L=all.filter(([r])=>fltOk(r,flt)&&r.requester.toLowerCase().includes(q.toLowerCase()));
  L.sort({new:(a,b)=>b[0].created_at.localeCompare(a[0].created_at),old:(a,b)=>a[0].created_at.localeCompare(b[0].created_at),name:(a,b)=>a[0].requester.localeCompare(b[0].requester)||b[0].created_at.localeCompare(a[0].created_at)}[srt]);
  const FIC='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',SIC='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
  const ini=n=>(n||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(),dt=x=>{const d=new Date(x);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})};
  $('main').innerHTML=`<div class="rvh"><button class="rvb" onclick="fld=null;drawSubs()">← Folders</button><div class="rvi"><div class="fi2 sm">${FIC}</div><div><h2>${esc(FM[fld][0])}</h2><small>${esc(FM[fld][1])}</small></div></div>${fld==='leave'?'<button class="btn o sm" style="margin-left:auto" onclick="lvBal()">🏖 Leave Balances</button>':''}</div>
-<div class="rvbar"><div class="rvtabs" role="tablist">${['pending','approved','rejected','all'].map(s=>`<button class="${flt===s?'on':''}" role="tab" aria-selected="${flt===s}" onclick="flt='${s}';drawSubs()">${s[0].toUpperCase()+s.slice(1)}<i>${cnt(s)}</i></button>`).join('')}</div>
+<div class="rvbar"><div class="rvtabs" role="tablist">${(RQ_WF(fld)?['check','approval','hist']:['pending','approved','rejected','all']).map(s=>`<button class="${flt===s?'on':''}" role="tab" aria-selected="${flt===s}" onclick="flt='${s}';drawSubs()">${({check:'Check by',approval:'Approved by',hist:'History'})[s]||s[0].toUpperCase()+s.slice(1)}<i>${cnt(s)}</i></button>`).join('')}</div>
 <div class="rvtools"><label class="rvs">${SIC}<input id="q" placeholder="Search name" value="${esc(q)}" oninput="q=this.value;drawSubs();const e=$('q');e.focus();e.setSelectionRange(q.length,q.length)"></label>
 <select class="rvsel" aria-label="Sort" onchange="srt=this.value;drawSubs()">${[['new','Newest first'],['old','Oldest first'],['name','Name: A–Z']].map(([v,t])=>`<option value="${v}"${srt===v?' selected':''}>${t}</option>`).join('')}</select></div></div>
-<section class="rvl">${L.map(([r,i])=>`<div class="rvr ${r.status}"><div class="rva">${esc(ini(r.requester))}</div><div class="rvn"><b>${esc(r.requester)}</b><small>${dt(r.created_at)}${r.form==='leave'&&lvMeta(r)?' · '+(lvMeta(r).t==='sick'?'Sick':'Vacation')+' · '+lvMeta(r).d+' day(s) · '+esc(lvMeta(r).f)+' → '+esc(lvMeta(r).to||''):''}</small></div><span class="rvst ${r.status}">${r.status}</span>
-<div class="rvac"><button class="rvx" onclick="viewReq(${i})">View</button><button class="rvx" onclick="getFile(${i})">📎 File</button>${r.status!=='approved'?`<button class="rvx ok" onclick="setSt(${i},'approved')">Approve</button>`:''}${r.status!=='rejected'?`<button class="rvx no" onclick="setSt(${i},'rejected')">Reject</button>`:''}<button class="rvx dl" onclick="delReq(${i})">Delete</button></div></div>`).join('')||`<div class="rve"><div class="fi2">${FIC}</div><b>No ${flt==='all'?'':flt+' '}requests here</b><small>${q?'Try a different name.':'Submitted requests for this form will appear here.'}</small></div>`}</section>`}
+<section class="rvl">${L.map(([r,i])=>`<div class="rvr ${r.status}"><div class="rva">${esc(ini(r.requester))}</div><div class="rvn"><b>${esc(r.requester)}</b><small>${dt(r.created_at)}${r.form==='leave'&&lvMeta(r)?' · '+(lvMeta(r).t==='sick'?'Sick':'Vacation')+' · '+lvMeta(r).d+' day(s) · '+esc(lvMeta(r).f)+' → '+esc(lvMeta(r).to||''):''}</small></div>${rqStLbl(r)}${(()=>{const m=rqMeta(r),rj=m.filter(x=>x.rv&&x.rv.s==='rejected').pop(),ed=m.filter(x=>x.ed).pop(),ck=m.filter(x=>x.rv&&x.rv.s==='checked').pop();return (ck&&RQ_WF(r.form)?`<div class="rqs">✔ Checked by ${esc(ck.rv.by||'')}${ck.rv.note?' · Note: '+esc(ck.rv.note):''}</div>`:'')+(rj&&r.status==='rejected'&&rj.rv.note?`<div class="rqs no">Reason: ${esc(rj.rv.note)}</div>`:'')+(ed?`<div class="rqs">✏ Edited by ${esc(ed.ed.by||'')}</div>`:'')})()}
+<div class="rvac"><button class="rvx" onclick="viewReq(${i})">View</button><button class="rvx" onclick="getFile(${i})">📎 File</button>${rqBtns(r,i)}<button class="rvx dl" onclick="delReq(${i})">Delete</button></div></div>`).join('')||`<div class="rve"><div class="fi2">${FIC}</div><b>No ${flt==='all'?'':(({check:'to check ',approval:'waiting for approval ',hist:'finished '})[flt]||flt+' ')}requests here</b><small>${q?'Try a different name.':'Submitted requests for this form will appear here.'}</small></div>`}</section>`}
 /* ===== LEAVE REQUEST + LEAVE CREDITS (approved leave is deducted from the employee's credits) ===== */
 let LVY=new Date().getFullYear();const LVD={v:5,s:5};
 const lvK=n=>String(n||'').trim().toLowerCase().replace(/\s+/g,' ');
@@ -2406,11 +2539,84 @@ function lvBal(){const N={};R.forEach(r=>{if(r.form==='leave'||(r.form==='leavec
  $('main').innerHTML=`<div class="bar no-print"><button class="btn o" onclick="drawSubs()">← Back</button><h2>Leave Balances</h2><span style="flex:1"></span><button class="btn o sm" onclick="lvYr(-1)">◀</button><b style="margin:0 10px">${LVY}</b><button class="btn o sm" onclick="lvYr(1)">▶</button>${ad?'<button class="btn sm" style="margin-left:10px" onclick="lvAdd()">+ Set credits</button>':''}</div>
 <p class="sub">Default credits: ${LVD.v} vacation + ${LVD.s} sick day(s) per year. Only <b>approved</b> leave is deducted.</p>
 <div style="overflow-x:auto"><table class="ps" style="width:100%;border-collapse:collapse;background:var(--sf)"><thead><tr><th rowspan="2" style="text-align:left">Employee</th><th colspan="3">Vacation</th><th colspan="3">Sick</th>${ad?'<th rowspan="2"></th>':''}</tr><tr><th>Credit</th><th>Used</th><th>Remaining</th><th>Credit</th><th>Used</th><th>Remaining</th></tr></thead><tbody>${rows||`<tr><td colspan="8" style="padding:18px;text-align:center">No leave records yet.</td></tr>`}</tbody></table></div>`;scrollTo(0,0)}
-function viewReq(i){const r=R[i];cur=r.form;$('main').innerHTML=`<div class="bar no-print"><button class="btn o" onclick="drawSubs()">← Back</button><h2>${esc(r.requester)} · ${esc(FM[r.form][0])}</h2><span class="st ${r.status}">${r.status}</span><span style="flex:1"></span><button class="btn o" onclick="getFile(${i})">📎 Attachment</button><button class="btn" onclick="window.print()">🖨 Print</button></div><div id="paper" class="paper">${F[r.form]}</div>`;fill(r.data,true);scrollTo(0,0)}
+// ----- Checker / Approval sections (COOP and Vale queues) -----
+function rqBadge(){const n=st=>R.filter(r=>RQ_WF(r.form)&&r.status==='pending'&&rqStage(r)===st).length;
+ [['b17','check'],['b18','approval']].forEach(([id,st])=>{const e=$(id);if(e)e.textContent=n(st)||''})}
+async function rqQueue(){
+ if(!(RL&&Array.isArray(R))){$('main').innerHTML='<h1>'+(PG==='chk'?'Checker':'Approval')+'</h1><p class="sub">Loading…</p>';
+  try{R=await api('/rest/v1/hrd_requests?order=created_at.desc&select=*');RL=true}catch(e){return $('main').innerHTML='<h1>'+(PG==='chk'?'Checker':'Approval')+'</h1><p class="empty">'+esc(e.message)+'<br>This section also needs the "Submitted Requests" permission.</p>'}}
+ rqQueueDraw();
+ api('/rest/v1/hrd_requests?order=created_at.desc&select=*').then(r=>{if(Array.isArray(r)&&JSON.stringify(r)!==JSON.stringify(R)){R=r;if((PG==='chk'||PG==='apr')&&!typing())rqQueueDraw()}}).catch(()=>{})}
+function rqQueueDraw(){const chk=PG==='chk',st=chk?'check':'approval';b0();
+ const L=R.map((r,i)=>[r,i]).filter(([r])=>RQ_WF(r.form)&&r.status==='pending'&&rqStage(r)===st).sort((a,b)=>a[0].created_at.localeCompare(b[0].created_at));
+ const ini=n=>(n||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(),dt=x=>{const d=new Date(x);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})};
+ const done=R.filter(r=>RQ_WF(r.form)&&r.status!=='pending'&&rqMeta(r).some(m=>m.rv&&(chk?m.rv.s==='checked':m.rv.s==='approved'||m.rv.s==='rejected')&&m.rv.by===rqWho())).length;
+ $('main').innerHTML=`<div class="sfh"><div><h1>${chk?'Checker':'Approval'}</h1><p class="sub">${chk?'COOP and Vale requests waiting to be checked. After you check one, it goes to the approver.':'COOP and Vale requests that were checked and are waiting for your final approval.'}</p></div><div class="sfs"><span class="${L.length?'hot':''}"><b>${L.length}</b>Waiting</span></div></div>
+<section class="rvl">${L.map(([r,i])=>{const ck=rqMeta(r).filter(m=>m.rv&&m.rv.s==='checked').pop(),ed=rqMeta(r).filter(m=>m.ed).pop();
+ return `<div class="rvr pending"><div class="rva">${esc(ini(r.requester))}</div><div class="rvn"><b>${esc(r.requester)}</b><small>${esc(FM[r.form][0])} · submitted ${dt(r.created_at)}</small></div>${rqStLbl(r)}
+ ${!chk&&ck?`<div class="rqs">✔ Checked by ${esc(ck.rv.by||'')}${ck.rv.note?' · Note: '+esc(ck.rv.note):''}</div>`:''}${ed?`<div class="rqs">✏ Edited by ${esc(ed.ed.by||'')}</div>`:''}
+ <div class="rvac"><button class="rvx" onclick="viewReq(${i})">View</button><button class="rvx" onclick="getFile(${i})">📎 File</button>${rqBtns(r,i)}</div></div>`}).join('')||`<div class="rve"><b>${chk?'Nothing to check':'Nothing waiting for approval'}</b><small>${chk?'New COOP and Vale requests will appear here.':'Requests checked by the checker will appear here.'}</small></div>`}</section>`}
+function viewReq(i){const r=R[i];cur=r.form;$('main').innerHTML=`<div class="bar no-print"><button class="btn o" onclick="PG==='sub'?drawSubs():go(PG)">← Back</button><h2>${esc(r.requester)} · ${esc(FM[r.form][0])}</h2><span class="st ${r.status}">${r.status}</span><span style="flex:1"></span><button class="btn o" onclick="getFile(${i})">📎 Attachment</button>${r.form!=='leavecr'?`<button class="btn o" onclick="rqEditStart(${i})">✏ Edit details</button>`:''}<button class="btn" onclick="window.print()">🖨 Print</button></div>${rqFlow(r,i)}<div id="rqbar" class="no-print" style="margin:0 0 10px"></div><div id="paper" class="paper">${F[r.form]}</div>${rqMeta(r).length?`<div class="no-print rqh"><h3>Review history</h3>${rqMeta(r).slice().reverse().map(rqFmt).join('')}</div>`:''}`;fill(r.data,true);if(r.form==='coop')coopRed();scrollTo(0,0)}
 async function getFile(i){const w=window.open('','_blank');
  try{const j=await api('/storage/v1/object/sign/attachments/'+R[i].file_path,{method:'POST',body:JSON.stringify({expiresIn:600})});w.location=SB_URL+'/storage/v1'+j.signedURL}
  catch(e){w.close();alert('Could not open the file: '+e.message)}}
-async function setSt(i,s){if(!confirm('Are you sure you want to '+s+' the request of '+R[i].requester+'?'))return;try{if(R[i].form==='leave'&&s==='approved'&&!(await lvPre(i)))return;await api('/rest/v1/hrd_requests?id=eq.'+R[i].id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({status:s})});R[i].status=s;logAct(s==='approved'?'Approved request':'Rejected request',FM[R[i].form][0],R[i].requester);toast('Naging '+s+(R[i].form==='leave'&&s==='approved'?lvRem(i):''));drawSubs()}catch(e){alert(e.message)}}
+const rqWho=()=>((typeof MYA!=='undefined'&&MYA&&MYA.full_name)||(ME&&ME.email)||'Approver');
+const rqMeta=r=>(Array.isArray(r.data)?r.data:[]).filter(o=>o&&typeof o==='object'&&(o.rv||o.ed));
+// ----- COOP / Vale: Requester -> Checker -> Approver -----
+const RQ_WF=f=>f==='coop'||f==='vale';
+const fltOk=(r,s)=>s==='all'||(s==='hist'?r.status==='approved'||r.status==='rejected':s==='check'||s==='approval'?r.status==='pending'&&rqStage(r)===s:r.status===s);
+function rqDefFlt(k){
+ if(!RQ_WF(k))return R.some(r=>r.form===k&&r.status==='pending')?'pending':'all';
+ const c=R.filter(r=>r.form===k&&r.status==='pending'),n={check:c.filter(r=>rqStage(r)==='check').length,approval:c.filter(r=>rqStage(r)==='approval').length},mc=rqCan('chk',k),ma=rqCan('apr',k);
+ const o=(ma&&!mc)?['approval','check']:['check','approval'];return o.find(x=>n[x])||'hist'}
+function rqFlow(r,i){
+ if(!RQ_WF(r.form))return '';
+ const m=rqMeta(r),ck=m.filter(x=>x.rv&&x.rv.s==='checked').pop(),rj=m.filter(x=>x.rv&&x.rv.s==='rejected').pop(),ap=m.filter(x=>x.rv&&x.rv.s==='approved').pop(),g=rqStage(r);
+ const st=(t,c,w)=>`<div class="rqs1 ${c}"><i>${c==='done'?'✔':c==='no'?'✖':'•'}</i><div><b>${t}</b><small>${w||'&nbsp;'}</small></div></div>`;
+ const s2=st('Checker',ck?'done':r.status==='rejected'?'no':g==='check'?'now':'',ck?'Checked by '+esc(ck.rv.by||''):r.status==='rejected'&&rj?'Rejected by '+esc(rj.rv.by||''):g==='check'?'Waiting for the checker':''),
+ s3=st('Approval',r.status==='approved'?'done':(r.status==='rejected'&&ck)?'no':g==='approval'?'now':'',r.status==='approved'&&ap?'Approved by '+esc(ap.rv.by||''):(r.status==='rejected'&&ck&&rj)?'Rejected by '+esc(rj.rv.by||''):g==='approval'?'Waiting for the approver':'');
+ return `<div class="no-print rqflow">${st('Submitted','done',esc(r.requester))}${s2}${s3}<div class="rqact">${rqBtns(r,i)}</div></div>`}
+const rqCan=(k,f)=>isAdm()||(f?[k,k+(f==='coop'?'c':'v')]:[k,k+'c',k+'v']).some(x=>can(x));
+const rqStage=r=>!RQ_WF(r.form)||r.status!=='pending'?'':rqMeta(r).some(m=>m.rv&&m.rv.s==='checked')?'approval':'check';
+const rqStLbl=r=>{const g=rqStage(r);return `<span class="rvst ${r.status}">${g==='check'?'For checking':g==='approval'?'For approval':r.status}</span>`};
+function rqBtns(r,i){
+ if(!RQ_WF(r.form))return(r.status!=='approved'?`<button class="rvx ok" onclick="setSt(${i},'approved')">Approve</button>`:'')+(r.status!=='rejected'?`<button class="rvx no" onclick="setSt(${i},'rejected')">Reject</button>`:'');
+ const g=rqStage(r),ck=rqCan('chk',r.form),ap=rqCan('apr',r.form),rj=`<button class="rvx no" onclick="setSt(${i},'rejected')">Reject</button>`;
+ if(g==='check')return ck?`<button class="rvx ok" onclick="setSt(${i},'checked')">✔ Checked · Send to approval</button>`+rj:'<span class="rqw">Waiting for the checker</span>';
+ if(g==='approval')return ap?`<button class="rvx ok" onclick="setSt(${i},'approved')">Approve</button>`+rj:'<span class="rqw">Checked · waiting for the approver</span>';
+ return(ap&&isAdm())?(r.status!=='approved'?`<button class="rvx ok" onclick="setSt(${i},'approved')">Approve</button>`:'')+(r.status!=='rejected'?rj:''):''}
+async function setSt(i,s){const r=R[i];let note='';
+ if(RQ_WF(r.form)){const g=rqStage(r);
+  if(s==='checked'&&!(g==='check'&&rqCan('chk',r.form)))return toast('Only the checker can send this request to approval.');
+  if(s==='approved'&&!(rqCan('apr',r.form)&&g!=='check'))return toast(g==='check'?'This request must be checked first.':'Only the approver can approve this request.');
+  if(s==='rejected'&&!rqCan(g==='check'?'chk':'apr',r.form))return toast('You are not allowed to reject this request.')}
+ if(s==='checked'){if(!confirm('Mark the request of '+r.requester+' as CHECKED and send it to the approver?'))return;
+  const t=prompt('Note for the approver (optional):','');if(t===null)return;
+  try{const data=(Array.isArray(r.data)?r.data:[]).concat([{rv:{s:'checked',note:t.trim(),by:rqWho(),at:new Date().toISOString()}}]);
+   await api('/rest/v1/hrd_requests?id=eq.'+r.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({data})});r.data=data;
+   logAct('Checked request',FM[r.form][0],r.requester+(t.trim()?' - '+t.trim():''));toast('Checked. Sent to the approver ✔');drawSubs()}catch(e){alert(e.message)}return}
+ if(s==='rejected'){const t=prompt('Reason for rejecting the request of '+r.requester+' (required):','');if(t===null)return;note=t.trim();if(!note)return toast('A note is required when rejecting a request.')}
+ else if(!confirm('Are you sure you want to '+s+' the request of '+r.requester+'?'))return;
+ try{if(r.form==='leave'&&s==='approved'&&!(await lvPre(i)))return;
+  const data=(Array.isArray(r.data)?r.data:[]).concat([{rv:{s,note,by:rqWho(),at:new Date().toISOString()}}]);
+  await api('/rest/v1/hrd_requests?id=eq.'+r.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({status:s,data})});r.status=s;r.data=data;
+  logAct(s==='approved'?'Approved request':'Rejected request',FM[r.form][0],r.requester+(note?' - '+note:''));toast('Naging '+s+(r.form==='leave'&&s==='approved'?lvRem(i):''));drawSubs()}catch(e){alert(e.message)}}
+// ----- approver edits the request details; the requester is notified of every change -----
+function rqLabel(el){const td=el.closest('td');if(td&&td.previousElementSibling&&td.previousElementSibling.textContent.trim())return td.previousElementSibling.textContent.trim().replace(/:\s*$/,'');
+ let n=el.previousSibling,t='';while(n&&t.length<60){if(n.nodeType===1&&/^(BR|INPUT|DIV|TABLE|P)$/.test(n.tagName))break;t=(n.textContent||'')+t;n=n.previousSibling}
+ t=t.replace(/\u00a0/g,' ').trim().replace(/:\s*$/,'').trim();return t||''}
+function rqEditStart(i){const r=R[i];fill(null,false);$('paper').querySelectorAll('input').forEach(e=>{e.disabled=false});
+ if(r.form==='coop')coopInit('edit');const b=$('rqbar');b.innerHTML='<button class="btn" onclick="rqEditSave('+i+')">💾 Save changes</button> <button class="btn o" onclick="viewReq('+i+')">Cancel</button> <small style="color:var(--mu)">The requester will be notified of what you changed.</small>'}
+async function rqEditSave(i){const r=R[i],old=Array.isArray(r.data)?r.data:[],els=[...$('paper').querySelectorAll('input')],N=els.length,nv=vals(),ch=[];
+ els.forEach((el,k)=>{const o=el.type==='checkbox'?!!old[k]:String(old[k]==null?'':old[k]),n=el.type==='checkbox'?!!nv[k]:String(nv[k]==null?'':nv[k]);
+  if(o!==n)ch.push({l:rqLabel(el)||('Field '+(k+1)),o:el.type==='checkbox'?(o?'checked':'unchecked'):o,n:el.type==='checkbox'?(n?'checked':'unchecked'):n})});
+ if(!ch.length)return toast('No changes to save.');
+ if(!confirm('Save '+ch.length+' change'+(ch.length>1?'s':'')+' to the request of '+r.requester+'?\n\n'+ch.map(c=>'• '+c.l+': '+(c.o||'(blank)')+' → '+(c.n||'(blank)')).join('\n')+'\n\nThe requester will be notified.'))return;
+ const data=nv.concat(old.slice(N),[{ed:{by:rqWho(),at:new Date().toISOString(),ch}}]);
+ try{await api('/rest/v1/hrd_requests?id=eq.'+r.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({data})});r.data=data;
+  logAct('Edited request',FM[r.form][0],r.requester+': '+ch.map(c=>c.l+' '+(c.o||'-')+' → '+(c.n||'-')).join('; '));toast('Changes saved. The requester will be notified ✔');viewReq(i)}catch(e){alert(e.message)}}
+const rqFmt=m=>m.rv?'<div class="rqn '+(m.rv.s==='rejected'?'no':m.rv.s==='checked'?'ed':'ok')+'"><b>'+(m.rv.s==='rejected'?'Rejected':m.rv.s==='checked'?'Checked and sent to approval':'Approved')+'</b> by '+esc(m.rv.by||'')+' · '+new Date(m.rv.at).toLocaleString()+(m.rv.note?'<br><i>Note: '+esc(m.rv.note)+'</i>':'')+'</div>'
+ :'<div class="rqn ed"><b>Details changed</b> by '+esc(m.ed.by||'')+' · '+new Date(m.ed.at).toLocaleString()+'<ul>'+(m.ed.ch||[]).map(c=>'<li>'+esc(c.l)+': <s>'+esc(c.o||'(blank)')+'</s> → <b>'+esc(c.n||'(blank)')+'</b></li>').join('')+'</ul></div>';
 async function delReq(i){if(!confirm('Are you sure you want to delete this request and its attachment? This cannot be undone.'))return;
  try{await api('/rest/v1/hrd_requests?id=eq.'+R[i].id,{method:'DELETE'});api('/storage/v1/object/attachments/'+R[i].file_path,{method:'DELETE'}).catch(()=>{});logAct('Deleted request',FM[R[i].form][0],R[i].requester);R.splice(i,1);toast('Deleted');drawSubs()}catch(e){alert(e.message)}}
 // ===== DASHBOARD =====
@@ -2420,7 +2626,7 @@ const isExtra=e=>/EXTRA/i.test(e.dept||'')||/^\s*EXTRA/i.test(e.position||'');
 const catOf=e=>SEP.includes(e.emp_status)?e.emp_status:isExtra(e)?'Extra':stage(e);
 const DCATS=['Regular','Probationary','Training','Extra','End of Contract','Resigned','AWOL','Terminated'];
 const roleLbl=()=>SUPER||(MYA&&MYA.role==='admin')?'Admin':MYA?(ROLES[MYA.role]||[MYA.role])[0]:'';
-function b0(){const n=(can('sub')?R.filter(r=>r.status==='pending').length:0)+(can('emp')?new Set(alerts().map(a=>a.i)).size:0);const el=$('b0');if(el)el.textContent=n||''}
+function b0(){try{rqBadge()}catch(e){}const n=(can('sub')?R.filter(r=>r.status==='pending').length:0)+(can('emp')?new Set(alerts().map(a=>a.i)).size:0);const el=$('b0');if(el)el.textContent=n||''}
 const myMeta=()=>({st:stat(),email:ME.email||'',name:(MYA&&MYA.full_name)||'',role:roleLbl(),at:new Date().toISOString()});
 function presMsg(d,send){if(d.topic!=='realtime:hrd')return;
  if(d.event==='phx_reply'&&d.payload&&d.payload.status==='ok'&&!PT){PT=true;send('realtime:hrd','presence',{type:'presence',event:'track',payload:myMeta()})}
@@ -6243,8 +6449,8 @@ function mXlsx(){const M=m13Model();if(!M.D.length)return toast('Nothing to expo
  const bl=m13XlsxBuild(M),a=document.createElement('a');a.href=URL.createObjectURL(bl);
  a.download='13th-Month-Pay-'+MY+(MD!=='all'?'-'+String(MD).replace(/[^A-Za-z0-9]+/g,'_'):'')+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
  logAct('Exported 13th month pay (Excel)','13th Month Pay',MY);toast('Exported \u2714')}
-const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['att','Attendance'],['psm','Payslip Monitoring'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['dash','Dashboard: full access (click the cards, see Recent activity)'],['act','Activity']];
-const ROLES={admin:['Admin','Full access, including Users & Access',['req','sub','emp','pay','att','psm','addc','m13','mg','tmk','tma','tmp','mgp','mge','dash','act']],hr:['HR Staff','Requests, 201 Files, Attendance (lock / sync to Payroll), Payroll (summary: add department / line, edit), Timemark Check, Payslip Monitoring, Activity',['req','sub','emp','pay','att','psm','tmk','act']],payroll:['Payroll','Request Form, Payroll, Attendance, Additional Compensation, 13th Month Pay and Monthly Gross',['req','pay','att','addc','m13','mg']],staff:['Staff','Request Form only',['req']]};
+const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['att','Attendance'],['psm','Payslip Monitoring'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['dash','Dashboard: full access (click the cards, see Recent activity)'],['act','Activity'],['chkc','COOP Checker (check COOP requests) — also tick Submitted Requests'],['aprc','COOP Approver (final approval of COOP) — also tick Submitted Requests'],['chkv','Vale Checker (check Vale requests) — also tick Submitted Requests'],['aprv','Vale Approver (final approval of Vale) — also tick Submitted Requests'],['chk','Checker: COOP + Vale (all forms)'],['apr','Approver: COOP + Vale (all forms)']];
+const ROLES={admin:['Admin','Full access, including Users & Access',['req','sub','emp','pay','att','psm','addc','m13','mg','tmk','tma','tmp','mgp','mge','dash','act','chkc','aprc','chkv','aprv','chk','apr']],hr:['HR Staff','Requests, 201 Files, Attendance (lock / sync to Payroll), Payroll (summary: add department / line, edit), Timemark Check, Payslip Monitoring, Activity',['req','sub','emp','pay','att','psm','tmk','act']],payroll:['Payroll','Request Form, Payroll, Attendance, Additional Compensation, 13th Month Pay and Monthly Gross',['req','pay','att','addc','m13','mg']],staff:['Staff','Request Form only',['req']]};
 let MYA=null,ACC=false,UL=null;
 const can0=k=>SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||(k!=='usr'&&(MYA.pages||[]).includes(k))||(MYA.role==='hr'&&(k==='att'||k==='psm'))))||(!MYA&&k==='req');const can=k=>k==='pay'?(can0('pay')||!!(MYA&&MYA.active&&MYA.role==='hr')):k==='psm'?(can0('psm')||(can0('pay')&&pxCan('slip'))):k==='mg'?(can0('mg')||(can0('pay')&&pxCan('open'))):k==='ben'?can0('emp'):can0(k);
 /* ===== Payroll sub-permissions (stored in hrd_access.pages as 'payx:<key>'). None ticked = everything in Payroll (so existing users keep their access). Admin and HR are never restricted. ===== */
@@ -6569,8 +6775,8 @@ function rtStart(){rtStop();PT=false;presReady=false;if(!SES.tok||SB_URL.include
  ws.onopen=()=>{send('realtime:hrd','phx_join',{config:{broadcast:{ack:false,self:false},presence:{key:ME.sub||'anon'},postgres_changes:T.map(t=>({event:'*',schema:'public',table:t}))},access_token:SES.tok});RTH=setInterval(()=>send('phoenix','heartbeat',{}),25000)};
  ws.onmessage=m=>{let d;try{d=JSON.parse(m.data)}catch(e){return}presMsg(d,send);if(d.event==='postgres_changes'&&d.payload&&d.payload.data){const t=d.payload.data.table;clearTimeout(LQ[t]);LQ[t]=setTimeout(()=>liveSync(t),350)}};
  ws.onclose=()=>{clearInterval(RTH);if(RT===ws){RT=null;RTT=setTimeout(rtStart,5000)}}}
-function liveStart(){rtStart();setInterval(livePoll,30000);setInterval(()=>{if(!document.hidden&&SES.tok&&can('tmk')&&PG==='tmk'&&TM.tab==='chk')tmNotifSync()},8000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)livePoll()})}
-function livePoll(){if(document.hidden||!SES.tok)return;liveSync('hrd_access');CON&&liveSync('hrd_chat');can('sub')&&liveSync('hrd_requests');can('emp')&&liveSync('hrd_employees');can('emp')&&ndSync();can('tmk')&&tmNotifSync();can('tma')&&tmDecSync();if(PG==='pay'&&can('pay')){liveSync('hrd_pay_staff');liveSync('hrd_payroll');PDOK===true&&liveSync('hrd_pay_depts')}}
+function liveStart(){rtStart();setTimeout(()=>{try{rqNotifPoll()}catch(e){}},1500);setInterval(livePoll,30000);setInterval(()=>{if(!document.hidden&&SES.tok&&can('tmk')&&PG==='tmk'&&TM.tab==='chk')tmNotifSync()},8000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)livePoll()})}
+function livePoll(){if(document.hidden||!SES.tok)return;try{rqNotifPoll()}catch(e){}liveSync('hrd_access');CON&&liveSync('hrd_chat');can('sub')&&liveSync('hrd_requests');can('emp')&&liveSync('hrd_employees');can('emp')&&ndSync();can('tmk')&&tmNotifSync();can('tma')&&tmDecSync();if(PG==='pay'&&can('pay')){liveSync('hrd_pay_staff');liveSync('hrd_payroll');PDOK===true&&liveSync('hrd_pay_depts')}}
 async function liveSync(t){if(!SES.tok)return;
  try{
   if(t==='hrd_chat')return await chatSync();
@@ -6616,7 +6822,7 @@ const uIni=u=>{const n=(u.full_name||'').trim();if(n){const p=n.split(/\s+/);ret
 const uRK=r=>ROLES[r]?r:'staff';
 const UXO=new Set();
 const UXL={tma:['Timemark Audit','Audit / delete'],tmp:['Timemark Approval','Days / approve'],mgp:['Payroll','MANAGEMENT dept. · view'],mge:['201 Files','MANAGEMENT dept. · view'],dash:['Dashboard','Full access · cards &amp; recent activity']};
-const UXG=[['General',['req','sub','dash','act']],['HR &amp; records',['emp','att','psm','tmk','tma','tmp']],['Payroll &amp; compensation',['pay','addc','m13','mg']],['Management department',['mgp','mge']]];
+const UXG=[['General',['req','sub','dash','act']],['Request checkers &amp; approvers',['chkc','aprc','chkv','aprv','chk','apr']],['HR &amp; records',['emp','att','psm','tmk','tma','tmp']],['Payroll &amp; compensation',['pay','addc','m13','mg']],['Management department',['mgp','mge']]];
 window.uTog=(i,ev)=>{if(ev&&ev.target.closest&&ev.target.closest('select,option,.ux-rolebox'))return;const c=document.getElementById('uc_'+i),u=UL&&UL[i];if(!c||!u)return;const o=c.classList.toggle('open');o?UXO.add(u.user_id):UXO.delete(u.user_id);const b=c.querySelector('.ux-chev');if(b)b.setAttribute('aria-expanded',o);uxAllLbl()};
 window.uxAllLbl=()=>{const b=$('uxall');if(b)b.textContent=UL&&UL.length&&UL.every(u=>UXO.has(u.user_id))?'Collapse all':'Expand all'};
 window.uTogAll=()=>{const cs=[...document.querySelectorAll('.urow')].filter(e=>e.style.display!=='none'),open=cs.some(e=>!e.classList.contains('open'));cs.forEach(e=>{e.classList.toggle('open',open);const u=UL[+e.id.slice(3)];if(u)open?UXO.add(u.user_id):UXO.delete(u.user_id);const b=e.querySelector('.ux-chev');if(b)b.setAttribute('aria-expanded',open)});uxAllLbl()};
