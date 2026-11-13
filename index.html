@@ -710,6 +710,22 @@ div.chd{padding:13px 16px;border-bottom:1px solid var(--ln);display:flex;align-i
 .rvl{display:flex;flex-direction:column;gap:10px}
 .rvr{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--sf);border:1px solid var(--ln);border-left:3px solid var(--ln2);border-radius:14px;padding:14px 18px;box-shadow:0 1px 3px #12305c0d;transition:.2s}
 .rvr:hover{box-shadow:0 8px 22px #12305c1f;transform:translateY(-1px)}
+.rqp2{margin:30px 0 0;background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:4px 22px 8px;box-shadow:0 1px 2px rgba(18,48,92,.05)}
+.rqp2 .rqh{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 0 12px;border-bottom:1px solid var(--ln)}
+.rqp2 .rqh h3{margin:0;font-family:Georgia,serif;color:var(--h);font-size:21px}.rqp2 .rqh small{color:var(--mu);font-size:13px}.rqp2 .rqh .sp{flex:1}
+.rqp2 .new{background:#d93a3a;color:#fff;border-radius:999px;font-size:10.5px;padding:1px 8px;font-style:normal;margin-left:0;display:inline-block}
+.rqrow{display:grid;grid-template-columns:44px minmax(170px,1fr) minmax(0,2.7fr) auto;gap:6px 18px;align-items:center;padding:15px 4px;border-bottom:1px solid var(--ln)}.rqrow:last-child{border-bottom:0}
+.rqic{width:40px;height:40px;border-radius:50%;background:var(--soft);display:grid;place-items:center;color:var(--h)}.rqic svg{width:20px;height:20px}
+.rqmain b{display:block;font-size:14px;color:var(--h)}.rqmain>span:not(.new){font-size:13px;color:var(--mu);display:block}.rqmain .new{margin-top:4px}
+.rqsteps{display:flex;align-items:center;gap:8px;min-width:0}.rqst{display:flex;align-items:center;gap:8px;min-width:0}
+.rqst b{display:block;font-size:12.5px;color:var(--ink2)}.rqst small{display:block;font-size:11.5px;color:var(--mu);white-space:nowrap}
+.rqdot{width:22px;height:22px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:11px;background:var(--soft);border:1.5px solid var(--ln2);color:var(--mu)}
+.rqst.done .rqdot{background:#d8f0e0;border-color:#2e7d4f;color:#1d6b49}.rqst.now .rqdot{background:#fff3d6;border-color:#d9a63a}.rqst.no .rqdot{background:#f8dcd8;border-color:#b3392f;color:#a3302a}
+.rqln{flex:1;height:2px;min-width:14px;background:var(--ln2);border-radius:2px}.rqln.done{background:#2e7d4f}
+.rqend{display:flex;align-items:center;gap:10px;justify-content:flex-end;white-space:nowrap}
+.rqdt{grid-column:1/-1;display:none;padding:2px 0 4px 62px}.rqrow.open .rqdt{display:block}
+html[data-theme=dark] .rqst.done .rqdot{background:#12301f;color:#7fd3a1}html[data-theme=dark] .rqst.now .rqdot{background:#3b2f10}html[data-theme=dark] .rqst.no .rqdot{background:#3a1713;color:#f0a39b}
+@media(max-width:900px){.rqrow{grid-template-columns:40px 1fr auto}.rqsteps{grid-column:1/-1;order:5;overflow-x:auto;padding-bottom:4px}.rqdt{padding-left:0}}
 .rqflow{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;margin:0 0 12px}
 .rqs1{display:flex;gap:10px;align-items:center;flex:1 1 170px;background:var(--sf);border:1px solid var(--ln2);border-radius:10px;padding:10px 12px;color:var(--mu)}
 .rqs1 i{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--soft);font-size:13px;flex:none}
@@ -2139,14 +2155,25 @@ const rqSeen=()=>{try{return JSON.parse(localStorage.getItem(rqSeenK())||'{}')}c
 async function rqMine(){try{const L=await api('/rest/v1/hrd_requests?select=id,form,requester,status,data,created_at&order=created_at.desc&limit=60',{_quiet:true});if(!Array.isArray(L))return[];const em=(ME&&ME.email)||'';
  return L.filter(r=>Array.isArray(r.data)&&r.data.some(o=>o&&o.sub&&o.sub.e===em)&&r.form in FM)}catch(e){return[]}}
 const rqStep=r=>{const g=rqStage(r);return r.status==='approved'?['approved','Approved']:r.status==='rejected'?['rejected','Rejected']:RQ_WF(r.form)?(g==='approval'?['pending','Checked · waiting for approval']:['pending','Waiting for the checker']):['pending','Waiting for approval']};
+const rqSteps=r=>{const m=rqMeta(r),last=k=>m.filter(x=>x.rv&&x.rv.s===k).pop(),ck=last('checked'),ap=last('approved'),rj=last('rejected'),wf=RQ_WF(r.form);
+ const sh=x=>x?new Date(x.rv.at).toLocaleDateString(undefined,{month:'short',day:'numeric'})+', '+new Date(x.rv.at).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):'';
+ const d0=new Date(r.created_at),S=[{t:'Submitted',c:'done',w:'You',d:d0.toLocaleDateString(undefined,{month:'short',day:'numeric'})+', '+d0.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}];
+ const fin=r.status==='approved'?{t:'Approved',c:'done',w:ap?ap.rv.by:'',d:sh(ap)}:{t:'Rejected',c:'no',w:rj?rj.rv.by:'',d:sh(rj)};
+ if(wf){S.push(ck?{t:'Checked',c:'done',w:ck.rv.by,d:sh(ck)}:r.status==='rejected'?{t:'Rejected',c:'no',w:rj?rj.rv.by:'',d:sh(rj)}:{t:'Checked',c:'now',w:'Waiting for the checker',d:''});
+  S.push(r.status==='approved'||(r.status==='rejected'&&ck)?fin:{t:'Approval',c:(ck&&r.status==='pending')?'now':'',w:(ck&&r.status==='pending')?'Waiting for the approver':'',d:''})}
+ else S.push(r.status==='pending'?{t:'Approval',c:'now',w:'Waiting for approval',d:''}:fin);
+ return S};
 async function rqNotifDraw(){const L=await rqMine();if(!L.length||PG!=='req')return;const seen=rqSeen();
  const nw=L.filter(r=>rqMeta(r).length>(seen[r.id]||0));
- const h=document.querySelector('#main .req-wrap');if(!h)return;document.querySelectorAll('#main .rqp').forEach(x=>x.remove());
- const dt=x=>{const d=new Date(x);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})};
- const d=document.createElement('div');d.className='rqp';
- d.innerHTML='<h3>My requests · History'+(nw.length?'<span class="new">'+nw.length+' new</span>':'')+'</h3><p class="sub" style="margin:0 0 6px;font-size:13px">Every request you submitted stays here. You will be notified when it is checked, approved or rejected.</p><div style="max-height:480px;overflow:auto">'+L.map(r=>{const st=rqStep(r),m=rqMeta(r),isN=m.length>(seen[r.id]||0);
-  return '<div style="margin:10px 0;padding-bottom:8px;border-bottom:1px solid var(--ln)"><b>'+esc(FM[r.form][0])+'</b> · '+esc(r.requester)+' <span class="rvst '+st[0]+'">'+st[1]+'</span>'+(isN?'<span class="new">NEW</span>':'')+'<div style="font-size:12px;color:var(--mu)">Submitted '+dt(r.created_at)+'</div>'+m.slice().reverse().map(rqFmt).join('')+'</div>'}).join('')+'</div>'+(nw.length?'<button class="btn o sm" id="rqread" style="margin-top:8px">Mark as read</button>':'');
- h.insertAdjacentElement('afterend',d);const b=d.querySelector('#rqread');if(b)b.onclick=()=>{const o=rqSeen();L.forEach(r=>o[r.id]=rqMeta(r).length);try{localStorage.setItem(rqSeenK(),JSON.stringify(o))}catch(e){}rqBadgeMine(0);document.querySelectorAll('#main .rqp .new').forEach(x=>x.remove());b.remove()}}
+ const h=document.querySelector('#main .req-wrap');if(!h)return;document.querySelectorAll('#main .rqp,#main .rqp2').forEach(x=>x.remove());
+ const d=document.createElement('section');d.className='rqp2';
+ d.innerHTML='<div class="rqh"><h3>My requests</h3><small>'+L.length+' submitted · stays here as your history</small>'+(nw.length?'<span class="new">'+nw.length+' new</span>':'')+'<span class="sp"></span>'+(nw.length?'<button class="btn o sm" id="rqread">Mark as read</button>':'')+'</div>'+
+ L.map(r=>{const st=rqStep(r),m=rqMeta(r),isN=m.length>(seen[r.id]||0),S=rqSteps(r);
+  return '<div class="rqrow"><div class="rqic">'+(REQ_IC[r.form]||'')+'</div><div class="rqmain"><b>'+esc(FM[r.form][0])+'</b><span>'+esc(r.requester)+'</span>'+(isN?'<span class="new">NEW</span>':'')+'</div>'+
+  '<div class="rqsteps">'+S.map((x,k)=>(k?'<i class="rqln'+(S[k-1].c==='done'?' done':'')+'"></i>':'')+'<div class="rqst '+x.c+'"><span class="rqdot">'+(x.c==='done'?'✔':x.c==='no'?'✖':'')+'</span><div><b>'+x.t+'</b><small>'+esc(x.w)+(x.d?' · '+x.d:'')+'</small></div></div>').join('')+'</div>'+
+  '<div class="rqend"><span class="rvst '+st[0]+'">'+st[1]+'</span><button class="rvx" onclick="this.closest(\'.rqrow\').classList.toggle(\'open\')">Details'+(m.length?' ('+m.length+')':'')+'</button></div>'+
+  '<div class="rqdt">'+(m.length?m.slice().reverse().map(rqFmt).join(''):'<small style="color:var(--mu)">No updates yet.</small>')+'</div></div>'}).join('');
+ h.appendChild(d);const b=d.querySelector('#rqread');if(b)b.onclick=()=>{const o=rqSeen();L.forEach(r=>o[r.id]=rqMeta(r).length);try{localStorage.setItem(rqSeenK(),JSON.stringify(o))}catch(e){}rqBadgeMine(0);d.querySelectorAll('.new').forEach(x=>x.remove());b.remove()}}
 function rqBadgeMine(n){const e=$('brq');if(e)e.textContent=n||''}
 let rqToastSig='';
 async function rqNotifPoll(){const L=await rqMine(),seen=rqSeen(),msgs=[];
@@ -2160,13 +2187,21 @@ async function rqNotifPoll(){const L=await rqMine(),seen=rqSeen(),msgs=[];
 function pick0(){$('main').innerHTML=`<section class="req-wrap"><div class="req-head"><div><h1>Request Form</h1><p class="sub">Choose a form to submit for approval.</p></div><div class="req-count"><span>${Object.keys(FM).length}</span><small>Available forms</small></div></div><div class="req-grid">${Object.entries(FM).map(([k,v],i)=>`<button type="button" class="req-card" onclick="openForm('${k}')"><span class="req-icon">${REQ_IC[k]||v[2]}</span><span class="req-cardbody"><b>${v[0]}</b><small>${v[1]}</small></span><span class="req-arrow" aria-hidden="true">↗</span></button>`).join('')}</div></section>`}
 
 // ===== Searchable employee-name dropdown (201 Files names) =====
-let NML=null;
+let NML=null,NMU=null;
 async function nmLoad(){
  let L=(typeof EALL!=='undefined'&&EALL&&EALL.length)?EALL:(typeof E!=='undefined'&&E&&E.length?E:null);
  if(!L){try{L=await apiAll('/rest/v1/hrd_employees?select=name,dept&order=name',{_quiet:true})}catch(e){L=null}}
- if(!Array.isArray(L))return NML=NML||[];
+ if(!Array.isArray(L))L=[];
  try{if(typeof eVis==='function')L=eVis(L)}catch(e){}
- const seen=new Set();NML=L.filter(x=>x&&x.name).map(x=>({n:String(x.name).trim(),d:x.dept||''})).filter(x=>{const k=x.n.toLowerCase();if(!x.n||seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>a.n.localeCompare(b.n));
+ /* suggestions = 201 Files employees + payroll staff + registered users (so staff accounts that cannot open 201 Files still get a list) */
+ const seen=new Set(),A=[],add=(n,d,t)=>{n=String(n||'').trim();const k=n.toLowerCase();if(!n||seen.has(k))return;seen.add(k);A.push({n,d:d||'',t:t||''})};
+ L.forEach(x=>x&&x.name&&add(x.name,x.dept));
+ try{(typeof STF!=='undefined'&&Array.isArray(STF)?STF:[]).forEach(x=>x&&x.name&&add(x.name,x.dept))}catch(e){}
+ try{if(typeof PSEED!=='undefined')PSEED.forEach(g=>{const f=g[0];if(!f||(typeof isMgt==='function'&&typeof can==='function'&&!can('mgp')&&isMgt(f)))return;(g[1]||[]).forEach(r=>r&&r[0]&&add(r[0],f))})}catch(e){}
+ let U=[];try{let C=(typeof CU!=='undefined'&&Array.isArray(CU)&&CU.length)?CU:null;if(!C)C=await api('/rest/v1/rpc/hrd_chat_users',{method:'POST',body:'{}',_quiet:true});
+  if(Array.isArray(C))U=C.map(u=>({n:String(u.full_name||'').trim()||String(u.email||'').split('@')[0],d:'',t:'User'})).filter(u=>u.n)}catch(e){}
+ U.forEach(u=>add(u.n,'','User'));
+ NML=A.sort((a,b)=>a.n.localeCompare(b.n));NMU=U.sort((a,b)=>a.n.localeCompare(b.n));
  return NML}
 function nmIsName(i){
  const td=i.closest('td');if(td&&td.previousElementSibling&&/name\s+of\s+employee/i.test(td.previousElementSibling.textContent))return true;
@@ -2174,6 +2209,8 @@ function nmIsName(i){
  while(n&&t.length<40){if(n.nodeType===1&&/^(BR|INPUT|DIV|TABLE|P)$/.test(n.tagName))break;t=(n.textContent||'')+t;n=n.previousSibling}
  return /(^|\s)name\s*:\s*$/i.test(t.replace(/\u00a0/g,' '))}
 function nmDepts(){let D=new Set((NML||[]).map(x=>x.d).filter(Boolean));try{if(typeof pFolders==='function')pFolders().forEach(f=>f&&D.add(f))}catch(e){}return [...D].sort((a,b)=>a.localeCompare(b)).map(d=>({n:d,d:''}))}
+function nmIsBy(i){let n=i.previousSibling,t='';while(n&&t.length<40){if(n.nodeType===1&&/^(BR|INPUT|DIV|TABLE|P)$/.test(n.tagName))break;t=(n.textContent||'')+t;n=n.previousSibling}
+ return /(posted|approved|checked|prepared)\s+by\s*:\s*$/i.test(t.replace(/\u00a0/g,' '))}
 function nmIsDept(i){let n=i.previousSibling,t='';while(n&&t.length<40){if(n.nodeType===1&&/^(BR|INPUT|DIV|TABLE|P)$/.test(n.tagName))break;t=(n.textContent||'')+t;n=n.previousSibling}
  return /(department|dept)\s*:\s*$/i.test(t.replace(/\u00a0/g,' '))}
 // Auto-fit: widen the line (then shrink the font if needed) so the whole text shows
@@ -2196,12 +2233,12 @@ function nmAttach(inp,kind){
  const place=()=>{const r=inp.getBoundingClientRect();box.style.left=r.left+'px';box.style.top=(r.bottom+2)+'px';box.style.minWidth=Math.max(r.width,260)+'px'};
  const hide=()=>{box.style.display='none';idx=-1};
  const pick=x=>{if(!x)return;inp._skip=1;inp.value=x.n;hide();inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}));nmFit(inp);inp._skip=0;hide();
-  if(inp._k==='d')return;const nm=$('nm');if(nm&&nm!==inp&&!nm.value.trim())nm.value=x.n;
+  if(inp._k==='d'||inp._k==='u')return;const nm=$('nm');if(nm&&nm!==inp&&!nm.value.trim())nm.value=x.n;
   document.querySelectorAll('#paper input').forEach(p=>{if(p._nm&&p!==inp&&p._k==='n'&&!p.value.trim()){p.value=x.n;nmFit(p)}});
   if(x.d)document.querySelectorAll('#paper input').forEach(p=>{if(p._k==='d'&&!p.value.trim()){p.value=x.d;nmFit(p)}})};
- const draw=async()=>{if(!NML)await nmLoad();const q=inp.value.trim().toLowerCase().split(/[\s,]+/).filter(Boolean);
-  const SRC=inp._k==='d'?nmDepts():NML;items=SRC.filter(x=>{const h=(x.n+' '+x.d).toLowerCase();return q.every(w=>h.indexOf(w)>=0)}).slice(0,60);idx=items.length?0:-1;
-  box.innerHTML=items.length?items.map((x,k)=>`<div data-k="${k}" class="${k===0?'on':''}"><span>${esc(x.n)}</span><small>${esc(x.d)}</small></div>`).join(''):'<em>'+(SRC.length?(inp._k==='d'?'No matching department — you can type it':'No matching employee'):'No employee list available — you can type it')+'</em>';
+ const draw=async()=>{if(!NML||!NML.length)await nmLoad();const q=inp.value.trim().toLowerCase().split(/[\s,]+/).filter(Boolean);
+  const SRC=inp._k==='d'?nmDepts():(inp._k==='u'&&NMU&&NMU.length?NMU:NML);items=SRC.filter(x=>{const h=(x.n+' '+x.d).toLowerCase();return q.every(w=>h.indexOf(w)>=0)}).slice(0,60);idx=items.length?0:-1;
+  box.innerHTML=items.length?items.map((x,k)=>`<div data-k="${k}" class="${k===0?'on':''}"><span>${esc(x.n)}</span><small>${esc(x.d||x.t||'')}</small></div>`).join(''):'<em>'+(SRC.length?(inp._k==='d'?'No matching department — you can type it':'No matching employee'):'No employee list available — you can type it')+'</em>';
   place();box.style.display='block'};
  const mark=()=>[...box.children].forEach((c,k)=>{c.classList.toggle('on',k===idx);if(k===idx)c.scrollIntoView({block:'nearest'})});
  inp.addEventListener('focus',()=>{if(!inp._skip)draw()});inp.addEventListener('input',()=>{if(inp._skip)return;draw();nmFit(inp)});inp.addEventListener('change',()=>nmFit(inp));
@@ -2242,7 +2279,7 @@ function coopInit(mode){const{A,W,T,N}=coopEls();if(!A||!W||!T||!N)return;const 
   if(typeof nmFit==='function')nmFit(T);interest()};
  A.addEventListener('input',()=>{coopComma(A);rate()});W.addEventListener('input',rate);T.addEventListener('input',interest);
  if(edit)interest();else rate()}
-function nmInit(){document.querySelectorAll('.nmdd').forEach(b=>b.remove());document.querySelectorAll('#paper input.in').forEach(i=>{if(nmIsName(i))nmAttach(i,'n');else if(nmIsDept(i))nmAttach(i,'d')});
+function nmInit(){document.querySelectorAll('.nmdd').forEach(b=>b.remove());document.querySelectorAll('#paper input.in').forEach(i=>{if(nmIsName(i))nmAttach(i,'n');else if(nmIsDept(i))nmAttach(i,'d');else if(cur==='coop'&&nmIsBy(i))nmAttach(i,'u')});
  document.querySelectorAll('#paper input.in').forEach(i=>{if(!i._nm)i.addEventListener('input',()=>nmFit(i))});
 const pn0=nmPaper();if(pn0){const sg=[...document.querySelectorAll('#paper input.in')].filter(i=>i!==pn0&&nmIsSig(i));
   const sync=()=>sg.forEach(i=>{i.value=pn0.value;nmFit(i)});['input','change'].forEach(e=>pn0.addEventListener(e,sync))}
@@ -2262,7 +2299,7 @@ async function submit(){
  if(f.type&&f.type.startsWith('image/')){try{f=await compressImageTo100KB(f)}catch(e){alert(e.message);return}}
  if(f.size>10485760)return toast('File is too large (max 10MB).');
  if(!confirm('Are you sure you want to submit this request?'))return;
- const row={form:cur,requester:n,data:(LV?vals().concat([{lv:LV}]):vals()).concat([{sub:{e:(ME&&ME.email)||''}}])};
+ const row={form:cur,requester:n,data:(LV?vals().concat([{lv:LV}]):vals()).concat([{sub:{e:(ME&&ME.email)||'',n:((typeof MYA!=='undefined'&&MYA&&MYA.full_name)||'')}}])};
  if(STORE_MODE()==='local'){queueSubmit(row,f);refreshFullUI();toast('Saved in this browser for now (pending sync). Please also save a copy to your computer.');go('req');return}
  $('sb').disabled=true;$('sb').textContent='Sinusubmit…';
  const path=ME.sub+'/'+Date.now()+'_'+f.name.replace(/[^\w.-]/g,'_');let up=null;
@@ -2498,18 +2535,18 @@ function drawSubs(){
   const PN=R.filter(r=>r.status==='pending').length,IC='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
   $('main').innerHTML=`<div class="sfh"><div><h1>Submitted Requests</h1><p class="sub">Choose a form folder to view its requests.</p></div><div class="sfs"><span><b>${R.filter(r=>r.form!=='leavecr').length}</b>Total</span><span class="${PN?'hot':''}"><b>${PN}</b>Pending</span></div></div><div class="sfg">${Object.entries(FM).map(([k,v])=>{const a=R.filter(r=>r.form===k),p=a.filter(r=>r.status==='pending').length,wf=RQ_WF(k),pc=wf?a.filter(r=>r.status==='pending'&&rqStage(r)==='check').length:0,pa=wf?a.filter(r=>r.status==='pending'&&rqStage(r)==='approval').length:0;return `<div class="fcard" tabindex="0" role="button" onclick="openFld('${k}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFld('${k}')}"><div class="ftop"><div class="fi2">${REQ_IC[k]||IC}</div><div class="fn"><b>${a.length}</b><span>request${a.length===1?'':'s'}</span></div></div><div class="fbd"><b>${v[0]}</b><small>${v[1]}</small></div><div class="fft">${p?(wf?`<em class="pn">${pc?pc+' for checking':''}${pc&&pa?' · ':''}${pa?pa+' for approval':''}</em>`:`<em class="pn">${p} pending</em>`):`<span class="fnone">${a.length?'Nothing pending':'No requests yet'}</span>`}<span class="fgo" aria-hidden="true">Open folder &rarr;</span></div></div>`}).join('')}</div>`;return}
  const all=R.map((r,i)=>[r,i]).filter(([r])=>r.form===fld);
- if(RQ_WF(fld)&&!['check','approval','hist'].includes(flt))flt=rqDefFlt(fld);if(!RQ_WF(fld)&&(flt==='check'||flt==='approval'))flt='pending';
+ if(RQ_WF(fld)&&!rqTabs(fld).includes(flt))flt=rqDefFlt(fld);if(!RQ_WF(fld)&&(flt==='check'||flt==='approval'))flt='pending';
  const cnt=s=>all.filter(([r])=>fltOk(r,s)).length;
  const L=all.filter(([r])=>fltOk(r,flt)&&r.requester.toLowerCase().includes(q.toLowerCase()));
  L.sort({new:(a,b)=>b[0].created_at.localeCompare(a[0].created_at),old:(a,b)=>a[0].created_at.localeCompare(b[0].created_at),name:(a,b)=>a[0].requester.localeCompare(b[0].requester)||b[0].created_at.localeCompare(a[0].created_at)}[srt]);
  const FIC='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',SIC='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
  const ini=n=>(n||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(),dt=x=>{const d=new Date(x);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})};
  $('main').innerHTML=`<div class="rvh"><button class="rvb" onclick="fld=null;drawSubs()">← Folders</button><div class="rvi"><div class="fi2 sm">${FIC}</div><div><h2>${esc(FM[fld][0])}</h2><small>${esc(FM[fld][1])}</small></div></div>${fld==='leave'?'<button class="btn o sm" style="margin-left:auto" onclick="lvBal()">🏖 Leave Balances</button>':''}</div>
-<div class="rvbar"><div class="rvtabs" role="tablist">${(RQ_WF(fld)?['check','approval','hist']:['pending','approved','rejected','all']).map(s=>`<button class="${flt===s?'on':''}" role="tab" aria-selected="${flt===s}" onclick="flt='${s}';drawSubs()">${({check:'Check by',approval:'Approved by',hist:'History'})[s]||s[0].toUpperCase()+s.slice(1)}<i>${cnt(s)}</i></button>`).join('')}</div>
+<div class="rvbar"><div class="rvtabs" role="tablist">${(RQ_WF(fld)?rqTabs(fld):['pending','approved','rejected','all']).map(s=>`<button class="${flt===s?'on':''}" role="tab" aria-selected="${flt===s}" onclick="flt='${s}';drawSubs()">${({check:'For Checking',approval:'For Approval',status:'Status',hist:'History'})[s]||s[0].toUpperCase()+s.slice(1)}<i>${cnt(s)}</i></button>`).join('')}</div>
 <div class="rvtools"><label class="rvs">${SIC}<input id="q" placeholder="Search name" value="${esc(q)}" oninput="q=this.value;drawSubs();const e=$('q');e.focus();e.setSelectionRange(q.length,q.length)"></label>
 <select class="rvsel" aria-label="Sort" onchange="srt=this.value;drawSubs()">${[['new','Newest first'],['old','Oldest first'],['name','Name: A–Z']].map(([v,t])=>`<option value="${v}"${srt===v?' selected':''}>${t}</option>`).join('')}</select></div></div>
 <section class="rvl">${L.map(([r,i])=>`<div class="rvr ${r.status}"><div class="rva">${esc(ini(r.requester))}</div><div class="rvn"><b>${esc(r.requester)}</b><small>${dt(r.created_at)}${r.form==='leave'&&lvMeta(r)?' · '+(lvMeta(r).t==='sick'?'Sick':'Vacation')+' · '+lvMeta(r).d+' day(s) · '+esc(lvMeta(r).f)+' → '+esc(lvMeta(r).to||''):''}</small></div>${rqStLbl(r)}${(()=>{const m=rqMeta(r),rj=m.filter(x=>x.rv&&x.rv.s==='rejected').pop(),ed=m.filter(x=>x.ed).pop(),ck=m.filter(x=>x.rv&&x.rv.s==='checked').pop();return (ck&&RQ_WF(r.form)?`<div class="rqs">✔ Checked by ${esc(ck.rv.by||'')}${ck.rv.note?' · Note: '+esc(ck.rv.note):''}</div>`:'')+(rj&&r.status==='rejected'&&rj.rv.note?`<div class="rqs no">Reason: ${esc(rj.rv.note)}</div>`:'')+(ed?`<div class="rqs">✏ Edited by ${esc(ed.ed.by||'')}</div>`:'')})()}
-<div class="rvac"><button class="rvx" onclick="viewReq(${i})">View</button><button class="rvx" onclick="getFile(${i})">📎 File</button>${rqBtns(r,i)}<button class="rvx dl" onclick="delReq(${i})">Delete</button></div></div>`).join('')||`<div class="rve"><div class="fi2">${FIC}</div><b>No ${flt==='all'?'':(({check:'to check ',approval:'waiting for approval ',hist:'finished '})[flt]||flt+' ')}requests here</b><small>${q?'Try a different name.':'Submitted requests for this form will appear here.'}</small></div>`}</section>`}
+<div class="rvac"><button class="rvx" onclick="viewReq(${i})">View</button><button class="rvx" onclick="getFile(${i})">📎 File</button>${rqBtns(r,i)}<button class="rvx dl" onclick="delReq(${i})">Delete</button></div></div>`).join('')||`<div class="rve"><div class="fi2">${FIC}</div><b>No ${flt==='all'?'':(({check:'to check ',approval:'waiting for approval ',status:'checked and waiting for approval ',hist:'finished '})[flt]||flt+' ')}requests here</b><small>${q?'Try a different name.':'Submitted requests for this form will appear here.'}</small></div>`}</section>`}
 /* ===== LEAVE REQUEST + LEAVE CREDITS (approved leave is deducted from the employee's credits) ===== */
 let LVY=new Date().getFullYear();const LVD={v:5,s:5};
 const lvK=n=>String(n||'').trim().toLowerCase().replace(/\s+/g,' ');
@@ -2556,7 +2593,7 @@ function rqQueueDraw(){const chk=PG==='chk',st=chk?'check':'approval';b0();
  return `<div class="rvr pending"><div class="rva">${esc(ini(r.requester))}</div><div class="rvn"><b>${esc(r.requester)}</b><small>${esc(FM[r.form][0])} · submitted ${dt(r.created_at)}</small></div>${rqStLbl(r)}
  ${!chk&&ck?`<div class="rqs">✔ Checked by ${esc(ck.rv.by||'')}${ck.rv.note?' · Note: '+esc(ck.rv.note):''}</div>`:''}${ed?`<div class="rqs">✏ Edited by ${esc(ed.ed.by||'')}</div>`:''}
  <div class="rvac"><button class="rvx" onclick="viewReq(${i})">View</button><button class="rvx" onclick="getFile(${i})">📎 File</button>${rqBtns(r,i)}</div></div>`}).join('')||`<div class="rve"><b>${chk?'Nothing to check':'Nothing waiting for approval'}</b><small>${chk?'New COOP and Vale requests will appear here.':'Requests checked by the checker will appear here.'}</small></div>`}</section>`}
-function viewReq(i){const r=R[i];cur=r.form;$('main').innerHTML=`<div class="bar no-print"><button class="btn o" onclick="PG==='sub'?drawSubs():go(PG)">← Back</button><h2>${esc(r.requester)} · ${esc(FM[r.form][0])}</h2><span class="st ${r.status}">${r.status}</span><span style="flex:1"></span><button class="btn o" onclick="getFile(${i})">📎 Attachment</button>${r.form!=='leavecr'?`<button class="btn o" onclick="rqEditStart(${i})">✏ Edit details</button>`:''}<button class="btn" onclick="window.print()">🖨 Print</button></div>${rqFlow(r,i)}<div id="rqbar" class="no-print" style="margin:0 0 10px"></div><div id="paper" class="paper">${F[r.form]}</div>${rqMeta(r).length?`<div class="no-print rqh"><h3>Review history</h3>${rqMeta(r).slice().reverse().map(rqFmt).join('')}</div>`:''}`;fill(r.data,true);if(r.form==='coop')coopRed();scrollTo(0,0)}
+function viewReq(i){const r=R[i];cur=r.form;$('main').innerHTML=`<div class="bar no-print"><button class="btn o" onclick="PG==='sub'?drawSubs():go(PG)">← Back</button><h2>${esc(r.requester)} · ${esc(FM[r.form][0])}</h2><span class="st ${r.status}">${r.status}</span><span style="flex:1"></span><button class="btn o" onclick="getFile(${i})">📎 Attachment</button>${r.form!=='leavecr'?`<button class="btn o" onclick="rqEditStart(${i})">✏ Edit details</button>`:''}<button class="btn" onclick="window.print()">🖨 Print</button></div>${rqFlow(r,i)}<div id="rqbar" class="no-print" style="margin:0 0 10px"></div><div id="paper" class="paper">${F[r.form]}</div>${rqMeta(r).length?`<div class="no-print rqh"><h3>Review history</h3>${rqMeta(r).slice().reverse().map(rqFmt).join('')}</div>`:''}`;fill(r.data,true);if(r.form==='coop')coopRed();rqSubFix(r);scrollTo(0,0)}
 async function getFile(i){const w=window.open('','_blank');
  try{const j=await api('/storage/v1/object/sign/attachments/'+R[i].file_path,{method:'POST',body:JSON.stringify({expiresIn:600})});w.location=SB_URL+'/storage/v1'+j.signedURL}
  catch(e){w.close();alert('Could not open the file: '+e.message)}}
@@ -2564,21 +2601,32 @@ const rqWho=()=>((typeof MYA!=='undefined'&&MYA&&MYA.full_name)||(ME&&ME.email)|
 const rqMeta=r=>(Array.isArray(r.data)?r.data:[]).filter(o=>o&&typeof o==='object'&&(o.rv||o.ed));
 // ----- COOP / Vale: Requester -> Checker -> Approver -----
 const RQ_WF=f=>f==='coop'||f==='vale';
-const fltOk=(r,s)=>s==='all'||(s==='hist'?r.status==='approved'||r.status==='rejected':s==='check'||s==='approval'?r.status==='pending'&&rqStage(r)===s:r.status===s);
+const rqHist=r=>{const fin=r.status==='approved'||r.status==='rejected';if(!RQ_WF(r.form))return fin;
+ /* a checker-only user keeps what he/she sent in History (any status); it updates when the approver decides */
+ if(rqCan('chk',r.form)&&!rqCan('apr',r.form))return fin&&rqMine1(r);
+ return fin};
+const rqMine1=r=>{const w=rqWho();return rqMeta(r).some(m=>m.rv&&(m.rv.s==='checked'||m.rv.s==='rejected')&&m.rv.by===w)};
+const rqTabs=f=>{const mc=rqCan('chk',f),ma=rqCan('apr',f);return mc&&!ma?['check','status','hist']:ma&&!mc?['approval','hist']:['check','approval','hist']};
+const fltOk=(r,s)=>s==='all'||(s==='hist'?rqHist(r):s==='status'?(RQ_WF(r.form)&&r.status==='pending'&&rqStage(r)==='approval'&&rqMine1(r)):s==='check'||s==='approval'?r.status==='pending'&&rqStage(r)===s:r.status===s);
 function rqDefFlt(k){
  if(!RQ_WF(k))return R.some(r=>r.form===k&&r.status==='pending')?'pending':'all';
- const c=R.filter(r=>r.form===k&&r.status==='pending'),n={check:c.filter(r=>rqStage(r)==='check').length,approval:c.filter(r=>rqStage(r)==='approval').length},mc=rqCan('chk',k),ma=rqCan('apr',k);
- const o=(ma&&!mc)?['approval','check']:['check','approval'];return o.find(x=>n[x])||'hist'}
+ const c=R.filter(r=>r.form===k&&r.status==='pending'),n={check:c.filter(r=>rqStage(r)==='check').length,approval:c.filter(r=>rqStage(r)==='approval').length,status:c.filter(r=>fltOk(r,'status')).length},mc=rqCan('chk',k),ma=rqCan('apr',k);
+ const o=((ma&&!mc)?['approval','check']:['check','status','approval']).filter(x=>rqTabs(k).includes(x));return o.find(x=>n[x])||'hist'}
+const rqSubO=r=>{const o=(Array.isArray(r.data)?r.data:[]).find(x=>x&&typeof x==='object'&&x.sub);return o?o.sub:null};
+function rqSubName(r){const o=rqSubO(r);if(!o)return '—';if(o.n)return o.n;const em=String(o.e||'').toLowerCase(),L=[].concat((typeof CU!=='undefined'&&Array.isArray(CU))?CU:[],window.__rqCU||[]);
+ const u=L.find(x=>x&&String(x.email||'').toLowerCase()===em);return (u&&u.full_name)||o.e||'—'}
+async function rqSubFix(r){const o=rqSubO(r);if(!o||o.n)return;try{if(!((typeof CU!=='undefined'&&Array.isArray(CU)&&CU.length)||(window.__rqCU&&window.__rqCU.length))){const C=await api('/rest/v1/rpc/hrd_chat_users',{method:'POST',body:'{}',_quiet:true});if(Array.isArray(C))window.__rqCU=C}}catch(e){}
+ const e=$('rqsubn');if(e)e.textContent=rqSubName(r)+(r.created_at?' · '+new Date(r.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'')}
 function rqFlow(r,i){
  if(!RQ_WF(r.form))return '';
  const m=rqMeta(r),ck=m.filter(x=>x.rv&&x.rv.s==='checked').pop(),rj=m.filter(x=>x.rv&&x.rv.s==='rejected').pop(),ap=m.filter(x=>x.rv&&x.rv.s==='approved').pop(),g=rqStage(r);
  const st=(t,c,w)=>`<div class="rqs1 ${c}"><i>${c==='done'?'✔':c==='no'?'✖':'•'}</i><div><b>${t}</b><small>${w||'&nbsp;'}</small></div></div>`;
  const s2=st('Checker',ck?'done':r.status==='rejected'?'no':g==='check'?'now':'',ck?'Checked by '+esc(ck.rv.by||''):r.status==='rejected'&&rj?'Rejected by '+esc(rj.rv.by||''):g==='check'?'Waiting for the checker':''),
  s3=st('Approval',r.status==='approved'?'done':(r.status==='rejected'&&ck)?'no':g==='approval'?'now':'',r.status==='approved'&&ap?'Approved by '+esc(ap.rv.by||''):(r.status==='rejected'&&ck&&rj)?'Rejected by '+esc(rj.rv.by||''):g==='approval'?'Waiting for the approver':'');
- return `<div class="no-print rqflow">${st('Submitted','done',esc(r.requester))}${s2}${s3}<div class="rqact">${rqBtns(r,i)}</div></div>`}
+ return `<div class="no-print rqflow">${st('Submitted by','done','<span id="rqsubn">'+esc(rqSubName(r))+(r.created_at?' · '+new Date(r.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'')+'</span>')}${s2}${s3}<div class="rqact">${rqBtns(r,i)}</div></div>`}
 const rqCan=(k,f)=>isAdm()||(f?[k,k+(f==='coop'?'c':'v')]:[k,k+'c',k+'v']).some(x=>can(x));
 const rqStage=r=>!RQ_WF(r.form)||r.status!=='pending'?'':rqMeta(r).some(m=>m.rv&&m.rv.s==='checked')?'approval':'check';
-const rqStLbl=r=>{const g=rqStage(r);return `<span class="rvst ${r.status}">${g==='check'?'For checking':g==='approval'?'For approval':r.status}</span>`};
+const rqStLbl=r=>{const g=rqStage(r);return `<span class="rvst ${r.status}">${g==='check'?'Waiting for the checker':g==='approval'?'Checked · waiting for approval':r.status}</span>`};
 function rqBtns(r,i){
  if(!RQ_WF(r.form))return(r.status!=='approved'?`<button class="rvx ok" onclick="setSt(${i},'approved')">Approve</button>`:'')+(r.status!=='rejected'?`<button class="rvx no" onclick="setSt(${i},'rejected')">Reject</button>`:'');
  const g=rqStage(r),ck=rqCan('chk',r.form),ap=rqCan('apr',r.form),rj=`<button class="rvx no" onclick="setSt(${i},'rejected')">Reject</button>`;
@@ -2594,13 +2642,13 @@ async function setSt(i,s){const r=R[i];let note='';
   const t=prompt('Note for the approver (optional):','');if(t===null)return;
   try{const data=(Array.isArray(r.data)?r.data:[]).concat([{rv:{s:'checked',note:t.trim(),by:rqWho(),at:new Date().toISOString()}}]);
    await api('/rest/v1/hrd_requests?id=eq.'+r.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({data})});r.data=data;
-   logAct('Checked request',FM[r.form][0],r.requester+(t.trim()?' - '+t.trim():''));toast('Checked. Sent to the approver ✔');drawSubs()}catch(e){alert(e.message)}return}
+   logAct('Checked request',FM[r.form][0],r.requester+(t.trim()?' - '+t.trim():''));toast('Checked. Sent to the approver ✔');{const t=rqTabs(r.form);flt=t.includes('status')?'status':t.includes('approval')?'approval':flt}drawSubs()}catch(e){alert(e.message)}return}
  if(s==='rejected'){const t=prompt('Reason for rejecting the request of '+r.requester+' (required):','');if(t===null)return;note=t.trim();if(!note)return toast('A note is required when rejecting a request.')}
  else if(!confirm('Are you sure you want to '+s+' the request of '+r.requester+'?'))return;
  try{if(r.form==='leave'&&s==='approved'&&!(await lvPre(i)))return;
   const data=(Array.isArray(r.data)?r.data:[]).concat([{rv:{s,note,by:rqWho(),at:new Date().toISOString()}}]);
   await api('/rest/v1/hrd_requests?id=eq.'+r.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({status:s,data})});r.status=s;r.data=data;
-  logAct(s==='approved'?'Approved request':'Rejected request',FM[r.form][0],r.requester+(note?' - '+note:''));toast('Naging '+s+(r.form==='leave'&&s==='approved'?lvRem(i):''));drawSubs()}catch(e){alert(e.message)}}
+  logAct(s==='approved'?'Approved request':'Rejected request',FM[r.form][0],r.requester+(note?' - '+note:''));toast('Naging '+s+(r.form==='leave'&&s==='approved'?lvRem(i):''));if(RQ_WF(r.form))flt='hist';drawSubs()}catch(e){alert(e.message)}}
 // ----- approver edits the request details; the requester is notified of every change -----
 function rqLabel(el){const td=el.closest('td');if(td&&td.previousElementSibling&&td.previousElementSibling.textContent.trim())return td.previousElementSibling.textContent.trim().replace(/:\s*$/,'');
  let n=el.previousSibling,t='';while(n&&t.length<60){if(n.nodeType===1&&/^(BR|INPUT|DIV|TABLE|P)$/.test(n.tagName))break;t=(n.textContent||'')+t;n=n.previousSibling}
