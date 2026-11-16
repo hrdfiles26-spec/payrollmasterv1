@@ -6275,6 +6275,7 @@ const gnRateD=(r,f)=>{const g=gnGross(r,f);return g?(r.u==='w'?g.d:r2(g.d/gnDv(r
 /* Fixed gross employees are paid on gross ÷ 7 (a week = 7 days), except those listed here: gross ÷ 6 (a week = 6 days). Stored rates stay gross ÷ 7; only the per-day rate and the pay use this divisor. */
 const gnDv=r=>/^(manabat jr diosdado|baliguat ronaldo)( |$)/.test(dupKey(r&&r.name))?6:7;
 const gnIsG=(r,f)=>{const s=(STF||[]).find(x=>String(x.id)===String(r.id));const pd=r.pdd!=null?!!r.pdd:!!(s&&pGpdDef(s));return (PCFG[f.dept]||{}).m==='g'&&!pd};
+const gnDaysTx=r=>{const w=r.u==='w',v=w?r.wk:r.days;if(v===''||v==null)return'';const n=pn(v);return n+(w?(n===1?' week':' weeks'):(n===1?' day':' days'))};/* export: show No. of Days exactly as chosen in the form (e.g. "4 weeks" or "4 days") */
 const gnWM=(r,f)=>gnIsG(r,f)?gnDv(r):6;
 function gnUnitSet(el){const{f,r}=gnRow(el.dataset.id);if(!r)return;
  if(el.value==='w'){r.u='w';r.wk=(r.days===''||r.days==null)?'':r2(pn(r.days)/gnWM(r,f))}else{delete r.u;delete r.wk}
@@ -6394,7 +6395,7 @@ function gnExport(){const f=((M13S||{}).gen||{})[GD];if(!f)return;
  try{const bl=gnXlsxBuild(f),a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='13th-Month-Pay-'+MY+'-'+String(f.dept).replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   logAct('Exported 13th month pay form (Excel)','13th Month Pay',MY+' \u00B7 '+f.dept);toast('Exported \u2714')}catch(e){console.error(e);toast('Excel export failed - saved as CSV instead.');gnExportCsv()}}
 function gnExportCsv(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const T=gnTot(f),H=['Name','Account No.','Rate','No. of Days','13th Month Pay','Mos. Worked','A/R','Vale',...f.dc.map(k=>k.l),'Net Pay','Remarks','Start Date','Comment'];
- const L=[];gnGroups(f).forEach(g=>{const G1=gnGroups(f).length>1||g.title;if(g.title)L.push([g.title]);g.rows.forEach(r=>L.push(((r)=>{const c=gnCalc(r,f);return[r.name,r.acct?'="'+r.acct+'"':'',gnRateD(r,f),r.days===''?'':pn(r.days),c.has?c.pay:'',(r.mi===''||r.mi==null?'':pn(r.mi)),r.ar===''?'':pn(r.ar),r.v===''?'':pn(r.v),...f.dc.map(k=>(r.d||{})[k.id]===undefined?'':pn(r.d[k.id])),c.has?c.net:'',r.rem||'',gnDS(r)?m13Long(gnDS(r)):'',gnCm(r)]})(r)));if(G1){const t=gnTot({rows:g.rows,dc:f.dc,dept:f.dept});L.push(['Subtotal'+(g.title?' - '+g.title:''),'','','',t.pay,'',t.ar,t.v,...f.dc.map(k=>t.d[k.id]),t.net,'','',''])}});
+ const L=[];gnGroups(f).forEach(g=>{const G1=gnGroups(f).length>1||g.title;if(g.title)L.push([g.title]);g.rows.forEach(r=>L.push(((r)=>{const c=gnCalc(r,f);return[r.name,r.acct?'="'+r.acct+'"':'',gnRateD(r,f),gnDaysTx(r),c.has?c.pay:'',(r.mi===''||r.mi==null?'':pn(r.mi)),r.ar===''?'':pn(r.ar),r.v===''?'':pn(r.v),...f.dc.map(k=>(r.d||{})[k.id]===undefined?'':pn(r.d[k.id])),c.has?c.net:'',r.rem||'',gnDS(r)?m13Long(gnDS(r)):'',gnCm(r)]})(r)));if(G1){const t=gnTot({rows:g.rows,dc:f.dc,dept:f.dept});L.push(['Subtotal'+(g.title?' - '+g.title:''),'','','',t.pay,'',t.ar,t.v,...f.dc.map(k=>t.d[k.id]),t.net,'','',''])}});
  cxCsv('13th-Month-Pay-'+MY+'-'+String(f.dept).replace(/[^A-Za-z0-9]+/g,'_')+'.csv',[['13th Month Pay '+MY+' - '+f.dept],H,...L,['Total','','','',T.pay,'',T.ar,T.v,...f.dc.map(k=>T.d[k.id]),T.net,'','',''],...(()=>{const e=gnEntM(f),X=[[''],['Entries :']];e.ents.forEach(x=>{X.push([x.d,x.lb,'','',pn(x.deb),'',x.rd],...x.cr.map(z=>['',z.l,'','','',pn(z.a),z.rm]),['',x.bl,'','','',pn(x.bank),x.rb])});if(e.ents.length>1)X.push(['Total Bank','','','','',e.bank]);const g=gnSig(f);X.push([''],['Prepared By:','','Checked By:','','Approved By:'],[''],[g.prep[0],'',g.chk[0],'',g.apr[0]],[''],[g.prep[1],'','','',g.apr[1]]);return X})()]);
  logAct('Exported 13th month pay form','13th Month Pay',MY+' · '+f.dept);toast('Exported ✔')}
 function mExport(){const M=m13Model(),L=[];
@@ -6502,7 +6503,7 @@ function gnXlsxBuild(f){
  GG.forEach(g=>{
   if(g.title&&!g.st)row(span(1,NC,g.title,st({b:1,i:1,col:NAVY,bd:'g'})),20);
   g.rows.forEach(r=>{const c=gnCalc(r,f),no=gnStat(r)==='no',cl={};
-   cl[1]={v:r.name,s:sNm};cl[2]={v:r.acct||'-',s:sTx};cl[3]={v:r2(gnRateD(r,f)),s:sNum};cl[4]=r.days===''||r.days==null?{v:undefined,s:sInt}:{v:pnn(r.days),s:sInt};
+   cl[1]={v:r.name,s:sNm};cl[2]={v:r.acct||'-',s:sTx};cl[3]={v:r2(gnRateD(r,f)),s:sNum};cl[4]=gnDaysTx(r)===''?{v:undefined,s:sInt}:{v:gnDaysTx(r),s:sInt};
    cl[5]=c.has?{v:c.pay,s:sNum}:{v:undefined,s:sNum};cl[6]=r.mi===''||r.mi==null?{v:undefined,s:sInt}:{v:pnn(r.mi),s:sInt};cl[7]=num(r.ar);cl[8]=num(r.v);
    f.dc.forEach((k,x)=>{cl[9+x]=num((r.d||{})[k.id])});cl[9+DC]=c.has?{v:c.net,s:sNumB}:{v:undefined,s:sNum};
    cl[10+DC]={v:r.rem||undefined,s:sTx};cl[11+DC]={v:gnDS(r)?m13Long(gnDS(r)):undefined,s:sDt};cl[12+DC]={v:gnCm(r)||undefined,s:sTx};row(cl)});
