@@ -5592,7 +5592,7 @@ function m13Back(){GD='';MD='';MQ='';mDraw();scrollTo(0,0)}
 function m13Pick(y){if(String(y)===String(MY))return;if(!m13Leave()){mDraw();return}MY=String(y);m13Open(MY);mDraw()}
 /* ---- 13th Month Pay: which departments each user may view (stored in the user's pages as "m13d:<DEPARTMENT>"; none ticked = all) ---- */
 let M13NF=0;
-const m13Allowed=()=>{if(SUPER||(MYA&&MYA.role==='admin'))return null;const a=((MYA&&MYA.pages)||[]).filter(x=>String(x).indexOf('m13d:')===0).map(x=>String(x).slice(5));return a.length?a:null};
+const m13Allowed=()=>{if(SUPER||(MYA&&(MYA.role==='admin'||(MYA.role==='hr'&&MYA.active))))return null;const a=((MYA&&MYA.pages)||[]).filter(x=>String(x).indexOf('m13d:')===0).map(x=>String(x).slice(5));return a.length?a:null};
 const m13OkD=d=>{const a=m13Allowed();return!a||a.includes(d)};
 window.m13DeptChips=(pg,dis)=>{let F=[];try{F=pFolders()}catch(e){}return F.map(f=>`<label class="ux-chip"><input type="checkbox" class="uad13" data-d="${esc(f)}"${(pg||[]).includes('m13d:'+f)?' checked':''}${dis?' disabled':''}> ${esc(f)}</label>`).join('')};
 window.m13DeptSel=id=>[...document.querySelectorAll('#'+id+' .uad13:checked')].map(c=>'m13d:'+c.dataset.d);
@@ -6061,15 +6061,23 @@ body.m13fv .m13w .m13-ent .m13pv,body.m13fv .m13w .m13-sig .m13pv{display:none!i
 body.m13fv .m13w input.m13d:focus,body.m13fv .m13w .m13e:focus,body.m13fv .m13w .m13sg:focus{background:#fffbd0!important;color:#000!important;outline:2px solid #1e4f94;outline-offset:-1px}
 body.m13fv .m13w .m13-ent .cx-t input.m13e{text-align:left!important}
 body.m13fv .m13w .m13-ent .cx-t input.m13e.r{text-align:right!important}
-#m13fvx{position:fixed;top:12px;right:16px;z-index:400;box-shadow:0 4px 16px #0004}
-@media print{#m13fvx{display:none!important}}`;
+#m13fvx,#m13fvs{position:fixed;top:12px;z-index:400;box-shadow:0 4px 16px #0004}
+#m13fvx{right:16px}#m13fvs{right:172px}
+@media screen{
+body.m13fv.m13fve .m13w .cx-t tbody select.no-print{display:block!important}
+body.m13fv.m13fve .m13w .cx-t tbody .m13-rb.no-print{display:inline-block!important}
+body.m13fv.m13fve .m13w .cx-t tbody .m13stw.no-print{display:flex!important}
+body.m13fv.m13fve .m13w .cx-t tbody .m13nmr{display:flex!important;align-items:center;gap:6px}
+}
+@media print{#m13fvx,#m13fvs{display:none!important}}`;
  document.head.appendChild(st)}
 function m13FullView(on){const B=document.body;
  if(on){if(!document.querySelector('#main .m13w'))return;m13FvCss();M13FVY=window.scrollY;B.classList.add('m13fv');
+  {const ed=!(typeof m13Ro==='function'&&m13Ro());B.classList.toggle('m13fve',ed);let sv=document.getElementById('m13fvs');if(ed&&!sv){sv=document.createElement('button');sv.id='m13fvs';sv.className='btn ok';sv.type='button';sv.title='Save this 13th Month Pay';sv.onclick=()=>m13Save();B.appendChild(sv)}if(sv)sv.textContent='\u2714 Save '+MY}
   if(!document.getElementById('m13fvx')){const b=document.createElement('button');b.id='m13fvx';b.className='btn';b.type='button';b.textContent='\u2715 Exit Full View';b.onclick=()=>m13FullView(false);B.appendChild(b)}
   if(!M13FVO){M13FVO=new MutationObserver(()=>{if(!document.querySelector('#main .m13w'))m13FullView(false)});M13FVO.observe(document.getElementById('main'),{childList:true})}
   scrollTo(0,0)}
- else{if(!B.classList.contains('m13fv'))return;B.classList.remove('m13fv');const b=document.getElementById('m13fvx');if(b)b.remove();if(M13FVO){M13FVO.disconnect();M13FVO=null}scrollTo(0,M13FVY)}}
+ else{if(!B.classList.contains('m13fv'))return;B.classList.remove('m13fv','m13fve');const b=document.getElementById('m13fvx');if(b)b.remove();{const sv=document.getElementById('m13fvs');if(sv)sv.remove()}if(M13FVO){M13FVO.disconnect();M13FVO=null}scrollTo(0,M13FVY)}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('m13fv'))m13FullView(false)});
 /* ===== Payroll: FULL VIEW. Whole form on screen: no sidebar, no toolbar. Still editable; Save / Unlock / Exit float top right. Esc exits. ===== */
 let PZFVO=null,PZFVY=0;
@@ -6537,7 +6545,7 @@ function mXlsx(){const M=m13Model();if(!M.D.length)return toast('Nothing to expo
 const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['att','Attendance'],['psm','Payslip Monitoring'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['dash','Dashboard: full access (click the cards, see Recent activity)'],['act','Activity'],['chkc','COOP Checker (check COOP requests) — also tick Submitted Requests'],['aprc','COOP Approver (final approval of COOP) — also tick Submitted Requests'],['chkv','Vale Checker (check Vale requests) — also tick Submitted Requests'],['aprv','Vale Approver (final approval of Vale) — also tick Submitted Requests'],['chk','Checker: COOP + Vale (all forms)'],['apr','Approver: COOP + Vale (all forms)']];
 const ROLES={admin:['Admin','Full access, including Users & Access',['req','sub','emp','pay','att','psm','addc','m13','mg','tmk','tma','tmp','mgp','mge','dash','act','chkc','aprc','chkv','aprv','chk','apr']],hr:['HR Staff','Requests, 201 Files, Attendance (lock / sync to Payroll), Payroll (summary: add department / line, edit), Timemark Check, Payslip Monitoring, Activity',['req','sub','emp','pay','att','psm','tmk','act']],payroll:['Payroll','Request Form, Payroll, Attendance, Additional Compensation, 13th Month Pay and Monthly Gross',['req','pay','att','addc','m13','mg']],staff:['Staff','Request Form only',['req']]};
 let MYA=null,ACC=false,UL=null;
-const can0=k=>SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||(k!=='usr'&&(MYA.pages||[]).includes(k))||(MYA.role==='hr'&&(k==='att'||k==='psm'))))||(!MYA&&k==='req');const can=k=>k==='pay'?(can0('pay')||!!(MYA&&MYA.active&&MYA.role==='hr')):k==='psm'?(can0('psm')||(can0('pay')&&pxCan('slip'))):k==='mg'?(can0('mg')||(can0('pay')&&pxCan('open'))):k==='ben'?can0('emp'):can0(k);
+const can0=k=>SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||(k!=='usr'&&(MYA.pages||[]).includes(k))||(MYA.role==='hr'&&(k==='att'||k==='psm'||k==='m13'))))||(!MYA&&k==='req');const can=k=>k==='pay'?(can0('pay')||!!(MYA&&MYA.active&&MYA.role==='hr')):k==='psm'?(can0('psm')||(can0('pay')&&pxCan('slip'))):k==='mg'?(can0('mg')||(can0('pay')&&pxCan('open'))):k==='ben'?can0('emp'):can0(k);
 /* ===== Payroll sub-permissions (stored in hrd_access.pages as 'payx:<key>'). None ticked = everything in Payroll (so existing users keep their access). Admin and HR are never restricted. ===== */
 const PXS=[['open','Open the payroll form (amounts &amp; totals)'],['slip','Payslips (view / print / export / email)'],['atm','ATM Accounts'],['exp','Print &amp; Export payroll (Excel, signature sheet)'],['edit','Edit payroll (New, Save, Delete, unlock, settings)']];
 const pxSet=()=>{if(SUPER||!MYA||MYA.role==='admin'||MYA.role==='hr')return null;const a=(MYA.pages||[]).filter(x=>String(x).indexOf('payx:')===0).map(x=>String(x).slice(5));return a.length?a:null};
@@ -7023,7 +7031,7 @@ function rmBoot(){let rt=null;try{rt=localStorage.getItem('hrd_rm')}catch(e){}if
  go()}
 /* ---- 13th Month Pay is VIEW-ONLY for Staff (and for any role other than Admin / Payroll): they can view, use Full view, export and print, but cannot edit, generate, save or delete ---- */
 (function(){
- const RO=()=>!(SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||MYA.role==='payroll')));
+ const RO=()=>!(SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||MYA.role==='payroll'||MYA.role==='hr')));
  window.m13Ro=RO;
  const MSG='13th Month Pay is view-only for your account. You can view, print and export, but you cannot edit or delete.';
  const BLK=['m13Rem','m13Restore','m13Add','m13Save','m13Del','m13HDel','m13Apply','m13ClearDays','mSetD','gnOpen','gnGo','gnBuild','gnDelForm','gnRefresh','gnEntSet','gnEntReset','gnSigSet','gnAddXc','gnAddXcGo','gnColSet','gnColAll','gnXRem','gnXSet','gnClassApply','gnAddRow','gnBasisAll','gnFxOn','gnFxOff','gnUnitSet','gnSet','gnMarkAllNo','gnStSet','gnClsSet','gnMvCls','gnMoveDept','gnMoveOpen','gnMoveGo','gnRem','gnRebasis','gnDaysAll','gnAddDc','gnDcLbl','gnDcRem','gnAddFill','gnAddName','m13AtmSet','gnXLbl','m13AddPick','m13HSel','m13HSelY','m13HAll'];
