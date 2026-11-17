@@ -4753,6 +4753,7 @@ function pXls(){if(PV==='form'&&!pxCan('exp'))return pxNo();if(PV==='form'&&(!PP
 let PSK=true,PSZ=(()=>{try{const v=localStorage.getItem('hrd_pslip_sz');if(['8.5in|11in','210mm|297mm','8.5in|13in','8.5in|14in'].includes(v))return v}catch(e){}return'8.5in|13in'})();
 function pSetSz(v){PSZ=v;try{localStorage.setItem('hrd_pslip_sz',v)}catch(e){}drawSlips()}
 const pPeriod=()=>pLab().toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
+/* Payslip / cash voucher: show only the LAST date of the cutoff (Nov 4-10 -> Nov 10, 2026) */const pCutEnd=()=>{const d=new Date(String(PP.to||'')+'T00:00:00');return isNaN(d)?pPeriod():d.toLocaleString('en',{month:'short'})+' '+d.getDate()+', '+d.getFullYear()};
 function pSlips(){if(!pxCan('slip'))return pxNo();if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the payroll first.');PV='slip';drawP();scrollTo(0,0)}
 function pSlipBack(){PV=pxCan('open')&&!PP.lockd?'form':'hist';drawP();scrollTo(0,0)}
 function pSlipPage(){let st=document.getElementById('pgs');if(!st){st=document.createElement('style');st.id='pgs';document.head.appendChild(st)}const z=PSZ.split('|');st.textContent='@page{size:'+z[0]+' '+z[1]+';margin:0}'}
@@ -4785,7 +4786,7 @@ function pSlip(x){const cv=pIsCvX(x),h=cv?pCvHtml(pSlipModel(x)):pSlipHtml(pSlip
 function pSlipHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,eb,rd:rdv,dn}=M,n=Math.ceil(lss.length/2)||1,
  anyBal=lss.some(k=>bal(k)),dnm=dn?String(dn).split(' · ').map(q=>q.replace(/\s+-?[\d,]*\.?\d+$/,'').trim()).filter(q=>q&&!/^Other$/i.test(q)):[],
  ll=k=>esc(lab(k))+(k==='ded'&&dnm.length===1?` <small class="sl-dl">(${esc(dnm[0])})</small>`:''),rd=rdv?`<small>${pf(rdv[0])} × ${rdv[1]}</small>`:'';
- return`<div class="slip"><div class="sl-co">Rayanton Farms &amp; Livestock Corp.</div><div class="sl-pr">For the period cut off: ${esc(pPeriod())}</div><div class="sl-nm">${esc(s.name)}</div>
+ return`<div class="slip"><div class="sl-co">Rayanton Farms &amp; Livestock Corp.</div><div class="sl-pr">For the period cut off: ${esc(pCutEnd())}</div><div class="sl-nm">${esc(s.name)}</div>
 <div class="sl-r dep"><span>Department</span><b>${esc(g)}</b></div>
 ${adds.length?`<div class="sl-r"><span>Gross Salary${rd}</span><em>${pf(v.pay)}</em></div>${adds.map(k=>`<div class="sl-r"><span>${esc(lab(k))}</span><em>${pf(v[k])}</em></div>`).join('')}<div class="sl-r ln"><span>Gross Salary</span><b>${pf(gross)}</b></div>`:`<div class="sl-r ln"><span>Gross Salary${rd}</span><b>${pf(gross)}</b></div>`}
 <div class="sl-ls">Less : Deductions${anyBal?'<small>Bal.</small>':''}</div>
@@ -4832,7 +4833,7 @@ function pSetSlt(v){if(v!=='cv'&&v!=='reg')return;PP.slt=v;PP.sltD=PF;pSE();PSE.
 /* label in the blue box: EXTRA LAYERS -> Layers, EXTRA HAULING : CINCO -> Hauling/Cinco */
 function pCvTag(g){const s=String(g||'').replace(/^\s*extra\s*[-:]?\s*/i,'').trim(),i=s.indexOf(':'),A=i<0?s:s.slice(0,i),B=i<0?'':s.slice(i+1),tc=w=>w.split(/\s+/).map(x=>/\d/.test(x)||x.length<=3?x:x.charAt(0).toUpperCase()+x.slice(1).toLowerCase()).join(' ');return[tc(A.trim()),tc(B.trim())].filter(Boolean).join('/')||'Extra'}
 function pCvHtml(M){const {s,g,v,r}=M,rm=r&&r.rem?`<div class="cv-rm">Remarks: ${esc(r.rem)}</div>`:'';
- return`<div class="slip cv"><div class="cv-t">CASH VOUCHER</div><div class="cv-co"><span class="cv-pr">${esc(pPeriod())}</span><b class="cv-tag">${esc(pCvTag(g))}</b></div><div class="cv-nm"><span>Name</span><b>${esc(s.name)}</b></div>
+ return`<div class="slip cv"><div class="cv-t">CASH VOUCHER</div><div class="cv-co"><span class="cv-pr">${esc(pCutEnd())}</span><b class="cv-tag">${esc(pCvTag(g))}</b></div><div class="cv-nm"><span>Name</span><b>${esc(s.name)}</b></div>
 <div class="cv-h"><span>PARTICULARS</span><span>AMOUNT</span></div><div class="cv-r"><span>Salary</span><b>${pf(v.net)}</b></div>${rm}
 <div class="cv-sg"><div>Approved by <i></i></div><div class="rc">Received by <i></i></div></div></div>`}
 /* ----- generic multi-sheet .xlsx writer (fonts, fills, borders, merges, filters, print setup) ----- */
@@ -4864,7 +4865,7 @@ function xgBuild(sheets){
   {name:'xl/_rels/workbook.xml.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((S,i)=>'<Relationship Id="rId'+(i+1)+'" Type="'+RT+'/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+'<Relationship Id="rId'+(sheets.length+1)+'" Type="'+RT+'/styles" Target="styles.xml"/></Relationships>'},
   {name:'xl/styles.xml',data:styles}].concat(sx.map((x,i)=>({name:'xl/worksheets/sheet'+(i+1)+'.xml',data:x}))))}
 /* cash vouchers -> Excel: 2 across, same look as the printed voucher */
-function pCvXlsx(LL){const L=LL||pSlipList();if(!L.length)return null;const M=L.map(pSlipModel),per=pPeriod().toUpperCase(),S=xgSheet('Cash Vouchers');
+function pCvXlsx(LL){const L=LL||pSlipList();if(!L.length)return null;const M=L.map(pSlipModel),per=pCutEnd().toUpperCase(),S=xgSheet('Cash Vouchers');
  const BW=[14,10,10,10,10],GW=2,H=[32,22,10,22,8,20,26,10,10,8,26,26,6],R=H.length,GAP=8,bandH=H.reduce((a,b)=>a+b,0),z=PXP[PSZ]||PXP['8.5in|11in'],bands=z[2]>=13?4:3,pageRows=bands*(R+1),perPage=bands*2;
  S.cols=[...BW,GW,...BW];S.paper=z[0];S.fit=1;
  const px=w=>Math.round(w*7+5),Wpt=(BW.reduce((a,w)=>a+px(w),0)*2+px(GW))*.75,Hpt=bands*(bandH+GAP);
@@ -4898,7 +4899,7 @@ function pZip(files){const enc=new TextEncoder(),u16=n=>[n&255,(n>>8)&255],u32=n
  return new Blob([...parts,...cp,end],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
 const pColL=n=>{let t='';while(n>0){const m=(n-1)%26;t=String.fromCharCode(65+m)+t;n=(n-m-1)/26|0}return t};
 const PXP={'8.5in|11in':[1,8.5,11],'210mm|297mm':[9,8.27,11.69],'8.5in|13in':[14,8.5,13],'8.5in|14in':[5,8.5,14]};
-function pXlsxBuild(X,LL){const L=X?X.M:(LL||pSlipList());if(!L.length)return null;const M=X?X.M:L.map(pSlipModel),per=pPeriod();
+function pXlsxBuild(X,LL){const L=X?X.M:(LL||pSlipList());if(!L.length)return null;const M=X?X.M:L.map(pSlipModel),per=pCutEnd();
  const A=Math.max(0,...M.map(m=>m.adds.length)),N=Math.max(5,...M.map(m=>Math.ceil(m.lss.length/2))),anyBal=M.some(m=>m.lss.some(k=>m.bal(k))),anyRem=M.some(m=>m.r.rem),anyDn=M.some(m=>m.dn);
  const plan=[['co',19],['pr',13],['nm',18],['dep',15],...(A?[['g1',15],...Array.from({length:A},()=>['ad',15]),['g2',16]]:[['g2',16]]),...(M.some(m=>m.cm)?[['cm',11]]:[]),['ls',15],...Array.from({length:N},()=>['dd',14.5]),['td',15],['net',24],...(anyRem?[['rm',13]]:[]),...(anyDn?[['dn',13]]:[]),['sg',32]];
  const R=plan.length,GAP=6,slipH=plan.reduce((a,p)=>a+p[1],0),cw=[10.7,9.3,10.7,9.3,9.3],SP=1.3;
@@ -5003,7 +5004,7 @@ function pMailFind(book,s){const k=tmN(s.name);let c=book.filter(e=>tmN(e.name)=
 function pMailT(iso){try{return new Date(iso).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}catch(e){return''}}
 function pMailErr(e){const m=String(e&&e.message||e||'');if(e&&e.status===404||/not found/i.test(m)&&/function/i.test(m))return'Email service is not set up yet (the "send-payslip" function was not found).';return m.slice(0,180)||'Could not send.'}
 // --- email content (inline styles so it looks right in Gmail / Outlook / phones) ---
-function pSlipMailHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd}=M,per=pPeriod(),C=(a,b,o)=>`<tr><td style="padding:3px 0;${o||''}">${a}</td><td align="right" style="padding:3px 0;white-space:nowrap;${o||''}">${b}</td></tr>`,
+function pSlipMailHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd}=M,per=pCutEnd(),C=(a,b,o)=>`<tr><td style="padding:3px 0;${o||''}">${a}</td><td align="right" style="padding:3px 0;white-space:nowrap;${o||''}">${b}</td></tr>`,
  ln='border-top:1px solid #000;',anyBal=lss.some(k=>bal(k)),
  top=adds.length?C('Gross Salary'+(rd?` <small style="color:#666">(${pf(rd[0])} × ${rd[1]})</small>`:''),pf(v.pay))+adds.map(k=>C(esc(lab(k)),pf(v[k]))).join('')+C('Gross Salary',pf(gross),ln+'font-weight:bold;'):C('Gross Salary'+(rd?` <small style="color:#666">(${pf(rd[0])} × ${rd[1]})</small>`:''),pf(gross),'font-weight:bold;'),
  ded=lss.map(k=>`<tr><td style="padding:3px 0">${esc(lab(k))}</td><td align="right" style="padding:3px 0;white-space:nowrap">${pf(v[k])}</td>${anyBal?`<td align="right" style="padding:3px 0 3px 14px;white-space:nowrap;color:#c00000">${bal(k)?pf(bal(k)):''}</td>`:''}</tr>`).join('');
@@ -5022,11 +5023,11 @@ function pSlipMailHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd}=M,per=pPe
 ${r.rem?`<div style="font-size:12px;color:#444;padding-top:4px">Remarks: ${esc(r.rem)}</div>`:''}
 </td></tr></table>
 <p style="margin:14px 0 0;color:#666;font-size:12px">This payslip was sent by HRD, Rayanton Farms &amp; Livestock Corp. For any question, please contact HR. Please keep this email confidential.</p></div>`}
-function pSlipMailText(M){const {s,g,v,r,lab,adds,lss,gross,td,bal}=M,L=[];L.push('Rayanton Farms & Livestock Corp.','For the period cut off: '+pPeriod(),'',s.name,'Department: '+g,'');
+function pSlipMailText(M){const {s,g,v,r,lab,adds,lss,gross,td,bal}=M,L=[];L.push('Rayanton Farms & Livestock Corp.','For the period cut off: '+pCutEnd(),'',s.name,'Department: '+g,'');
  if(adds.length){L.push('Gross Salary: '+pf(v.pay));adds.forEach(k=>L.push(lab(k)+': '+pf(v[k])))}L.push('Gross Salary (total): '+pf(gross),'','Less : Deductions');
  lss.forEach(k=>L.push('  '+lab(k)+': '+pf(v[k])+(bal(k)?'   (Bal. '+pf(bal(k))+')':'')));L.push('Total Deductions: '+pf(td),'NET PAY: '+pf(v.net));if(r.rem)L.push('','Remarks: '+r.rem);return L.join('\n')}
 // --- payslip as a white "paper" picture (PNG for the email body, JPEG inside a PDF) so dark mode cannot recolour it ---
-function pSlipDraw(c,M,fin){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd}=M,per=pPeriod(),anyBal=lss.some(k=>bal(k)),W=520,P=10,L=P+30,R=W-P-30,BX=anyBal?R-100:R,
+function pSlipDraw(c,M,fin){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd}=M,per=pCutEnd(),anyBal=lss.some(k=>bal(k)),W=520,P=10,L=P+30,R=W-P-30,BX=anyBal?R-100:R,
   F='Arial,Helvetica,sans-serif',G='Georgia,"Times New Roman",serif',NAVY='#12305c',GOLD='#b8923a',INK='#1a2233',MU='#66738a',LN='#e6e9f0';
  const T=(t,x,y,o)=>{o=o||{};c.font=(o.i?'italic ':'')+(o.b?'bold ':'')+(o.sz||14)+'px '+(o.f||F);c.fillStyle=o.c||INK;c.textAlign=o.a||'left';c.textBaseline='middle';try{c.letterSpacing=(o.ls||0)+'px'}catch(e){}c.fillText(String(t),x,y);try{c.letterSpacing='0px'}catch(e){}},
   HL=(y,x1,x2,w,col)=>{c.fillStyle=col||LN;c.fillRect(x1,y,x2-x1,w||1)},
@@ -5069,7 +5070,7 @@ function pPdfJpeg(b64,w,h){const bin=atob(b64),n=bin.length,jb=new Uint8Array(n)
  const o=new Uint8Array(len);let p=0;parts.forEach(u=>{o.set(u,p);p+=u.length});return pU8b64(o)}
 function pSlipFiles(M){return{png:pSlipPaper(M).toDataURL('image/png').split(',')[1]}}
 // email body = greeting + the payslip picture (cid:payslip). The PDF is attached so the employee can download / print it.
-function pSlipMailHtmlImg(M){const per=pPeriod();return`<div style="font-family:Arial,Helvetica,sans-serif;color:#111;font-size:14px;line-height:1.5;max-width:520px">
+function pSlipMailHtmlImg(M){const per=pCutEnd();return`<div style="font-family:Arial,Helvetica,sans-serif;color:#111;font-size:14px;line-height:1.5;max-width:520px">
 <p style="margin:0 0 10px">Good day, <b>${esc(M.s.name)}</b>,</p>
 <p style="margin:0 0 14px">Here is your payslip for the period cut off: <b>${esc(per)}</b>. Tap or click the payslip below to open it; you can save or print it from there.</p>
 <img src="cid:payslip" alt="Payslip" width="520" style="display:block;width:100%;max-width:520px;height:auto;background:#ffffff;border:0">
@@ -5099,7 +5100,7 @@ async function pMailSave(){if(!PP.runId)return;try{const h=(PH||[]).find(p=>p.id
 async function pMailGo(ids){if(PMS)return;PMS=true;
  try{PMB=await pMailBook()}catch(e){}
  if(!ids)ids=pMailRows().filter(r=>r.ok&&!r.sentSame).map(r=>r.x.s.id);
- pMailDraw();let ok=0,bad=0;const L=pSlipList(),per=pPeriod();
+ pMailDraw();let ok=0,bad=0;const L=pSlipList(),per=pCutEnd();
  /* sends several payslips at the same time (4 at once) instead of one after another; saves are queued so they never overwrite each other */
  let SQ=Promise.resolve();const saveQ=()=>(SQ=SQ.then(pMailSave,pMailSave));
  async function one(id){const x=L.find(z=>z.s.id===id);if(!x)return;
