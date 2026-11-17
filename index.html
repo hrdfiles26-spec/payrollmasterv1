@@ -5626,7 +5626,7 @@ const m13Days=()=>(M13S&&M13S.days)||{};
 const m13Ent=(o,id)=>{const v=o[id];return v==null?{}:typeof v==='object'?v:{d:v}};
 const m13Long=h=>{const d=new Date(h+'T00:00:00');return isNaN(d)?String(h):d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})};
 const m13LateH=L=>L.length?`<div class="cx-note" style="margin-top:12px"><b>Not included in 13th Month Pay ${esc(MY)} — hired / started probationary October onward:</b><br>${L.map(r=>'• '+esc(r.name)+(r.dept?' ('+esc(r.dept)+')':'')+' — Hired / start: '+esc(m13Long(r.hired))).join('<br>')}</div>`:'';
-const m13Reg=e=>{const r=e&&e.regular_date?String(e.regular_date).slice(0,10):'';if(!/^\d{4}-\d\d-\d\d$/.test(r))return false;const y=/^\d{4}$/.test(String(typeof MY!=='undefined'?MY:''))?String(MY):String(new Date().getFullYear());return r<=y+'-12-31'};/* v619: has a regularization date within the 13th Month year (up to Dec 31) = Regular: no "P", no probationary status */
+const m13Reg=e=>{const y=/^\d{4}$/.test(String(typeof MY!=='undefined'?MY:''))?String(MY):String(new Date().getFullYear());/* v622: date hired (201 File) in an EARLIER year than the 13th Month year = already 1 year or more by Dec 31 = Regular, even if the regularization date is blank or later than Dec 31 */const hh=e?[e.hired,e.training_start,e.probi_start].map(x=>x?String(x).slice(0,10):'').filter(Boolean)[0]||'':'';if(/^\d{4}-\d\d-\d\d$/.test(hh)&&hh.slice(0,4)<y)return true;const r=e&&e.regular_date?String(e.regular_date).slice(0,10):'';if(!/^\d{4}-\d\d-\d\d$/.test(r))return false;return r<=y+'-12-31'};/* v619: has a regularization date within the 13th Month year (up to Dec 31) = Regular: no "P", no probationary status */
 const m13Hd=(e,y)=>{if(!e)return'';const c=[e.hired,e.training_start,e.probi_start].map(x=>x?String(x).slice(0,10):'').filter(Boolean);return c[0]||''};/* v616: always the date hired (a later probationary start must not make an old employee look new) */
 /* v613: Start Date + "how many months" remark are ONLY for employees with less than 1 year (hired this year, or hired within the last 12 months). 1 year or more = no Start Date, no remark. */
 const m13U1=(h,yr)=>false;/* hired before the 13th Month year = 1 year or more by Dec 31: nothing to show */
@@ -5856,7 +5856,7 @@ function m13Extra(noRm,noHist){const S=M13S,rm=noRm?[]:(STF||[]).filter(s=>(S.re
 /* ===== 13th Month Pay: GENERATE a department form from the latest saved payroll (active employees, with their ATM account) ===== */
 let GD='';
 const gnAll=()=>{if(!M13S)return{};return M13S.gen=M13S.gen||{}};
-const gnYr=()=>+((M13S&&M13S.year)||MY),gnMo=r=>r.hd?m13Months(r.hd,gnYr()):null;
+const gnYr=()=>+((M13S&&M13S.year)||MY),gnMo=r=>r.hd?m13Months(r.hd,gnYr()):null,gnNewHire=r=>!!r.hd&&String(r.hd).slice(0,4)===String(gnYr())&&!gnOld(r);/* hired in an EARLIER year than the 13th Month year = already 1 year or more by December, so not under "Less than 1 year" even if an old saved form still has a Start Date */
 /* v621: Breeder / Extra Breeder 13th Month: the Class is the class used in the Breeder payroll (50TANJM3, 52TANJM1, HATCHERY ...), not the farm group (Paper Clip / John Myr / Tanay) */
 const gnBrDept=d=>/breeder/i.test(String(d||'')),gnBrAll=()=>[...new Set([...XBS,...XBL,...XBR,...XBX])];
 function gnGrpOf(r,x){let g=r.grp;const pg=x?(pGrp(x)||''):'',br=!!x&&gnBrDept(x.dept);if(g==null||g===GCP||(br&&g===pg))g=x?(br?(xbCls(x)||pg):pg):'';return String(g==null?'':g)}
@@ -5865,19 +5865,22 @@ const GCP='CONTRACTUAL / PROBATIONARY',GST=[['reg','Regular'],['con','Contractua
 let _gnRC=null,_gnRL=-1,_gnRA=null;
 function gnRegNow(r){try{const A=(Array.isArray(EALL)&&EALL.length?EALL:E)||[],k=A.length+'|'+(typeof MY!=='undefined'?MY:'');if(!_gnRC||_gnRL!==k||_gnRA!==A){_gnRA=A;_gnRC={id:new Map(A.map(e=>[String(e.id),e])),nm:new Map()};A.forEach(e=>{const n=tmN(e.name);if(n&&!_gnRC.nm.has(n))_gnRC.nm.set(n,e)});_gnRL=k}
  const e=(r.eid!=null?_gnRC.id.get(String(r.eid)):null)||_gnRC.nm.get(tmN(r.name));return !!e&&m13Reg(e)}catch(x){return false}}
+/* v622: hired (201 File) in an earlier year than the 13th Month year = 1 year or more by Dec 31: never "Less than 1 year", no Start Date, no months remark */
+function gnOld(r){try{gnRegNow(r);const e=(r.eid!=null?_gnRC.id.get(String(r.eid)):null)||_gnRC.nm.get(tmN(r.name)),y=String(gnYr()),h=e?m13Hd(e,y):'';return /^\d{4}-\d\d-\d\d$/.test(h)&&h.slice(0,4)<y}catch(x){return false}}
+function gnOldFix(r){if(!r||!r.hd||!gnOld(r))return;const y=gnYr(),mo=m13Months(r.hd,y),rx=/^\d+(\.\d+)? mos( \( [^)]*\))?$|^12 mos \( Jan\.- Dec\.\)$/;if(rx.test(String(r.rem||'').trim()))r.rem='';if(r.mi!==''&&r.mi!=null&&(+r.mi===mo||+r.mi===r.mia))r.mi='';delete r.mia;r.hd='';r.hs='';if(r.st==='pro'||r.st==null)r.st='reg';window._gnN=(window._gnN||0)+1}
 
 /* Comment column = the employee's status (Probationary, Contractual, No 13th MP). Regular stays blank. A comment typed by the user (r.cmx) wins; clearing it goes back to the status. */
 const gnCmAuto=r=>{const t=gnStat(r);return t==='reg'?'':((GST.find(x=>x[0]===t)||[])[1]||'')},gnCm=r=>(r.cmx&&r.cm)?r.cm:gnCmAuto(r);
 const gnFx=r=>r.fx!=null,gnCalc=(r,f)=>{const fx=gnFx(r),has=gnStat(r)!=='no'&&(fx?r.fx!=='':(r.days!==''&&r.days!=null)),mi=(r.mi===''||r.mi==null)?null:pn(r.mi),k=(mi!=null&&mi>0&&mi<=12)?mi/12:(r.hd&&gnStat(r)!=='reg'?gnMo(r)/12:1),pay=has?(fx?r2(pn(r.fx)):r2((()=>{const g=gnGross(r,f);return g?g.d/gnDv(r)*pn(r.days):pn(r.rate)*pn(r.days)})()*k)):0,dd=r2(Object.values(r.d||{}).reduce((a,x)=>a+pn(x),0));return{has,pay,dd,net:has?r2(pay-pn(r.ar)-pn(r.v)-dd):0}};
 function gnGroups(f,raw){const sid=new Map((STF||[]).map(x=>[String(x.id),x])),order=gnBrDept(f.dept)?gnBrAll():(PGO[f.dept]||[]),gm=new Map(),SG={con:[],pro:[],ext:[],xt:[],no:[]},NW=[],mb=(a,b)=>(gnMo(b)||0)-(gnMo(a)||0)||String(a.name).localeCompare(String(b.name));/* v618: under 1 year (has months) = at the bottom, most months first */
- f.rows.forEach(r=>{const s=gnStat(r);if(s!=='reg'){(SG[s]||SG.pro).push(r);return}
-  if(r.hd){NW.push(r);return}
+ f.rows.forEach(r=>{gnOldFix(r);const s=gnStat(r);if(s!=='reg'){(SG[s]||SG.pro).push(r);return}
+  if(gnNewHire(r)){NW.push(r);return}
   const g=gnGrpOf(r,sid.get(String(r.id)));if(!gm.has(g))gm.set(g,[]);gm.get(g).push(r)});
  const ix=g=>g===''?-1:(order.indexOf(g)<0?999:order.indexOf(g)),
   out=[...gm.keys()].sort((a,b)=>ix(a)-ix(b)||a.localeCompare(b)).map((k,i)=>({si:i,title:k,rows:gm.get(k).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)))}));
  if(NW.length)out.push({si:out.length,title:'Less than 1 year',rows:NW.slice().sort(mb)});
  [['con','Contractual'],['pro','Probationary'],['ext','Extra Regular'],['xt','Extra'],['no','No 13th MP']].forEach(([k,t])=>{if(SG[k].length)out.push({si:out.length,title:t,st:k,rows:SG[k].slice().sort(mb)})});
- if(M13NC&&!raw){const rk={reg:0,con:1,pro:2,ext:3,xt:3.5,no:4};return[{si:0,title:'',rows:f.rows.slice().sort((a,b)=>((rk[gnStat(a)]??0)+(gnStat(a)==='reg'&&a.hd?.5:0))-((rk[gnStat(b)]??0)+(gnStat(b)==='reg'&&b.hd?.5:0))||mb(a,b))}]}
+ if(M13NC&&!raw){const rk={reg:0,con:1,pro:2,ext:3,xt:3.5,no:4};return[{si:0,title:'',rows:f.rows.slice().sort((a,b)=>((rk[gnStat(a)]??0)+(gnStat(a)==='reg'&&gnNewHire(a)?.5:0))-((rk[gnStat(b)]??0)+(gnStat(b)==='reg'&&gnNewHire(b)?.5:0))||mb(a,b))}]}
  return out}
 function gnTot(f){const R_=f.rows.filter(r=>gnStat(r)!=='no'),t={n:R_.length,pay:0,ar:0,v:0,net:0,d:{}};f.dc.forEach(c=>t.d[c.id]=0);
  R_.forEach(r=>{const c=gnCalc(r,f);t.pay+=c.pay;t.ar+=pn(r.ar);t.v+=pn(r.v);t.net+=c.net;f.dc.forEach(k=>t.d[k.id]+=pn((r.d||{})[k.id]))});
@@ -6403,7 +6406,7 @@ function gnBasisAll(){const f=((M13S||{}).gen||{})[GD];if(!f)return;const v=$('g
  m13Mark();gnDraw();toast(v==='fx'?'Typed amount for everyone ✔ — type each 13th Month Pay in the table':'Back to Rate × No. of Days for everyone ✔')}
 function gnFxOn(id){const{f,r}=gnRow(id);if(!r)return;const c=gnCalc(r,f);r.fx=c.has&&c.pay?c.pay:'';m13Mark();gnDraw();toast(r.name+': type the fixed 13th Month Pay (not based on days)');setTimeout(()=>{const i=[...document.querySelectorAll('.m13d[data-k="fx"]')].find(x=>x.dataset.id===id);if(i){i.focus();i.select()}},0)}
 function gnFxOff(id){const{f,r}=gnRow(id);if(!r)return;delete r.fx;m13Mark();gnDraw();toast(r.name+': back to Rate × No. of Days')}
-const gnDS=r=>{const s=r.hd||r.hs||'';if(!s)return '';/* only employees under 1 year have hd / hs, so only they get a Start Date */try{const A=(Array.isArray(EALL)&&EALL.length?EALL:E)||[];let e=r.eid!=null?A.find(x=>String(x.id)===String(r.eid)):null;if(!e){const n=tmN(r.name);e=A.find(x=>tmN(x.name)===n)}const h=e&&e.hired?String(e.hired).slice(0,10):'';if(/^\d{4}-\d\d-\d\d$/.test(h))return h}catch(x){}return s};/* Start Date column shows the actual date hired (not the probationary start used for the months count) */
+const gnDS=r=>{const s=r.hd||r.hs||'';if(!s||gnOld(r))return '';/* only employees under 1 year have hd / hs, so only they get a Start Date */try{const A=(Array.isArray(EALL)&&EALL.length?EALL:E)||[];let e=r.eid!=null?A.find(x=>String(x.id)===String(r.eid)):null;if(!e){const n=tmN(r.name);e=A.find(x=>tmN(x.name)===n)}const h=e&&e.hired?String(e.hired).slice(0,10):'';if(/^\d{4}-\d\d-\d\d$/.test(h))return h}catch(x){}return s};/* Start Date column shows the actual date hired (not the probationary start used for the months count) */
 /* Weekly-gross employees: the form computes on the daily rate (gross ÷ 7) but shows the gross rate, like the payroll. */
 function gnGross(r,f){try{if(!gnIsG(r,f))return null;const s0=(STF||[]).find(x=>String(x.id)===String(r.id)),cur=s0?pn(s0.rate):0,lt=pn(r.latest),od=pn(r.old);
  const L=(cur&&r2(cur/7)===lt)?cur:r2(lt*7);let O=0;if(od){for(const p of (PH||[])){const v=p&&p.data&&p.data.rates&&p.data.rates[r.id];if(v!=null&&pn(v)&&r2(pn(v)/7)===od){O=pn(v);break}}if(!O)O=r2(od*7)}
