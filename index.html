@@ -4577,7 +4577,7 @@ function pXls(){if(PV==='form'&&!pxCan('exp'))return pxNo();if(PV==='form'&&(!PP
  const cols=pCols().filter(c=>prBal(c.k)?prShow(c.k):!(PRH[PF]||[]).includes(c.k)),G=pGroups(),NC=cols.length+2,cells=new Map(),merges=[],hts={},ck=(r,c)=>r+','+c,
   cell=(r,c)=>{let o=cells.get(ck(r,c));if(!o){o={st:{}};cells.set(ck(r,c),o)}return o},
   put=(r,c1,c2,v,st,rb)=>{rb=rb||r;const o=cell(r,c1);if(v!==undefined&&v!==null&&v!=='')o.v=v;for(let rr=r;rr<=rb;rr++)for(let cc=c1;cc<=c2;cc++)Object.assign(cell(rr,cc).st,st||{});if(c2>c1||rb>r)merges.push(pColL(HRm(c1))+r+':'+pColL(HRm(c2))+rb)},
-  MONEY=164,PESO=165,NAVY='FF12305C',INK='FF1A2233',GRID='thin:FFE1E5EE',HB='thin:FF4B6A99',
+  MONEY=164,PESO=165,NAVY='FF12305C',INK='FF1A2233',GRID='thin:FF000000',HB='thin:FF000000',
   hdr={fn:'Calibri',sz:9,b:1,col:'FFFFFFFF',fill:NAVY,h:'center',v:'center',wrap:1,bl:HB,br:HB,bt:HB,bb:HB};
  // --- column widths + where the centred title block sits ---
  const wd=[];wd[1]=Math.min(40,Math.max(26,...G.flatMap(([,L])=>L.map(s=>s.name.length+3))));wd[2]=10;
@@ -4625,7 +4625,7 @@ function pXls(){if(PV==='form'&&!pxCan('exp'))return pxNo();if(PV==='form'&&(!PP
  const sumRow=(label,S,fill,col,top)=>{hts[r]=19;const st={sz:10,b:1,col,fill,bl:GRID,br:GRID,bt:top,bb:GRID,v:'center'};put(r,1,1,label,{...st,h:'left'});put(r,2,2,'',st);
   cols.forEach((c,i)=>put(r,3+i,3+i,noSum.includes(c.k)?'':r2(S[c.k]),{...st,h:'right',nf:MONEY}));HXC.forEach((c,j)=>put(r,HS+j,HS+j,noSum.includes(c.k)?'':r2(S[c.k]||0),{...st,h:'right',nf:MONEY}));r++};
  G.forEach(([d,L])=>{
-  if(!pSameT(d)){hts[r]=17;put(r,1,NC,pGL(d),{fn:'Georgia',sz:10.5,b:1,col:'FF7A5A12',fill:'FFF3ECE0',bl:'thin:FFEADFC8',br:'thin:FFEADFC8',bt:'thin:FFEADFC8',bb:'thin:FFEADFC8',v:'center'});r++}
+  if(!pSameT(d)){hts[r]=17;put(r,1,NC,pGL(d),{fn:'Georgia',sz:10.5,b:1,col:'FF7A5A12',fill:'FFF3ECE0',bl:'thin:FF000000',br:'thin:FF000000',bt:'thin:FF000000',bb:'thin:FF000000',v:'center'});r++}
   const S=Object.fromEntries(cols.map(c=>[c.k,0]));
   L.forEach(s=>{const v=pVals(s,1),rw=pRow(s),hd=pHeld(s),HX=hd?pHoldX[pHoldK(rw.hold)]:{};hts[r]=17;if(!hd){GT.net+=v.net;GT.coop+=v.coop;GT.tot+=v.tot}
    put(r,1,1,s.name,{...bodyBase,h:'left',...HX});put(r,2,2,pRate(s)||'',{...bodyBase,h:'right',...HX});
@@ -4652,7 +4652,7 @@ function pXls(){if(PV==='form'&&!pxCan('exp'))return pxNo();if(PV==='form'&&(!PP
     if(hd){st.fill=HX.fill;st.col=HX.col}
     put(r,x,x,val,st)});
    if(hasVC)put(r,XC,XC,VCM(s),{...bodyBase,h:'left',wrap:1,sz:9.5,col:'FF4A566B'});r++});
-  sumRow('Subtotal',S,'FFF7F9FC','FF2F3B52','thin:FFDFE4EE')});
+  sumRow('Subtotal',S,'FFF7F9FC','FF2F3B52','thin:FF000000')});
  if(G.length)sumRow('TOTAL',TS,'FFEAF0F9',NAVY,'medium:FF12305C');
  // --- Summary (same look as the on-screen summary): bold right-aligned label | Debit | Credit | Remarks. Salaries line in Debit; SSP / Tax / Deductions / Bank in Credit. ---
  {const SR=smVals();if(SR){const sx0=Math.max(1,NC-4),sl0={sz:10,col:INK,bl:GRID,br:GRID,bt:GRID,bb:GRID,v:'center'},rmS={sz:10,col:'FF66738A',v:'center',h:'left'},rk=k=>{try{return smRK(k)||''}catch(e){return''}};
@@ -7820,6 +7820,9 @@ html[data-theme=dark] .tm-ap{color:#8fb8ff}
 @media screen{#main .ps td input.pi,#main .ps td input.pi.plk{border-radius:0!important;background:transparent!important;box-shadow:none}#main .ps td input.pi:focus{background:#fff8dc!important;box-shadow:inset 0 0 0 2px #1e4f94!important}#main .ps td{background:#fff}#main .ps tr.gh td{background:#f3ece0}#main .ps tr.stt td{background:#f7f9fc}#main .ps tr.gtt td{background:#eaf0f9}}
 /* payroll form: the row you clicked stays highlighted (screen only, never printed) */
 @media screen{#main .ps td.ccel{outline:2px solid #1e4f94;outline-offset:-2px;position:relative;z-index:1}#main .ps th.chd{background:#f3dc8a!important;color:#1a2233!important}html[data-theme=dark] #main .ps th.chd{background:#5a4f1f!important;color:#fff!important}#main .ps tr.rsel td{background:#ffefb0!important;box-shadow:inset 0 1px 0 #e0c46a,inset 0 -1px 0 #e0c46a}#main .ps tr.rsel td.nm{box-shadow:inset 4px 0 0 var(--au),inset 0 1px 0 #e0c46a,inset 0 -1px 0 #e0c46a}html[data-theme=dark] #main .ps tr.rsel td{background:#4a4220!important}}
+/* payroll form: clearer grid lines, on screen and in print */
+@media print{.pw .ps{border:1.5px solid #000!important}.pw .ps th,.pw .ps td{border:1.2px solid #000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.pw .ps tr.gtt td{border-top:2px solid #000!important}}
+@media screen{#main .ps{border:1px solid #5f6f8c}#main .ps th,#main .ps td{border-bottom:1px solid #8794ad;border-right:1px solid #8794ad}#main .ps th{border-right:1px solid #8fa6cf;border-bottom:1px solid #8fa6cf}#main .ps tr.gh td{border-top:1px solid #b9a77a;border-bottom:1px solid #b9a77a}#main .ps tr.stt td{border-top:1px solid #6f7e99}#main .ps tr.gtt td{border-top:2px solid #12305c}#main .ps td.ccel{outline:2px solid #1e4f94;outline-offset:-2px}}
 @media screen{#pem tr.rsel td,#atmm tr.rsel td,#dysm tr.rsel td,#ddsm tr.rsel td,#cpsm tr.rsel td,#vlsm tr.rsel td,#sspm tr.rsel td,#mlm tr.rsel td,#smm tr.rsel td{background:#ffefb0!important;box-shadow:inset 0 1px 0 #e0c46a,inset 0 -1px 0 #e0c46a}#pem th.chd,#atmm th.chd,#dysm th.chd,#ddsm th.chd,#cpsm th.chd,#vlsm th.chd,#sspm th.chd,#mlm th.chd,#smm th.chd{background:#f3dc8a!important;color:#1a2233!important}#pem td.ccel,#atmm td.ccel,#dysm td.ccel,#ddsm td.ccel,#cpsm td.ccel,#vlsm td.ccel,#sspm td.ccel,#mlm td.ccel,#smm td.ccel{outline:2px solid #1e4f94;outline-offset:-2px}html[data-theme=dark] #pem tr.rsel td,html[data-theme=dark] #atmm tr.rsel td,html[data-theme=dark] #dysm tr.rsel td,html[data-theme=dark] #ddsm tr.rsel td,html[data-theme=dark] #cpsm tr.rsel td,html[data-theme=dark] #vlsm tr.rsel td,html[data-theme=dark] #sspm tr.rsel td,html[data-theme=dark] #mlm tr.rsel td,html[data-theme=dark] #smm tr.rsel td{background:#4a4220!important}html[data-theme=dark] #pem th.chd,html[data-theme=dark] #atmm th.chd,html[data-theme=dark] #dysm th.chd,html[data-theme=dark] #ddsm th.chd,html[data-theme=dark] #cpsm th.chd,html[data-theme=dark] #vlsm th.chd,html[data-theme=dark] #sspm th.chd,html[data-theme=dark] #mlm th.chd,html[data-theme=dark] #smm th.chd{background:#5a4f1f!important;color:#fff!important}}
 #pem input[type=number],#atmm input[type=number]{-moz-appearance:textfield;appearance:textfield}#pem input::-webkit-outer-spin-button,#pem input::-webkit-inner-spin-button,#atmm input::-webkit-outer-spin-button,#atmm input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 html[data-theme=dark] #main .ps td input.pi.plk{background:transparent!important}html[data-theme=dark] .pi.plk{background:#1a2438!important}
