@@ -1649,6 +1649,13 @@ function theme(){const n=document.documentElement.getAttribute('data-theme')==='
 document.addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.key===' ')&&t.matches&&t.matches('.side a,.stat.click')){e.preventDefault();t.click()}});
 /* Ctrl+S / Cmd+S = Save payroll (only while the payroll form with its Save button is open; elsewhere the browser keeps its normal behaviour) */
 document.addEventListener('keydown',e=>{if(!(e.ctrlKey||e.metaKey)||e.altKey||e.shiftKey||String(e.key).toLowerCase()!=='s')return;
+ /* v626: Ctrl+S also saves the popup that is open (Entries / Days / COOP / Vale / Deductions) and the Attendance sheet, even when its cells are locked */
+ {const vv=el=>!!(el&&(el.offsetWidth||el.offsetHeight||el.getClientRects().length));
+  const PM=[['pem','peSave'],['dysm','dysSave'],['cpsm','cpsApply'],['vlsm','vlsApply'],['ddsm','ddsApply']];
+  for(const [id,fn] of PM){const m=document.getElementById(id);if(m&&vv(m)&&typeof window[fn]==='function'){e.preventDefault();if(window.__ctrlS)return;window.__ctrlS=1;try{const a=document.activeElement;if(a&&a!==document.body&&a.blur)a.blur()}catch(x){}
+    setTimeout(async()=>{try{await window[fn]()}catch(x){console.error(x)}finally{setTimeout(()=>{window.__ctrlS=0},600)}},60);return}}
+  if(typeof PG!=='undefined'&&PG==='att'){const ab=document.getElementById('atsave');if(ab&&vv(ab)&&!ab.disabled&&typeof window.atSave==='function'){e.preventDefault();if(window.__ctrlS)return;window.__ctrlS=1;try{const a=document.activeElement;if(a&&a!==document.body&&a.blur)a.blur()}catch(x){}
+    setTimeout(async()=>{try{await window.atSave()}catch(x){console.error(x)}finally{setTimeout(()=>{window.__ctrlS=0},600)}},60);return}}}
  const b=document.getElementById('pbs');if(!b||!b.offsetParent||b.disabled||typeof saveP!=='function')return;
  e.preventDefault();if(window.__ctrlS)return;window.__ctrlS=1;
  try{const a=document.activeElement;if(a&&a!==document.body&&a.blur)a.blur()}catch(x){}
@@ -4565,7 +4572,7 @@ async function saveP(){if(!pxCan('edit'))return pxNo();if(PP.lockd)return alert(
   PP.dirty=false;PU=false;pDraftClear();logAct('Saved payroll run','Payroll',body.label);toast('Saved ✔ Added to Payroll History · locked');drawP()}catch(x){alert('Could not save: '+x.message)}}
 function openP(i,sl){if(!sl&&!pxCan('open'))return pxNo();const d=PH[i].data||{};if(!d.rows||!d.rates)return alert('This saved run uses an old format and cannot be opened.');PF=pFo(d);PU=false;PP={...PP,from:d.from,to:d.to,cm:d.cm||null,fdL:d.fd||7,title:d.title,prep:d.prep,chk:d.chk,rows:d.rows,tmd:d.tmd||{},sm:d.sm||smDefault(PF),smx:d.smx||null,cs:d.cs||null,xb:d.xb||null,xbk:null,lk:d.rates,open:d.open||{},mail:d.mail||{},xc:JSON.parse(JSON.stringify(d.xc||[])),hc:d.hc||[],ord:d.ord||null,m:d.m||(PCFG[PF]||{}).m||'r',gpd:d.gpd||null,gpe:d.gpe||null,slt:d.slt||null,sltD:PF,t:d.t||{},det:d.det||[],dirty:false,init:1,runId:PH[i].id,lockd:!!d.ok};try{pElbFix(PF,PP)}catch(e){}PV='form';drawP();scrollTo(0,0)}
 async function delP(i){if(!pxCan('edit'))return pxNo();if(PH[i]&&pOk(PH[i].data))return alert('🔒 Locked. This payroll was OK\'d by HR. HR staff must press Unlock first before it can be edited or deleted. Payslips can still be printed.');if(!confirm('Are you sure you want to delete this saved payroll run? This cannot be undone.'))return;try{const lbl=PH[i].label;await api('/rest/v1/hrd_payroll?id=eq.'+PH[i].id,{method:'DELETE'});logAct('Deleted payroll run','Payroll',lbl);loadH()}catch(x){alert(x.message)}}
-let PPZ='14in 8.5in',PPZU=false;
+let PPZ='13in 8.5in',PPZU=false;
 const PZO=[['13in 8.5in','Long bond 8.5 × 13 (landscape)'],['14in 8.5in','Legal 8.5 × 14 (landscape)'],['8.5in 13in','Long bond 8.5 × 13 (portrait)'],['8.5in 14in','Legal 8.5 × 14 (portrait)']];
 const pzCur=()=>PPZ;
 const pzSel=()=>{const c=pzCur();return PZO.map(o=>`<option value="${o[0]}"${c===o[0]?' selected':''}>${o[1]}</option>`).join('')};
@@ -4578,7 +4585,7 @@ function pcOpen(){const d=ovl('pcm'),u=pUsedFn(),SH=new Set(pCols().map(c=>c.k))
  d.innerHTML=`<div style="${BX};max-width:420px"><h2 style="margin:0 0 4px">Print / Export columns</h2><p class="sub" style="margin:0 0 10px">Check the columns to <b>show</b>. Uncheck to hide. Only the checked columns appear in the payroll form, the printout and the Excel export (all three are always the same). Saved with this payroll.</p><div style="display:grid;gap:6px;margin-bottom:12px">${cols.map(c=>{const on=SH.has(c.k);return`<label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" class="pcc" data-k="${c.k}" data-u="${u(c.k)?1:0}"${on?' checked':''}> ${esc(String(pT('h_'+c.k,pDef(c.k))))}</label>`}).join('')}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" onclick="pcApply(0)">✔ Save</button><button class="btn sm" onclick="pcApply(1)">🖨 Save &amp; Print</button><button class="btn o sm" onclick="pcAuto()">↺ Auto</button><button class="btn o sm" onclick="$('pcm').remove()">Close</button></div></div>`}
 function pcApply(pt){const I=[...document.querySelectorAll('#pcm .pcc')];{/* what is checked here is what the payroll form shows, and what is exported / printed */const sp=['days','fd','pd'],off=I.filter(i=>!i.checked&&!sp.includes(i.dataset.k)).map(i=>i.dataset.k),on=I.filter(i=>i.checked&&!sp.includes(i.dataset.k)).map(i=>i.dataset.k),h0=(PP.hc||[]).slice(),h1=[...new Set(h0.filter(k=>!on.includes(k)).concat(off))];if(JSON.stringify(h0.slice().sort())!==JSON.stringify(h1.slice().sort())){PP.hc=h1;pDirty();drawP()}}$('pcm').remove();toast('Columns saved ✔');if(pt)pr()}
 function pcAuto(){document.querySelectorAll('#pcm .pcc').forEach(i=>{i.checked=i.dataset.u==='1'});toast('Auto: columns with data are checked. Press Save to apply.')}
-function pPrep(sz){const wIn=parseFloat(sz)||13,avail=wIn*96-2*7.6-6;let st=document.getElementById('pgs');if(!st){st=document.createElement('style');st.id='pgs';document.head.appendChild(st)}
+function pPrep(sz){const wIn=parseFloat(sz)||13,avail=wIn*96-2*15.1-6;let st=document.getElementById('pgs');if(!st){st=document.createElement('style');st.id='pgs';document.head.appendChild(st)}
  const cols=pCols(),S=[].concat(...pGroups().map(g=>g[1])),V=S.map(s=>({s,v:pVals(s),r:pRow(s)})),txt=k=>V.map(x=>String(k==='acct'?pAcctV(x.s):(x.r[k]||'')));
  const used=k=>{if(PF==='EXTRA BREEDER')return true;if(['pay','net','tot'].includes(k))return true;if(k==='rem'||k==='arem'||k==='acct')return txt(k).some(x=>x.trim());if(k==='days')return V.some(x=>pn(x.r.days)!==0);if(k==='fd'||k==='pd')return true;return V.some(x=>pn(x.v[k])!==0)};
  const man=null,hid=[],vis=cols.filter(c=>!hid.includes(c.k)),nl=Math.min(34,Math.max(14,...S.map(s=>s.name.length)));
@@ -4588,8 +4595,7 @@ function pPrep(sz){const wIn=parseFloat(sz)||13,avail=wIn*96-2*7.6-6;let st=docu
  const hs=[...hid.map(k=>'.k_'+k),...gh].join(',');
  const runs=[];for(let i=0;i<cols.length;){const c=cols[i];if(c.g){let j=i;while(j<cols.length&&cols[j].g===c.g)j++;runs.push(cols.slice(i,j));i=j}else i++}
  document.querySelectorAll('table.ps th[class^="gp_"]').forEach((th,ix)=>{const r=runs[ix]||[],n=r.filter(c=>!hid.includes(c.k)).length;if(th.dataset.cs==null)th.dataset.cs=th.colSpan;th.colSpan=Math.max(1,n);th.style.display=n||!r.length?'':'none'});
- let zm=1;try{const tb=document.querySelector('.pw table.ps');if(tb){const tm=document.createElement('style');tm.textContent=':root{--pf:'+f+'px}.pw table.ps{width:auto!important;min-width:0!important}'+(hs?hs+'{display:none!important}':'');document.head.appendChild(tm);const nw=tb.getBoundingClientRect().width;tm.remove();const av=wIn*96-20;if(nw>0)zm=Math.max(.4,Math.min(1,av/nw))}}catch(e){}
- st.textContent='@page{size:'+sz+';margin:0}@media print{'+(zm<1?'.pw{zoom:'+zm.toFixed(3)+'!important;width:calc(100%/'+zm.toFixed(3)+')!important}':'')+'html,body{margin:0!important;padding:0!important}main,#main{margin:0!important;padding:0!important;max-width:none!important}.pw table.ps{width:100%!important;min-width:0!important}.pw{padding:0 2mm!important;margin:0!important}:root{--pf:'+f+'px}'+(hs?hs+'{display:none!important}':'')+'}';return{f,hid}}
+ st.textContent='@page{size:'+sz+';margin:4mm}@media print{:root{--pf:'+f+'px}'+(hs?hs+'{display:none!important}':'')+'}';return{f,hid}}
 addEventListener('afterprint',()=>document.querySelectorAll('th[data-cs]').forEach(th=>{th.colSpan=+th.dataset.cs;th.style.display='';delete th.dataset.cs}));
 function pr(){if(PV==='form'&&!pxCan('exp'))return pxNo();if(PV==='form'&&(!PP.runId||PP.dirty))return toast('Save the payroll first.');const z=$('ppz');if(z){PPZ=z.value;PPZU=true}pPrep(PPZ);print()}
 addEventListener('beforeprint',()=>{if(PG==='pay'&&PV==='form'&&STF)try{pPrep(PPZ)}catch(e){}});
@@ -10869,19 +10875,27 @@ window.psm=async function(){
  if(!F.includes(PS.d)){PS.d='';PS.r=''}
  const R=runs(PS.d);if(!R.some(p=>String(p.id)===String(PS.r)))PS.r='';
  await psmView(PS.r&&PS.v==='list'?'list':(wasList&&['sum','grid','due'].includes(PS.v)?PS.v:'due'))};
+window.psmEd=()=>!!((typeof hrx==='function'&&hrx())||(typeof can==='function'&&can('psm')));
 async function psmLoad(){PS.ret={};PS.bad=false;if(PS.r){try{PS.ret=await getRet(PS.r)}catch(e){PS.bad=true}}if(PG==='psm')psmDraw()}
 window.psmSel=async(k,v)=>{PS[k]=v;if(k==='d'||k==='r')PS.sg='';if(k==='d'){PS.cl='';PS.r=v&&runs(v)[0]?String(runs(v)[0].id):'';await psmLoad()}else if(k==='r'){PS.cl='';await psmLoad()}else psmDraw()};
 window.psmTog=async(id,on)=>{await psmSet([id],on)};
-window.psmAll=async on=>{if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can mark payslips.');const p=cur();if(!p)return;const L=psmShown(p).map(x=>x.id);if(!L.length)return;if(!confirm((on?'Mark ':'Clear ')+L.length+' name(s) as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(L,on)};
-async function psmSet(ids,on){if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can mark payslips.');if(PS.busy)return;PS.busy=true;const p=cur();if(!p){PS.busy=false;return}
- try{const ret=await getRet(p.id);const at=new Date().toISOString(),by=me();
-  ids.forEach(id=>{if(on){if(!ret[id])ret[id]={at:at,by:by}}else delete ret[id]});
-  await putRet(p.id,ret);PS.ret=ret;try{logAct((on?'Marked payslip returned':'Cleared payslip returned'),'Payslip Monitoring',PS.d+' — '+lb(p.data.from,p.data.to)+' ('+ids.length+')')}catch(e){}}
- catch(e){alert('Could not save: '+(e.message||e))}
- PS.busy=false;psmDraw()}
+window.psmAll=async on=>{if(!psmEd())return toast('View only: you do not have access to mark payslips.');const p=cur();if(!p)return;const L=psmShown(p).map(x=>x.id);if(!L.length)return;if(!confirm((on?'Mark ':'Clear ')+L.length+' name(s) as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(L,on)};
+let PSQ=Promise.resolve();
+const psmTO=(pr,ms)=>Promise.race([pr,new Promise((_,rj)=>setTimeout(()=>rj(new Error('The server took too long to respond. Check your internet and try again.')),ms))]);
+async function psmSet(ids,on){if(!psmEd())return toast('View only: you do not have access to mark payslips.');const p=cur();if(!p)return;
+ /* v626: the tick shows immediately; saving is queued so fast clicks are never lost and one slow request can never freeze the checkboxes */
+ const pid=p.id,at=new Date().toISOString(),by=me();
+ ids.forEach(id=>{if(on){if(!PS.ret[id])PS.ret[id]={at:at,by:by}}else delete PS.ret[id]});psmDraw();
+ PSQ=PSQ.then(async()=>{
+  try{const ret=await psmTO(getRet(pid),20000);ids.forEach(id=>{if(on){if(!ret[id])ret[id]={at:at,by:by}}else delete ret[id]});
+   await psmTO(putRet(pid,ret),20000);
+   if(String(PS.r)===String(pid)){PS.ret=ret;psmDraw()}
+   try{logAct((on?'Marked payslip returned':'Cleared payslip returned'),'Payslip Monitoring',PS.d+' — '+lb(p.data.from,p.data.to)+' ('+ids.length+')')}catch(e){}}
+  catch(e){alert('Could not save: '+(e.message||e));try{if(String(PS.r)===String(pid)){PS.ret=await getRet(pid);psmDraw()}}catch(x){}}
+ });return PSQ}
 function psmCl(x){const s=(STF||[]).find(y=>String(y.id)===String(x.id));return gCls(s?pGrp(s):'')||'(no class)'}
 let PCL=[];
-window.psmCAll=async k=>{if(!(typeof hrx==='function'&&hrx()))return toast('View only: only HR staff or an admin can mark payslips.');const ids=PCL[k]||[];if(!ids.length)return;const on=!ids.every(id=>PS.ret[id]);if(!confirm((on?'Mark ':'Clear ')+ids.length+' name(s) of this class as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(ids,on)};
+window.psmCAll=async k=>{if(!psmEd())return toast('View only: you do not have access to mark payslips.');const ids=PCL[k]||[];if(!ids.length)return;const on=!ids.every(id=>PS.ret[id]);if(!confirm((on?'Mark ':'Clear ')+ids.length+' name(s) of this class as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(ids,on)};
 /* scope opened from the Dashboard: '2' = classes with 14 days (B2/B4/B7/B14), '1' = classes with 7 days, '' = all classes */
 function psmGrp(x){const s0=(STF||[]).find(y=>String(y.id)===String(x.id));return psm2w(s0,x)?'2':'1'}
 function psmShown(p){const q=(PS.q||'').trim().toUpperCase();return people(p).filter(x=>(!q||x.n.toUpperCase().includes(q))&&(!PS.sg||psmGrp(x)===PS.sg)&&(!PS.cl||psmCl(x)===PS.cl)&&(PS.f==='all'||(PS.f==='no'?!PS.ret[x.id]:!!PS.ret[x.id])))}
@@ -10989,15 +11003,15 @@ function psmDraw(){
  if(PS.v==='due')return psmDueDraw();
  const F=pFolders().filter(f=>runs(f).length),R=runs(PS.d),p=cur(),op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
  const all=p?people(p).filter(x=>!PS.sg||psmGrp(x)===PS.sg):[],tot=all.length,done=all.filter(x=>PS.ret[x.id]).length,pct=tot?Math.round(done/tot*100):0,comp=tot>0&&done===tot,L=p?psmShown(p):[];
- const ed=!!(typeof hrx==='function'&&hrx());
+ const ed=psmEd();
  const fd=r=>new Date(r.at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
- const rowOf=(x,i)=>{const r=PS.ret[x.id];return`<tr class="${r?'ok':''}"><td class="psm-n">${i+1}</td><td><div class="psm-nm"><span class="psm-av">${esc(ini(x.n))}</span>${esc(x.n)}</div></td><td class="psm-c"><label class="psm-ck"><input type="checkbox"${r?' checked':''}${ed&&!PS.bad?'':' disabled'} onchange="psmTog('${esc(x.id)}',this.checked)"><span></span></label></td><td>${r?`<span class="psm-pill c">Returned</span><span class="psm-dt">${esc(fd(r))}</span>`:'<span class="psm-pill p">Pending</span>'}</td><td class="psm-by">${r?esc(r.by||''):''}</td></tr>`};
+ const rowOf=(x,i)=>{const r=PS.ret[x.id];return`<tr class="${r?'ok':''}"><td class="psm-n">${i+1}</td><td><div class="psm-nm"><span class="psm-av">${esc(ini(x.n))}</span>${esc(x.n)}</div></td><td class="psm-c"><label class="psm-ck"><input type="checkbox"${r?' checked':''}${ed?'':' disabled'} onchange="psmTog('${esc(x.id)}',this.checked)"><span></span></label></td><td>${r?`<span class="psm-pill c">Returned</span><span class="psm-dt">${esc(fd(r))}</span>`:'<span class="psm-pill p">Pending</span>'}</td><td class="psm-by">${r?esc(r.by||''):''}</td></tr>`};
  PCL=[];const gm=new Map(),tm=new Map(),nat=(a,b)=>a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});
  L.forEach(x=>{const c=psmCl(x);if(!gm.has(c))gm.set(c,[]);gm.get(c).push(x)});
  all.forEach(x=>{const c=psmCl(x),o=tm.get(c)||{t:0,d:0};o.t++;if(PS.ret[x.id])o.d++;tm.set(c,o)});
  const clsAll=[...tm.keys()].sort(nat);
  const rows=[...gm.keys()].sort((a,b)=>(a==='(no class)')-(b==='(no class)')||nat(a,b)).map(c=>{const o=tm.get(c),ids=gm.get(c).map(x=>x.id),k=PCL.push(ids)-1,cp=o.t>0&&o.d===o.t;
-  return(c==='(no class)'?'':`<tr class="psm-ch"><td colspan="5"><span class="psm-cn">${esc(c)}</span><span class="psm-pill ${cp?'c':'i'}">${o.d}/${o.t}${cp?' ✓':''}</span>${ed&&!PS.bad?`<button class="psm-open" onclick="psmCAll(${k})">${ids.every(id=>PS.ret[id])?'Clear class':'Mark class returned'}</button>`:''}</td></tr>`)+gm.get(c).map((x,i)=>rowOf(x,i)).join('')}).join('');
+  return(c==='(no class)'?'':`<tr class="psm-ch"><td colspan="5"><span class="psm-cn">${esc(c)}</span><span class="psm-pill ${cp?'c':'i'}">${o.d}/${o.t}${cp?' ✓':''}</span>${ed?`<button class="psm-open" onclick="psmCAll(${k})">${ids.every(id=>PS.ret[id])?'Clear class':'Mark class returned'}</button>`:''}</td></tr>`)+gm.get(c).map((x,i)=>rowOf(x,i)).join('')}).join('');
  $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring · Checklist</h1><p class="sub">Choose a department and a cutoff, then tick each name once the <b>signed payslip</b> has been returned.</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('list')}</div></div>
 ${PS.bad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). Do not tick anything until this is fixed — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Department</label><select class="fi" onchange="psmSel('d',this.value)">${op('','— Select department —',!PS.d)}${F.map(f=>op(f,f,f===PS.d)).join('')}</select></div><div><label>Cutoff</label><select class="fi" ${PS.d?'':'disabled'} onchange="psmSel('r',this.value)">${op('','— Select cutoff —',!PS.r)}${R.map(x=>op(x.id,lb(x.data.from,x.data.to),String(x.id)===String(PS.r))).join('')}</select></div></div></div>
