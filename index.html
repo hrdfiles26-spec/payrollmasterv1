@@ -3263,20 +3263,22 @@ function empNamesExport(){const ks=Object.keys(EXG||{}).sort(dsort);if(!ks.lengt
   try{logAct('Exported employee names','201 Files',n+' name(s), '+ks.length+' department(s)')}catch(e){}toast('Exported ✔')}
 const inCat=(e,k)=>k==='all'||(k==='New'?isNew(e):k==='Returnee'?isReturnee(e):k==='—'?(catOf(e)==='—'&&!isReturnee(e)):catOf(e)===k);
 function brdBanner(){return brdMissing().length?`<div class="panel" style="max-width:none;margin:0 0 20px"><h3>Employees available to add</h3><p class="sub" style="margin:0 0 12px;font-size:14px">${brdSum().map(([d,n])=>`<b>${esc(d)}</b>: ${n} employee(s)`).join(' &nbsp;·&nbsp; ')}. They are not in 201 Files yet. Includes position, dates, SSS, PhilHealth, Pag-IBIG and more.</p><button class="btn" onclick="brdImport()">⬆ Add ${brdMissing().length} employees</button> <button class="btn o" onclick="brdHide()" title="Do not offer these names again">Don't show again</button></div>`:''}
+/* 201 Files name search: redraw once after typing pauses (was redrawing the whole page on every keystroke = lag) */
+function eqGo(){clearTimeout(window.EQTM);window.EQTM=setTimeout(()=>{if(EV!=='list'||!$('q'))return;window.EQT=1;try{drawE()}finally{window.EQT=0}const e=$('q');if(e){e.focus();const n=String(ef.q||'').length;try{e.setSelectionRange(n,n)}catch(x){}}},220)}
 function drawE(){EV='list';if(EPEND){EPEND=false;setTimeout(()=>{try{liveSync('hrd_employees')}catch(x){}},80)}const TY=!!window.EQT;if(!TY)badge();const A=(TY&&window.AQC)||(window.AQC=alerts());
  const BN=(TY&&window.BNC!=null)?window.BNC:(window.BNC=dpBanner()+rsBanner()+pfBanner()+brdBanner());
  const g=(t,l)=>{const a=A.filter(x=>x.t===t);return a.length?`<div style="margin-bottom:10px"><b>${l}</b><br>${a.map(x=>`<span class="pn" style="cursor:pointer;margin:4px 6px 0 0;${x.od?'background:#fbe9e6;color:#a3302a;':''}" onclick="ntf(${x.i},'${x.t}')">${esc(x.e.name)} — ${x.m}</span>`).join('')}</div>`:''};
  const al=A.length?`<div class="panel" style="max-width:none;margin:0 0 20px"><h3>🔔 Notifications</h3>${g('d','⚠️ Duplicate name and surname')}${g('r','📅 Probationary ending soon (30 days)')}</div>`:'';
- const depts=[...new Set(E.map(e=>nd(e.dept||'No Department')).concat(can('mge')?['TOP MANAGEMENT']:[]))].sort(dsort);
- const L=E.map((e,i)=>({e,i})).filter(({e})=>(ef.d==='all'||nd(e.dept||'No Department')===ef.d)&&(e.name+' '+(e.position||'')).toLowerCase().includes(ef.q.toLowerCase())&&inCat(e,ef.f));
- const EB=E.filter(e=>(ef.d==='all'||nd(e.dept||'No Department')===ef.d)&&(e.name+' '+(e.position||'')).toLowerCase().includes(ef.q.toLowerCase()));
+ const EQL=String(ef.q||'').toLowerCase(),depts=[...new Set(E.map(e=>nd(e.dept||'No Department')).concat(can('mge')?['TOP MANAGEMENT']:[]))].sort(dsort);
+ const L=E.map((e,i)=>({e,i})).filter(({e})=>(ef.d==='all'||nd(e.dept||'No Department')===ef.d)&&(e.name+' '+(e.position||'')).toLowerCase().includes(EQL)&&inCat(e,ef.f));
+ const EB=E.filter(e=>(ef.d==='all'||nd(e.dept||'No Department')===ef.d)&&(e.name+' '+(e.position||'')).toLowerCase().includes(EQL));
  const CH=[['all','All Status'],['Training','Under Training'],['Probationary','Under Probationary'],['Regular','Regular'],['Extra','Extra'],['—','No status'],['End of Contract','End of Contract'],['Resigned','Resigned'],['AWOL','AWOL'],['Terminated','Terminated'],['New','Newly Hired'],['Returnee','Returnee']];
  const so={name:(a,b)=>a.e.name.localeCompare(b.e.name),new:(a,b)=>(b.e.hired||'').localeCompare(a.e.hired||''),stage:(a,b)=>ORD.indexOf(stage(a.e))-ORD.indexOf(stage(b.e))};
  L.sort(so[ef.s]);const G={};L.forEach(x=>(G[nd(x.e.dept||'No Department')]=G[nd(x.e.dept||'No Department')]||[]).push(x));
  const fd=d=>d?new Date(d+'T00:00:00').toLocaleDateString():'—';
  EXG=G;
  $('main').innerHTML=`<h1>201 Files</h1><p class="sub">Employee records — admin access only.</p>${BN}
-<div class="tabs tb"><input id="q" class="fi" placeholder="Search name…" value="${esc(ef.q)}" oninput="ef.q=this.value;window.EQT=1;try{drawE()}finally{window.EQT=0}const e=$('q');e.focus();e.setSelectionRange(ef.q.length,ef.q.length)">
+<div class="tabs tb"><input id="q" class="fi" placeholder="Search name…" value="${esc(ef.q)}" oninput="ef.q=this.value;eqGo()">
 <select onchange="ef.f=this.value;drawE()">${CH.map(([k,l])=>{const n=k==='all'?EB.length:EB.filter(e=>inCat(e,k)).length;return `<option value="${k}"${ef.f===k?' selected':''}>${(CC[k]?CC[k][3]+' ':k==='New'?'🆕 ':k==='Returnee'?'🔁 ':'')}${l} (${n})</option>`}).join('')}</select>
 <select onchange="ef.d=this.value;drawE()"><option value="all">All Departments</option>${depts.map(d=>`<option${ef.d===d?' selected':''}>${esc(d)}</option>`).join('')}</select>
 <select onchange="ef.s=this.value;drawE()">${[['name','Name: A–Z'],['new','Newest hired'],['stage','Status']].map(([v,t])=>`<option value="${v}"${ef.s===v?' selected':''}>${t}</option>`).join('')}</select>
