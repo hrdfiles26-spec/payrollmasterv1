@@ -3625,13 +3625,15 @@ function clrHtml(e,o,logoSrc,w){
  /* ---- page 2: two cash vouchers ---- */
  const T=TN+'font-size:12.5pt;font-weight:bold;';
  const cv=`<p style="${TN}text-align:center;font-size:24pt;font-weight:bold;text-decoration:underline;margin:0">CASH VOUCHER</p>
-<table width="739" cellspacing="0" cellpadding="0" style="margin-top:18px"><tr><td style="${T}">Paid to ${U(48)}</td><td align="right" style="${T}">Date: ${U(28)}</td></tr></table>
+<table width="681" cellspacing="0" cellpadding="0" style="margin-top:18px"><tr><td style="${T}">Paid to ${U(48)}</td><td align="right" style="${T}">Date: ${U(28)}</td></tr></table>
 <div style="border-bottom:1.5px solid #000;height:6px;font-size:1pt;line-height:1pt">&nbsp;</div>
 <p style="${TN}text-align:center;font-weight:bold;letter-spacing:4px;font-size:14pt;border-bottom:4px double #000;margin:0;padding:3px 0">PARTICULARS</p>
-<table width="739" cellspacing="0" cellpadding="0"><tr><td width="517" height="240" valign="top" style="${T}padding-top:12px">Received from Rayanton Farms and Livestock Corp. the amount of<br>${U(44)} (P${U(15)})<br><span style="font-size:11.5pt">&nbsp;for all benefits including salary, partial 13<sup>th</sup> month, pondo,<br>COOP interest, and all other benefits due.</span><br><br><br>Received by: ${U(15)}<br><br><p style="${TN}text-align:right;font-size:10.5pt;font-weight:bold;margin:0">TOTAL=P=&nbsp;&nbsp;</p></td>
-<td width="222" valign="top" style="${T}border-left:4px double #000">AMOUNT</td></tr></table>
+<table width="681" cellspacing="0" cellpadding="0"><tr><td width="517" height="240" valign="top" style="${T}padding-top:12px">Received from Rayanton Farms and Livestock Corp. the amount of<br>${U(44)} (P${U(15)})<br><span style="font-size:11.5pt">&nbsp;for all benefits including salary, partial 13<sup>th</sup> month, pondo,<br>COOP interest, and all other benefits due.</span><br><br><br>Received by: ${U(15)}<br><br><p style="${TN}text-align:right;font-size:10.5pt;font-weight:bold;margin:0">TOTAL=P=&nbsp;&nbsp;</p></td>
+<td width="164" valign="top" style="${T}border-left:4px double #000">AMOUNT</td></tr></table>
 <div style="border-top:4px double #000;font-size:1pt;line-height:1pt">&nbsp;</div><p style="${T}border-bottom:1.5px solid #000;padding:10px 0 2px;margin:0">Approved by: ${U(14)}</p>`;
- const p2=`${PB}${cv}<p style="margin:0;font-size:1pt;line-height:40pt;mso-line-height-rule:exactly">&nbsp;</p>${cv}`;
+ /* margin: same kind of side margin as the other clearance pages (voucher is 681px wide, centered inside the 739px text area) */
+ const cvM=`<table width="739" cellspacing="0" cellpadding="0"><tr><td width="29">&nbsp;</td><td width="681" valign="top">${cv}</td><td width="29">&nbsp;</td></tr></table>`;
+ const p2=`${PB}<p style="margin:0;font-size:1pt;line-height:18pt;mso-line-height-rule:exactly">&nbsp;</p>${cvM}<p style="margin:0;font-size:1pt;line-height:40pt;mso-line-height-rule:exactly">&nbsp;</p>${cvM}`;
  /* ---- page 3: exit requirements + resigned employee final pay ---- */
  const FL=CL+'font-size:10.5pt;white-space:nowrap;',RD=CL+'color:#e4676b;font-weight:bold;font-size:10.5pt;';
  const fl=l=>`<tr><td width="128" height="25" style="${FL}">${l}</td><td style="border-bottom:1px solid #000">&nbsp;</td></tr>`;
