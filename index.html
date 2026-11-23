@@ -3256,6 +3256,95 @@ async function dpMerge(){if(!isAdm())return;await loadE(true);const g=dpGroups()
  await loadE(true);toast('Removed '+ok+' duplicate record(s)'+(bad?' ('+bad+' failed)':'')+' ✔');drawE()}
 let EXG={};
 /* Export the employee names per department (CSV, opens in Excel). Uses the filters currently on screen: choose a department to export only that one. */
+/* ===== 201 Files -> Excel (.xlsx): every detail, photo thumbnails, one sheet per status (+ an All sheet) ===== */
+const EXC=[ // [header, width, getter(e,x), flags]  flags: w=wrap, s=separated-only
+ ['Photo',11,()=>''],
+ ['Employee Name',34,(e)=>e.name||''],
+ ['Department',20,(e)=>nd(e.dept||'No Department')],
+ ['Designation',24,(e)=>e.position||''],
+ ['Status',18,(e)=>exStat(e)],
+ ['Rate',10,(e,x)=>{const pr=emp201Pay(e);return pr?String(+pr.rate):(x.rate||(e.salary?String(e.salary):''))}],
+ ['Starting Salary',13,(e,x)=>x.startsal||''],
+ ['Cut off',10,(e,x)=>x.cutoff||''],
+ ['Date Hired',14,(e)=>fdS(e.hired)],
+ ['Training Start',14,(e)=>fdS(e.training_start)],
+ ['Probationary Start',16,(e)=>fdS(e.probi_start)],
+ ['Probationary End',16,(e,x)=>fdS(x.pend)],
+ ['Extension Start',15,(e,x)=>fdS(x.extst)],
+ ['Extension End',14,(e,x)=>fdS(x.ext)],
+ ['Regularized',14,(e)=>fdS(e.regular_date)],
+ ['Separation Date',15,(e)=>SEP.includes(e.emp_status)?fdS(e.status_date):''],
+ ['SSS #',17,(e)=>e.sss||''],
+ ['Pag-IBIG #',18,(e)=>e.pagibig||''],
+ ['PhilHealth #',17,(e)=>e.philhealth||''],
+ ['TIN',16,(e)=>e.tin||''],
+ ['Birthdate',14,(e,x)=>fdS(x.birth)],
+ ['Civil Status',12,(e,x)=>x.civil||''],
+ ['Address',38,(e,x)=>x.addr||'','w'],
+ ['Contact No.',16,(e,x)=>x.contact||''],
+ ['Emergency Contact',24,(e,x)=>x.emerg||''],
+ ['Emergency No.',16,(e,x)=>x.emergno||''],
+ ['Email',26,(e,x)=>x.email||''],
+ ['Remarks',30,(e,x)=>x.remarks||'','w'],
+ ['Notes',30,(e)=>splitN(e.notes).rest||'','w'],
+ ['Clearance Status',16,(e,x)=>x.rsstat||'','s'],
+ ['Dismissal Grounds',24,(e,x)=>x.rsground||'','sw'],
+ ['Total Cash',13,(e,x)=>x.rscash||'','sn'],
+ ['Last Pay',13,(e,x)=>x.rslast||'','sn'],
+ ['Others / Tax',13,(e,x)=>x.rsoth||'','sn'],
+ ['FH',11,(e,x)=>x.rsfh||'','sn'],
+ ['Coop & Bond',13,(e,x)=>x.rscoop||'','sn'],
+ ['Interest',11,(e,x)=>x.rsint||'','sn'],
+ ['Interest Rate %',12,(e,x)=>x.rsrate||'','s'],
+ ['13th / AC',12,(e,x)=>x.rs13||'','sn'],
+ ['Resignation Remarks',30,(e,x)=>x.rsrem||'','sw'],
+ ['Release Remarks',30,(e,x)=>x.rsrel||'','sw'],
+ ['Previous Employment (History)',46,(e,x)=>histOf(x).map((h,i)=>(i+1)+') '+[h.dept,h.position].filter(Boolean).join(' / ')+' · Hired '+(fdS(h.hired)||'—')+' · '+(h.sep||'Resigned')+' '+(fdS(h.resigned)||'—')+(h.rsground?' · '+h.rsground:'')).join('\n'),'w'],
+ ['Transfer History',46,(e,x)=>xferOf(x).map(t=>(fdS(String(t.d||'').slice(0,10))||'—')+': '+(t.fd||'—')+(t.fg?' · '+t.fg:'')+' → '+(t.td||'—')+(t.tg?' · '+t.tg:'')).join('\n'),'w']
+];
+const exStat=e=>(isReturnee(e)?'Returnee · ':'')+lb(catOf(e)==='—'?'No status':catOf(e));
+const exArgb=h=>'FF'+String(h).replace('#','').toUpperCase();
+const EXG_ORDER=['Regular','Returnee','Probationary','Training','Extra','End of Contract','Resigned','AWOL','Terminated','No Status'];
+const exGroup=e=>{const c=catOf(e);if(SEP.includes(e.emp_status))return e.emp_status;if(isReturnee(e))return'Returnee';return c==='—'?'No Status':c};
+async function exThumb(path){ // signed URL -> small square JPEG (keeps the file light)
+ const c=PHC[path];if(!c||c.t<=Date.now())return null;const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),20000);
+ try{const r=await fetch(c.u,{signal:ac.signal});if(!r.ok)return null;const bm=await createImageBitmap(await r.blob()),N=120,cv=document.createElement('canvas');cv.width=cv.height=N;const g=cv.getContext('2d'),s=Math.min(bm.width,bm.height);g.fillStyle='#fff';g.fillRect(0,0,N,N);g.drawImage(bm,(bm.width-s)/2,(bm.height-s)/4>0?(bm.height-s)/4:0,s,s,0,0,N,N);
+  const b=await new Promise(rs=>cv.toBlob(rs,'image/jpeg',.82));return b?new Uint8Array(await b.arrayBuffer()):null}catch(x){return null}finally{clearTimeout(tm)}}
+async function empXlsxExport(){
+ if(!E||!E.length)return toast('No employees to export.');
+ if(window.EXRUN)return;window.EXRUN=1;
+ const bx=document.createElement('div');bx.style.cssText='position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:99999;background:#12305c;color:#fff;padding:12px 20px;border-radius:12px;font:600 14px DM Sans,sans-serif;box-shadow:0 8px 30px #0005';document.body.appendChild(bx);
+ const say=t=>bx.textContent=t;
+ try{
+  const hasPh=E.filter(e=>e.photo);say('Preparing photos…');
+  try{await loadPhotos()}catch(x){}
+  const TH={};let done=0,q=hasPh.map(e=>e.photo);const ws=Array.from({length:8},async()=>{while(q.length){const p=q.pop(),d=await exThumb(p);if(d)TH[p]=d;done++;if(done%10===0||done===hasPh.length)say('Photos '+done+' / '+hasPh.length+' …')}});
+  await Promise.all(ws);say('Building Excel…');await new Promise(r=>setTimeout(r,30));
+  const sorted=E.slice().sort((a,b)=>dsort(nd(a.dept||'No Department'),nd(b.dept||'No Department'))||String(a.name).localeCompare(String(b.name)));
+  const media=[],mIx={};Object.keys(TH).forEach(p=>{mIx[p]=media.length;media.push({name:'img'+(media.length+1)+'.jpg',data:TH[p]})});
+  const NV='FF12305C',GD='FFB8923A',ln='FFD3D9E6',bd={bl:'thin:'+ln,br:'thin:'+ln,bt:'thin:'+ln,bb:'thin:'+ln};
+  const today=new Date().toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});
+  const mk=(name,L,sep)=>{const cols=EXC.map((c,i)=>({c,i})).filter(({c})=>sep||!/s/.test(c[3]||'')),S=xgSheet(name),n=cols.length,HR=4;S.freeze=HR;S.cols=cols.map(({c})=>c[1]);S.imgs=[];S.paper=9;S.orient='landscape';S.fit=1;
+   S.put(1,1,n,'Rayanton Farms & Livestock Corp.',{sz:16,b:1,col:NV,fn:'Georgia',h:'left'});S.hts[1]=26;
+   S.put(2,1,n,'201 Files · '+name+' · '+L.length+' employee'+(L.length===1?'':'s')+' · as of '+today,{sz:11,col:'FF66738A',h:'left'});S.hts[2]=18;S.hts[3]=6;
+   cols.forEach(({c},j)=>S.put(HR,j+1,j+1,c[0],{b:1,col:'FFFFFFFF',fill:NV,h:'center',wrap:1,...bd,bb:'medium:'+GD}));S.hts[HR]=32;
+   L.forEach((e,k)=>{const r=HR+1+k,x=splitN(e.notes).x,z=k%2?'FFF6F8FC':null,st=CC[catOf(e)]||CC['—'];S.hts[r]=64;
+    cols.forEach(({c},j)=>{const v=c[2](e,x),o={...bd,h:/w/.test(c[3]||'')?'left':(j===1||c[0]==='Designation'||c[0]==='Department')?'left':'center',wrap:/w/.test(c[3]||'')||c[0]==='Employee Name'||c[0]==='Designation'?1:0,fill:z,sz:10};
+     if(c[0]==='Employee Name')o.b=1;
+     if(c[0]==='Status'){o.fill=exArgb(isReturnee(e)?'#d6f0f0':st[0]);o.col=exArgb(isReturnee(e)?'#0d6b6b':st[1]);o.b=1;o.h='center'}
+     S.put(r,j+1,j+1,v,o)});
+    const pi=mIx[e.photo];if(e.photo&&pi!==undefined)S.imgs.push({r:r-1,c:0,m:pi,w:56,h:56,dx:13,dy:14})});
+   S.af='A'+HR+':'+pColL(n)+(HR+L.length);return S};
+  const sheets=[mk('All Employees',sorted,true)];
+  const byG={};sorted.forEach(e=>(byG[exGroup(e)]=byG[exGroup(e)]||[]).push(e));
+  EXG_ORDER.forEach(g=>{if(byG[g])sheets.push(mk(g,byG[g],['End of Contract','Resigned','AWOL','Terminated'].includes(g)))});
+  sheets.media=media;
+  const b=xgBuild(sheets),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='201-Files-'+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},4000);
+  try{logAct('Exported 201 Files to Excel','201 Files',E.length+' employee(s), '+Object.keys(TH).length+' photo(s), '+(sheets.length-1)+' status sheet(s)')}catch(x){}
+  toast('Exported ✔ '+E.length+' employees')
+ }catch(err){console.error('[201 Excel export]',err);toast('Export failed: '+(err&&err.message||err))}
+ finally{window.EXRUN=0;bx.remove()}}
+
 function empNamesExport(){const ks=Object.keys(EXG||{}).sort(dsort);if(!ks.length)return toast('No employees to export.');
   const rows=[['Department','No.','Employee Name']];let n=0;
   ks.forEach(d=>{EXG[d].slice().sort((a,b)=>a.e.name.localeCompare(b.e.name)).forEach((x,i)=>{rows.push([d,i+1,x.e.name]);n++})});
@@ -3264,7 +3353,7 @@ function empNamesExport(){const ks=Object.keys(EXG||{}).sort(dsort);if(!ks.lengt
 const inCat=(e,k)=>k==='all'||(k==='New'?isNew(e):k==='Returnee'?isReturnee(e):k==='—'?(catOf(e)==='—'&&!isReturnee(e)):catOf(e)===k);
 function brdBanner(){return brdMissing().length?`<div class="panel" style="max-width:none;margin:0 0 20px"><h3>Employees available to add</h3><p class="sub" style="margin:0 0 12px;font-size:14px">${brdSum().map(([d,n])=>`<b>${esc(d)}</b>: ${n} employee(s)`).join(' &nbsp;·&nbsp; ')}. They are not in 201 Files yet. Includes position, dates, SSS, PhilHealth, Pag-IBIG and more.</p><button class="btn" onclick="brdImport()">⬆ Add ${brdMissing().length} employees</button> <button class="btn o" onclick="brdHide()" title="Do not offer these names again">Don't show again</button></div>`:''}
 /* 201 Files name search: redraw once after typing pauses (was redrawing the whole page on every keystroke = lag) */
-function eqGo(){clearTimeout(window.EQTM);window.EQTM=setTimeout(()=>{if(EV!=='list'||!$('q'))return;window.EQT=1;try{drawE()}finally{window.EQT=0}const e=$('q');if(e){e.focus();const n=String(ef.q||'').length;try{e.setSelectionRange(n,n)}catch(x){}}},220)}
+function eqGo(){clearTimeout(window.EQTM);window.EQTM=setTimeout(()=>{if(EV!=='list'||!$('q'))return;window.EQT=1;try{drawE()}finally{window.EQT=0}},120)}
 function drawE(){EV='list';if(EPEND){EPEND=false;setTimeout(()=>{try{liveSync('hrd_employees')}catch(x){}},80)}const TY=!!window.EQT;if(!TY)badge();const A=(TY&&window.AQC)||(window.AQC=alerts());
  const BN=(TY&&window.BNC!=null)?window.BNC:(window.BNC=dpBanner()+rsBanner()+pfBanner()+brdBanner());
  const g=(t,l)=>{const a=A.filter(x=>x.t===t);return a.length?`<div style="margin-bottom:10px"><b>${l}</b><br>${a.map(x=>`<span class="pn" style="cursor:pointer;margin:4px 6px 0 0;${x.od?'background:#fbe9e6;color:#a3302a;':''}" onclick="ntf(${x.i},'${x.t}')">${esc(x.e.name)} — ${x.m}</span>`).join('')}</div>`:''};
@@ -3277,13 +3366,17 @@ function drawE(){EV='list';if(EPEND){EPEND=false;setTimeout(()=>{try{liveSync('h
  L.sort(so[ef.s]);const G={};L.forEach(x=>(G[nd(x.e.dept||'No Department')]=G[nd(x.e.dept||'No Department')]||[]).push(x));
  const fd=d=>d?new Date(d+'T00:00:00').toLocaleDateString():'—';
  EXG=G;
+ const CO=CH.map(([k,l])=>{const n=k==='all'?EB.length:EB.filter(e=>inCat(e,k)).length;return `<option value="${k}"${ef.f===k?' selected':''}>${(CC[k]?CC[k][3]+' ':k==='New'?'🆕 ':k==='Returnee'?'🔁 ':'')}${l} (${n})</option>`}).join('');
+ const LH=Object.keys(G).sort(dsort).map(d=>`<section class="grp eg"><h3 class="gh">${esc(d)}<i>${G[d].length}</i></h3>${G[d].map(({e,i})=>erow(e,i)).join('')}</section>`).join('')||'<p class="empty">No employees yet. Click + Add Employee.</p>';
+ /* typing in the search box: only swap the list (and the status counts); the toolbar, banners and search box stay untouched = fast typing / backspace */
+ if(TY&&$('elist')&&$('ecat')){$('ecat').innerHTML=CO;$('elist').innerHTML=LH;loadPhotos();return}
  $('main').innerHTML=`<h1>201 Files</h1><p class="sub">Employee records — admin access only.</p>${BN}
 <div class="tabs tb"><input id="q" class="fi" placeholder="Search name…" value="${esc(ef.q)}" oninput="ef.q=this.value;eqGo()">
-<select onchange="ef.f=this.value;drawE()">${CH.map(([k,l])=>{const n=k==='all'?EB.length:EB.filter(e=>inCat(e,k)).length;return `<option value="${k}"${ef.f===k?' selected':''}>${(CC[k]?CC[k][3]+' ':k==='New'?'🆕 ':k==='Returnee'?'🔁 ':'')}${l} (${n})</option>`}).join('')}</select>
+<select id="ecat" onchange="ef.f=this.value;drawE()">${CO}</select>
 <select onchange="ef.d=this.value;drawE()"><option value="all">All Departments</option>${depts.map(d=>`<option${ef.d===d?' selected':''}>${esc(d)}</option>`).join('')}</select>
 <select onchange="ef.s=this.value;drawE()">${[['name','Name: A–Z'],['new','Newest hired'],['stage','Status']].map(([v,t])=>`<option value="${v}"${ef.s===v?' selected':''}>${t}</option>`).join('')}</select>
-<button class="btn o" onclick="empNamesExport()" title="Download the employee names per department (follows the Status / Department / Search filters on screen)">⬇ Export Names</button><button class="btn on" onclick="formE(null)">+ Add Employee</button></div>
-${Object.keys(G).sort(dsort).map(d=>`<section class="grp eg"><h3 class="gh">${esc(d)}<i>${G[d].length}</i></h3>${G[d].map(({e,i})=>erow(e,i)).join('')}</section>`).join('')||'<p class="empty">No employees yet. Click + Add Employee.</p>'}`;loadPhotos()}
+<button class="btn o" onclick="empXlsxExport()" title="Download ALL 201 details to Excel with photos: one sheet per status (Regular, Returnee, Probationary, End of Contract, Resigned, AWOL ...)">⬇ Export Excel (All)</button><button class="btn o" onclick="empNamesExport()" title="Download the employee names per department (follows the Status / Department / Search filters on screen)">⬇ Export Names</button><button class="btn on" onclick="formE(null)">+ Add Employee</button></div>
+<div id="elist">${LH}</div>`;loadPhotos()}
 // ===== Employee fields = columns of fm.xlsx (extra ones are stored as "Label: value" lines in notes) =====
 const XL={rate:'Rate',startsal:'Starting Salary',cutoff:'Cut off',pend:'Probationary End',extst:'Extension Start',ext:'Probation Extension',birth:'Birthdate',civil:'Civil Status',addr:'Address',contact:'Contact No.',emerg:'Emergency Contact Name',emergno:'Emergency Contact No.',email:'Email Address',remarks:'Remarks',rsstat:'Clearance Status',rsground:'Dismissal Grounds',rscash:'Total Cash',rslast:'Last Pay',rsoth:'Others/Tax',rsfh:'FH',rscoop:'Coop & Bond',rsint:'Interest',rsrate:'Interest Rate %',rs13:'13th/AC',rsrem:'Resignation Remarks',rsrel:'Release Remarks',hist:'Employment History',xfer:'Transfer History'};
 const isoD=t=>{t=String(t||'').trim();if(!t)return null;if(/^\d{4}-\d{2}-\d{2}$/.test(t))return t;const d=new Date(t);if(isNaN(d)||d.getFullYear()<1900)return null;return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
@@ -3471,8 +3564,116 @@ function empRecWord(){const e=ei==null?null:E[ei];if(!e)return toast('Please cli
   a.href=URL.createObjectURL(b);a.download='Employee Record - '+String(e.name).replace(/[\\/:*?"<>|]/g,'')+'.doc';document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast('Exported \u2714');
   try{logAct('Exported Employee Record','201 Files',e.name)}catch(x){}}
+/* ===== CLEARANCE (Resigned employees only): Release/Waiver/Quitclaim, 2 Cash Vouchers, Exit Requirements + Final Pay, Clearance checklist. Long bond 8.5x13in, small margins. Print or Export Word. Name + department are automatic; Last Day of Work and the signatory names are typed by the user (names are remembered on this browser). ===== */
+const CLR_DEF=[['Management Team',['Jose Anton Raya','Teresita Raya','Maria Angelica Raya-Ligon','Angelo Raya','Nicolette Raya']],
+ ['Administrative Officers:',['Angelyne Villa','Merlinda Rebusquillo','Joyce Rio','Hanna Abad','Joycel Padernal','Janeth Roncale','Kesia Cuasito','Alyssa Germaine Aquino','Apple Bermudez']],
+ ['Payroll & Accounting',['Jizzle Ann Curimao','Glenda Martinez','Via Feliciano','Diana Ebrada','Jessica Delos Santos','Francheska Ann Casimiro','Joan Villarico','Shella Mae Cabello','April Ann Canoso']],
+ ['Utilities',['Robert Villa','Normel Mamaril','Manalo Mercado IV']],
+ ['Human Resource Department',['Amelia Talaña','EG Mesinas']]];
+const CLR_EX=[(i,n)=>i===n-1?['Remote:','Quickbooks:']:[],
+ i=>i===0?['Portal:','A/R:','GC:']:['A/R:','','GC:'],
+ i=>i===0?['Petty Cash:','A/R:','GC:']:['','','GC:'],
+ i=>[['Keys:','','GC:'],['Vehicle/Tools:','','GC:'],['Phone:','','GC:']][i]||['','','GC:'],
+ i=>i===0?['GC:','ID:']:i===1?['VALE:','ATM:']:[]];
+function clrSig(){try{const s=JSON.parse(localStorage.getItem('hrd_clr_sig')||'null');if(Array.isArray(s)&&s.length===CLR_DEF.length&&s.every(Array.isArray))return s}catch(x){}return CLR_DEF.map(s=>s[1].slice())}
+function clrDate(d){if(!d)return'';const m=String(d).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return String(d);const M=['Jan.','Feb.','Mar.','Apr.','May','June','July','Aug.','Sept.','Oct.','Nov.','Dec.'];return M[+m[2]-1]+' '+(+m[3])+', '+m[1]}
+function clrHtml(e,o,logoSrc,w){
+ /* Word-safe markup: single classes only, inline styles, tables with width/height attributes, explicit page-break paragraphs. 4 pages on 8.5x13in. */
+ const X=esc,U=n=>'<u>'+'&nbsp;'.repeat(n)+'</u>',yr=new Date().getFullYear(),nm=X(e.name||''),dp=X(nd(e.dept)||''),last=X(clrDate(o.last));
+ const CB="font-family:Cambria,'Book Antiqua',Georgia,serif;",TN="font-family:'Times New Roman',Times,serif;",CL="font-family:Calibri,Arial,sans-serif;";
+ const PB='<p style="page-break-before:always;margin:0;font-size:1pt;line-height:1pt;mso-line-height-rule:exactly">&nbsp;</p>';
+ const Q=CB+'font-size:11pt;line-height:1.25;margin:0;',QJ=Q+'text-align:justify;';
+ const SIGL='<td style="border-bottom:1px solid #000" height="22">&nbsp;</td>';
+ /* ---- page 1: Release, Waiver and Quitclaim ---- */
+ const p1=`<div style="margin:0 .58in"><p style="${CB}text-align:center;font-size:22pt;font-weight:bold;margin:.3in 0 0">RELEASE, WAIVER AND QUITCLAIM</p>
+<p style="${Q}font-weight:bold;margin:8px 0 12px">PAGPAPATUNAY:</p>
+<p style="${QJ}text-indent:.5in"><b>AKO</b>, si ${U(30)}, nasa hustong taong gulang, Pilipino, at kasalukuyang naninirahan sa ${U(40)}, matapos na magbitiw sa aking trabaho bilang ${U(24)} ng Rayanton Farms and Livestock Corp., isang kumpanyang itinatag sa ilalim ng batas ng Pilipinas, na may punong tanggapan sa #14 Virgo St., Sierra Vista Brgy. Cupang Antipolo City, sa pamamagitan nito ay nagpapatunay na natanggap ko ang halagang ${U(38)} ${U(8)}PESOS (P${U(14)}), mula sa Kumpanya bilang buo ay huling bayad ng kumpanya para sa anupamang benepisyo o halagang nauukol sa akin sanhi ng aking boluntaryong pagbibitiw sa aking tungkulin.</p>
+<p style="${QJ}margin-top:4px">Ako rin ay nagpapatotoo ng mga sumusunod:</p>
+<ol style="${Q}margin:4px 0 0 .3in;padding:0">
+<li style="${QJ}margin-bottom:2px">Pinatotohanan ko na natanggap ko nang lahat ang anupamang halaga o benepisyo na nauukol sa akin sa ilalim ng batas kaugnay ng aking pagtatrabaho at pagbibitiw sa Kumpanya.</li>
+<li style="${QJ}margin-bottom:2px">Ako ay nasa mabuting kalusugan at walang anupamang karamdaman.</li>
+<li style="${QJ}margin-bottom:2px">Wala akong inihaharap o ihaharap na reklamo laban sa Kumpanya maging sa mga stockholders, director, opisyal, at mga empleyado nito, maging ito man ay ukol sa pera o kahit ano pa mang bagay o pamamaraan, na makapipinsala sa kapakanan ng kumpanya. Hindi ko ibubunyag ang ano mang kabatiran o lihim ukol sa negosyo o palakad ng Kumpanya o mga kliyente nito ng walang kasulatang pahintulot ng kumpanya.</li>
+<li style="${QJ}margin-bottom:2px">Isinasaad ko ng buong katotohanan na wala akong sanhi o batayan ng usapin, sumbong karapatang manghingi, karaingan laban sa Kumpanya at mga may-ari nito, sa kanilang stockholders, directors, opisyal, at mga empleyado ukol o kaya ay bunga ng aking panunungkulan sa kumpanya o pagtigil nito. Akin ding pinatutunayan na sa panahon ng aking panunungkulan bilang ${U(12)} sa Kumpanya ay nabigyan ako nang mabuti, maganda at makataong pagtrato ng Kumpanya, mga director, opisyal at mga empleyado nito.</li>
+<li style="${QJ}margin-bottom:2px">Nabasa ko, naintindihan at naunawaan sa wikang Pilipino ang mga isinasaad o nilalaman ng Release, Waiver and Quitclaim na ito na aking kusang loob na pinirmahan at isinakatuparan.</li></ol>
+<p style="${QJ}margin-top:12px"><b>SA KATOTOHANAN NITO</b>, ay nilagdaan ko itong “Release, Waiver &amp; Quitclaim” ngayong ika-${U(8)} ng ${U(14)}, ${yr} dito sa ${U(26)}.</p>
+<table width="100%" cellspacing="0" cellpadding="0" style="margin-top:18px"><tr><td width="62%">&nbsp;</td>${SIGL}</tr><tr><td></td><td align="center" style="${Q}">Pangalan at Pirma</td></tr></table>
+<p style="${Q}text-align:center;margin:12px 0 14px">NILAGDAAN SA HARAP NINA:</p>
+<table width="100%" cellspacing="0" cellpadding="0"><tr><td width="10%">&nbsp;</td><td width="32%" style="border-bottom:1px solid #000">&nbsp;</td><td width="14%">&nbsp;</td><td width="32%" style="border-bottom:1px solid #000">&nbsp;</td><td>&nbsp;</td></tr></table>
+<p style="${Q}text-align:center;font-weight:bold;margin:14px 0 6px">PAGPAPATUNAY</p>
+<p style="${Q}text-align:left">REPUBLIKA NG PILIPINAS)<br>${U(26)}) SS.</p>
+<p style="${QJ}text-indent:.5in;margin-top:2px">SA HARAP KO, na isang Notaryo Publiko sa ${U(16)} ngayong ika-${U(4)} ng ${U(14)}, ${yr}, ay dumulog si ${U(14)}, may Identification${U(14)} Identification Number ${U(14)} na gawad sa ${U(14)} noong ika-${U(4)} ng ${U(14)}, ${U(6)}, na kilala kong siyang nagsagawa ng “Release Waiver and Quitclaim” na ito na pinatunayan niya sa harap kong malaya at sarili niyang pagpapasya.</p>
+<p style="${QJ}margin-top:2px">SAKSI ANG AKING LAGDA AT SELYONG PANATAK ngayong ika-${U(4)} ng ${U(14)}, ${yr} dito sa ${U(14)}.</p>
+<p style="${Q}text-align:left;margin-top:10px;line-height:1.4">Kas. Blg. ${U(12)};<br>Dahon Blg. ${U(12)};<br>Aklat Blg. ${U(12)};<br>Taong ${yr}.</p></div>`;
+ /* ---- page 2: two cash vouchers ---- */
+ const T=TN+'font-size:12.5pt;font-weight:bold;';
+ const cv=`<p style="${TN}text-align:center;font-size:24pt;font-weight:bold;text-decoration:underline;margin:0">CASH VOUCHER</p>
+<table width="739" cellspacing="0" cellpadding="0" style="margin-top:18px"><tr><td style="${T}">Paid to ${U(48)}</td><td align="right" style="${T}">Date: ${U(28)}</td></tr></table>
+<div style="border-bottom:1.5px solid #000;height:6px;font-size:1pt;line-height:1pt">&nbsp;</div>
+<p style="${TN}text-align:center;font-weight:bold;letter-spacing:4px;font-size:14pt;border-bottom:4px double #000;margin:0;padding:3px 0">PARTICULARS</p>
+<table width="739" cellspacing="0" cellpadding="0"><tr><td width="517" height="240" valign="top" style="${T}padding-top:12px">Received from Rayanton Farms and Livestock Corp. the amount of<br>${U(44)} (P${U(15)})<br><span style="font-size:11.5pt">&nbsp;for all benefits including salary, partial 13<sup>th</sup> month, pondo,<br>COOP interest, and all other benefits due.</span><br><br><br>Received by: ${U(15)}<br><br><p style="${TN}text-align:right;font-size:10.5pt;font-weight:bold;margin:0">TOTAL=P=&nbsp;&nbsp;</p></td>
+<td width="222" valign="top" style="${T}border-left:4px double #000">AMOUNT</td></tr></table>
+<div style="border-top:4px double #000;font-size:1pt;line-height:1pt">&nbsp;</div><p style="${T}border-bottom:1.5px solid #000;padding:10px 0 2px;margin:0">Approved by: ${U(14)}</p>`;
+ const p2=`${PB}${cv}<p style="margin:0;font-size:1pt;line-height:40pt;mso-line-height-rule:exactly">&nbsp;</p>${cv}`;
+ /* ---- page 3: exit requirements + resigned employee final pay ---- */
+ const FL=CL+'font-size:10.5pt;white-space:nowrap;',RD=CL+'color:#e4676b;font-weight:bold;font-size:10.5pt;';
+ const fl=l=>`<tr><td width="128" height="25" style="${FL}">${l}</td><td style="border-bottom:1px solid #000">&nbsp;</td></tr>`;
+ const ded=l=>`<tr><td width="128" height="25" style="${FL}">${l}</td><td width="8" style="${FL}">(</td><td style="border-bottom:1px solid #000">&nbsp;</td><td width="8" style="${FL}">)</td></tr>`;
+ const p3=`${PB}<table width="360" cellspacing="0" cellpadding="0"><tr><td width="360" valign="top">
+<table width="100%" cellspacing="0" cellpadding="0"><tr><td width="50" style="${CL}font-size:10.5pt;font-weight:bold">NAME:</td><td style="border-bottom:1px solid #000;${CL}font-size:10.5pt;font-weight:bold">${nm}</td></tr></table>
+<p style="${CL}font-size:10.5pt;font-weight:bold;margin:12px 0 0">POSITION/DEPARTMENT: ${dp}</p>
+<p style="${RD}text-align:center;margin:24px 0 10px">EXIT REQUIREMENTS</p>
+<ul style="${CL}font-size:10.5pt;margin:0 0 0 .4in;padding:0;line-height:1.5"><li>Resignation Letter (Duly Signed by the Employee)</li><li>If: AWOL-Letter 1,2,3/DOLE File</li><li>Clearance</li><li>Receive Voucher of all benefits</li><li>Notarized Quit Claim</li><li>Metrobank ATM(Payroll)</li><li>RFC ID ${U(16)}</li><li>Others: ${U(16)}</li></ul>
+<p style="${RD}text-align:center;margin:24px 0 12px">RESIGNED EMPLOYEE FINAL PAY</p>
+<table width="100%" cellspacing="0" cellpadding="0">${fl('Tax Refund:')}${fl('Last Salary:')}${fl('Partial 13th Month Pay:')}${fl('COOP Pondo:')}${fl('COOP Interest:')}<tr><td colspan="2" height="25" style="${FL}">Financial Help(${U(6)}yrs.):${U(14)}</td></tr>${fl('OTHERS:')}</table>
+<table width="100%" cellspacing="0" cellpadding="0" style="margin-top:10px"><tr><td width="105" valign="top" style="${RD}">AMOUNT:</td><td><table cellspacing="0" cellpadding="0" style="border:2.5px solid #333"><tr><td width="175" height="34">&nbsp;</td></tr></table></td></tr></table>
+<table width="100%" cellspacing="0" cellpadding="0" style="margin-top:6px"><tr><td colspan="4" height="26" style="${FL}">Less Deduction/s:</td></tr>${ded('VALE:')}${ded('RFC Savings Funds:')}${ded('A/R:')}${ded('Others:')}</table>
+<table width="100%" cellspacing="0" cellpadding="0" style="margin-top:30px"><tr><td width="105" style="${RD}">NET AMOUNT:</td><td width="175" height="42" bgcolor="#e9ebdc">&nbsp;</td><td>&nbsp;</td></tr></table>
+<p style="${CL}font-size:10.5pt;margin:28px 0 0">Complete Requirements/<br>Checked By: ${U(26)}</p>
+<p style="${CL}font-size:10.5pt;margin:18px 0 0">Approved By:</p><div style="border-bottom:1px solid #000;height:28px;font-size:1pt;line-height:1pt">&nbsp;</div>
+<p style="${RD}margin:12px 0 0">Remarks:</p></td></tr></table>`;
+ /* ---- page 4: clearance checklist ---- */
+ const PW=[[74,44],[58,44],[28,50]],XL=CL+'color:#e4676b;font-size:9pt;white-space:nowrap;text-align:right;';
+ const secs=o.sig.map((nms,k)=>{const n=nms.length,rows=nms.map((x,i)=>{const ex=CLR_EX[k](i,n)||[],c=j=>{const l=ex[j]||'';return`<td width="${PW[j][0]}" height="23" valign="bottom" style="${XL}">${X(l)}&nbsp;</td><td width="${PW[j][1]}" valign="bottom"${l?' style="border-bottom:1px solid #c33"':''}>&nbsp;</td>`};
+  return`<tr><td width="185" height="23" valign="bottom" style="${CL}font-size:10.5pt;white-space:nowrap">${X(x)}</td><td width="150" valign="bottom" style="border-bottom:1px solid #000">&nbsp;</td><td width="8">&nbsp;</td>${c(0)}${c(1)}${c(2)}</tr>`}).join('');
+  return`<tr><td colspan="9" height="26" valign="bottom" style="${CL}font-weight:bold;font-size:11pt">${X(CLR_DEF[k][0])}</td></tr>${rows}`}).join('');
+ const CK=(t,k)=>`<td style="${CL}font-size:10pt;white-space:nowrap"><span style="font-family:'Segoe UI Symbol','Arial Unicode MS',Arial;color:${o.kind===k?'#000':'#e0a95a'};font-size:14pt">${o.kind===k?'&#9745;':'&#9744;'}</span> ${t}</td>`;
+ const p4=`${PB}<table width="739" cellspacing="0" cellpadding="0"><tr><td width="38">&nbsp;</td><td width="650" valign="top"><table width="100%" cellspacing="0" cellpadding="0"><tr><td width="110" valign="middle" align="center" style="${CB}font-weight:bold;font-size:9pt">RAYANTON FARMS<br>${logoSrc?`<img src="${logoSrc}" width="84" height="84">`:''}</td><td align="center" valign="middle"><p style="${CB}font-weight:bold;font-size:14pt;text-decoration:underline;margin:0">RAYANTON FARMS AND LIVESTOCK CORPORATION</p><p style="${CB}font-size:11pt;margin:0">14 Virgo St., Sierra Vista Subd., Cupang, Antipolo</p><p style="${CB}font-size:11pt;margin:0">Tel. #s (02) 6818696</p></td><td width="50">&nbsp;</td></tr></table>
+<p style="${CL}text-align:center;font-weight:bold;font-size:12pt;margin:8px 0 0">CLEARANCE/CHECKLIST FOR THE RESIGNATION/TERMINATION PROCESS</p>
+<table width="100%" cellspacing="0" cellpadding="0" style="border:1.5px solid #000;margin-top:6px"><tr><td style="${CL}font-size:10.5pt;line-height:1.2;padding:2px 6px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Please return the following items to the appropriate department<br>prior to leaving the company.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Clearance should be signed by all department heads of RFLC before releasing<br>the last pay and other benefits of a resigned/terminated employee.</td></tr></table>
+<table width="100%" cellspacing="0" cellpadding="0" style="margin:8px 0 4px"><tr><td width="90">&nbsp;</td>${CK('Resign','resign')}${CK('Retire','retire')}${CK('Terminate','terminate')}${CK('AWOL','awol')}</tr></table>
+<table width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:4px"><tr><td width="400" style="${CL}font-size:10.5pt;font-weight:bold">Name of Employee: ${nm}</td><td style="${CL}font-size:10.5pt;font-weight:bold">ID #: ${U(16)}</td></tr><tr><td style="${CL}font-size:10.5pt;font-weight:bold">Last Day of Work: <u>&nbsp;${last||'&nbsp;'.repeat(22)}&nbsp;</u></td><td style="${CL}font-size:10.5pt;font-weight:bold">Department: <u>&nbsp;${dp||'&nbsp;'.repeat(12)}&nbsp;</u></td></tr></table>
+<table width="100%" cellspacing="0" cellpadding="0">${secs}</table></td><td>&nbsp;</td></tr></table>`;
+ return`<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>Clearance Forms - ${nm}</title>
+<style>@page{size:8.5in 13in;margin:.3in .4in}${w?`@page Section1{size:8.5in 13in;margin:.3in .4in .3in .4in;mso-header-margin:.1in;mso-footer-margin:.1in;mso-page-orientation:portrait}div.Section1{page:Section1}`:''}
+body{margin:0;color:#000;font-family:Calibri,Arial,sans-serif;font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}p{margin:0}table{border-collapse:collapse}td{padding:0}
+</style></head><body><div${w?' class="Section1"':''}>${p1}${p2}${p3}${p4}</div></body></html>`}
+function clrRow(v){return `<div style="display:flex;gap:6px;margin:0 0 4px"><input class="fi" value="${esc(v)}" style="flex:1;min-width:0;padding:6px 8px"><button type="button" class="btn dl sm" title="Remove this name" onclick="this.parentNode.remove()">\u2715</button></div>`}
+function clrSecHtml(sg){return CLR_DEF.map((s,k)=>`<div style="margin:0 0 12px"><div style="font-weight:600;font-size:13px;margin:0 0 5px">${esc(s[0])}</div><div id="clr_sec${k}">${sg[k].map(clrRow).join('')}</div><button type="button" class="btn o sm" onclick="clrAdd(${k})">+ Add name</button></div>`).join('')}
+function clrAdd(k){const b=$('clr_sec'+k);if(!b)return;b.insertAdjacentHTML('beforeend',clrRow(''));const i=b.querySelectorAll('input');i[i.length-1].focus();const n=CLR_DEF.reduce((a,s,j)=>a+($('clr_sec'+j)?$('clr_sec'+j).querySelectorAll('input').length:0),0);if(n>33)toast('Too many names may not fit on one page.')}
+function clrSyncSig(){const g=CLR_DEF.map((s,k)=>{const b=$('clr_sec'+k);return b?[...b.querySelectorAll('input')].map(x=>x.value.trim()).filter(Boolean):s[1].slice()});try{localStorage.setItem('hrd_clr_sig',JSON.stringify(g))}catch(x){}return g}
+function clrRead(){const e=E[ei];if(!e){toast('Save the employee first.');return null}return{e,o:{last:($('clr_last')||{}).value||'',kind:($('clr_kind')||{}).value||'',sig:clrSyncSig()}}}
+function clrPrint(){const r=clrRead();if(!r)return;const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);
+ const d=f.contentWindow.document;d.open();d.write(clrHtml(r.e,r.o,LOGO));d.close();
+ setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(x){toast('Could not open the print dialog.')}setTimeout(()=>f.remove(),60000)},500);
+ try{logAct('Printed Clearance forms','201 Files',r.e.name)}catch(x){}}
+function clrWord(){const r=clrRead();if(!r)return;
+ /* Word cannot show data: pictures, so the file is a Word web archive (MHT) that carries the logo inside it */
+ const html=clrHtml(r.e,r.o,'file:///C:/clr/logo.png',true),u=new TextEncoder().encode(html);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));
+ const wrap=t=>t.replace(/(.{76})/g,'$1\r\n'),B='----=_NextPart_clr'+Date.now(),m=/^data:image\/png;base64,(.+)$/.exec(String(LOGO));
+ const mht='MIME-Version: 1.0\r\nContent-Type: multipart/related; boundary="'+B+'"; type="text/html"\r\n\r\n--'+B+'\r\nContent-Type: text/html; charset="utf-8"\r\nContent-Transfer-Encoding: base64\r\nContent-Location: file:///C:/clr/clearance.htm\r\n\r\n'+wrap(btoa(s))+'\r\n\r\n'+(m?'--'+B+'\r\nContent-Type: image/png\r\nContent-Transfer-Encoding: base64\r\nContent-Location: file:///C:/clr/logo.png\r\n\r\n'+wrap(m[1])+'\r\n\r\n':'')+'--'+B+'--\r\n';
+ const b=new Blob([mht],{type:'application/msword'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Clearance - '+String(r.e.name).replace(/[\\/:*?"<>|]/g,'')+'.doc';document.body.appendChild(a);a.click();
+ setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast('Exported \u2714');try{logAct('Exported Clearance forms','201 Files',r.e.name)}catch(x){}}
+function clrReset(){try{localStorage.removeItem('hrd_clr_sig')}catch(x){}const b=$('clr_secs');if(b)b.innerHTML=clrSecHtml(CLR_DEF.map(s=>s[1]));toast('Signatory names reset')}
+function clrOpen(){const e=ei==null?null:E[ei];if(!e)return toast('Save the employee first.');const KD={Resigned:'resign',AWOL:'awol',Terminated:'terminate'}[e.emp_status];if(!KD)return toast('Clearance is only for Resigned, AWOL or Terminated employees.');
+ const sg=clrSig(),d=ovl('clr');
+ d.innerHTML=`<div style="${BX};max-width:640px"><div style="display:flex;align-items:flex-start;gap:12px"><div style="flex:1"><h2 style="margin:0">Clearance Forms</h2><p class="sub" style="margin:4px 0 0;font-size:13.5px"><b>${esc(e.name)}</b>${e.dept?' · '+esc(nd(e.dept)):''}<br>Quitclaim · 2 Cash Vouchers · Exit Requirements / Final Pay · Clearance checklist — long bond, 4 pages.</p></div><button class="btn o sm" onclick="$('clr').remove()">Close</button></div>
+ <label style="display:block;margin:14px 0 0">Type of separation (checked on the Clearance)<select id="clr_kind" class="fi" style="display:block;margin-top:4px">${[['resign','Resign'],['retire','Retire'],['terminate','Terminate'],['awol','AWOL']].map(([v,l])=>`<option value="${v}"${v===KD?' selected':''}>${l}</option>`).join('')}</select></label>
+ <label style="display:block;margin:14px 0 0">Last Day of Work<input id="clr_last" type="date" class="fi" value="${esc(e.status_date||'')}" style="display:block;margin-top:4px"></label>
+ <details style="margin:14px 0 0"><summary style="cursor:pointer;font-weight:600">Edit names on the Clearance (add / remove)</summary><p class="sub" style="font-size:12.5px;margin:6px 0 10px">Type to rename, press \u2715 to remove a name, or + Add name. Changes show on the printed / exported form and are remembered for next time.</p>
+ <div id="clr_secs">${clrSecHtml(sg)}</div><button type="button" class="btn o sm" onclick="clrReset()">Reset to default names</button></details>
+ <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn" onclick="clrPrint()">🖨 Print</button><button class="btn o" onclick="clrWord()">Export Word</button></div></div>`}
 function formE(i){EV='form';ei=i;window.__pfNew=(i==null);window.__pfAuto=0;const e=i==null?{docs:[]}:E[i];const P=splitN(e.notes);const PV=i!=null?probiView(e):null,PVm=PV?{x_pend:PV.pe,x_extst:PV.es,x_ext:PV.ee}:null;
- $('main').innerHTML=`<div class="bar ebar" style="max-width:800px"><button class="btn o" onclick="drawE()">← Back</button><h2>${i==null?'Add Employee':esc(String(e.name||'').toLocaleUpperCase())}</h2>${i!=null?`<span class="st" style="${SC[stage(e)]}">${lb(stage(e))}</span>`:''}<span class="ebtn"><button class="btn sm" onclick="saveE()">Save</button><button class="btn o sm" onclick="empRecPrint()">Print Employee Record</button><button class="btn o sm" onclick="empRecWord()">Export Word</button>${i!=null&&isAdm()?'<button class="btn o sm" onclick="retManual()" title="This person came back: merge the OLD record that is already in 201 Files into Previous Employment (History)">Merge old record</button><button class="btn o sm" onclick="hAddOpen()" title="Type in the old resignation record of a returnee (it goes to Previous Employment / History)">+ Previous Employment</button>':''}${i!=null?'<button class="btn dl sm" onclick="delE()">Delete</button>':''}</span></div>
+ $('main').innerHTML=`<div class="bar ebar" style="max-width:800px"><button class="btn o" onclick="drawE()">← Back</button><h2>${i==null?'Add Employee':esc(String(e.name||'').toLocaleUpperCase())}</h2>${i!=null?`<span class="st" style="${SC[stage(e)]}">${lb(stage(e))}</span>`:''}<span class="ebtn"><button class="btn sm" onclick="saveE()">Save</button><button class="btn o sm" onclick="empRecPrint()">Print Employee Record</button><button class="btn o sm" onclick="empRecWord()">Export Word</button>${i!=null&&['Resigned','AWOL','Terminated'].includes(e.emp_status)?'<button class="btn sm" style="background:#9b59c9;border-color:#9b59c9;color:#fff" onclick="clrOpen()" title="Clearance, Quitclaim, Cash Vouchers and Final Pay forms of this resigned employee">Clearance</button>':''}${i!=null&&isAdm()?'<button class="btn o sm" onclick="retManual()" title="This person came back: merge the OLD record that is already in 201 Files into Previous Employment (History)">Merge old record</button><button class="btn o sm" onclick="hAddOpen()" title="Type in the old resignation record of a returnee (it goes to Previous Employment / History)">+ Previous Employment</button>':''}${i!=null?'<button class="btn dl sm" onclick="delE()">Delete</button>':''}</span></div>
 ${i!=null&&dupOf(i).length?`<div class="panel" style="border-left:5px solid #e04444;background:#fff5f5"><b>⚠️ Duplicate name:</b> another record has the same name — ${dupOf(i).map(x=>esc(x.name)+' ('+esc(x.dept||'No Department')+')').join(', ')}</div>`:''}<div class="panel"><h3>Employee Details</h3><div style="display:flex;gap:16px;align-items:center;margin-bottom:14px"><img id="ph" ${i!=null&&e.photo?`onclick="bigPh(${i})" title="Click to enlarge"`:''} src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" style="${i!=null&&e.photo?'cursor:zoom-in;':''}width:90px;height:90px;border-radius:12px;object-fit:cover;background:#eaf0f9"><label style="flex:1">Picture <small style="display:block;color:#66738a;margin:3px 0">Allowed photo size: maximum 100 KB after automatic compression. Larger photos will be compressed before upload.</small><input id="f_photo" type="file" accept="image/*" class="fi"></label>${e.photo?'<button class="btn dl sm" type="button" onclick="delPhoto()">Delete Picture</button>':''}</div>
 <label>Employment Status<select id="f_emp_status" class="fi" onchange="rsToggle();rtPick()"><option value="">Active (auto: Training → Probationary → Regular)</option>${SEP.map(x=>`<option${e.emp_status===x?' selected':''}>${x}</option>`).join('')}<option value="Returnee"${e.emp_status==='Returnee'?' selected':''}>Returnee (came back — old record goes to History)</option></select></label>
 <div id="rsbox">${rsHtml(P.x,e.emp_status)}</div>
@@ -4903,7 +5104,7 @@ function xgBuild(sheets){
  const sx=sheets.map(S=>{const rows=new Map();S.cells.forEach((o,k)=>{const a=k.split(',').map(Number);if(!rows.has(a[0]))rows.set(a[0],[]);rows.get(a[0]).push([a[1],o])});Object.keys(S.hts).forEach(r=>{if(!rows.has(+r))rows.set(+r,[])});
   const rowsX=[...rows.keys()].sort((a,b)=>a-b).map(r=>{const cs=rows.get(r).sort((a,b)=>a[0]-b[0]).map(([c,o])=>{const ref=pColL(c)+r,st=xi(o.st);return o.v===undefined?`<c r="${ref}" s="${st}"/>`:typeof o.v==='number'?`<c r="${ref}" s="${st}"><v>${isFinite(o.v)?o.v:0}</v></c>`:`<c r="${ref}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${esc(o.v)}</t></is></c>`}).join('');return`<row r="${r}"${S.hts[r]?` ht="${S.hts[r]}" customHeight="1"`:''}>${cs}</row>`}).join('');
   const cols=S.cols.length?`<cols>${S.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>`:'';
-  return H+`<worksheet xmlns="${NS}">${S.fit?'<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>':''}<sheetViews><sheetView showGridLines="${S.grid?1:0}" workbookViewId="0">${S.freeze?`<pane ySplit="${S.freeze}" topLeftCell="A${S.freeze+1}" activePane="bottomLeft" state="frozen"/>`:''}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>${cols}<sheetData>${rowsX}</sheetData>${S.af?`<autoFilter ref="${S.af}"/>`:''}${S.merges.length?`<mergeCells count="${S.merges.length}">${S.merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}<printOptions horizontalCentered="1"/><pageMargins left="0.2" right="0.2" top="0.25" bottom="0.25" header="0" footer="0"/><pageSetup paperSize="${S.paper}" ${S.fit?'fitToWidth="1" fitToHeight="0"':'scale="'+S.scale+'"'} orientation="${S.orient}"/>${S.breaks.length?`<rowBreaks count="${S.breaks.length}" manualBreakCount="${S.breaks.length}">${S.breaks.map(b=>`<brk id="${b}" max="16383" man="1"/>`).join('')}</rowBreaks>`:''}</worksheet>`});
+  return H+`<worksheet xmlns="${NS}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${S.fit?'<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>':''}<sheetViews><sheetView showGridLines="${S.grid?1:0}" workbookViewId="0">${S.freeze?`<pane ySplit="${S.freeze}" topLeftCell="A${S.freeze+1}" activePane="bottomLeft" state="frozen"/>`:''}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>${cols}<sheetData>${rowsX}</sheetData>${S.af?`<autoFilter ref="${S.af}"/>`:''}${S.merges.length?`<mergeCells count="${S.merges.length}">${S.merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}<printOptions horizontalCentered="1"/><pageMargins left="0.2" right="0.2" top="0.25" bottom="0.25" header="0" footer="0"/><pageSetup paperSize="${S.paper}" ${S.fit?'fitToWidth="1" fitToHeight="0"':'scale="'+S.scale+'"'} orientation="${S.orient}"/>${S.breaks.length?`<rowBreaks count="${S.breaks.length}" manualBreakCount="${S.breaks.length}">${S.breaks.map(b=>`<brk id="${b}" max="16383" man="1"/>`).join('')}</rowBreaks>`:''}${S.imgs&&S.imgs.length?'<drawing r:id="rId1"/>':''}</worksheet>`});
  const fontX=fonts.map(k=>{const a=k.split('|');return`<font>${+a[2]?'<b/>':''}${+a[5]?'<i/>':''}${+a[4]?'<u/>':''}<sz val="${a[1]}"/><color rgb="${a[3]}"/><name val="${a[0]}"/></font>`}).join('');
  const fillX=fills.map((f,i)=>i<2?(i?'<fill><patternFill patternType="gray125"/></fill>':'<fill><patternFill patternType="none"/></fill>'):`<fill><patternFill patternType="solid"><fgColor rgb="${f}"/><bgColor indexed="64"/></patternFill></fill>`).join('');
  const side=(n,t)=>{if(!t)return`<${n}/>`;const q=String(t).split(":");return`<${n} style="${q[0]}"><color rgb="${q[1]||"FF000000"}"/></${n}>`};
@@ -4913,11 +5114,18 @@ function xgBuild(sheets){
  const styles=H+`<styleSheet xmlns="${NS}"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00;-#,##0.00;&quot;-&quot;"/></numFmts><fonts count="${fonts.length}">${fontX}</fonts><fills count="${fills.length}">${fillX}</fills><borders count="${bords.length}">${bordX}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfX}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
  const used={},nm=S=>{let b=String(S.name||'Sheet').replace(/[\[\]:*?\/\\]/g,' ').trim().slice(0,31)||'Sheet',n=b,k=2;while(used[n.toLowerCase()]){n=b.slice(0,28)+' '+k++}used[n.toLowerCase()]=1;return n};
  const names=sheets.map(nm),RT='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
- return pZip([{name:'[Content_Types].xml',data:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+sheets.map((S,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')+'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
+ return pZip([{name:'[Content_Types].xml',data:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpg" ContentType="image/jpeg"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+sheets.map((S,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'+(S.imgs&&S.imgs.length?'<Override PartName="/xl/drawings/drawing'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>':'')).join('')+'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
   {name:'_rels/.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+RT+'/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
   {name:'xl/workbook.xml',data:H+'<workbook xmlns="'+NS+'" xmlns:r="'+RT+'"><sheets>'+names.map((n,i)=>'<sheet name="'+esc(n)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join('')+'</sheets></workbook>'},
   {name:'xl/_rels/workbook.xml.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((S,i)=>'<Relationship Id="rId'+(i+1)+'" Type="'+RT+'/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+'<Relationship Id="rId'+(sheets.length+1)+'" Type="'+RT+'/styles" Target="styles.xml"/></Relationships>'},
-  {name:'xl/styles.xml',data:styles}].concat(sx.map((x,i)=>({name:'xl/worksheets/sheet'+(i+1)+'.xml',data:x}))))}
+  {name:'xl/styles.xml',data:styles}].concat(sx.map((x,i)=>({name:'xl/worksheets/sheet'+(i+1)+'.xml',data:x})),xgImgParts(sheets,RT)))}
+/* pictures for xgBuild: S.imgs=[{r,c,m,w,h,dx,dy}] (0-based row/col, m = index in sheets.media, size in px); the same picture file is shared by all sheets */
+function xgImgParts(sheets,RT){const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',out=[],E9=9525;let used=false;
+ sheets.forEach((S,i)=>{if(!S.imgs||!S.imgs.length)return;used=true;const n=i+1;
+  out.push({name:'xl/worksheets/_rels/sheet'+n+'.xml.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+RT+'/drawing" Target="../drawings/drawing'+n+'.xml"/></Relationships>'});
+  out.push({name:'xl/drawings/_rels/drawing'+n+'.xml.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+S.imgs.map((g,k)=>'<Relationship Id="rId'+(k+1)+'" Type="'+RT+'/image" Target="../media/'+sheets.media[g.m].name+'"/>').join('')+'</Relationships>'});
+  out.push({name:'xl/drawings/drawing'+n+'.xml',data:H+'<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="'+RT+'">'+S.imgs.map((g,k)=>{const cx=g.w*E9,cy=g.h*E9;return'<xdr:oneCellAnchor><xdr:from><xdr:col>'+g.c+'</xdr:col><xdr:colOff>'+(g.dx||0)*E9+'</xdr:colOff><xdr:row>'+g.r+'</xdr:row><xdr:rowOff>'+(g.dy||0)*E9+'</xdr:rowOff></xdr:from><xdr:ext cx="'+cx+'" cy="'+cy+'"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="'+(k+2)+'" name="Photo '+(k+1)+'"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId'+(k+1)+'"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="'+cx+'" cy="'+cy+'"/></a:xfrm><a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor>'}).join('')+'</xdr:wsDr>'})});
+ if(used)(sheets.media||[]).forEach(m=>out.push({name:'xl/media/'+m.name,data:m.data}));return out}
 /* cash vouchers -> Excel: 2 across, same look as the printed voucher */
 function pCvXlsx(LL){const L=LL||pSlipList();if(!L.length)return null;const M=L.map(pSlipModel),per=pCutEnd().toUpperCase(),S=xgSheet('Cash Vouchers');
  const BW=[14,10,10,10,10],GW=2,H=[32,22,10,22,8,20,26,10,10,8,26,26,6],R=H.length,GAP=8,bandH=H.reduce((a,b)=>a+b,0),z=PXP[PSZ]||PXP['8.5in|11in'],bands=z[2]>=13?4:3,pageRows=bands*(R+1),perPage=bands*2;
