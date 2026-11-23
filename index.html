@@ -11254,6 +11254,15 @@ const psmCss=`
 .psg td.na{background:var(--sf2)}
 .psg td.rmk{padding:3px;min-width:200px}.psg td.rmk input{width:100%;border:0;background:transparent;padding:6px 8px;font:inherit;font-size:13px;color:var(--ink)}
 .psg td.rmk input:focus{outline:2px solid var(--au);background:var(--sf)}
+/* v638: Summary grid: the cutoff dates (top row) and the Class column stay visible while scrolling */
+.psg-w{max-height:calc(100vh - 90px)}
+.psg{border-collapse:separate;border-spacing:0}
+.psg th,.psg td{border-width:0 1px 1px 0}
+.psg th{position:sticky;top:0;z-index:3}
+.psg th:first-child{left:0;z-index:5;background:var(--sf2)}
+.psg td.cl{position:sticky;left:0;z-index:2;background:var(--sf);box-shadow:1px 0 0 var(--ln2)}
+.psg tr.dh td{position:sticky;left:0;z-index:2}
+@media print{.psg-w{max-height:none!important;overflow:visible!important}.psg th,.psg td.cl,.psg tr.dh td{position:static!important}}
 [data-theme=dark] .psg td.ok{background:#173326;color:#6fd39a}[data-theme=dark] .psg td.bad{background:#3a1f21;color:#ff9d92}[data-theme=dark] .psg td.bad.part{background:#3a3016;color:#e3bd62}
 .psg-lg{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--mu);margin:12px 2px 0}
 .psg-sig{margin:48px 4px 24px;font-size:14px;color:var(--ink)}.psg-sig div+div{margin-top:56px}.psg-sig span{color:var(--mu);margin-right:6px}.psg-sig b{font-weight:700}
@@ -11319,7 +11328,7 @@ ${depts.length?`<div class="psg-w"><table class="psg"><tr><th style="text-align:
 /* ===== DASHBOARD: who is past due in returning the signed payslip =====
    Payslips are given out on the Friday 3 days after the cutoff ends (e.g. cutoff Oct 28 - Nov 3 -> Friday Nov 6).
    Time allowed from that Friday: 14 days for B2 / B4 / B7 / B14, 7 days for everyone else. DUE_WARN = days before the deadline when the warning starts. */
-const psmNav=a=>`<div class="psm-seg">${[['due','Dashboard'],['list','Checklist'],['grid','Summary']].map(([v,l])=>`<button type="button" class="${v===a?'on':''}" onclick="psmView('${v}')">${l}</button>`).join('')}</div>${can('pay')?`<button class="btn o sm" onclick="go('pay')">← Payroll</button>`:''}`;
+const psmNav=a=>`<div class="psm-seg">${[['due','Dashboard'],['grid','Summary']].map(([v,l])=>`<button type="button" class="${v===a?'on':''}" onclick="psmView('${v}')">${l}</button>`).join('')}</div>${can('pay')?`<button class="btn o sm" onclick="go('pay')">← Payroll</button>`:''}`;
 const DUE_WARN=2;
 const psm2w=(s,x)=>{let g='';try{g=[s&&s.dept,s&&pGrp(s),psmCl(x)].join(' ')}catch(e){}return /(^|[^A-Z0-9])B(2|4|7|14)(?![0-9])/i.test(g)};
 function psmDueRows(){const t0=new Date();t0.setHours(0,0,0,0);const out=[];
