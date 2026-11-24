@@ -1535,13 +1535,8 @@ body:has(#app[style*="display:none"]) #fx,body:has(#app[style*="display: none"])
 @media print{#fx,#fx-lv{display:none!important}}
 </style>
 <script>(function(){var L=[["🎆","New Year"],["💗","Month of Love"],["💜","Women's Month"],["☀️","Summer"],["🌸","Flowers of May"],["⭐","Independence Day"],["🥗","Nutrition Month"],["📚","National Language Month"],["🏮","Ber Months Begin"],["🎃","Halloween"],["🕯️","All Saints' Day"],["🎄","Christmas"]];var m=0;
-/* v636: the seasonal theme is shown ONLY from 3 days before to 3 days after each occasion; every other day the default theme is used.
-   [theme number (1-12 = same order as the list above), start month, start day, end month, end day] -- month-long observances span the whole month. Change the dates here. */
-var OCC=[[1,1,1,1,1],[2,2,14,2,14],[3,3,8,3,8],[4,4,1,4,30],[5,5,1,5,31],[6,6,12,6,12],[7,7,1,7,31],[8,8,1,8,31],[9,9,1,9,1],[10,10,31,10,31],[11,11,1,11,2],[12,12,25,12,25]],PAD=3;
-try{var pt=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Manila',year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date()),g={};pt.forEach(function(x){g[x.type]=+x.value});
- var t0=Date.UTC(g.year,g.month-1,g.day),DAY=864e5,best=1e9;
- OCC.forEach(function(o){for(var dy=-1;dy<=1;dy++){var y=g.year+dy,a=Date.UTC(y,o[1]-1,o[2]),b=Date.UTC(y,o[3]-1,o[4]);
-  if(t0>=a-PAD*DAY&&t0<=b+PAD*DAY){var d=t0<a?(a-t0)/DAY:t0>b?(t0-b)/DAY:0;if(d<best||(d===best&&o[0]>m)){best=d;m=o[0]}}}})}catch(e){m=0}
+/* The seasonal theme follows the CURRENT MONTH (Manila time) for the whole month: Jan New Year, Feb Month of Love, Mar Women's Month, ... Nov All Saints' Day, Dec Christmas. Theme number = month number. */
+try{var pt=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Manila',year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date()),g={};pt.forEach(function(x){g[x.type]=+x.value});m=g.month>=1&&g.month<=12?g.month:0}catch(e){m=new Date().getMonth()+1}
 var q;try{q=+new URLSearchParams(location.search).get('season')}catch(e){}
 if(q>=1&&q<=12)m=q;
 var pref;try{pref=localStorage.getItem('hrd_season')}catch(e){}
