@@ -1471,12 +1471,12 @@ html[data-season="3"]{--s-g:#5b2a86;--s-g2:#7d44b0;--s-au:#d9a441}
 html[data-season="4"]{--s-g:#9a4a06;--s-g2:#c2670c;--s-au:#0e7490}
 html[data-season="5"]{--s-g:#0f6b5c;--s-g2:#178f7b;--s-au:#e2a93b}
 html[data-season="6"]{--s-g:#0b3a8c;--s-g2:#1f56bf;--s-au:#e6b800}
-html[data-season="7"]{--s-g:#2e6b2f;--s-g2:#45914a;--s-au:#d99a1e}
+html[data-season="7"]{--s-g:#3a5f3c;--s-g2:#5a8a5d;--s-au:#cfa24a}
 html[data-season="8"]{--s-g:#115e74;--s-g2:#1b86a3;--s-au:#e0a820}
-html[data-season="9"]{--s-g:#9b1c1c;--s-g2:#c0392b;--s-au:#d4a72c}
+html[data-season="9"]{--s-g:#7a2e33;--s-g2:#a14a4f;--s-au:#c7a35e}
 html[data-season="10"]{--s-g:#a8460a;--s-g2:#d2610f;--s-au:#6d28d9}
 html[data-season="11"]{--s-g:#3d4a5c;--s-g2:#56687f;--s-au:#c9a45c}
-html[data-season="12"]{--s-g:#166534;--s-g2:#1f8a4c;--s-au:#c9302c}
+html[data-season="12"]{--s-g:#24593f;--s-g2:#3a7d5c;--s-au:#b9575a}
 html[data-season]{--g:var(--s-g);--g2:var(--s-g2)}
 html[data-theme=light][data-season]{--h:var(--s-g);--lk:var(--s-g2);--au:var(--s-au);--soft:color-mix(in srgb,var(--s-g) 10%,#fff)}
 html[data-theme=dark][data-season]{--lk:color-mix(in srgb,var(--s-g2) 55%,#fff);--au:color-mix(in srgb,var(--s-au) 80%,#fff);--soft:color-mix(in srgb,var(--s-g) 35%,#0a111f)}
@@ -1553,8 +1553,11 @@ try{var pt=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Manila',year:'numeric
 var cm=m,q;try{q=+new URLSearchParams(location.search).get('season')}catch(e){}
 var G=null;try{G=JSON.parse(localStorage.getItem('hrd_season_g')||'null')}catch(e){G=null}
 if(q>=1&&q<=12)m=q;else if(G){if(G.m==='off')m=0;else if(G.m>=1&&G.m<=12)m=+G.m}
+/* personal switch: a user can turn the seasonal theme off for THEMSELVES only (kept in this browser) */
+var PO=false;try{PO=localStorage.getItem('hrd_season_me')==='off'}catch(e){}
+if(PO&&!(q>=1&&q<=12))m=0;
 /* the theme is chosen by the ADMIN for everybody (saved in the database; this browser keeps a copy so the sign-in page already shows it) */
-window.SEASON={m:m,cm:cm,q:(q>=1&&q<=12),g:G||{m:'auto',fx:true},L:L,idle:!m,on:!!m,fx:!!m&&!(G&&G.fx===false)};
+window.SEASON={m:m,cm:cm,po:PO,q:(q>=1&&q<=12),g:G||{m:'auto',fx:true},L:L,idle:!m,on:!!m,fx:!!m&&!(G&&G.fx===false)};
 if(window.SEASON.on)document.documentElement.setAttribute('data-season',m)})()</script>
 <style>
 .xbw{max-width:900px;margin:26px auto 0;background:#fff;padding:26px 30px;box-shadow:0 4px 20px #0000001f;color:#000;font:13px 'Segoe UI',Calibri,Arial,sans-serif;break-before:page;page-break-before:always}
@@ -1706,6 +1709,7 @@ html[data-theme=dark] #main .stat.al-g .si{background:#1f4a31;color:#7fdca4}
   <div class="who"><span class="wav" id="wav"></span><div id="who"></div></div>
  <a tabindex="0" onclick="theme()" aria-label="Switch between dark and light mode"><svg class="t-d" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="t-l" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg><span class="t-d">Dark mode</span><span class="t-l">Light mode</span></a>
  <a id="snd" tabindex="0" onclick="sndToggle()" aria-label="Turn notification sound on or off"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4z"/><path class="sw" d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg><span>Sound: On</span></a>
+ <a id="sthm" tabindex="0" onclick="seasonMe()" aria-label="Turn the seasonal theme on or off for yourself only"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg><span>Seasonal theme: On</span></a>
  <a tabindex="0" onclick="nickOpen()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span>Edit Profile</span></a>
  <a tabindex="0" onclick="chpw()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg><span>Change Password</span></a>
  <a id="ndel" tabindex="0" onclick="delMe()" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14M10 11v5M14 11v5"/></svg><span>Delete Account</span></a>
@@ -6720,7 +6724,7 @@ function pzFullView(on){const B=document.body;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('pzfv'))pzFullView(false)});
 window.addEventListener('resize',()=>{try{pzFvFit()}catch(e){}});
 /* ===== 13th Month Pay: Christmas decor (snow + lights) shown only while that page is open ===== */
-(function(){const SF=['❄','❅','❆'],CL=['#e63946','#2a9d3f','#f4b400','#2f7be5','#d946ef'];
+(function(){const SF=['❄','❅','❆'],CL=['#c26a68','#6fa383','#e3cf92','#7f9fc4','#b690b8'];
  function on(){if(document.getElementById('xmasfx'))return;const f=document.createElement('div');f.id='xmasfx';f.setAttribute('aria-hidden','true');
   const n=Math.max(18,Math.min(46,Math.round(innerWidth/36)));
   for(let i=0;i<n;i++){const e=document.createElement('span');e.className='sf';e.textContent=SF[i%3];const d=7+Math.random()*9;
@@ -6729,7 +6733,8 @@ window.addEventListener('resize',()=>{try{pzFvFit()}catch(e){}});
   for(let i=0;i<k;i++){const b=document.createElement('i');const c=CL[i%CL.length];b.style.cssText='background:'+c+';color:'+c+';animation-delay:-'+((i%5)*.32).toFixed(2)+'s';l.appendChild(b)}
   document.body.insertBefore(l,document.body.firstChild);document.body.insertBefore(f,document.body.firstChild)}
  function off(){['xmasfx','xmaslt'].forEach(id=>{const e=document.getElementById(id);if(e)e.remove()})}
- function sync(){document.body.getAttribute('data-pg')==='m13'?on():off()}
+ function sync(){(document.body.getAttribute('data-pg')==='m13'&&!(window.SEASON&&window.SEASON.po))?on():off()}
+ window.xmasSync=sync;
  new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['data-pg']});sync()})();
 /* ===== Employee Benefits: government membership numbers of every employee (SSS, PhilHealth, Pag-IBIG, TIN), read from the 201 Files. Same access as 201 Files. ===== */
 let BQ='',BD='',BS='act',BM=false;
@@ -7851,10 +7856,10 @@ const SEASON_FX=[
  {p:['⭐','🎉','⭐'],t:['bunting','#0b3a8c','#ffffff','#c8102e','#fcd116']},
  {p:['🥕','🍎','🥬','🍌'],t:['row','🥦','🍎','🥕','🍌']},
  {p:['📚','✏️','📖'],t:['bunting','#115e74','#e0a820','#ffffff','#c8102e']},
- {p:['🏮','✨','🏮'],up:1,t:['lights','#d4a72c','#c0392b','#fff3b0','#ff8a3d']},
+ {p:['🏮','✨','🏮'],up:1,t:['lights','#d9bd7a','#b8605a','#efe3bd','#d9a06b']},
  {p:['🎃','🦇','👻','🕷️'],t:['row','🦇','🎃','🕸️','👻']},
  {p:['🕯️','🍂','🍁'],t:['row','🍂','🕯️','🍁','🕯️']},
- {p:['❄️','❄️','❄️','⭐','🎄'],t:['lights','#e53935','#43a047','#ffd54a','#1e88e5']}];
+ {p:['❄️','❄️','❄️','⭐','🎄'],t:['lights','#c26a68','#6fa383','#e3cf92','#7f9fc4']}];
 function seasonFX(){
  document.querySelectorAll('#fx,#fx-lv,#fx-lm').forEach(x=>x.remove());
  const S=window.SEASON;if(!S||!S.on||!S.fx)return;
@@ -7903,17 +7908,26 @@ function seasonFX(){
    m.appendChild(e)}
   lg.insertBefore(m,lg.firstChild)}
 }
+/* personal on/off: only for the person using this browser, never changes what other users see */
+function seasonMeUI(){const S=window.SEASON,a=document.getElementById('sthm');if(!a||!S)return;
+ const gOn=!(S.g&&S.g.m==='off');a.style.display=(gOn||S.po)?'':'none';
+ const sp=a.querySelector('span');if(sp)sp.textContent=S.po?'Seasonal theme: Off':'Seasonal theme: On';a.classList.toggle('off',!!S.po)}
+function seasonMe(){const S=window.SEASON;if(!S)return;S.po=!S.po;
+ try{if(S.po)localStorage.setItem('hrd_season_me','off');else localStorage.removeItem('hrd_season_me')}catch(e){}
+ seasonApply(S.g);try{if(window.xmasSync)window.xmasSync()}catch(e){}
+ try{toast(S.po?'Seasonal theme is off for you only':'Seasonal theme is back on')}catch(e){}}
 function seasonIsAdm(){try{return typeof isAdm==='function'&&!!isAdm()}catch(e){return false}}
 function seasonUI(){const S=window.SEASON;if(!S)return;document.querySelectorAll('.schip').forEach(x=>x.remove());const ad=seasonIsAdm();let lbl;
- if(S.idle||!S.m){seasonFX();if(!ad)return;lbl='\uD83C\uDFA8 Seasonal theme: Off'}
+ if(S.idle||!S.m){seasonFX();seasonMeUI();if(!ad)return;lbl=S.po?'\uD83C\uDFA8 Seasonal theme: Off (for you)':'\uD83C\uDFA8 Seasonal theme: Off'}
  else{const t=S.L[S.m-1];lbl=S.fx?t[0]+' '+t[1]:t[0]+' '+t[1]+' \u00B7 colors only'}
  [document.querySelector('.side .brand'),document.querySelector('#login .lv'),document.querySelector('#login .mbr')].forEach(h=>{if(!h)return;
   const b=document.createElement('button');b.type='button';b.className='schip';b.textContent=lbl;
   if(ad){b.title='Click to choose the theme that everybody will see';b.onclick=seasonToggle}else{b.title='Theme chosen by the admin';b.style.cursor='default'}
   h.appendChild(b)});
- seasonFX()}
+ seasonFX();seasonMeUI()}
 function seasonApply(G){const S=window.SEASON;if(!S)return;G=G||{m:'auto',fx:true};S.g=G;
- const m=G.m==='off'?0:(G.m>=1&&G.m<=12)?+G.m:(S.cm||0);
+ let m=G.m==='off'?0:(G.m>=1&&G.m<=12)?+G.m:(S.cm||0);
+ if(S.po&&!S.q)m=0;
  S.m=m;S.idle=!m;S.on=!!m;S.fx=!!m&&G.fx!==false;
  if(S.on)document.documentElement.setAttribute('data-season',m);else document.documentElement.removeAttribute('data-season');
  seasonUI()}
