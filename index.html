@@ -1482,6 +1482,19 @@ html[data-theme=light][data-season]{--h:var(--s-g);--lk:var(--s-g2);--au:var(--s
 html[data-theme=dark][data-season]{--lk:color-mix(in srgb,var(--s-g2) 55%,#fff);--au:color-mix(in srgb,var(--s-au) 80%,#fff);--soft:color-mix(in srgb,var(--s-g) 35%,#0a111f)}
 html[data-season] .side{background:linear-gradient(180deg,var(--s-g) 0%,color-mix(in srgb,var(--s-g) 35%,#000) 100%)}
 html[data-season] .lv{background:linear-gradient(158deg,color-mix(in srgb,var(--s-g) 85%,#000) 0%,color-mix(in srgb,var(--s-g) 45%,#000) 45%,color-mix(in srgb,var(--s-g) 18%,#000) 100%)}
+/* dashboard: birthday bar + alert cards follow the selected theme colors */
+html[data-season] .bdt{background:linear-gradient(90deg,var(--s-g),var(--s-g2));box-shadow:0 2px 10px color-mix(in srgb,var(--s-g) 30%,transparent)}
+html[data-season] .bdt .bl{background:var(--s-au)}
+html[data-season] #main .stat.al-r{--fc:var(--s-g)}
+html[data-season] #main .stat.al-b{--fc:var(--s-g)}
+html[data-season] #main .stat.al-p{--fc:var(--s-au)}
+html[data-season] #main .stat.al-g{--fc:var(--s-g2)}
+html[data-season] #main .stat.al-r,html[data-season] #main .stat.al-b,html[data-season] #main .stat.al-p,html[data-season] #main .stat.al-g{--alc:var(--fc);--alc-s:color-mix(in srgb,var(--fc) 50%,transparent);--alt:color-mix(in srgb,var(--fc) 8%,#fff);background:linear-gradient(var(--alt),var(--alt)) padding-box,conic-gradient(from var(--alA),var(--alc) 0deg,transparent 110deg,transparent 250deg,var(--alc) 360deg) border-box}
+html[data-season] #main .stat.al-r b,html[data-season] #main .stat.al-b b,html[data-season] #main .stat.al-p b,html[data-season] #main .stat.al-g b{color:color-mix(in srgb,var(--fc) 78%,#000)}
+html[data-season] #main .stat.al-r .si,html[data-season] #main .stat.al-b .si,html[data-season] #main .stat.al-p .si,html[data-season] #main .stat.al-g .si{background:color-mix(in srgb,var(--fc) 16%,#fff);color:color-mix(in srgb,var(--fc) 80%,#000)}
+html[data-season][data-theme=dark] #main .stat.al-r,html[data-season][data-theme=dark] #main .stat.al-b,html[data-season][data-theme=dark] #main .stat.al-p,html[data-season][data-theme=dark] #main .stat.al-g{--alt:color-mix(in srgb,var(--fc) 26%,#0f1a2d)}
+html[data-season][data-theme=dark] #main .stat.al-r b,html[data-season][data-theme=dark] #main .stat.al-b b,html[data-season][data-theme=dark] #main .stat.al-p b,html[data-season][data-theme=dark] #main .stat.al-g b{color:color-mix(in srgb,var(--fc) 45%,#fff)}
+html[data-season][data-theme=dark] #main .stat.al-r .si,html[data-season][data-theme=dark] #main .stat.al-b .si,html[data-season][data-theme=dark] #main .stat.al-p .si,html[data-season][data-theme=dark] #main .stat.al-g .si{background:color-mix(in srgb,var(--fc) 40%,#111b2d);color:color-mix(in srgb,var(--fc) 40%,#fff)}
 .schip{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 11px;border-radius:999px;border:1px solid #ffffff40;background:#ffffff18;color:#fff;font:600 12px/1.2 inherit;font-family:inherit;cursor:pointer;max-width:100%}
 .schip:hover{background:#ffffff2e}
 .lv .schip{align-self:flex-start;margin-top:18px}
@@ -1537,10 +1550,11 @@ body:has(#app[style*="display:none"]) #fx,body:has(#app[style*="display: none"])
 <script>(function(){var L=[["🎆","New Year"],["💗","Month of Love"],["💜","Women's Month"],["☀️","Summer"],["🌸","Flowers of May"],["⭐","Independence Day"],["🥗","Nutrition Month"],["📚","National Language Month"],["🏮","Ber Months Begin"],["🎃","Halloween"],["🕯️","All Saints' Day"],["🎄","Christmas"]];var m=0;
 /* The seasonal theme follows the CURRENT MONTH (Manila time) for the whole month: Jan New Year, Feb Month of Love, Mar Women's Month, ... Nov All Saints' Day, Dec Christmas. Theme number = month number. */
 try{var pt=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Manila',year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date()),g={};pt.forEach(function(x){g[x.type]=+x.value});m=g.month>=1&&g.month<=12?g.month:0}catch(e){m=new Date().getMonth()+1}
-var q;try{q=+new URLSearchParams(location.search).get('season')}catch(e){}
-if(q>=1&&q<=12)m=q;
-var pref;try{pref=localStorage.getItem('hrd_season')}catch(e){}
-window.SEASON={m:m,L:L,idle:!m,on:!!m&&pref!=='off',fx:!!m&&pref!=='off'&&pref!=='colors'};
+var cm=m,q;try{q=+new URLSearchParams(location.search).get('season')}catch(e){}
+var G=null;try{G=JSON.parse(localStorage.getItem('hrd_season_g')||'null')}catch(e){G=null}
+if(q>=1&&q<=12)m=q;else if(G){if(G.m==='off')m=0;else if(G.m>=1&&G.m<=12)m=+G.m}
+/* the theme is chosen by the ADMIN for everybody (saved in the database; this browser keeps a copy so the sign-in page already shows it) */
+window.SEASON={m:m,cm:cm,q:(q>=1&&q<=12),g:G||{m:'auto',fx:true},L:L,idle:!m,on:!!m,fx:!!m&&!(G&&G.fx===false)};
 if(window.SEASON.on)document.documentElement.setAttribute('data-season',m)})()</script>
 <style>
 .xbw{max-width:900px;margin:26px auto 0;background:#fff;padding:26px 30px;box-shadow:0 4px 20px #0000001f;color:#000;font:13px 'Segoe UI',Calibri,Arial,sans-serif;break-before:page;page-break-before:always}
@@ -2033,6 +2047,7 @@ async function enter(){
  ME=jwt(SES.tok);SUPER=(ME.app_metadata||{}).role==='admin';
  $('login').style.display='none';$('app').style.display='block';$('main').innerHTML='<p class="sub">Loading…</p>';
  await loadAccess();
+ try{await seasonLoad()}catch(e){}
  if(!SUPER&&MYA&&!MYA.active){alert('Your account is disabled. Please contact the admin.');return logout()}
  const f=applyNav();try{if(typeof tick==='function')tick()}catch(e){}try{sndUI()}catch(e){}
  /* every signed-in user lands on the Dashboard first (it can be viewed by everyone), even if they only have Attendance / Time Mark / Monthly / Benefits access */
@@ -7868,19 +7883,63 @@ function seasonFX(){
    m.appendChild(e)}
   lg.insertBefore(m,lg.firstChild)}
 }
-function seasonUI(){const S=window.SEASON;if(!S)return;document.querySelectorAll('.schip').forEach(x=>x.remove());if(S.idle||!S.m){seasonFX();return}const t=S.L[S.m-1];
- const lbl=!S.on?'🎨 Seasonal theme: Off':S.fx?t[0]+' '+t[1]:t[0]+' '+t[1]+' · colors only';
+function seasonIsAdm(){try{return typeof isAdm==='function'&&!!isAdm()}catch(e){return false}}
+function seasonUI(){const S=window.SEASON;if(!S)return;document.querySelectorAll('.schip').forEach(x=>x.remove());const ad=seasonIsAdm();let lbl;
+ if(S.idle||!S.m){seasonFX();if(!ad)return;lbl='\uD83C\uDFA8 Seasonal theme: Off'}
+ else{const t=S.L[S.m-1];lbl=S.fx?t[0]+' '+t[1]:t[0]+' '+t[1]+' \u00B7 colors only'}
  [document.querySelector('.side .brand'),document.querySelector('#login .lv'),document.querySelector('#login .mbr')].forEach(h=>{if(!h)return;
   const b=document.createElement('button');b.type='button';b.className='schip';b.textContent=lbl;
-  b.title='Click to change: full theme → colors only → off';b.onclick=seasonToggle;h.appendChild(b)});
+  if(ad){b.title='Click to choose the theme that everybody will see';b.onclick=seasonToggle}else{b.title='Theme chosen by the admin';b.style.cursor='default'}
+  h.appendChild(b)});
  seasonFX()}
-function seasonToggle(){const S=window.SEASON;
- // cycle: full -> colors only -> off -> full
- if(S.on&&S.fx){S.fx=false}else if(S.on){S.on=false}else{S.on=true;S.fx=true}
- const v=!S.on?'off':S.fx?'on':'colors';
- try{localStorage.setItem('hrd_season',v)}catch(e){}
- if(S.on)document.documentElement.setAttribute('data-season',S.m);else document.documentElement.removeAttribute('data-season');
+function seasonApply(G){const S=window.SEASON;if(!S)return;G=G||{m:'auto',fx:true};S.g=G;
+ const m=G.m==='off'?0:(G.m>=1&&G.m<=12)?+G.m:(S.cm||0);
+ S.m=m;S.idle=!m;S.on=!!m;S.fx=!!m&&G.fx!==false;
+ if(S.on)document.documentElement.setAttribute('data-season',m);else document.documentElement.removeAttribute('data-season');
  seasonUI()}
+/* every signed-in user reads the admin's choice from the database (hrd_dash, row "theme"); checked again every 5 minutes */
+async function seasonLoad(){
+ try{const r=await api('/rest/v1/hrd_dash?id=eq.theme&select=data');const G=(Array.isArray(r)&&r[0]&&r[0].data&&Object.keys(r[0].data).length)?r[0].data:{m:'auto',fx:true};
+  try{localStorage.setItem('hrd_season_g',JSON.stringify(G))}catch(e){}
+  if(!window.SEASON.q&&JSON.stringify(G)!==JSON.stringify(window.SEASON.g))seasonApply(G);else seasonUI()}
+ catch(e){seasonUI()}
+ if(!window.__seaT)window.__seaT=setInterval(function(){try{if(SES.tok)seasonLoad()}catch(e){}},300000)}
+async function seasonSave(G){
+ if(!seasonIsAdm())return;
+ try{await api('/rest/v1/hrd_dash?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{id:'theme',data:G,updated_at:new Date().toISOString(),updated_by:(typeof ME!=='undefined'&&ME&&ME.email)||''}])});
+  try{localStorage.setItem('hrd_season_g',JSON.stringify(G))}catch(e){}
+  window.SEASON.q=false;seasonApply(G);try{logAct('Changed the seasonal theme','Theme',G.m==='off'?'Off':G.m==='auto'?'Automatic (by month)':window.SEASON.L[G.m-1][1])}catch(e){}
+  try{toast('Theme saved. Everybody will see it \u2714')}catch(e){}}
+ catch(e){alert('Could not save the theme for everybody. Please make sure the hrd_dash table is set up (SQL), then try again.\n\n'+((e&&e.message)||e))}}
+function seasonToggle(){
+ const S=window.SEASON;if(!S||!seasonIsAdm())return;
+ let d=document.getElementById('seasonm');if(d)d.remove();
+ const cur=S.g||{m:'auto',fx:true};let pick=(cur.m==='off'||cur.m==='auto'||(cur.m>=1&&cur.m<=12))?cur.m:'auto',fx=cur.fx!==false;
+ d=document.createElement('div');d.id='seasonm';
+ d.style.cssText='position:fixed;inset:0;z-index:99999;background:#0b1424b3;display:flex;align-items:center;justify-content:center;padding:16px';
+ const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+ const draw=()=>{
+  const opt=(v,ic,t,sub)=>`<button type="button" data-v="${v}" style="display:flex;align-items:center;gap:10px;text-align:left;padding:10px 12px;border-radius:12px;cursor:pointer;font:600 13.5px 'DM Sans',sans-serif;color:var(--h);background:${String(pick)===String(v)?'var(--soft)':'var(--sf)'};border:2px solid ${String(pick)===String(v)?'var(--au)':'var(--ln)'}"><span style="font-size:22px">${ic}</span><span>${t}${sub?`<small style="display:block;font-weight:400;color:var(--mu);font-size:11.5px">${sub}</small>`:''}</span></button>`;
+  const cmT=S.L[(S.cm||1)-1];
+  d.innerHTML=`<div style="background:var(--sf);color:var(--ink);border-radius:18px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:22px 24px;box-shadow:0 24px 60px #0008">
+  <h3 style="margin:0 0 4px;font:600 21px 'Playfair Display',Georgia,serif;color:var(--h)">Seasonal theme</h3>
+  <p style="margin:0 0 14px;font-size:13px;color:var(--mu)">The theme you choose here is the one <b>everybody</b> sees (all users). Only the admin can change it.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px">
+   ${opt('auto','\uD83D\uDCC5','Automatic','Follows the current month: '+cmT[0]+' '+cmT[1])}
+   ${opt('off','\uD83C\uDFA8','Off','Default blue theme')}
+   ${S.L.map((t,i)=>opt(i+1,t[0],t[1],MO[i])).join('')}
+  </div>
+  <div style="margin:16px 0 4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:13px;color:var(--mu)">Decorations:</span>
+   <button type="button" data-fx="1" style="padding:6px 14px;border-radius:999px;cursor:pointer;font:600 12.5px 'DM Sans',sans-serif;border:1px solid var(--ln2);background:${fx?'var(--g)':'var(--sf)'};color:${fx?'#fff':'var(--h)'}">Full (colors + decorations)</button>
+   <button type="button" data-fx="0" style="padding:6px 14px;border-radius:999px;cursor:pointer;font:600 12.5px 'DM Sans',sans-serif;border:1px solid var(--ln2);background:${!fx?'var(--g)':'var(--sf)'};color:${!fx?'#fff':'var(--h)'}">Colors only</button></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button type="button" class="btn o" id="seasonx">Cancel</button><button type="button" class="btn" id="seasons">Save for everybody</button></div></div>`;
+  d.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{const v=b.getAttribute('data-v');pick=(v==='auto'||v==='off')?v:+v;draw()});
+  d.querySelectorAll('[data-fx]').forEach(b=>b.onclick=()=>{fx=b.getAttribute('data-fx')==='1';draw()});
+  d.querySelector('#seasonx').onclick=()=>d.remove();
+  d.querySelector('#seasons').onclick=async()=>{const btn=d.querySelector('#seasons');btn.disabled=true;await seasonSave({m:pick,fx:fx});d.remove()}};
+ d.onclick=e=>{if(e.target===d)d.remove()};
+ document.body.appendChild(d);draw()}
+
 seasonUI();
 </script>
 
