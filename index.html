@@ -10402,7 +10402,7 @@ function spDlg(i){const sh=S(),e=sh.emps[i],d=$('atsp');if(!d||!e)return;const t
  <div style="margin-top:12px;font-size:13px;${left<0?'color:#c0392b':'color:var(--mu)'}">Remaining in ${esc(spCl(sh,e))}: <b>${nf(left)} days</b> = ${fm(r2(t.amt-sp.reduce((q,z)=>q+spAmt(e,z),0)))}${left<0?' (over-divided)':''}</div>
  <div style="display:flex;gap:8px;justify-content:space-between;margin-top:14px"><button class="btn o sm" onclick="atSpAdd(${i})">+ Class</button><button class="btn ok sm" onclick="atSpDone()">Done</button></div></div>`}
 window.atSpAdd=i=>{const e=S().emps[i];(e.sp=e.sp||[]).push({c:'',d:''});sv();spDlg(i)};
-window.atSpSet=(i,k,f,v)=>{const sh=S(),e=sh.emps[i],z=(e.sp||[])[k];if(!z)return;if(f==='c'&&isBl(sh)&&String(spGrp(sh,v))===String(e.c)){z.c='';toast(e.n+' is already in '+e.c+'. Pick another class.');sv();spDlg(i);return}z[f]=f==='c'?(isBl(sh)?spGrp(sh,v):String(v||'').trim().toUpperCase()):(v===''?'':Math.max(0,pn(v)));sv();upCls();spDlg(i)};
+window.atSpSet=(i,k,f,v)=>{const sh=S(),e=sh.emps[i],z=(e.sp||[])[k];if(!z)return;z[f]=f==='c'?(isBl(sh)?spGrp(sh,v):String(v||'').trim().toUpperCase()):(v===''?'':Math.max(0,pn(v)));sv();upCls();spDlg(i)};
 window.atSpDel=(i,k)=>{const e=S().emps[i];(e.sp||[]).splice(k,1);sv();upCls();spDlg(i)};
 window.atSpDone=()=>{const o=$('atsp');if(o)o.remove();const sh=S();if(sh)sh.emps.forEach(e=>{if(e.sp)e.sp=e.sp.filter(z=>String(z.c||'').trim()||pn(z.d)>0);if(e.sp&&!e.sp.length)delete e.sp});drawSheet()};
 function upCls(){const sh=S(),el=$('atcls');if(sh&&el)el.innerHTML=clSumH(sh)}
@@ -11020,7 +11020,7 @@ async function syncOne(k){
   if(!id){const cd=findSm(e);ag+=t.amt;add.push({n:e.n,r:pn(e.r),c:e.c||'',pd:e.pd?1:0,fd:e.fd>0?e.fd:7,days:t.any?nrx(t.days):'',arem:ar||'',amt:t.amt,hold:holdOf(sh,e),...(cd?{sm:{id:cd.id,n:cd.x.name}}:{})});return}
   used.add(id);
   /* BROILER: the Hatiin (split) of the attendance goes to the payroll's "Salary division" box of the same cutoff, next to the COMMON employees. Whoever has a hatian appears there with the classes and days; what is not divided stays in his own class. */
-  if(/^\s*broiler/i.test(String(sh.dept||''))){const cur=(d.cs&&d.cs[id])||null,b5=sj(cur),nw=spList(e).filter(z=>String(spGrp(sh,z.c))!==String(e.c==null?'':e.c)).map(z=>({c:String(spGrp(sh,z.c)).trim(),d:String(pn(z.d)),at:1}));
+  if(/^\s*broiler/i.test(String(sh.dept||''))){const cur=(d.cs&&d.cs[id])||null,b5=sj(cur),al=spList(e).map(z=>({c:String(spGrp(sh,z.c)).trim(),d:String(pn(z.d)),at:1})),own0=String(e.c==null?'':e.c).trim(),nw=al.some(z=>z.c!==own0)?al:[];/* any class is accepted, also the person's own class; it goes to the Salary division box when at least one line goes to another class */
    if(nw.length){d.cs=d.cs||{};d.cs[id]=nw}
    else if(cur&&Array.isArray(cur)){const keep=cur.filter(z=>!(z&&z.at));if(keep.length)d.cs[id]=keep;else delete d.cs[id]}
    if(sj((d.cs&&d.cs[id])||null)!==b5)r.csn=(r.csn||0)+1}
