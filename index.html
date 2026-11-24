@@ -9695,10 +9695,10 @@ function mgDraw(){
  <div class="cx-card" style="margin-top:18px">
   <label class="mg-drop" id="mgdz" ondragover="event.preventDefault();this.classList.add('on')" ondragleave="this.classList.remove('on')" ondrop="event.preventDefault();this.classList.remove('on');mgDrop(event)">
    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7.5 9.5 12 5l4.5 4.5"/><path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></svg>
-   <b>${MG.busy?'Reading files…':'Click here to pick the payroll folder, or drop it here'}</b>
+   <b>${MG.busy?'Reading files…':'Click here to pick many payroll files at once (Ctrl+A selects all), or drop several files / folders here'}</b>
    <small>Each department is separated automatically (by its folder, or by its file name). One file can hold the 4 cut-off sheets, or use 4 separate files.</small>
-   <span style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px"><span class="btn" onclick="event.preventDefault();event.stopPropagation();$('mgfd').click()">Choose folder</span><span class="btn o" onclick="event.preventDefault();event.stopPropagation();$('mgff').click()">Choose files</span></span>
-   <input id="mgfd" type="file" webkitdirectory multiple hidden onchange="mgAdd(this.files);this.value=''"><input id="mgff" type="file" accept=".xlsx,.xlsm,.xls" multiple hidden onchange="mgAdd(this.files);this.value=''"></label>
+   <span style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px"><span class="btn" onclick="event.preventDefault();event.stopPropagation();$('mgfd').click()">Choose folder</span><span class="btn o" onclick="event.preventDefault();event.stopPropagation();$('mgff').click()">Choose files (many)</span></span>
+   <input id="mgff" type="file" accept=".xlsx,.xlsm,.xls" multiple hidden onchange="mgAdd(this.files);this.value=''"><input id="mgfd" type="file" webkitdirectory multiple hidden onchange="mgPickSub(this.files);this.value=''"></label>
   ${MG.err.map(e=>`<div class="mg-err">${esc(e)}</div>`).join('')}${mgLogHtml()}${(MG.notes||[]).map(e=>`<div class="mg-note" style="background:var(--soft);color:var(--ink2);border-color:var(--ln2)">${esc(e)}</div>`).join('')}
   ${has?`<div class="mg-top"><span style="color:var(--mu);font-size:13.5px">${MG.cuts.filter(c=>c.on).length} of ${MG.cuts.length} cut-off sheet${MG.cuts.length===1?'':'s'} included</span><span class="sp"></span><button class="btn o sm" onclick="mgTogAll(1)" title="Include every uploaded cut-off sheet">Mark all sheets</button><button class="btn o sm" onclick="mgTogAll(0)" title="Leave out every uploaded cut-off sheet">Unmark all sheets</button><button class="btn o sm" onclick="mgSave()">Save to History</button><button class="btn o sm" onclick="mgClear()">Clear all</button><button class="btn" onclick="mgExport()" ${GS.some(g=>g.inc.length&&!MG.skip.has(g.key))?'':'disabled'}>${GS.some(g=>MG.skip.has(g.key))?'Export selected departments':'Export all departments'}</button></div>`:''}
  </div>
@@ -9724,6 +9724,24 @@ function mgGroupHtml(G){
   ${G.moveOut&&G.moveOut.length?`<div class="mg-note" style="background:var(--soft);color:var(--ink2);border-color:var(--ln2)">Moved to another department (counted there, not here): ${G.moveOut.map(m=>esc(m.name)+' (to '+esc(m.to.join(', '))+')').join('; ')}</div>`:''}
   ${G.hid.length?`<div class="mg-note" style="background:var(--soft);color:var(--ink2);border-color:var(--ln2)">Left out of the export (${G.hid.length}): ${G.hid.map(e=>esc(e.name)).join('; ')} · <a style="color:var(--lk);cursor:pointer;text-decoration:underline" data-g="${esc(G.key)}" onclick="mgRestore(this)">Put back</a></div>`:''}
   ${n?`<div class="mg-h">Preview</div>${tbl(G.emp,'NAME')}${G.svc.length?`<div class="mg-h">Service Provider</div>${tbl(G.svc,'SERVICE PROVIDER')}`:''}`:'<div class="mg-empty">Tick at least one cut-off sheet to see the computation.</div>'}</div>`}
+
+/* Pick a parent folder, then tick which sub-folders (e.g. the weekly cut-off folders) to upload together */
+function mgPickSub(fl){
+ const files=[...(fl||[])].filter(f=>f&&!/^(~\$|\.)/.test(f.name));if(!files.length)return;
+ const wk=/\d{4}|\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/i,G=new Map();
+ files.forEach(f=>{const q=(f.webkitRelativePath||'').split('/');if(q.length>2){const k=q[1];if(!G.has(k))G.set(k,[]);G.get(k).push(f)}});
+ const keys=[...G.keys()].filter(k=>wk.test(k));
+ if(keys.length<2)return mgAdd(files);
+ const xl=a=>a.filter(f=>/\.xls[xm]?$/i.test(f.name)).length,old=document.getElementById('mgsub');if(old)old.remove();
+ const d=document.createElement('div');d.id='mgsub';d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+ d.innerHTML='<div style="background:var(--sf,#fff);color:var(--ink,#111);border-radius:14px;max-width:520px;width:100%;max-height:85vh;overflow:auto;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.3)"><h3 style="margin:0 0 6px">Which folders to upload?</h3><p style="margin:0 0 12px;color:var(--mu,#666);font-size:14px">Tick the folders you want to upload together.</p><div id="mgsubl"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap"><button class="btn o sm" type="button" id="mgsubx">Cancel</button><button class="btn sm" type="button" id="mgsubok">Upload ticked folders</button></div></div>';
+ document.body.appendChild(d);
+ const L=d.querySelector('#mgsubl');
+ keys.sort((a,b)=>a.localeCompare(b,'en',{numeric:true})).forEach((k,i)=>{const n=xl(G.get(k)),r=document.createElement('label');r.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--ln,#ddd);cursor:pointer';
+  const cb=document.createElement('input');cb.type='checkbox';cb.dataset.k=k;cb.checked=n>0&&!/summary/i.test(k);const sp=document.createElement('span');sp.style.flex='1';sp.textContent=k;const sm=document.createElement('small');sm.style.color='var(--mu,#666)';sm.textContent=n+' Excel file'+(n===1?'':'s');r.append(cb,sp,sm);L.appendChild(r)});
+ d.querySelector('#mgsubx').onclick=()=>d.remove();
+ d.querySelector('#mgsubok').onclick=()=>{const pick=[...L.querySelectorAll('input:checked')].map(c=>c.dataset.k);d.remove();if(!pick.length)return;mgAdd(pick.flatMap(k=>G.get(k)))};
+}
 async function mgAdd(files){
  files=[...(files||[])].filter(f=>f&&!/^(~\$|\.)/.test(f.name));if(!files.length)return;MG.err=[];MG.notes=[];MG.busy=true;mgDraw();
  const folder=files.some(f=>f.webkitRelativePath||f._path);const skipped=[];let nFiles=0,nRead=0;
