@@ -2448,7 +2448,7 @@ async function submit(){
 
 // ===== ACTIVITY LOG / NOTIFICATIONS =====
 const ASQL='create table if not exists public.hrd_activity(\n  id uuid primary key default gen_random_uuid(),\n  at timestamptz not null default now(),\n  actor text not null,\n  action text not null,\n  target text,\n  detail text);\nalter table public.hrd_activity enable row level security;\ncreate policy "log own actions" on public.hrd_activity for insert to authenticated\n  with check (actor = (auth.jwt()->>\'email\'));\ncreate policy "admin reads" on public.hrd_activity for select to authenticated\n  using ((auth.jwt()->\'app_metadata\'->>\'role\')=\'admin\');\ncreate policy "admin deletes" on public.hrd_activity for delete to authenticated\n  using ((auth.jwt()->\'app_metadata\'->>\'role\')=\'admin\');\nalter table public.hrd_employees\n  add column if not exists updated_by text,\n  add column if not exists updated_at timestamptz;';
-let ACT=[],actOn=true,actPrev=0,PG='';
+let ACT=[],ACTM=[],actOn=true,actPrev=0,PG='';
 const LSK=()=>'hrd_act_seen_'+(ME.email||'');
 const actSeen=()=>{try{return localStorage[LSK()]||''}catch{return''}};
 const setSeen=v=>{try{localStorage[LSK()]=v}catch{}};
@@ -2532,6 +2532,11 @@ async function actPoll(){try{ACT=await api('/rest/v1/hrd_activity?select=*&order
  if(PG==='act'){if(ACT[0])setSeen(ACT[0].at);n=0}
  $('b5').textContent=n||'';if(n>actPrev){toast('🔔 '+(n-actPrev)+' new activity — see Activity');ping()}actPrev=n;
  if(PG==='act')drawAct()}
+/* Dashboard "Recent activity": Admin sees everyone's activity (ACT); every other user sees ONLY their own. Needs the "own act read" policy (see USQL). */
+async function actMine(){const em=String(ME.email||'').trim().toLowerCase();if(!em){ACTM=[];return}
+ try{const cut=new Date(Date.now()-7*864e5).toISOString(),f=encodeURIComponent('actor.ilike."'+em+'",actor.ilike."*<'+em+'>"');
+  const r=await api('/rest/v1/hrd_activity?select=*&order=at.desc&limit=300&at=gte.'+encodeURIComponent(cut)+'&or=('+f+')');
+  ACTM=(Array.isArray(r)?r:[]).filter(a=>a&&a.action!=='__undo__'&&actKind(a)!=='acc'&&String(actWho(a).em||'').toLowerCase()===em)}catch(e){ACTM=[]}}
 async function acts(){if(Array.isArray(ACT)&&ACT.length){drawAct();actPoll().then(()=>{if(PG==='act')drawAct()}).catch(()=>{});return}
  $('main').innerHTML='<h1>Activity</h1><p class="sub">Loading…</p>';await actPoll();if(PG==='act')drawAct()}
 function drawAct(){
@@ -2863,6 +2868,7 @@ async function dash(){PG='dash';$('main').innerHTML='<h1>Dashboard</h1><p class=
  if(can('pay'))J.push(loadH(true));
  if(can('sub'))J.push(api('/rest/v1/hrd_requests?order=created_at.desc&select=*').then(r=>{R=r;RL=true;$('bd').textContent=R.filter(x=>x.status==='pending').length||''}).catch(()=>{}));
  if(can('act'))J.push(actPoll());
+ if(!isAdm())J.push(actMine());
  J.push(dSnapLoad());
  /* show the dashboard right away from the data already in memory, then refresh it when the new data arrives (no more waiting on a Loading screen) */
  if(EALL.length&&(!can('pay')||Array.isArray(PH)))drawDash();else{await Promise.race([Promise.all(J),new Promise(r=>setTimeout(r,5000))]);drawDash()}Promise.all(J).then(()=>{drawDash();warmAll()})}
@@ -2919,7 +2925,7 @@ function bdTicker(L0){const L=L0||bdList();if(!L.length)return'';const it=L.map(
 /* 13th Month Pay: employees with no ATM account in the SAVED record of the latest year */
 let M13DL=0;
 const m13SavedMiss=()=>{try{if(!Array.isArray(M13H)||!M13H.length)return null;const r=M13H[0],G=(r.data||{}).gen||{},o=[];Object.keys(G).sort().forEach(d=>(G[d].rows||[]).forEach(x=>{if(gnStat(x)!=='no'&&!String(x.acct||'').trim())o.push({dept:d,name:x.name,year:r.year})}));return o}catch(e){return null}};
-const dTog=k=>{if(!can('dash'))return;const v=!DB[k];DB.open=DB.ntf=DB.rq=DB.nh=DB.n2=DB.atm=DB.m13=DB.sp=false;DB[k]=v;drawDash()};
+const dTog=k=>{if(!can('dash')&&k!=='rq')return;const v=!DB[k];DB.open=DB.ntf=DB.rq=DB.nh=DB.n2=DB.atm=DB.m13=DB.sp=false;DB[k]=v;drawDash()};
 /* Recent separations (Resigned / AWOL / End of Contract / Terminated): stay on the dashboard until HR presses Done on that name (shared via hrd_notif_done, same as the 201 notifications). Shows the status, the separation date and how many days it has been up to today. SPWIN = how many days back to show. */
 const SPFROM='2026-09-01';/* only separations dated from September 2026 up are shown; older ones are left out */
 const spKey=e=>'x|'+e.id+'|'+e.emp_status+'|'+(e.status_date||'');
@@ -2936,8 +2942,9 @@ function dReqPanels(){
  const inc=reqInc(),nw=nhList();
  const th='style="text-align:left"';
  let h='';
- if(DB.rq){h+=`<div class="panel dp"><h3>Incomplete requirements <small style="font-weight:400;color:var(--mu);font-size:14px">(${inc.length})</small></h3>`;
- h+=inc.length?`<p class="sub" style="margin:0 0 10px;font-size:13px">Active employees missing: ${REQF.map(r=>r[1]).join(', ')}. Click a name to open the 201 File.</p><div style="overflow:auto;max-height:420px"><table class="dt"><thead><tr><th ${th}>Employee</th><th ${th}>Department</th><th ${th}>Missing</th></tr></thead><tbody>${inc.map(({e,m})=>`<tr onclick="dEmp('${e.id}')"><td><b>${esc(e.name)}</b></td><td>${esc(nd(e.dept||'No Department'))}</td><td>${reqChips(m)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty" style="padding:6px 0">Everyone has complete requirements \u2705</p>';
+ if(DB.rq){const ce2=can('emp'),SNp=(DSNAP&&DSNAP.data)||{},L=ce2?inc.map(({e,m})=>({id:e.id,n:e.name,d:nd(e.dept||'No Department'),m})):(Array.isArray(SNp.incl)?SNp.incl:null);
+ h+=`<div class="panel dp"><h3>Incomplete requirements <small style="font-weight:400;color:var(--mu);font-size:14px">(${L?L.length:'\u2026'})</small></h3>`;
+ h+=!L?'<p class="empty" style="padding:6px 0">The list is not available yet. It appears once HR opens the Dashboard.</p>':L.length?`<p class="sub" style="margin:0 0 10px;font-size:13px">Active employees missing: ${REQF.map(r=>r[1]).join(', ')}. ${ce2?'Click a name to open the 201 File.':'View only.'}</p><div style="overflow:auto;max-height:420px"><table class="dt"><thead><tr><th ${th}>Employee</th><th ${th}>Department</th><th ${th}>Missing</th></tr></thead><tbody>${L.map(x=>`<tr${ce2&&x.id?` onclick="dEmp('${x.id}')"`:' style="cursor:default"'}><td><b>${esc(x.n)}</b></td><td>${esc(x.d||'')}</td><td>${reqChips(x.m||[])}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty" style="padding:6px 0">Everyone has complete requirements \u2705</p>';
  h+='</div>'}
  if(DB.sp){const sp=spList();h+=`<div class="panel dp"><h3>Resigned / AWOL / End of Contract <small style="font-weight:400;color:var(--mu);font-size:14px">(${sp.length})</small></h3>`;
  h+=sp.length?`<p class="sub" style="margin:0 0 10px;font-size:13px">Only people in the latest payroll (and the cutoffs after it), latest first. Names with <b>no Separation Date</b> stay here, at the top, until HR sets the date. Press <b>201 File</b> to update the record, then <b>Done</b> \u2014 the name leaves the dashboard.</p><div style="overflow:auto;max-height:420px"><table class="dt"><thead><tr><th ${th}>Employee</th><th ${th}>Department</th><th ${th}>Status</th><th ${th}>Date</th><th ${th}>Days</th><th ${th}></th></tr></thead><tbody>${sp.map(e=>{const c=CC[e.emp_status]||CC['\u2014'];return `<tr onclick="dEmp('${e.id}')"><td><b>${esc(e.name)}</b></td><td>${esc(nd(e.dept||'No Department'))}</td><td><span class="pn" style="background:${c[0]};color:${c[1]}">${c[3]} ${esc(lb(e.emp_status))}</span></td><td>${e.status_date?esc(fdS(e.status_date)):'<span class="pn" style="background:#fff1b8;color:#7a5b00">\u26a0 No separation date yet</span>'}</td><td>${esc(spAgo(e.status_date))}</td><td style="white-space:nowrap"><button class="btn o sm" onclick="event.stopPropagation();dEmp('${e.id}')" title="Open the 201 File to update the record">\ud83d\udcc4 201 File</button> <button class="btn ok sm" onclick="event.stopPropagation();spDone('${e.id}')">\u2714 Done</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="empty" style="padding:6px 0">No new resigned / AWOL / end of contract \u2705</p>';
@@ -2956,7 +2963,7 @@ function dReqPanels(){
  h+='</div>'}
  return h}
 /* ===== Dashboard snapshot: only COUNTS (and the birthday names), so every signed-in user can VIEW the dashboard numbers without being able to open the data behind them. Saved by whoever opens the dashboard with access to that data. ===== */
-const DSQL=`-- Dashboard numbers for everyone (counts only, no personal records)
+const DSQL=`-- Dashboard numbers for everyone (counts, birthdays and the names of employees with incomplete requirements)
 create table if not exists public.hrd_dash(id text primary key, data jsonb not null default '{}'::jsonb, updated_at timestamptz default now(), updated_by text);
 alter table public.hrd_dash enable row level security;
 drop policy if exists "dash read" on public.hrd_dash;
@@ -2976,21 +2983,21 @@ function drawDash(){if(PG!=='dash')return;b0();
  const cats=DCATS.concat(cnt['—']?['—']:[]),nl=c=>c==='—'?'No status':lb(c);
  const SN=(DSNAP&&DSNAP.data)||{},nN=ce?new Set(A.map(a=>a.i)).size:SN.ntf,vT=ce?tot:SN.tot,vP=cs?P.length:SN.pend,vI=ce?RI.length:SN.inc,vH=ce?NH.length:SN.nh,vS=ce?SP.length:SN.sp,vR=ce&&Array.isArray(STF)?NR.length:SN.nr,vM=NM?NM.length:SN.m13,vA=(can('pay')&&NA)?NA.length:SN.atm,y13=NM&&NM.length?NM[0].year:SN.m13y;
  /* a card is clickable only with Dashboard full access AND real access to the data behind it; the numbers themselves can come from the snapshot. "Online now" is always clickable. */
- const tl=(real,cls,fn,ic,lb2,val,st,sc)=>{const k=FA&&real;return`<div class="stat${k?' click':''}${cls?' '+cls:''}"${k?` tabindex="0" role="button" onclick="${fn}"`:''}><span class="si">${ic}</span><div><small>${lb2}</small><b>${val}</b><small>${k&&sc!=null?sc:(st||'')}</small></div></div>`};
+ const tl=(real,cls,fn,ic,lb2,val,st,sc,force)=>{const k=(FA||force)&&real;return`<div class="stat${k?' click':''}${cls?' '+cls:''}"${k?` tabindex="0" role="button" onclick="${fn}"`:''}><span class="si">${ic}</span><div><small>${lb2}</small><b>${val}</b><small>${k&&sc!=null?sc:(st||'')}</small></div></div>`};
  let h=`${dHero()}${ce?bdTicker():(SN.bd&&SN.bd.length?bdTicker(SN.bd.map(x=>({e:{name:x.nm,dept:x.dp},k:x.k,n:new Date(x.n)}))):'')}
 <div class="grid st4 st6" style="margin-bottom:24px">
 <div class="stat click" tabindex="0" role="button" onclick="onlineOpen()"><span class="si">${HI.on}</span><div><small>Online now</small><b id="onc">${onlineUsers().length}</b><small>click to see who</small></div></div>
 ${vT!=null?tl(ce,'',"dTog('open')",HI.emp,'Total employees',vT,'',DB.open?'Click to close':'Click to see the breakdown'):''}
 ${vP>0?tl(cs,'al al-b',"go('sub')",HI.req,'Pending requests',vP,'waiting for approval'):''}
 ${nN>0?tl(ce,'al al-a',"dTog('ntf');if(DB.ntf){const p=$('ntfp');p&&p.scrollIntoView({behavior:'smooth',block:'center'})}",HI.bell,'201 notifications',nN,'employee(s) to review','employee(s) to review \u2014 '+(DB.ntf?'click to close':'click to view')):''}
-${vI>0?tl(ce,'al al-r',"dTog('rq')",HI.inc,'Incomplete requirements',vI,'',DB.rq?'Click to close':'Click to see who'):''}
+${vI>0?tl(true,'al al-r',"dTog('rq')",HI.inc,'Incomplete requirements',vI,'',DB.rq?'Click to close':'Click to see who',true):''}
 ${vS>0?tl(ce,'al al-r',"dTog('sp')",HI.inc,'Resigned / AWOL / EOC',vS,'since Sep 2026',DB.sp?'Click to close':'since Sep 2026 \u2014 click to see'):''}
 ${vH>0?tl(ce,'al al-p',"dTog('nh')",HI.nw,'Newly hired',vH,'last 30 days',DB.nh?'Click to close':'last 30 days \u2014 click to see'):''}
 ${vR>0?tl(ce,'al al-g',"dTog('n2')",HI.inc,'In payroll, no 201',ce&&!Array.isArray(STF)?'\u2026':vR,'',DB.n2?'Click to close':'Click to see who'):''}
 ${vM>0?tl(!!NM,'al al-r',"dTog('m13')",HI.inc,'13th Month: no ATM account',vM,y13?'saved '+y13:'',DB.m13?'Click to close':'saved '+y13+' \u2014 click to see'):''}
 ${vA>0?tl(can('pay')&&!!NA,'al al-r',"dTog('atm')",HI.inc,'No ATM account',vA,'latest payroll',DB.atm?'Click to close':'latest payroll \u2014 click to see'):''}</div>${(!ce||!cs)&&DSNAP&&DSNAP.updated_at?`<p class="sub" style="margin:-14px 0 20px;font-size:12px">Numbers as of ${esc(new Date(DSNAP.updated_at).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}))} (they refresh when HR / Payroll opens the dashboard).</p>`:''}${isAdm()&&DSNOK===false?`<p class="sub no-print" style="margin:-14px 0 20px;font-size:13px">\u26A0 The dashboard numbers for other users are not set up yet. <button class="btn o sm" onclick="copySql(DSQL)">Copy SQL</button> then paste it in Supabase \u2192 SQL Editor and Run it once.</p>`:''}`;
- if(ce||cs||can('pay')||can('m13')){const o={};if(ce){o.tot=tot;o.ntf=nN;o.inc=RI.length;o.nh=NH.length;o.sp=SP.length;try{o.bd=bdList().map(({e,k,n})=>({nm:e.name,dp:e.dept||'',k,n:n.toISOString()}))}catch(_){}if(Array.isArray(STF))o.nr=NR.length}if(cs)o.pend=P.length;if(can('pay')&&NA)o.atm=NA.length;if(NM){o.m13=NM.length;if(NM.length)o.m13y=NM[0].year}dSnapPush(o)}
- if(ce||can('pay')||can('m13'))h+=dReqPanels();
+ if(ce||cs||can('pay')||can('m13')){const o={};if(ce){o.tot=tot;o.ntf=nN;o.inc=RI.length;o.incl=RI.map(({e,m})=>({n:e.name,d:nd(e.dept||'No Department'),m}));o.nh=NH.length;o.sp=SP.length;try{o.bd=bdList().map(({e,k,n})=>({nm:e.name,dp:e.dept||'',k,n:n.toISOString()}))}catch(_){}if(Array.isArray(STF))o.nr=NR.length}if(cs)o.pend=P.length;if(can('pay')&&NA)o.atm=NA.length;if(NM){o.m13=NM.length;if(NM.length)o.m13y=NM[0].year}dSnapPush(o)}
+ if(ce||can('pay')||can('m13')||DB.rq)h+=dReqPanels();
  if(ce&&DB.open){const D={};E.forEach(e=>{const d=nd(e.dept||'No Department');D[d]=D[d]||{t:0};D[d].t++;const c=catOf(e);D[d][c]=(D[d][c]||0)+1});const ds=Object.keys(D).sort(dsort);
   h+=`<div class="panel dp"><h3>Total employees: ${tot}</h3><div class="chips">${cats.map(c=>`<span class="chip" style="${CC[c]?'background:'+CC[c][0]+';color:'+CC[c][1]:''}" onclick="dGo('f','${c}')">${CC[c]?CC[c][3]+' ':''}${nl(c)} <b>${cnt[c]||0}</b></span>`).join('')}</div>
 <div style="overflow-x:auto;margin-top:16px"><table class="dt"><thead><tr><th>Department</th><th>Total</th>${cats.map(c=>`<th>${nl(c)}</th>`).join('')}</tr></thead><tbody>${ds.map(d=>`<tr data-d="${esc(d)}" onclick="dGo('d',this.dataset.d)"><td><b>${esc(d)}</b></td><td><b>${D[d].t}</b></td>${cats.map(c=>`<td>${D[d][c]||'·'}</td>`).join('')}</tr>`).join('')}<tr style="font-weight:700;background:#f8f9fc;cursor:default"><td>TOTAL</td><td>${tot}</td>${cats.map(c=>`<td>${cnt[c]||0}</td>`).join('')}</tr></tbody></table></div>
@@ -3000,7 +3007,7 @@ ${vA>0?tl(can('pay')&&!!NA,'al al-r',"dTog('atm')",HI.inc,'No ATM account',vA,'l
  if(ce){const g=(t,l)=>{const a=A.filter(x=>x.t===t);return a.length?`<div style="margin-bottom:12px"><b>${l}</b> <small>(${a.length})</small><br>${a.map(x=>`<span class="pn" style="cursor:pointer;margin:4px 6px 0 0;${x.od?'background:#fbe9e6;color:#a3302a;':''}" onclick="ntf(${x.i},'${x.t}')">${esc(x.e.name)} — ${x.m}</span>`).join('')}</div>`:''};
   nb+=g('d','⚠️ Duplicate name and surname')+g('r','📅 Probationary ending soon (30 days)')}
 if(DB.ntf)h+=`<div class="panel dp" id="ntfp"><h3>Notifications</h3>${nb||'<p class="empty" style="padding:6px 0">No new notifications ✅</p>'}</div>`;
- if(FA&&can('act')&&ACT.length)h+=`<div class="panel dp ra-panel"><div class="rh"><h3>Recent activity</h3><a tabindex="0" onclick="go('act')">View all &rarr;</a></div>${ACT.slice(0,6).map(a=>{const w=actWho(a).nm||'?',k=actKind(a),t=new Date(a.at).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});return `<div class="ra k-${k}"><span class="rav">${esc(String(w).trim().charAt(0).toUpperCase())}</span><div class="rt"><div class="rl"><b>${esc(w)}</b><span class="rk">${esc(a.action)}</span></div>${a.target||a.detail?`<div class="rd">${esc(a.target||'')}${a.detail?(a.target?' &mdash; ':'')+esc(a.detail):''}</div>`:''}</div><time>${esc(t)}</time></div>`}).join('')}</div>`;
+ const RACT=isAdm()?ACT:ACTM;if(RACT.length)h+=`<div class="panel dp ra-panel"><div class="rh"><h3>Recent activity${isAdm()?'':' <small style="font-weight:400;color:var(--mu);font-size:14px">(yours only)</small>'}</h3>${can('act')?'<a tabindex="0" onclick="go(\'act\')">View all &rarr;</a>':''}</div>${RACT.slice(0,6).map(a=>{const w=actWho(a).nm||'?',k=actKind(a),t=new Date(a.at).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});return `<div class="ra k-${k}"><span class="rav">${esc(String(w).trim().charAt(0).toUpperCase())}</span><div class="rt"><div class="rl"><b>${esc(w)}</b><span class="rk">${esc(a.action)}</span></div>${a.target||a.detail?`<div class="rd">${esc(a.target||'')}${a.detail?(a.target?' &mdash; ':'')+esc(a.detail):''}</div>`:''}</div><time>${esc(t)}</time></div>`}).join('')}</div>`;
  $('main').innerHTML=h}
 // ===== 201 FILES (ADMIN ONLY) =====
 let EV='list',E=[],ei=null,ef={d:'all',s:'name',q:'',f:'all'};
@@ -7238,7 +7245,7 @@ function mXlsx(){const M=m13Model();if(!M.D.length)return toast('Nothing to expo
  const bl=m13XlsxBuild(M),a=document.createElement('a');a.href=URL.createObjectURL(bl);
  a.download='13th-Month-Pay-'+MY+(MD!=='all'?'-'+String(MD).replace(/[^A-Za-z0-9]+/g,'_'):'')+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
  logAct('Exported 13th month pay (Excel)','13th Month Pay',MY);toast('Exported \u2714')}
-const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['att','Attendance'],['psm','Payslip Monitoring'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['dash','Dashboard: full access (click the cards, see Recent activity)'],['act','Activity'],['chkc','COOP Checker (check COOP requests) — also tick Submitted Requests'],['aprc','COOP Approver (final approval of COOP) — also tick Submitted Requests'],['chkv','Vale Checker (check Vale requests) — also tick Submitted Requests'],['aprv','Vale Approver (final approval of Vale) — also tick Submitted Requests'],['chk','Checker: COOP + Vale (all forms)'],['apr','Approver: COOP + Vale (all forms)']];
+const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['att','Attendance'],['psm','Payslip Monitoring'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['dash','Dashboard: full access (click the cards)'],['act','Activity'],['chkc','COOP Checker (check COOP requests) — also tick Submitted Requests'],['aprc','COOP Approver (final approval of COOP) — also tick Submitted Requests'],['chkv','Vale Checker (check Vale requests) — also tick Submitted Requests'],['aprv','Vale Approver (final approval of Vale) — also tick Submitted Requests'],['chk','Checker: COOP + Vale (all forms)'],['apr','Approver: COOP + Vale (all forms)']];
 const ROLES={admin:['Admin','Full access, including Users & Access',['req','sub','emp','pay','att','psm','addc','m13','mg','tmk','tma','tmp','mgp','mge','dash','act','chkc','aprc','chkv','aprv','chk','apr']],hr:['HR Staff','Requests, 201 Files, Attendance (lock / sync to Payroll), Payroll (summary: add department / line, edit), Timemark Check, Payslip Monitoring, Activity',['req','sub','emp','pay','att','psm','tmk','act']],payroll:['Payroll','Request Form, Payroll, Attendance, Additional Compensation, 13th Month Pay and Monthly Gross',['req','pay','att','addc','m13','mg']],staff:['Staff','Request Form only',['req']]};
 let MYA=null,ACC=false,UL=null;
 const can0=k=>SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||(k!=='usr'&&(MYA.pages||[]).includes(k))||(MYA.role==='hr'&&(k==='att'||k==='psm'||k==='m13'))))||(!MYA&&k==='req');const can=k=>k==='pay'?(can0('pay')||!!(MYA&&MYA.active&&MYA.role==='hr')):k==='psm'?(can0('psm')||(can0('pay')&&pxCan('slip'))):k==='mg'?(can0('mg')||(can0('pay')&&pxCan('open'))):k==='ben'?can0('emp'):can0(k);
@@ -7309,7 +7316,11 @@ create policy "perm pay runs" on public.hrd_payroll for all to authenticated usi
 drop policy if exists "perm pay depts" on public.hrd_pay_depts;
 create policy "perm pay depts" on public.hrd_pay_depts for all to authenticated using (public.hrd_can('pay') or exists(select 1 from public.hrd_access where user_id=auth.uid() and active and role in ('admin','hr'))) with check (public.hrd_can('pay') or exists(select 1 from public.hrd_access where user_id=auth.uid() and active and role in ('admin','hr')));
 drop policy if exists "perm act" on public.hrd_activity;
-create policy "perm act" on public.hrd_activity for select to authenticated using (public.hrd_can('act'));`;
+create policy "perm act" on public.hrd_activity for select to authenticated using (public.hrd_can('act'));
+-- Every signed-in user can read their OWN activity (shown in Recent activity on the Dashboard)
+drop policy if exists "own act read" on public.hrd_activity;
+create policy "own act read" on public.hrd_activity for select to authenticated
+  using (lower(actor)=lower(coalesce(auth.jwt()->>'email','')) or right(lower(actor),char_length(coalesce(auth.jwt()->>'email',''))+2)='<'||lower(coalesce(auth.jwt()->>'email',''))||'>');`;
 function copySql(t){const f=()=>{const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();try{document.execCommand('copy');toast('SQL copied ✔')}catch(e){alert('Could not copy. Select the SQL box and press Ctrl+C.')}x.remove()};navigator.clipboard?navigator.clipboard.writeText(t).then(()=>toast('SQL copied ✔'),f):f()}
 const USQL2=`-- Upgrade: auto-list every signup + admin password tools
 alter table public.hrd_access add column if not exists confirmed_at timestamptz, add column if not exists signed_up_at timestamptz;
@@ -7610,7 +7621,7 @@ let UF={q:'',r:'all'};
 const uIni=u=>{const n=(u.full_name||'').trim();if(n){const p=n.split(/\s+/);return((p[0][0]||'')+(p.length>1?p[p.length-1][0]:'')).toUpperCase()}return String(u.email||'?').slice(0,2).toUpperCase()};
 const uRK=r=>ROLES[r]?r:'staff';
 const UXO=new Set();
-const UXL={tma:['Timemark Audit','Audit / delete'],tmp:['Timemark Approval','Days / approve'],mgp:['Payroll','MANAGEMENT dept. · view'],mge:['201 Files','MANAGEMENT dept. · view'],dash:['Dashboard','Full access · cards &amp; recent activity']};
+const UXL={tma:['Timemark Audit','Audit / delete'],tmp:['Timemark Approval','Days / approve'],mgp:['Payroll','MANAGEMENT dept. · view'],mge:['201 Files','MANAGEMENT dept. · view'],dash:['Dashboard','Full access · click the cards']};
 const UXG=[['General',['req','sub','dash','act']],['Request checkers &amp; approvers',['chkc','aprc','chkv','aprv','chk','apr']],['HR &amp; records',['emp','att','psm','tmk','tma','tmp']],['Payroll &amp; compensation',['pay','addc','m13','mg']],['Management department',['mgp','mge']]];
 window.uTog=(i,ev)=>{if(ev&&ev.target.closest&&ev.target.closest('select,option,.ux-rolebox'))return;const c=document.getElementById('uc_'+i),u=UL&&UL[i];if(!c||!u)return;const o=c.classList.toggle('open');o?UXO.add(u.user_id):UXO.delete(u.user_id);const b=c.querySelector('.ux-chev');if(b)b.setAttribute('aria-expanded',o);uxAllLbl()};
 window.uxAllLbl=()=>{const b=$('uxall');if(b)b.textContent=UL&&UL.length&&UL.every(u=>UXO.has(u.user_id))?'Collapse all':'Expand all'};
