@@ -1102,7 +1102,7 @@ function buildFolders(total,cnt){
   if(NOTE){var p=document.createElement('p');p.className='cnt';p.style.color='var(--grn)';p.style.fontWeight='600';p.textContent=NOTE;f.appendChild(p)}
 }
 var HRO=['Qualified for Initial Interview','For Further Assessment','Not Qualified'];
-function scr(r){var q=(REV[r.id]&&REV[r.id].screen)||{};return [q.result||'',q.remarks||'',q.staff||'',q.date||'']}
+function scr(r){var q=(REV[r.id]&&REV[r.id].screen)||{};return [q.result||'',q.remarks||'']}
 function todayISO(){var t=new Date();return t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2)}
 function hrPanel(r){
   var sc=(REV[r.id]&&REV[r.id].screen)||{},box=document.createElement('div');box.className='hrbox';
@@ -1118,14 +1118,7 @@ function hrPanel(r){
   box.appendChild(og);
   var l1=document.createElement('span');l1.className='lb2';l1.textContent='Remarks / Important Notes:';
   var ta=document.createElement('textarea');ta.value=sc.remarks||'';ta.maxLength=1500;
-  var row=document.createElement('div');row.className='row2';
-  var c1=document.createElement('div'),c2=document.createElement('div');
-  var l2=document.createElement('span');l2.className='lb2';l2.textContent='HR Staff:';
-  var st=document.createElement('input');st.type='text';st.value=sc.staff||'';st.maxLength=80;
-  var l3=document.createElement('span');l3.className='lb2';l3.textContent='Screening Date:';
-  var dt=document.createElement('input');dt.type='date';dt.value=sc.date||todayISO();
-  c1.append(l2,st);c2.append(l3,dt);row.append(c1,c2);
-  box.append(l1,ta,row);
+  box.append(l1,ta);
   var bar=document.createElement('div');bar.className='acts';
   var sv=document.createElement('button');sv.type='button';sv.textContent='I-save ang Assessment';
   var msg=document.createElement('span');msg.className='sm';
@@ -1133,7 +1126,7 @@ function hrPanel(r){
   sv.onclick=function(){
     var ch=box.querySelector('input[type=radio]:checked');
     if(!ch){msg.textContent='Pumili muna ng assessment.';msg.style.color='var(--err)';return}
-    var o={result:ch.value,remarks:ta.value.trim(),staff:st.value.trim(),date:dt.value,at:Date.now()};
+    var o={result:ch.value,remarks:ta.value.trim(),at:Date.now()};
     msg.style.color='';msg.textContent='Sine-save…';sv.disabled=true;
     var stt=HRMAP[ch.value];NOTE='✓ Na-update ang status ni '+(r.name||'aplikante')+': '+stt;clearNote();
     dbp.collection('reviews').doc(r.id).set(Object.assign({},REV[r.id]||{},{screen:o,status:stt})).then(function(){msg.textContent='✓ Na-save · status: '+stt},function(){msg.style.color='var(--err)';msg.textContent='Hindi na-save. Subukan muli.'}).then(function(){sv.disabled=false});
@@ -1214,7 +1207,7 @@ function render(){
 $('csv').onclick=async function(){
   var cols=[];rows.forEach(function(r){Object.keys(r.ans||{}).forEach(function(k){if(cols.indexOf(k)<0)cols.push(k)})});
   var q=function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'};
-  var out=[['Petsa ng Pagsumite','Status','Position'].concat(cols).concat(['Initial Screening','Screening Remarks','HR Staff','Screening Date']).map(q).join(',')];
+  var out=[['Petsa ng Pagsumite','Status','Position'].concat(cols).concat(['Initial Screening','Screening Remarks']).map(q).join(',')];
   rows.forEach(function(r){out.push([new Date(r.submittedAt).toLocaleString('en-PH'),r.status,r.position].concat(cols.map(function(k){return (r.ans||{})[k]})).concat(scr(r)).map(q).join(','))});
   try{var bl=new Blob(['\ufeff'+out.join('\n')],{type:'text/csv;charset=utf-8'}),an=document.createElement('a');an.href=URL.createObjectURL(bl);an.download='applications.csv';document.body.appendChild(an);an.click();an.remove()}catch(e){}
 };
@@ -1268,7 +1261,7 @@ function printRec(r){
   var hd=mk('div','phd');hd.appendChild(mk('div','pco','RAYANTON FARMS & LIVESTOCK CORP.'));hd.appendChild(mk('div','pti','Applicant Registration Form'));pa.appendChild(hd);
   var v=recView(r,true);
   var sc=scr(r),hr=[];
-  [['Initial Screening',sc[0]],['Screening Remarks',sc[1]],['HR Staff',sc[2]],['Screening Date',sc[3]]].forEach(function(x){if(x[1])hr.push([x[0],String(x[1]),x[0]==='Screening Remarks'])});
+  [['Initial Screening',sc[0]],['Screening Remarks',sc[1]]].forEach(function(x){if(x[1])hr.push([x[0],String(x[1]),x[0]==='Screening Remarks'])});
   if(hr.length)v.appendChild(recGrid('PARA SA HR DEPARTMENT LAMANG',hr));
   pa.appendChild(v);
   if(window.trTree)window.trTree(pa);
