@@ -4686,10 +4686,19 @@ addEventListener('beforeunload',e=>{if(PG==='m13'&&typeof m13Uns==='function'&&m
   while(r){const i=edIn(r.cells[ix]);if(i)return i;r=dir>0?r.nextElementSibling:r.previousElementSibling}return null}
  function horiz(td,dir){let c=dir>0?td.nextElementSibling:td.previousElementSibling;
   while(c){const i=edIn(c);if(i)return i;c=dir>0?c.nextElementSibling:c.previousElementSibling}return null}
+ const EM=new WeakSet();/* inputs that are in EDIT mode */
+ document.addEventListener('dblclick',function(e){const t=e.target;if(t&&t.tagName==='INPUT'&&t.matches&&t.matches(ED)&&t.closest('table td'))EM.add(t)},true);
+ document.addEventListener('input',function(e){const t=e.target;if(e.isTrusted&&e.inputType&&t&&t.tagName==='INPUT')EM.add(t)},true);
+ document.addEventListener('focusout',function(e){if(e.target)EM.delete(e.target)},true);
+ document.addEventListener('keydown',function(e){if(e.key==='F2'){const t=e.target;if(t&&t.tagName==='INPUT'&&t.matches(ED)&&t.closest('table td')){e.preventDefault();EM.add(t)}}},true);
  document.addEventListener('keydown',function(e){
   const t=e.target;if(!t||t.tagName!=='INPUT'||!t.matches(ED)||e.ctrlKey||e.altKey||e.metaKey||e.isComposing)return;
   const td=t.closest('table td');if(!td||t.closest('#login'))return;
   const k=e.key;let n=null,hit=true;
+  /* typing a formula (= ...) in an Entry amount: the arrow keys only move the cursor INSIDE the box - at the start / end it stays there and never jumps to another cell (Enter still finishes the formula) */
+  if(t.dataset&&t.dataset.smf==='1'&&/^\s*=/.test(t.value||'')&&/^Arrow(Left|Right|Up|Down)$/.test(k)){const a0=t.selectionStart,b0=t.selectionEnd;if(a0!=null&&a0===b0&&((k==='ArrowRight'&&a0===t.value.length)||(k==='ArrowLeft'&&a0===0)))e.preventDefault();return}
+  /* Excel-style EDIT mode: after double-click, F2 or typing in a cell, ArrowLeft / ArrowRight only move the cursor inside the text - at the start / end it stays there and does not jump to another cell. Enter finishes the edit. */
+  if(EM.has(t)&&(k==='ArrowLeft'||k==='ArrowRight')){if(!e.shiftKey){const a0=t.selectionStart,b0=t.selectionEnd;if(a0!=null&&a0===b0&&((k==='ArrowRight'&&a0===t.value.length)||(k==='ArrowLeft'&&a0===0)))e.preventDefault()}return}
   if(k==='Enter')n=vert(td,e.shiftKey?-1:1);
   else if(e.shiftKey)return;
   else if(k==='ArrowDown')n=vert(td,1);
@@ -5980,7 +5989,9 @@ document.addEventListener('mousedown',e=>{try{const a=document.activeElement;if(
   if(m=/^[ci]_(.+)$/.exec(cid)){const emp=(STF||[]).filter(q=>q.dept===PF),h=emp.find(q=>m[1].indexOf(String(q.id)+'_')===0);if(h){const k=m[1].slice(String(h.id).length+1);tok='[E:'+h.id+(k==='pay'?'':':'+k)+']'}}
   else if(m=/^s_(\d+)_(.+)$/.exec(cid))tok='[S:'+m[1]+':'+m[2]+']';
   else if(m=/^g_(.+)$/.exec(cid))tok='[T:'+m[1]+']'}
- if(!tok)return;e.preventDefault();e.stopPropagation();const d=smFxOut(tok),s0=a.selectionStart==null?a.value.length:a.selectionStart,s1=a.selectionEnd==null?a.value.length:a.selectionEnd;a.setRangeText(d,s0,s1,'end');a.focus()}catch(x){}},true);
+ if(!tok)return;e.preventDefault();e.stopPropagation();const d=smFxOut(tok),s0=a.selectionStart==null?a.value.length:a.selectionStart,s1=a.selectionEnd==null?a.value.length:a.selectionEnd;const pos=s0+d.length;a.setRangeText(d,s0,s1,'end');a.focus();/* the cursor stays at the END of what was inserted (nothing highlighted), so the next + - * / or number is typed right after it */const fix=()=>{try{if(document.activeElement===a&&/^\s*=/.test(a.value||'')){a.setSelectionRange(pos,pos);a.scrollLeft=a.scrollWidth}}catch(x2){}};fix();setTimeout(fix,0);setTimeout(fix,80)}catch(x){}},true);
+/* while a formula is being typed, a click on the payroll form only picks the cell: it must not open pop-ups or move the cursor to another cell */
+document.addEventListener('click',e=>{try{const a=document.activeElement;if(!a||!a.dataset||a.dataset.smf!=='1'||!isMg(PF)||!/^\s*=/.test(a.value||''))return;const tg=e.target;if(tg&&tg.closest&&tg.closest('table.ps')){e.stopPropagation();e.preventDefault()}}catch(x){}},true);
 /* MANAGEMENT payroll Entry: Excel-like free rows (insert above / below, add at the bottom). Other departments are not changed. */
 const smMg=()=>!!(typeof MGF!=='undefined'&&MGF&&isMg(PF));
 function smInsX(id,d){const S=smGet(),R=smVals();if(!S||!R)return;const e=R.ents.find(q=>q.lines.some(z=>z.x.id===id));if(!e)return;const z=e.lines.find(q=>q.x.id===id),g=String(z.x.nm||smDnOf(z.x)||'').trim();
@@ -10277,7 +10288,7 @@ document.addEventListener('input',function(e){var t=e.target;if(!t||!t.closest||
   if(k==='ArrowLeft'||k==='ArrowRight'){n=k==='ArrowRight'?c.nextElementSibling:c.previousElementSibling;while(n&&!vis(n))n=k==='ArrowRight'?n.nextElementSibling:n.previousElementSibling;return n}
   var rows=Array.prototype.filter.call(tb.rows,vis),i=rows.indexOf(r),d=k==='ArrowDown'?1:-1,cx=col(c);
   for(var j=i+d;j>=0&&j<rows.length;j+=d){n=cellAt(rows[j],cx);if(vis(n))return n}return null}
- document.addEventListener('click',function(e){var t=e.target;if(!t||!t.closest||t.closest(SKIP))return;var c=cellOf(t);if(!c)return;
+ document.addEventListener('click',function(e){var t=e.target;if(!t||!t.closest||t.closest(SKIP))return;var a0=document.activeElement;if(a0&&a0.dataset&&a0.dataset.smf==='1'&&/^\s*=/.test(a0.value||''))return;/* typing a formula in an Entry amount: keep the cursor in that box so + - * / can still be typed after clicking a cell */var c=cellOf(t);if(!c)return;
   try{if(String(window.getSelection()).length>0)return}catch(x){}
   c.tabIndex=-1;c.focus({preventScroll:true})},true);
  document.addEventListener('keydown',function(e){var t=e.target;
@@ -11672,7 +11683,8 @@ window.psm=async function(){
  if(!F.includes(PS.d)){PS.d='';PS.r=''}
  const R=runs(PS.d);if(!R.some(p=>String(p.id)===String(PS.r)))PS.r='';
  await psmView(PS.r&&PS.v==='list'?'list':(wasList&&['sum','grid','due'].includes(PS.v)?PS.v:'due'))};
-window.psmEd=()=>!!((typeof hrx==='function'&&hrx())||(typeof can==='function'&&can('psm')));
+/* only HR staff (and the admin) can mark / unmark payslips as returned; every other user is view only */
+window.psmEd=()=>!!(SUPER||(MYA&&(MYA.role==='admin'||(MYA.role==='hr'&&MYA.active))));
 async function psmLoad(){PS.ret={};PS.bad=false;if(PS.r){try{PS.ret=await getRet(PS.r)}catch(e){PS.bad=true}}if(PG==='psm')psmDraw()}
 window.psmSel=async(k,v)=>{PS[k]=v;if(k==='d'||k==='r')PS.sg='';if(k==='d'){PS.cl='';PS.r=v&&runs(v)[0]?String(runs(v)[0].id):'';await psmLoad()}else if(k==='r'){PS.cl='';await psmLoad()}else psmDraw()};
 window.psmTog=async(id,on)=>{await psmSet([id],on)};
@@ -11818,7 +11830,7 @@ function psmDraw(){
  const clsAll=[...tm.keys()].sort(nat);
  const rows=[...gm.keys()].sort((a,b)=>(a==='(no class)')-(b==='(no class)')||nat(a,b)).map(c=>{const o=tm.get(c),ids=gm.get(c).map(x=>x.id),k=PCL.push(ids)-1,cp=o.t>0&&o.d===o.t;
   return(c==='(no class)'?'':`<tr class="psm-ch"><td colspan="5"><span class="psm-cn">${esc(c)}</span><span class="psm-pill ${cp?'c':'i'}">${o.d}/${o.t}${cp?' ✓':''}</span>${ed?`<button class="psm-open" onclick="psmCAll(${k})">${ids.every(id=>PS.ret[id])?'Clear class':'Mark class returned'}</button>`:''}</td></tr>`)+gm.get(c).map((x,i)=>rowOf(x,i)).join('')}).join('');
- $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring · Checklist</h1><p class="sub">Choose a department and a cutoff, then tick each name once the <b>signed payslip</b> has been returned.</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('list')}</div></div>
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring · Checklist</h1><p class="sub">Choose a department and a cutoff, then tick each name once the <b>signed payslip</b> has been returned.${ed?'':' <b style="color:#8a5a00">View only</b> · only HR staff can mark or unmark.'}</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('list')}</div></div>
 ${PS.bad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). Do not tick anything until this is fixed — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Department</label><select class="fi" onchange="psmSel('d',this.value)">${op('','— Select department —',!PS.d)}${F.map(f=>op(f,f,f===PS.d)).join('')}</select></div><div><label>Cutoff</label><select class="fi" ${PS.d?'':'disabled'} onchange="psmSel('r',this.value)">${op('','— Select cutoff —',!PS.r)}${R.map(x=>op(x.id,lb(x.data.from,x.data.to),String(x.id)===String(PS.r))).join('')}</select></div></div></div>
 ${p?`<div class="psm-card"><div class="psm-pg"><div><div class="psm-big">${done}<small> / ${tot}</small></div><div class="psm-cap">Signed payslips returned</div></div><div class="psm-bw"><div class="psm-bar"><i class="${comp?'c':''}" style="width:${pct}%"></i></div><div class="psm-bl"><span>${pct}% complete</span><span>${tot-done} pending</span></div></div><span class="psm-pill lg ${comp?'c':'i'}">${comp?'C':'INC'}</span></div></div>
