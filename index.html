@@ -4470,6 +4470,8 @@ function pCalc(){const GT=Object.fromEntries(PKs().map(k=>[k,0]));
  pGroups().forEach(([d,L],gi)=>{const S=Object.fromEntries(PKs().map(k=>[k,0]));
   L.forEach(s=>{const v=pVals(s,1),vz=pVals(s);PKs().forEach(k=>S[k]+=vz[k]);['bal','cbal','pay'].forEach(k=>{const el=$('i_'+s.id+'_'+k),r=pRow(s);if(el&&document.activeElement!==el&&(r[k]==null||r[k]===''||(k==='pay'&&PP.m==='g')))el.value=v[k]||''});['pay','net','tot'].forEach(k=>{const c=$('c_'+s.id+'_'+k);if(c){c.textContent=pf(v[k]);if(k==='net')c.style.color=v.net<0?'#c0392b':''}})});
   PKs().forEach(k=>{GT[k]+=S[k];const c=$('s_'+gi+'_'+k);if(c)c.textContent=pf(r2(S[k]))})});
+ /* MANAGEMENT: the Add'tl of the TMR / COOP rows at the top (mg_add) is part of the Add'tl TOTAL */
+ if(isMg(PF)&&$('mg_add')){const M0=atmModel();GT.adj=r2(GT.adj+pn(M0.de)+pn(M0.co))}
  PKs().forEach(k=>{const c=$('g_'+k);if(c)c.textContent=pf(r2(GT[k]))});
  if(isMg(PF)&&$('mg_tmr')){const M=atmModel();$('mg_tmr').textContent=M.de?pf(M.de):'-';$('mg_coop').textContent=M.co?pf(M.co):'-';const ad=$('mg_add');if(ad)ad.textContent=M.de+M.co?pf(r2(M.de+M.co)):'-'}
  smCalc();if(hasXB())xbLive()}
@@ -6242,7 +6244,7 @@ function drawForm0(){
  const pdc=s=>`<td class="k_pd"><input class="pi plk" id="i_${s.id}_pd" type="number" step="any" readonly tabindex="-1" title="${pGPD(s)?'Per day · daily rate':'Per day · Gross ÷ fixed days'}" value="${esc(pdv(s))}"></td>`;
  const cell=(s,k)=>k==='pd'?pdc(s):k==='fd'?fx(s):k==='rem'||k==='arem'||k==='acct'?t(s,k):k==='pay'?(PP.m==='g'?gp(s):cv(s,'pay')):k==='lbal'?lb(s):k==='net'?cv(s,'net',1):k==='tot'?cv(s,'tot'):k==='bal'||k==='cbal'?nb(s,k):n(s,k);
  const row=s=>`<tr${pHeld(s)?` class="hold hk-${pHoldK(pRow(s).hold)}" title="${esc(String(pRow(s).hold))} · kept in the payroll but NOT counted in the totals"`:''}><td class="nm k_name">${PP.runId&&!PU?'':`<button class="no-print rmx" onclick="pDel('${s.id}')" title="Remove ${esc(s.name)} from payroll">✕</button>`}<input class="pi t hp${PU?' ed':''}"${PU?'':' readonly tabindex="-1"'} value="${esc(s.name)}" title="Double-click to edit the name" ondblclick="pNameEd(this,'${s.id}')" onchange="pName('${s.id}',this)"><span class="pt">${esc(s.name)}</span>${pHeld(s)?`<span class="holdtag">${esc(String(pRow(s).hold).slice(0,22))}</span>`:''}<button class="no-print rmy" style="right:${PP.runId&&!PU?6:28}px" onclick="pNameEd(this.parentNode.querySelector('input.hp'),'${s.id}')" title="Edit name">✎</button><button class="no-print rmy" style="right:${PP.runId&&!PU?28:50}px" onclick="rhShow('${s.id}')" title="Rate history of ${esc(s.name)}">🕘</button></td>${PP.m==='g'?'':`<td class="k_rate"><input class="pi${PU?' ed':''}" id="i_${s.id}_rate"${PU?'':' readonly tabindex="-1"'} type="number" step="any" onwheel="this.blur()" value="${esc(pRate(s)||'')}" onchange="pRateSet('${s.id}',this)"></td>`}${cols.map(c=>cell(s,c.k)).join('')}<td class="no-print ac">${PU?`<button class="btn dl sm" onclick="pDel('${s.id}')" title="Delete row">✕</button>`:''}</td></tr>`;
- $('main').innerHTML=`<div class="pz-bar no-print"><button class="btn o" onclick="pBack()">← Payroll History</button><span class="pz-sep"></span><b style="font-size:15px;color:var(--h)">${PP.runId?'Saved payroll':'New payroll'} · ${esc(PF)}</b><span class="no-print" style="font-size:11.5px;font-weight:600;color:#8793a6;margin-left:8px">· ${PP.m==='g'?'Gross salary':'Daily rate'} mode · build 3</span><span class="sp1"></span>${pxCan('edit')?`<button class="btn o sm" onclick="clsOpen()">🏷 Classes</button><button class="btn o sm" onclick="mvhOpen()" title="History of employees moved to another class or department">🔀 Transfers</button><button class="btn o sm" onclick="sspOpen()">⚙ SSP</button><button class="btn o sm" onclick="mlOpen()">⚙ Loans</button><button class="btn o sm" onclick="peOpen()">✏️ Entries</button><button class="btn o sm" onclick="dysOpen()">📅 Days</button><button class="btn o sm" onclick="cpsOpen()">⚙ COOP</button><button class="btn o sm" onclick="vlsOpen()">💵 Vale</button><button class="btn o sm" onclick="ddsOpen()">➖ Deductions</button>`:''}${pxCan('atm')?`<button class="btn o sm" onclick="atmOpen()">🏧 ATM Accounts</button>`:''}${SM_ON()&&pxCan('edit')?'<button class="btn o sm" onclick="smOpen()">🧾 Summary</button>':''}</div>
+ $('main').innerHTML=`<div class="pz-bar no-print"><button class="btn o" onclick="pBack()">← Payroll History</button><span class="pz-sep"></span><b style="font-size:15px;color:var(--h)">${PP.runId?'Saved payroll':'New payroll'} · ${esc(PF)}</b><span class="no-print" style="font-size:11.5px;font-weight:600;color:#8793a6;margin-left:8px">· ${PP.m==='g'?'Gross salary':'Daily rate'} mode · build 3</span><span class="sp1"></span>${pxCan('edit')?`${isMg(PF)?'':'<button class="btn o sm" onclick="clsOpen()">🏷 Classes</button>'}<button class="btn o sm" onclick="mvhOpen()" title="History of employees moved to another class or department">🔀 Transfers</button><button class="btn o sm" onclick="sspOpen()">⚙ SSP</button>${isMg(PF)?'':'<button class="btn o sm" onclick="mlOpen()">⚙ Loans</button>'}<button class="btn o sm" onclick="peOpen()">✏️ Entries</button><button class="btn o sm" onclick="dysOpen()">📅 Days</button><button class="btn o sm" onclick="cpsOpen()">⚙ COOP</button><button class="btn o sm" onclick="vlsOpen()">💵 Vale</button><button class="btn o sm" onclick="ddsOpen()">➖ Deductions</button>`:''}${pxCan('atm')?`<button class="btn o sm" onclick="atmOpen()">🏧 ATM Accounts</button>`:''}${SM_ON()&&pxCan('edit')?'<button class="btn o sm" onclick="smOpen()">🧾 Summary</button>':''}</div>
 ${pxCan('edit')?'':'<style>.ps .rmx,.ps .rmy,.ps td.no-print .btn.dl{display:none!important}</style>'}<div id="psv" class="pz-note no-print"></div>
 ${!hp?'<p class="pz-note no-print">ℹ There is no saved payroll in this folder yet, so the opening Vale and COOP balances are zero. Type in Bal. if there is a balance.</p>':''}
 ${PU?'<p class="pz-note edit no-print">✏️ Edit mode: you can edit all titles and labels, Name and Rate, delete any column (✕ on each header), add a column at the end, delete rows, and edit the dates. Lock it again when done.</p>':''}
@@ -12114,6 +12116,87 @@ document.addEventListener('click',function(e){if(!(e.target.closest&&e.target.cl
 document.addEventListener('keydown',function(e){if(e.key==='Escape')clr()});
 function init(){scan();new MutationObserver(later).observe(document.body,{childList:true,subtree:true})}
 if(document.body)init();else document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
+<script>
+/* Payroll form: highlight several cells (drag with the mouse, or click a cell then Shift+click another). Then: Delete / Backspace clears them, Ctrl+C copies them, and Ctrl+V pastes as many cells as were copied (starting at the cell you clicked or the top-left of the highlight). Only typeable cells are changed (locked cells are skipped). Esc removes the highlight. */
+(function(){
+ if(window.__psRng)return;window.__psRng=1;
+ var anchor=null,cells=[],dragging=false,moved=false,sel=null,clipTxt='';
+ var st=document.createElement('style');
+ var AREAS=['#main table.ps','#pem table','#atmm table','#dysm table','#ddsm table','#cpsm table','#vlsm table','#sspm table','#mlm table','#smm table'],SELTD=AREAS.map(function(x){return x+' td'}).join(',');
+ st.textContent=AREAS.map(function(x){return x+' td.psel'}).join(',')+'{background:#fff0a8!important;box-shadow:inset 0 0 0 1px #e0a800}'+AREAS.map(function(x){return x+' td.psel input'}).join(',')+'{background:transparent!important}body.psdrag,body.psdrag *{-webkit-user-select:none!important;user-select:none!important}@media print{'+AREAS.map(function(x){return x+' td.psel'}).join(',')+'{background:none!important;box-shadow:none}}';
+ (document.head||document.documentElement).appendChild(st);
+ function tdOf(t){return t&&t.closest?t.closest(SELTD):null}
+ function clr(){cells.forEach(function(c){c.classList.remove('psel')});cells=[];sel=null}
+ function vis(row){return !!row&&row.offsetParent!==null}
+ function range(a,b){clr();var t=a.closest('table');if(!t||t!==b.closest('table'))return;
+  var r1=a.parentElement.rowIndex,r2=b.parentElement.rowIndex,c1=a.cellIndex,c2=b.cellIndex,ra=Math.min(r1,r2),rb=Math.max(r1,r2),ca=Math.min(c1,c2),cb=Math.max(c1,c2);
+  for(var r=ra;r<=rb;r++){var row=t.rows[r];if(!vis(row))continue;
+   for(var c=ca;c<=cb;c++){var td=row.cells[c];if(td&&td.querySelector('input')){td.classList.add('psel');cells.push(td)}}}
+  sel={t:t,ra:ra,rb:rb,ca:ca,cb:cb}}
+ function valOf(td){var i=td.querySelector('input');return i?String(i.value==null?'':i.value):String(td.textContent||'').trim()}
+ /* the highlighted cells as rows of values (only rows that have a cell with an input in that column) */
+ function matrix(){if(!sel)return[];var m=[];for(var r=sel.ra;r<=sel.rb;r++){var row=sel.t.rows[r];if(!vis(row))continue;var line=[],any=false;
+   for(var c=sel.ca;c<=sel.cb;c++){var td=row.cells[c];if(td&&td.querySelector('input')){line.push(valOf(td));any=true}else line.push('')}
+  if(any)m.push(line)}return m}
+ function setVal(i,v){if(!i||i.readOnly||i.disabled)return 0;var ty=(i.type||'').toLowerCase();if(ty==='checkbox'||ty==='radio'||ty==='button'||ty==='hidden')return 0;
+  v=String(v==null?'':v).trim();if(ty==='number'&&v!==''){v=v.replace(/[₱,\s]/g,'');if(v===''||isNaN(+v))return 0}
+  if(i.value===v)return 0;i.value=v;i.dispatchEvent(new Event('input',{bubbles:true}));i.dispatchEvent(new Event('change',{bubbles:true}));return 1}
+ function say(m){try{toast(m)}catch(x){}}
+ /* many cells at once: the heavy recalculating / redrawing runs ONCE at the end instead of once per cell (that is what made big delete / paste lag) */
+ function bulk(fn){var N=['pCalc','pSync','drawForm','drawP','smCalc','sspTot'],old={},hit={};
+  N.forEach(function(n){if(typeof window[n]==='function'){old[n]=window[n];window[n]=function(){hit[n]=1}}});
+  try{fn()}finally{N.forEach(function(n){if(old[n])window[n]=old[n]});
+   try{if(hit.drawP)drawP();else if(hit.drawForm)drawForm()}catch(x){}
+   ['pCalc','smCalc','pSync','sspTot'].forEach(function(n){if(hit[n]){try{window[n]()}catch(x){}}})}}
+ document.addEventListener('mousedown',function(e){
+  if(e.button!==0)return;var td=tdOf(e.target);
+  if(e.shiftKey&&td){var a=anchor||tdOf(document.activeElement);
+   if(a&&a!==td&&a.closest('table')===td.closest('table')){e.preventDefault();var ae=document.activeElement;if(ae&&ae.blur)ae.blur();range(a,td);return}}
+  clr();document.body.classList.remove('psdrag');dragging=false;moved=false;
+  if(td&&!(e.target.closest&&e.target.closest('button'))){anchor=td;dragging=true}else anchor=null;
+ },true);
+ document.addEventListener('mouseover',function(e){
+  if(!dragging||!anchor||e.buttons!==1)return;var td=tdOf(e.target);if(!td)return;
+  if(!moved&&td===anchor)return;if(td.closest('table')!==anchor.closest('table'))return;
+  if(!moved){moved=true;document.body.classList.add('psdrag');var ae=document.activeElement;if(ae&&ae.blur)ae.blur();try{getSelection().removeAllRanges()}catch(x){}}
+  range(anchor,td);
+ },true);
+ document.addEventListener('selectstart',function(e){if(moved&&dragging)e.preventDefault()},true);
+ document.addEventListener('mouseup',function(){dragging=false;document.body.classList.remove('psdrag');if(cells.length<2)clr()},true);
+ function doCopy(e){var m=matrix();if(!m.length)return false;clipTxt=m.map(function(r){return r.join('\t')}).join('\n');
+  if(e&&e.clipboardData){e.clipboardData.setData('text/plain',clipTxt);e.preventDefault()}
+  else{try{navigator.clipboard.writeText(clipTxt)}catch(x){}}
+  say('Copied '+cells.length+' cell'+(cells.length>1?'s':'')+' ✔');return true}
+ document.addEventListener('copy',function(e){if(cells.length<2)return;doCopy(e)},true);
+ document.addEventListener('keydown',function(e){
+  if(!cells.length)return;
+  var k=e.key;
+  if(k==='Escape'){e.preventDefault();e.stopPropagation();clr();return}
+  if((e.ctrlKey||e.metaKey)&&!e.altKey&&(k==='c'||k==='C')){if(cells.length>1){doCopy(null)}return}
+  if((e.ctrlKey||e.metaKey)&&!e.altKey&&(k==='v'||k==='V'||k==='x'||k==='X'||k==='a'||k==='A'))return;
+  if((k==='Delete'||k==='Backspace')&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+   e.preventDefault();e.stopPropagation();
+   var n=0,L=cells.slice();clr();bulk(function(){L.forEach(function(td){td.querySelectorAll('input').forEach(function(i){if(setVal(i,''))n++})})});say(n?'Cleared '+n+' cell'+(n>1?'s':'')+' ✔':'Nothing to clear (those cells are empty or locked)');return}
+  if(!/^(Shift|Control|Alt|Meta|CapsLock|Arrow(Up|Down|Left|Right))$/.test(k))clr();
+ },true);
+ /* paste: as many cells as were copied are pasted, starting at the clicked cell (or the top-left of the highlight). One value pasted over a highlight fills the whole highlight. */
+ document.addEventListener('paste',function(e){
+  try{var ae=document.activeElement,start=null,t=null,r0,c0;
+   if(sel){t=sel.t;r0=sel.ra;c0=sel.ca}
+   else{var td=tdOf(ae);if(!td)return;t=td.closest('table');r0=td.parentElement.rowIndex;c0=td.cellIndex}
+   var txt=e.clipboardData?e.clipboardData.getData('text/plain'):'';if(!txt)txt=clipTxt;if(!txt)return;
+   var g=txt.replace(/\r/g,'').replace(/\n+$/,'').split('\n').map(function(l){return l.split('\t')});
+   var multi=g.length>1||g[0].length>1;
+   if(!sel&&!multi)return;/* a single value into a single cell: normal paste */
+   e.preventDefault();e.stopPropagation();var n=0,L0=cells.slice(),one=sel&&!multi;clr();
+   bulk(function(){if(one){L0.forEach(function(td2){td2.querySelectorAll('input').forEach(function(i){n+=setVal(i,g[0][0])})})}
+   else{var rows=[];for(var r=r0;r<t.rows.length;r++){var row=t.rows[r];if(vis(row)&&row.cells[c0]&&row.cells[c0].querySelector('input'))rows.push(row)}
+    g.forEach(function(line,ri){var row=rows[ri];if(!row)return;line.forEach(function(v,ci){var td3=row.cells[c0+ci];if(!td3)return;var i=td3.querySelector('input');if(i)n+=setVal(i,v)})})}});
+   say(n?'Pasted '+n+' cell'+(n>1?'s':'')+' ✔':'Nothing pasted (those cells are locked or the values do not fit)')
+  }catch(x){}
+ },true);
 })();
 </script>
 </body></html>
