@@ -7673,6 +7673,8 @@ window.pxDeptSel=id=>[...document.querySelectorAll('#'+id+' .uapd:checked')].map
 window.pxChips=(pg,dis)=>PXS.map(([k,l])=>`<label class="ux-chip"><input type="checkbox" class="uapx" data-k="${k}" onchange="pxAuto(this)"${(pg||[]).includes('payx:'+k)?' checked':''}${dis?' disabled':''}> ${l}</label>`).join('');
 window.pxSel=id=>[...document.querySelectorAll('#'+id+' .uapx:checked')].map(c=>'payx:'+c.dataset.k);
 const pxFix=pg=>{/* ticking any Payroll sub-permission or department turns the Payroll page on (otherwise it would be lost on save) */if(pg.some(x=>/^pay[xd]:/.test(String(x)))&&!pg.includes('pay'))pg=pg.concat('pay');return pg};
+/* HR Head and Payroll have the SAME Payroll rights (ATM Accounts, rates, payroll runs...). The Payroll page is always saved for both roles, so the database never blocks them from saving. */
+const roleFix=(role,pg)=>((role==='hr'||role==='payroll')&&!pg.includes('pay'))?pg.concat('pay'):pg;
 window.pxAuto=el=>{if(!el.checked)return;const b=el.closest('[id^="uapx_"],[id^="uapd_"]');if(!b)return;const id=b.id.slice(5),c=document.getElementById(id==='new'?'un_p_pay':'up_'+id+'_pay');if(c&&!c.disabled)c.checked=true};
 const pxNo=()=>toast('Your account does not have access to this part of Payroll.');
 /* Management department: only users with the special permission can see it (Payroll / 201 Files / Monthly Gross history) */
@@ -7718,9 +7720,9 @@ create policy "perm sub" on public.hrd_requests for all to authenticated using (
 drop policy if exists "perm emp" on public.hrd_employees;
 create policy "perm emp" on public.hrd_employees for all to authenticated using (public.hrd_can('emp')) with check (public.hrd_can('emp'));
 drop policy if exists "perm pay staff" on public.hrd_pay_staff;
-create policy "perm pay staff" on public.hrd_pay_staff for all to authenticated using (public.hrd_can('pay')) with check (public.hrd_can('pay'));
+create policy "perm pay staff" on public.hrd_pay_staff for all to authenticated using (public.hrd_can('pay') or exists(select 1 from public.hrd_access where user_id=auth.uid() and active and role in ('admin','hr','payroll'))) with check (public.hrd_can('pay') or exists(select 1 from public.hrd_access where user_id=auth.uid() and active and role in ('admin','hr','payroll')));
 drop policy if exists "perm pay runs" on public.hrd_payroll;
-create policy "perm pay runs" on public.hrd_payroll for all to authenticated using (public.hrd_can('pay')) with check (public.hrd_can('pay'));
+create policy "perm pay runs" on public.hrd_payroll for all to authenticated using (public.hrd_can('pay') or exists(select 1 from public.hrd_access where user_id=auth.uid() and active and role in ('admin','hr','payroll'))) with check (public.hrd_can('pay') or exists(select 1 from public.hrd_access where user_id=auth.uid() and active and role in ('admin','hr','payroll')));
 drop policy if exists "perm pay depts" on public.hrd_pay_depts;
 create policy "perm pay depts" on public.hrd_pay_depts for all to authenticated using (public.hrd_can('pay') or exists(select 1 from public.hrd_access where user_id=auth.uid() and active and role in ('admin','hr','payroll'))) with check (public.hrd_can('pay') or exists(select 1 from public.hrd_access where user_id=auth.uid() and active and role in ('admin','hr','payroll')));
 drop policy if exists "perm act" on public.hrd_activity;
@@ -8211,7 +8213,7 @@ function uNew(){if(!isAdm())return toast('Only a Creator can create users.');uNe
 function uNewRole(){const r=$('un_r').value;PGS.forEach(([k])=>{const c=$('un_p_'+k);c.checked=ROLES[r][2].includes(k);c.disabled=r==='admin'});document.querySelectorAll('#uapx_new .uapx').forEach(c=>{c.checked=false;c.disabled=r==='admin'})}
 async function uNewSave(){
  const er=m=>{$('un_err').textContent=m},n=$('un_n').value.replace(/[\u0000-\u001f<>]/g,'').replace(/\s+/g,' ').trim(),e=$('un_e').value.trim().toLowerCase(),pw=$('un_p').value,role=$('un_r').value,
-  pages=role==='admin'?ROLES.admin[2]:pxFix(PGS.map(([k])=>k).filter(k=>$('un_p_'+k).checked).concat(attDeptSel('uad_new'),m13DeptSel('uad13_new'),pxSel('uapx_new')));
+  pages=role==='admin'?ROLES.admin[2]:roleFix(role,pxFix(PGS.map(([k])=>k).filter(k=>$('un_p_'+k).checked).concat(attDeptSel('uad_new'),m13DeptSel('uad13_new'),pxSel('uapx_new'))));
  er('');if(!isAdm())return er('Only a Creator can create users.');
  if(n.length<2)return er('Enter the full name.');if(!okE(e))return er('Invalid email address.');if(pw.length<8)return er('Password must be at least 8 characters.');
  if((UL||[]).some(u=>String(u.email).toLowerCase()===e))return er('This email already has an account.');
@@ -8233,7 +8235,7 @@ async function uNewSave(){
  catch(x){b.disabled=false;b.textContent='Create user';er(nice(x))}}
 function uFind(q){UF.q=q.toLowerCase();uApply()}
 function uRole(i){const r=$('ur_'+i).value,pg=ROLES[r][2];PGS.forEach(([k])=>{const c=$(`up_${i}_${k}`);c.checked=pg.includes(k);c.disabled=r==='admin'});document.querySelectorAll('#uapx_'+i+' .uapx').forEach(c=>{c.checked=false;c.disabled=r==='admin'})}
-async function uSave(i){const u=UL[i],role=$('ur_'+i).value,active=$('ua_'+i).checked,pages=role==='admin'?ROLES.admin[2]:pxFix(PGS.map(([k])=>k).filter(k=>$(`up_${i}_${k}`).checked).concat(attDeptSel('uad_'+i),m13DeptSel('uad13_'+i),pxSel('uapx_'+i)));
+async function uSave(i){const u=UL[i],role=$('ur_'+i).value,active=$('ua_'+i).checked,pages=role==='admin'?ROLES.admin[2]:roleFix(role,pxFix(PGS.map(([k])=>k).filter(k=>$(`up_${i}_${k}`).checked).concat(attDeptSel('uad_'+i),m13DeptSel('uad13_'+i),pxSel('uapx_'+i))));
  if(!confirm('Save access changes for '+u.email+'?\nRole: '+ROLES[role][0]+'\nPages: '+(pages.filter(k=>PGS.find(x=>x[0]===k)).map(k=>PGS.find(x=>x[0]===k)[1]).join(', ')||'none')+(pages.some(k=>String(k).indexOf('attd:')===0)?'\nAttendance departments: '+pages.filter(k=>String(k).indexOf('attd:')===0).map(k=>k.slice(5)).join(', '):'')+(pages.some(k=>String(k).indexOf('m13d:')===0)?'\n13th Month departments: '+pages.filter(k=>String(k).indexOf('m13d:')===0).map(k=>k.slice(5)).join(', '):'')+'\nActive: '+(active?'Yes':'No')))return;
  try{await api('/rest/v1/hrd_access?user_id=eq.'+u.user_id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({role,pages,active,updated_at:new Date().toISOString()})});
   Object.assign(u,{role,pages,active});logAct('Changed user access','Users',u.email+' → '+ROLES[role][0]+(active?'':' (disabled)'));toast('Saved ✔');drawU()}
@@ -12339,7 +12341,7 @@ let _t=0;window.PSMQ=v=>{PS.q=v;clearTimeout(_t);_t=setTimeout(()=>{psmDraw();co
 <script>
 /* v625: Esc = Back. Clicks the on-screen "← Back" button of the page you are on; pages without one go to the Dashboard. Skips when a popup/modal is open, when full view is on, or while typing (first Esc leaves the field, the next one goes back). */
 (function(){
- var BK=/^[\u2190\u2B05]\uFE0F?\s*Back/i;
+ var BK=/^[\u2190\u2B05]\uFE0F?\s*\S/;/* any "← ..." button (← Back, ← Payroll History, ← Back to Payroll...) */
  function vis(el){return !!(el&&(el.offsetWidth||el.offsetHeight||el.getClientRects().length))}
  function typing(){var a=document.activeElement;if(!a||a===document.body)return null;var t=(a.tagName||'').toLowerCase();return(t==='input'||t==='textarea'||t==='select'||a.isContentEditable)?a:null}
  function modalOpen(){
@@ -12359,8 +12361,7 @@ let _t=0;window.PSMQ=v=>{PS.q=v;clearTimeout(_t);_t=setTimeout(()=>{psmDraw();co
   if(modalOpen())return;
   var t=typing();if(t){t.blur();return}
   var back=findBack();if(back){e.preventDefault();back.click();return}
-  /* no Back button on this page: go up to the Dashboard */
-  try{var app=document.getElementById('app');if(!app||app.style.display==='none')return;if(typeof PG!=='undefined'&&PG&&PG!=='dash'&&typeof go==='function'){e.preventDefault();go('dash')}}catch(x){}
+  /* no Back button on this page: Esc does nothing (it no longer jumps to the Dashboard) */
  },false);
 })();
 </script>
@@ -12831,7 +12832,9 @@ function evView(id){const x=(EVL||[]).find(q=>q.id===id);if(!x)return;const o=ov
   if(!st||!st.hrd){try{history.replaceState({hrd:1,pg:k.pg,s:k.s},'')}catch(e){}return}
   if(st.pg===k.pg&&st.s===k.s)return;
   try{history.pushState({hrd:1,pg:k.pg,s:k.s},'')}catch(e){}}
- function later(){clearTimeout(tm);tm=setTimeout(sync,250)}
+ function later(){sync()}
+ /* record the step right away, also when a page is opened and then a payroll is opened in the same moment (e.g. from a notice or the attendance) */
+ ['go','openP','pBegin','pBack'].forEach(function(n){var f=window[n];if(typeof f!=='function')return;window[n]=function(){var r=f.apply(this,arguments);try{sync()}catch(e){}return r}});
  window.addEventListener('popstate',function(e){
   var t=e.state;if(!t||!t.hrd)return;var k=cur();if(!k)return;busy=true;
   try{
@@ -12842,7 +12845,7 @@ function evView(id){const x=(EVL||[]).find(q=>q.id===id);if(!x)return;const o=ov
    if(n&&(n.pg!==t.pg||n.s!==t.s)){try{history.pushState({hrd:1,pg:n.pg,s:n.s},'')}catch(x){}}/* could not go there (e.g. you chose to stay on an unsaved payroll): keep the current screen */
   },600)});
  function start(){var m=document.getElementById('main');if(m)new MutationObserver(later).observe(m,{childList:true});
-  setInterval(function(){var pg=null;try{pg=PG}catch(e){}if(pg!==lastPG){lastPG=pg;later()}},700);later()}
+  setInterval(function(){var pg=null;try{pg=PG}catch(e){}if(pg!==lastPG){lastPG=pg;later()}},700);later();try{document.title=document.title.replace(/ \u00b7 nav2$/,'')+' \u00b7 nav2'}catch(e){}}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
 </script>
