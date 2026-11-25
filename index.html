@@ -2929,8 +2929,14 @@ const roleLbl=()=>SUPER||(MYA&&MYA.role==='admin')?'Creator':MYA?(ROLES[MYA.role
 function b0(){try{rqBadge()}catch(e){}const n=(can('sub')?R.filter(r=>r.status==='pending').length:0)+(can('emp')?new Set(alerts().map(a=>a.i)).size:0);const el=$('b0');if(el)el.textContent=n||''}
 const myMeta=()=>({st:stat(),email:ME.email||'',name:(MYA&&MYA.full_name)||'',role:roleLbl(),rk:SUPER?'admin':((MYA&&MYA.role)||''),v:2,at:new Date().toISOString()});
 /* the role shown for another online user comes from his role KEY (rk), so it always follows the current names; a browser still running the old file sends no key, only the old label -> translate it */
-const OLDR={'Admin':'Creator','Staff':'Admin','HR Staff':'HR Head'};
-const roleOfM=m=>{if(m&&m.rk&&typeof ROLES!=='undefined'&&ROLES[m.rk])return ROLES[m.rk][0];const r=String((m&&m.role)||'');return(m&&m.v===2)?r:(OLDR[r]||r)}
+const OLDR={'Staff':'Admin','HR Staff':'HR Head'};
+/* the REAL role of every user (as set in Users & Access): the Creator reads it from the access table, everybody else from the chat user list */
+let RMAP={},RMT=0;
+async function rolesRefresh(){try{let r=null;
+ if(typeof isAdm==='function'&&isAdm()){const a=await api('/rest/v1/hrd_access?select=user_id,role',{_quiet:true});if(Array.isArray(a))r=a}
+ if(!r){const a=await api('/rest/v1/rpc/hrd_chat_users',{method:'POST',body:'{}',_quiet:true});if(Array.isArray(a)&&a.some(x=>x.role!==undefined))r=a}
+ if(!r)return;const n={};r.forEach(x=>{if(x.user_id&&x.role)n[x.user_id]=x.role});if(JSON.stringify(n)!==JSON.stringify(RMAP)){RMAP=n;refreshOnline()}}catch(e){}}
+const roleOfM=(m,k)=>{if(k&&RMAP[k]&&typeof ROLES!=='undefined'&&ROLES[RMAP[k]])return ROLES[RMAP[k]][0];if(m&&m.rk&&typeof ROLES!=='undefined'&&ROLES[m.rk])return ROLES[m.rk][0];const r=String((m&&m.role)||'');return(m&&m.v===2)?r:(OLDR[r]||r)}
 function presMsg(d,send){if(d.topic!=='realtime:hrd')return;
  if(d.event==='phx_reply'&&d.payload&&d.payload.status==='ok'&&!PT){PT=true;send('realtime:hrd','presence',{type:'presence',event:'track',payload:myMeta()})}
  else if(d.event==='presence_state'){PRES=d.payload||{};presReady=true;refreshOnline();b0()}
@@ -2939,15 +2945,15 @@ function presMsg(d,send){if(d.topic!=='realtime:hrd')return;
   Object.keys(J).forEach(k=>{const was=!!PRES[k];if(!was)PRES[k]={metas:[]};PRES[k].metas=PRES[k].metas.concat(J[k].metas||[]);
    if(!was&&k!==ME.sub&&presReady){const m=(J[k].metas||[])[0]||{};toast('🟢 '+(m.name||m.email||'A user')+' signed in')}});
   refreshOnline()}}
-function onlineUsers(){const L=[];Object.entries(PRES).forEach(([k,v])=>{const ms=v.metas||[],m=ms[ms.length-1]||{};L.push({k,email:m.email||'',name:m.name||'',role:roleOfM(m),st:m.st||'online',at:m.at,n:ms.length})});
+function onlineUsers(){const L=[];Object.entries(PRES).forEach(([k,v])=>{const ms=v.metas||[],m=ms[ms.length-1]||{};L.push({k,email:m.email||'',name:m.name||'',role:roleOfM(m,k),st:m.st||'online',at:m.at,n:ms.length})});
  if(!L.some(u=>u.k===ME.sub))L.unshift({k:ME.sub,email:ME.email||'',name:(MYA&&MYA.full_name)||'',role:roleLbl(),st:stat(),at:null,n:1});
  L.sort((a,b)=>(b.k===ME.sub)-(a.k===ME.sub)||(a.name||a.email).localeCompare(b.name||b.email));return L}
 const dn=(name,email)=>String(name||'').trim()||String(email||'').split('@')[0]||'user';
 const myName=()=>dn(MYA&&MYA.full_name,ME.email);
 function onlineHtml(){const L=onlineUsers();return L.map((u,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:11px 0;${i?'border-top:1px solid var(--ln)':''}"><span class="on-dot"${(u.k===ME.sub?stat():u.st)==='busy'?' style="background:#d9962b"':''}></span><div style="flex:1;min-width:0"><b>${esc(dn(u.name,u.email))}</b>${u.k===ME.sub?' <em class="pn" style="margin:0 0 0 6px">You</em>':''}<br><small style="color:var(--mu)">${esc(u.role||'')}${(u.k===ME.sub?stat():u.st)==='busy'?' · Busy':''}</small></div><small style="color:var(--mu);white-space:nowrap">${u.at?'since '+new Date(u.at).toLocaleTimeString('en-PH',{hour:'numeric',minute:'2-digit'}):''}${u.n>1?' · '+u.n+' tabs':''}</small></div>`).join('')||'<p class="empty" style="padding:10px 0">Nobody is online.</p>'}
-function onlineOpen(){if($('onov'))return;const o=document.createElement('div');o.className='ov no-print';o.id='onov';o.onclick=e=>{if(e.target===o)o.remove()};
+function onlineOpen(){if($('onov'))return;RMT=Date.now();rolesRefresh();const o=document.createElement('div');o.className='ov no-print';o.id='onov';o.onclick=e=>{if(e.target===o)o.remove()};
  o.innerHTML=`<div style="min-width:min(420px,92vw)"><div style="display:flex;align-items:center;gap:10px;margin:0 0 6px"><h3 style="margin:0;flex:1;font-family:Georgia,serif;color:var(--h)">Online now <span id="onn" class="pn" style="margin:0 0 0 6px">${onlineUsers().length}</span></h3><button class="btn o sm" onclick="$('onov').remove()">Close</button></div><p class="sub" style="margin:0 0 6px;font-size:13px">Users currently signed in.</p><div id="onl">${onlineHtml()}</div></div>`;document.body.appendChild(o)}
-function refreshOnline(){if(CW){drawList();drawHead()}if(PG!=='dash')return;const a=$('onl'),c=$('onc'),n=$('onn');if(a)a.innerHTML=onlineHtml();if(c)c.textContent=onlineUsers().length;if(n)n.textContent=onlineUsers().length}
+function refreshOnline(){if(Date.now()-RMT>60000){RMT=Date.now();rolesRefresh()}if(CW){drawList();drawHead()}if(PG!=='dash')return;const a=$('onl'),c=$('onc'),n=$('onn');if(a)a.innerHTML=onlineHtml();if(c)c.textContent=onlineUsers().length;if(n)n.textContent=onlineUsers().length}
 function dGo(t,v){if(t==='d'){ef.d=v;ef.f='all'}else{ef.f=v;ef.d='all'}ef.q='';go('emp')}
 function dReq(k){pendF=k;go('sub')}
 function dEmp(id){pendE=id;go('emp')}
@@ -7783,9 +7789,10 @@ create policy "chat read" on public.hrd_chat for select to authenticated
 drop policy if exists "chat send" on public.hrd_chat;
 create policy "chat send" on public.hrd_chat for insert to authenticated
   with check (from_id=auth.uid());
-create or replace function public.hrd_chat_users() returns table(user_id uuid,email text,full_name text)
+drop function if exists public.hrd_chat_users();
+create or replace function public.hrd_chat_users() returns table(user_id uuid,email text,full_name text,role text)
   language sql stable security definer set search_path=public as $$
-  select user_id,email,full_name from public.hrd_access where coalesce(active,true) $$;
+  select user_id,email,full_name,role from public.hrd_access where coalesce(active,true) $$;
 revoke all on function public.hrd_chat_users() from public, anon;
 grant execute on function public.hrd_chat_users() to authenticated;
 do $$ begin
@@ -7980,8 +7987,8 @@ function chatToggle(){CW?chatClose():chatOpen()}
 function chatClose(){CW=false;const w=$('cw');w&&w.remove()}
 async function chatOpen(){if(CW)return;CW=true;try{if(window.Notification&&Notification.permission==='default')Notification.requestPermission()}catch(e){}
  const w=document.createElement('div');w.id='cw';w.className='no-print';
- w.innerHTML=`<div class="cwh"><b>Chat</b><label>My status <select id="cst" onchange="setStat(this.value)" style="font:inherit;padding:5px 9px;border:1px solid var(--ln2);border-radius:8px;background:var(--sf);color:var(--ink)"><option value="online">Online</option><option value="busy">Busy</option></select></label><button class="btn o sm" onclick="chatClose()">Close</button></div><div id="crb" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;background:#fff6dd;color:#7a5a00;font-size:13px;border-bottom:1px solid var(--ln)"><span style="flex:1">One-time database update needed (Seen/Unread tracking, account-wide Clear chat, Unsend and Edit).</span><button class="btn o sm" onclick="copySql(CSQL)">📋 Copy SQL</button><button class="btn sm" onclick="chatReload()">I've run it — reload</button></div><div id="cwb" class="cwb"><p class="sub" style="padding:8px">Loading\u2026</p></div>`;
- document.body.appendChild(w);$('cst').value=stat();await chatLoad();if(!CW)return;const B=$('cwb');{const bn=$('crb');if(bn)bn.style.display=(CON&&(!CRB||!CHD||!CUS||!CED)&&isAdm())?'flex':'none'}
+ w.innerHTML=`<div class="cwh"><b>Chat</b><label>My status <select id="cst" onchange="setStat(this.value)" style="font:inherit;padding:5px 9px;border:1px solid var(--ln2);border-radius:8px;background:var(--sf);color:var(--ink)"><option value="online">Online</option><option value="busy">Busy</option></select></label><button class="btn o sm" onclick="chatClose()">Close</button></div><div id="crb" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;background:#fff6dd;color:#7a5a00;font-size:13px;border-bottom:1px solid var(--ln)"><span style="flex:1">One-time database update needed (Seen/Unread tracking, account-wide Clear chat, Unsend, Edit and real roles in Online now).</span><button class="btn o sm" onclick="copySql(CSQL)">📋 Copy SQL</button><button class="btn sm" onclick="chatReload()">I've run it — reload</button></div><div id="cwb" class="cwb"><p class="sub" style="padding:8px">Loading\u2026</p></div>`;
+ document.body.appendChild(w);$('cst').value=stat();await chatLoad();if(!CW)return;const B=$('cwb');{const bn=$('crb');if(bn)bn.style.display=(CON&&(!CRB||!CHD||!CUS||!CED||(CU.length&&!CU.some(x=>x.role!==undefined)))&&isAdm())?'flex':'none'}
  if(!CON){B.style.display='block';return B.innerHTML=`<p class="sub">The chat table must be created first.</p><div class="panel" style="max-width:none"><h3>Run this in Supabase \u2192 SQL Editor</h3><pre style="white-space:pre-wrap;font-size:12px;background:#f3f5f9;padding:12px;border-radius:8px;max-height:260px;overflow:auto">${esc(CSQL)}</pre>${CERR?`<p class="sub" style="font-size:12px">Last error: ${esc(CERR)}</p>`:''}<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn o" onclick="copySql(CSQL)">\u{1F4CB} Copy SQL</button><button class="btn" onclick="chatReload()">I've run it \u2014 reload</button></div></div>`}
  B.innerHTML=`<div class="chat"><div id="cl" class="cl"></div><div class="cp"><div id="ch" class="chd"></div><div id="cm" class="cms"></div><div class="cin"><button type="button" class="btn o cem" title="Emoji" onclick="chatEmoji(event)">\u{1F60A}</button><button type="button" class="btn o cem gf" title="GIF" onclick="chatGif(event)">GIF</button><textarea id="cin" rows="1" maxlength="2000" placeholder="Type a message\u2026 (Enter to send)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend()}"></textarea><button class="btn" onclick="chatSend()">Send</button></div></div></div>`;
  if(CP!=='all'&&!CU.some(u=>u.user_id===CP))CP='all';CNEW=new Set(cUnreadIds(CP));markSeen(CP);drawList();drawHead();drawMsgs();chatBadge()}
