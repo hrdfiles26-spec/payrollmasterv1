@@ -12817,4 +12817,31 @@ function evXlsx0(ids){const L=(ids||evPickIds()).map(id=>(EVL||[]).find(q=>q.id=
 function evView(id){const x=(EVL||[]).find(q=>q.id===id);if(!x)return;const o=ovl('evvw');
  o.innerHTML=`<style>${EVDCSS}</style><div style="width:min(820px,96vw);max-height:92vh;overflow:auto;border-radius:14px;background:var(--sf);padding:10px"><div style="display:flex;gap:8px;justify-content:flex-end;margin:0 0 8px">${evCanP(x)?`<button class="btn o sm" onclick="evPrint('${x.id}')">🖨 Print</button><button class="btn o sm" onclick="evXlsx(['${x.id}'])">⬇ Excel</button>`:''}<button class="btn sm" onclick="$('evvw').remove()">Close</button></div>${evDocHtml(x)}</div>`}
 </script>
+<script>
+/* Browser Back / Forward button (and phone back gesture): move between the pages and screens of HRD Files instead of jumping out to the Dashboard.
+   Every page change and every "deeper" screen (e.g. a payroll form opened from Payroll History, an attendance sheet, an employee record) gets its own history entry.
+   Back on such a screen presses that screen's own "← Back" button, so unsaved-changes questions still appear. */
+(function(){
+ var busy=false,lastPG=null,tm=null;
+ function backBtn(){var m=document.getElementById('main');if(!m)return null;var b=m.querySelectorAll('button,a');for(var i=0;i<b.length;i++){if(/^\s*←/.test(b[i].textContent||'')&&b[i].offsetParent!==null)return b[i]}return null}
+ function cur(){var pg=null;try{pg=PG}catch(e){}if(!pg||typeof pg!=='string')return null;return{pg:pg,d:backBtn()?1:0}}
+ function sync(){if(busy)return;var k=cur();if(!k)return;var st=history.state;
+  if(!st||!st.hrd){try{history.replaceState({hrd:1,pg:k.pg,d:k.d},'')}catch(e){}return}
+  if(st.pg===k.pg&&st.d===k.d)return;
+  try{history.pushState({hrd:1,pg:k.pg,d:k.d},'')}catch(e){}}
+ function later(){clearTimeout(tm);tm=setTimeout(sync,250)}
+ window.addEventListener('popstate',function(e){
+  var t=e.state;if(!t||!t.hrd)return;var k=cur();if(!k)return;busy=true;
+  try{
+   if(t.pg!==k.pg){window.go(t.pg)}
+   else if(t.d<k.d){var b=backBtn();if(b)b.click()}
+  }catch(x){}
+  setTimeout(function(){busy=false;var n=cur();
+   if(n&&(n.pg!==t.pg||n.d!==t.d)){try{history.pushState({hrd:1,pg:n.pg,d:n.d},'')}catch(x){}}/* could not go there (e.g. you chose to stay on an unsaved payroll): keep the current screen */
+  },450)});
+ function start(){var m=document.getElementById('main');if(m)new MutationObserver(later).observe(m,{childList:true});
+  setInterval(function(){var pg=null;try{pg=PG}catch(e){}if(pg!==lastPG){lastPG=pg;later()}},700);later()}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
 </body></html>
