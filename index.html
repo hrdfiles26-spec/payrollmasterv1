@@ -12726,10 +12726,12 @@ function evDocHtml(x){const s=x.scores||{},a=+x.total||0,pd=[x.evaluator_positio
  <div class="evd-sg"><div>Evaluated by</div><div>Employee (acknowledged)</div><div>Approved by</div></div></div>`}
 function evPrintDocs(L){const w=window.open('','_blank');if(!w)return toast('Allow pop-ups to print.');
  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${L.length===1?'Evaluation - '+esc(L[0].emp_name):'Employee Evaluations'}</title><style>@page{size:8.5in 13in;margin:12mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;background:#fff}${EVDCSS}.evd{border:0;border-radius:0;padding:0;break-after:page;page-break-after:always}.evd:last-child{break-after:auto;page-break-after:auto}</style></head><body>${L.map(evDocHtml).join('')}</body></html>`);w.document.close();setTimeout(()=>{try{w.focus();w.print()}catch(e){}},400)}
-function evPrint(id){const x=(EVL||[]).find(q=>q.id===id);if(!x)return;if(!evCanP(x))return toast('You do not have access to print this evaluation.');evPrintDocs([x])}
+function evPrint(id){const x=(EVL||[]).find(q=>q.id===id);if(!x)return;if(!evCanP(x))return toast(evNoP('print'));try{evPrintDocs([x])}catch(e){alert('Could not print: '+(e.message||e))}}
 function evPickIds(){const c=[...document.querySelectorAll('.evsel:checked')].map(e=>e.value);return c.length?c:evRows().map(x=>x.id)}
 function evSelAll(v){document.querySelectorAll('.evsel').forEach(e=>{e.checked=v})}
-function evPrintMany(){const L=evPickIds().map(id=>(EVL||[]).find(q=>q.id===id)).filter(x=>x&&evCanP(x));if(!L.length)return toast('Nothing to print (check the selection or your print access).');evPrintDocs(L)}
+function evNoP(w){return can('evl_p')||(EVL||[]).some(evMine1)?'Nothing to '+w+' for this selection.':'Your account has no Print access, so you cannot '+w+' these. Ask the Creator to tick "Employee Evaluation: print results" for you (Users & Access).'}
+function evPrintMany(){try{evPrintMany0()}catch(e){alert('Could not print: '+(e.message||e))}}
+function evPrintMany0(){const L=evPickIds().map(id=>(EVL||[]).find(q=>q.id===id)).filter(x=>x&&evCanP(x));if(!L.length)return toast(evNoP('print'));evPrintDocs(L)}
 function evSheet(x,name){const S=xgSheet(name),NV='FF12305C',GD='FFB8923A',GR='FF66738A',LN='thin:FFD3D9E6',s=x.scores||{},a=+x.total||0,m=evKind(s),leg=!/^[a-z]$/.test(m||'')||m==='s',sc10=!leg;
  S.cols=[7,74,14];S.paper=14;S.fit=1;let r=1;const hh=t=>Math.max(19,Math.ceil(String(t).length/78)*15+5),colr=n=>n>=9?NV:n>=7?'FF2E8B57':n>=5?'FFC98A14':'FFC0392B';
  S.put(r,1,3,'Rayanton Farms & Livestock Corp.',{fn:'Georgia',sz:18,b:1,col:NV,h:'left'});S.hts[r++]=30;
@@ -12747,7 +12749,8 @@ function evSheet(x,name){const S=xgSheet(name),NV='FF12305C',GD='FFB8923A',GR='F
  ['Evaluated by','Employee (acknowledged)','Approved by'].forEach(l=>{S.hts[r++]=30;S.put(r,1,2,l,{sz:9,col:GR,h:'center',bt:'thin:FF1A2233'});S.hts[r++]=16});
  return S}
 function evDl(b,n){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},600)}
-function evXlsx(ids){const L=(ids||evPickIds()).map(id=>(EVL||[]).find(q=>q.id===id)).filter(x=>x&&evCanP(x));if(!L.length)return toast('Nothing to export (check the selection or your print access).');
+function evXlsx(ids){try{evXlsx0(ids)}catch(e){alert('Could not export: '+(e.message||e))}}
+function evXlsx0(ids){const L=(ids||evPickIds()).map(id=>(EVL||[]).find(q=>q.id===id)).filter(x=>x&&evCanP(x));if(!L.length)return toast(evNoP('export'));
  try{const b=xgBuild(L.map(x=>evSheet(x,String(x.emp_name||'Evaluation').slice(0,22)+' '+String(x.period_to||x.created_at||'').slice(0,10))));
   evDl(b,L.length===1?'Evaluation-'+String(L[0].emp_name||'').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-')+'.xlsx':'Employee-Evaluations-'+new Date().toLocaleDateString('en-CA')+'.xlsx');toast('Exported '+L.length+' evaluation'+(L.length===1?'':'s')+' ✔')}catch(e){alert('Could not export: '+(e.message||e))}}
 function evView(id){const x=(EVL||[]).find(q=>q.id===id);if(!x)return;const o=ovl('evvw');
