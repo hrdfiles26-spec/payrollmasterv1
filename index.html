@@ -3164,7 +3164,7 @@ function erow(e,i){const x=splitN(e.notes).x,st=stage(e),m=[];
  if(SEP.includes(e.emp_status)&&e.status_date)m.push(esc(e.emp_status)+' '+fdS(e.status_date));
  if(e.emp_status==='Resigned'){if(x.rscash)m.push('Received ₱'+esc(rsFmt(x.rscash)));if(x.rsground)m.push(esc(x.rsground));if(x.rsstat)m.push(esc(x.rsstat))}
  return `<div class="erow dbo" title="Double-click to open" ondblclick="if(!event.target.closest('button,a,input,select'))formE(${i})"><div class="av"${e.photo?` data-p="${esc(e.photo)}" title="Click to enlarge" onclick="event.stopPropagation();bigPh(${i})"`:''} style="${e.photo?'cursor:zoom-in;':''}--ring:${CC[st]?CC[st][2]:'#d3d9e6'}">${esc(ini(e.name))}</div><div class="en"><b>${nm(e.name)}</b>${m.length?`<div class="em">${m.map(t=>`<span>${t}</span>`).join('')}</div>`:''}</div>${isReturnee(e)?`<span class="st" style="background:#d6f0f0;color:#0d6b6b">Returnee</span>`:''}${st!=='—'?`<span class="st" style="${SC[st]}">${lb(st)}</span>`:''}</div>`}
-const DEPTS=['TOP MANAGEMENT','MANAGEMENT','FEEDMILL','VETMED','LAYERS','LAYERS-EXTRA','BREEDER-TANAY','BREEDER-PCLIP','BREEDER-JOHNMYR','BREEDER-EXTRA','HATCHERY','BROILER-B1','BROILER-B2','BROILER-B3','BROILER-B4','BROILER-B5','BROILER-B7','BROILER-B8','BROILER-B10','BROILER-B11','BROILER-B14','BROILER-EXTRA','COMMON','RENTAL','HAULING','HAULING-EXTRA','PSALES','MAINTENANCE'];
+const DEPTS=['TOP MANAGEMENT','MANAGEMENT','FEEDMILL','VETMED','LAYERS','LAYERS-EXTRA','BREEDER-TANAY','BREEDER-PCLIP','BREEDER-JOHNMYR','BREEDER-EXTRA','HATCHERY','BROILER','BROILER-B1','BROILER-B2','BROILER-B3','BROILER-B4','BROILER-B5','BROILER-B7','BROILER-B8','BROILER-B10','BROILER-B11','BROILER-B14','BROILER-EXTRA','COMMON','RENTAL','HAULING','HAULING-EXTRA','PSALES','MAINTENANCE'];
 const nd=d=>{d=String(d||'').trim();return DEPTS.find(x=>x.toLowerCase()===d.toLowerCase())||d},di=d=>{const k=DEPTS.indexOf(d);return k<0?999:k},dsort=(a,b)=>di(a)-di(b)||a.localeCompare(b);
 const PHC={};
 /* v-fast: signed photo URLs survive a page refresh (same URL = the browser reuses the already downloaded picture) */
@@ -5019,17 +5019,22 @@ async function pMoveDo(s,dp,g,rt,perDay,gr){const od=s.dept,og=pGrp(s)||'',ok=pK
 function p201Dept(td,tg){/* payroll dept/class -> the 201 File department name (null when it cannot be told) */
  const U=x=>String(x||'').toUpperCase().replace(/PAPER\s*CLIP/g,'PCLIP').replace(/[^A-Z0-9]+/g,''),hit=n=>DEPTS.find(x=>U(x)===U(n))||null,d=String(td||'').trim(),g=String(tg||'').trim();
  if(isMgt(d))return 'TOP MANAGEMENT';
+ if(/^BROILER$/i.test(d))return 'BROILER'; /* department only: the class (B1:192...) is not part of the 201 department; it is shown in the Transfer History */
  let r=(g&&hit(d+'-'+g))||hit(d);if(r)return r;
  if(/^EXTRA\s*BREEDER/i.test(d))return /hatchery/i.test(g)?'HATCHERY':'BREEDER-EXTRA';
  if(g&&(r=hit(g)))return r;
  if(/^FMVM$/i.test(d)){if(/feed/i.test(g))return 'FEEDMILL';if(/vet/i.test(g))return 'VETMED'}
  return null}
+function f201Find(L,name){const k=pNm(name);let e=L.find(q=>pNm(q.name)===k);if(e)return e;
+ const sig=x=>pNm(x).split(' ').filter(w=>w.length>1),a=sig(name);if(a.length<2)return null;
+ const m=L.filter(q=>{const b=sig(q.name);if(b.length<2)return false;const sm=a.length<=b.length?a:b,lg=a.length<=b.length?b:a;return sm.every(w=>lg.includes(w))});
+ return m.length===1?m[0]:null}
 async function pXferBatch(items,force){/* items: [{s,fd,fg,td,tg}] -> adds a Transfer History line to each employee's 201 File. Returns how many were saved. force = system update from a payroll sync (does not need the 201 Files permission) */
  if(!items.length||(!force&&!can('emp')))return 0;let L=null;try{const r=await apiAll('/rest/v1/hrd_employees?select=id,name,dept,notes&order=name',{_quiet:true});if(Array.isArray(r))L=r}catch(e){}if(!L)return 0;
  const day=new Date().toLocaleDateString('en-CA');let n=0;
- for(const it of items){try{const k=pNm(it.s.name),e=L.find(q=>pNm(q.name)===k);if(!e)continue;const P=splitN(e.notes),X=P.x,A=xferOf(X);
+ for(const it of items){try{const e=(it.eid!=null?L.find(q=>q.id===it.eid):null)||f201Find(L,it.s.name);if(!e)continue;const P=splitN(e.notes),X=P.x,A=xferOf(X);
   const od=e.dept||'',n2=p201Dept(it.td,it.tg),ch=!!n2&&nd(od)!==n2&&(force||!isMgt(n2)||can('mge'));
-  A.unshift(Object.assign({d:day,fd:it.fd,fg:it.fg||'',td:it.td,tg:it.tg||'',by:pBy()},ch?{od:od,nd:n2}:{}));X.xfer=JSON.stringify(A);
+  A.unshift(Object.assign({d:day,fd:it.fd,fg:it.fg||'',td:it.td,tg:it.tg||'',by:pBy()},ch?{od:od,nd:n2}:{},it.rid!=null?{rid:it.rid}:{}));X.xfer=JSON.stringify(A);
   const b={notes:joinN(X,P.rest)};if(ch)b.dept=n2;if(HASAUD()){b.updated_by=ME.email||null;b.updated_at=new Date().toISOString()}
   const r=await api('/rest/v1/hrd_employees?id=eq.'+e.id,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(b)});
   if(Array.isArray(r)&&r.length){n++;e.notes=b.notes;[E,EALL].forEach(Z=>{const z=(Z||[]).find(q=>q.id===e.id);if(z)Object.assign(z,b,r[0])})}}catch(x){}}
@@ -5039,17 +5044,32 @@ const p201Fam=x=>{const u=String(x||'').toUpperCase();if(/FEEDMILL|VETMED|FMVM|F
 async function pRec201(manual){
  try{if(!PF||/^EXTRA/i.test(PF)||!Array.isArray(STF))return;
   const r=await apiAll('/rest/v1/hrd_employees?select=id,name,dept&order=name',{_quiet:true});if(!Array.isArray(r))return;
-  const idx={};r.forEach(e=>{idx[pNm(e.name)]=e});const it=[];
-  STF.filter(s=>s.dept===PF).forEach(s=>{const e=idx[pNm(s.name)];if(!e)return;const od=String(e.dept||'').trim();if(!od)return;
+  const it=[],miss=[];
+  STF.filter(s=>s.dept===PF).forEach(s=>{const e=f201Find(r,s.name);if(!e)return;const od=String(e.dept||'').trim();if(!od)return;
    let v=null;try{v=pVals(s)}catch(x){}if(!v||!(pn(v.pay)>0||pn(v.tot)>0))return;
-   const g=pGrp(s)||'',n2=p201Dept(PF,g);if(!n2||nd(od)===n2||p201Fam(od)===p201Fam(n2))return;
-   it.push({s,fd:od,fg:'',td:PF,tg:g,n2})});
-  if(!it.length){if(manual)toast('201 Files are already up to date for this payroll ✔');return}
-  if(manual&&!confirm('Update the 201 File department of '+it.length+' employee'+(it.length>1?'s':'')+'?\n\n'+it.slice(0,20).map(x=>'• '+x.s.name+': '+x.fd+' → '+x.n2).join('\n')+(it.length>20?'\n• and '+(it.length-20)+' more':'')+'\n\nThe change is also added to their Transfer History.'))return;
-  const n=await pXferBatch(it.map(x=>({s:x.s,fd:x.fd,fg:x.fg,td:x.td,tg:x.tg})),true);
+   const g=pGrp(s)||'',n2=p201Dept(PF,g);
+   if(!n2){if(p201Fam(od)!==p201Fam(PF))miss.push(s.name+' ('+od+')');return}
+   if(nd(od)===n2||p201Fam(od)===p201Fam(n2))return;
+   it.push({s,eid:e.id,rid:PP.runId||null,fd:od,fg:'',td:PF,tg:g,n2})});
+  if(!it.length){if(manual)alert(miss.length?'Hindi matukoy ang tamang department sa 201 File ng:\n\n'+miss.slice(0,20).map(x=>'• '+x).join('\n')+'\n\nPalitan muna ang department nila nang manu-mano sa 201 File.':'201 Files are already up to date for this payroll ✔');return}
+  if(manual&&!confirm('Update the 201 File department of '+it.length+' employee'+(it.length>1?'s':'')+'?\n\n'+it.slice(0,20).map(x=>'• '+x.s.name+': '+x.fd+' → '+x.n2).join('\n')+(it.length>20?'\n• and '+(it.length-20)+' more':'')+(miss.length?'\n\nHindi matukoy ang department ng: '+miss.slice(0,10).join(', '):'')+'\n\nThe change is also added to their Transfer History. If this payroll is deleted, the change is undone.'))return;
+  const n=await pXferBatch(it.map(x=>({s:x.s,eid:x.eid,rid:x.rid,fd:x.fd,fg:x.fg,td:x.td,tg:x.tg})),true);
   if(n)toast('201 File updated for '+n+' employee'+(n>1?'s':'')+' · '+it.slice(0,3).map(x=>x.s.name+': '+x.fd+' → '+x.n2).join('; ')+(it.length>3?'…':''));
   else if(manual)toast('Could not update the 201 Files (no matching record or no permission).')
  }catch(e){if(manual)try{toast('Could not update the 201 Files: '+(e.message||e))}catch(x){}}}
+/* v642: a payroll run is deleted -> the department changes and Transfer History lines that this run made in the 201 Files are undone (a department is only put back if nobody moved the person again) */
+async function pUndo201(rid){
+ try{if(rid==null||rid==='')return 0;
+  const r=await apiAll('/rest/v1/hrd_employees?select=id,name,dept,notes&order=name',{_quiet:true});if(!Array.isArray(r))return 0;let n=0;
+  for(const e of r){if(!e.notes||String(e.notes).indexOf(String(rid))<0)continue;
+   const P=splitN(e.notes),X=P.x,A=xferOf(X),keep=[],gone=[];A.forEach(t=>(t&&t.rid!=null&&String(t.rid)===String(rid)?gone:keep).push(t));if(!gone.length)continue;
+   let cur=String(e.dept||'').trim(),back=null;gone.forEach(t=>{if(t.od&&t.nd&&nd(cur)===nd(t.nd)){cur=t.od;back=t.od}});
+   if(keep.length)X.xfer=JSON.stringify(keep);else delete X.xfer;
+   const b={notes:joinN(X,P.rest)};if(back)b.dept=back;if(HASAUD()){b.updated_by=ME.email||null;b.updated_at=new Date().toISOString()}
+   try{const q=await api('/rest/v1/hrd_employees?id=eq.'+e.id,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(b)});
+    if(Array.isArray(q)&&q.length){n++;[E,EALL].forEach(Z=>{const z=(Z||[]).find(w=>w.id===e.id);if(z)Object.assign(z,b,q[0])})}}catch(x){}}
+  if(n)try{toast('201 Files restored for '+n+' employee'+(n>1?'s':'')+': the transfer made by the deleted payroll was removed.')}catch(x){}
+  return n}catch(e){return 0}}
 let MVQ='';
 function mvhOpen(){const d=ovl('mvhm');d.onclick=e=>{if(e.target===d&&d._dn!==false)d.remove()};mvhDraw()}
 function mvhDraw(){const d=$('mvhm');if(!d)return;const q=MVQ.trim().toLowerCase(),A=((PDS._mv||{}).L||[]).filter(x=>!PF||x.fd===PF||x.td===PF),L=A.filter(x=>!q||(x.n+' '+x.fd+' '+x.fg+' '+x.td+' '+x.tg).toLowerCase().includes(q)),fmt=t=>{try{return new Date(t).toLocaleString('en-PH',{year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}catch(e){return t}};
@@ -5132,7 +5152,7 @@ async function saveP(){if(!pxCan('edit'))return pxNo();if(PP.lockd)return alert(
   await loadH(1);if(!PP.runId){const m=(PH||[]).find(p=>p.label===body.label&&p.data&&p.data.from===PP.from);PP.runId=m&&m.id}
   pSmTplSet(PF,PP.to,body.data.sm);PP.dirty=false;PU=false;pDraftClear();logAct('Saved payroll run','Payroll',body.label);toast('Saved ✔ Added to Payroll History · locked');drawP();try{pRec201()}catch(e){}}catch(x){alert('Could not save: '+x.message)}}
 function openP(i,sl){if(!sl&&!pxCan('open'))return pxNo();const d=PH[i].data||{};if(!d.rows||!d.rates)return alert('This saved run uses an old format and cannot be opened.');PF=pFo(d);PU=false;PP={...PP,from:d.from,to:d.to,cm:d.cm||null,fdL:d.fd||7,title:d.title,prep:d.prep,chk:d.chk,rows:d.rows,tmd:d.tmd||{},sm:d.sm||smDefault(PF),smx:d.smx||null,att:d.att||null,cs:d.cs||null,xb:d.xb||null,xbk:null,lk:d.rates,open:d.open||{},mail:d.mail||{},xc:JSON.parse(JSON.stringify(d.xc||[])),hc:d.hc||[],ord:d.ord||null,m:d.m||(PCFG[PF]||{}).m||'r',gpd:d.gpd||null,gpe:d.gpe||null,slt:d.slt||null,sltD:PF,t:d.t||{},det:d.det||[],dirty:false,init:1,runId:PH[i].id,lockd:!!d.ok};try{pElbFix(PF,PP)}catch(e){}PV='form';drawP();scrollTo(0,0)}
-async function delP(i){if(!pxCan('edit'))return pxNo();if(PH[i]&&pOk(PH[i].data))return alert('🔒 Locked. This payroll was OK\'d by HR. HR head must press Unlock first before it can be edited or deleted. Payslips can still be printed.');if(!confirm('Are you sure you want to delete this saved payroll run? This cannot be undone.'))return;try{const lbl=PH[i].label;try{const d0=PH[i].data||{};pSmTplSet(pFo(d0),d0.to,d0.sm)}catch(e){}await api('/rest/v1/hrd_payroll?id=eq.'+PH[i].id,{method:'DELETE'});logAct('Deleted payroll run','Payroll',lbl);loadH()}catch(x){alert(x.message)}}
+async function delP(i){if(!pxCan('edit'))return pxNo();if(PH[i]&&pOk(PH[i].data))return alert('🔒 Locked. This payroll was OK\'d by HR. HR head must press Unlock first before it can be edited or deleted. Payslips can still be printed.');if(!confirm('Are you sure you want to delete this saved payroll run? This cannot be undone.'))return;try{const lbl=PH[i].label,rid0=PH[i].id;try{const d0=PH[i].data||{};pSmTplSet(pFo(d0),d0.to,d0.sm)}catch(e){}await api('/rest/v1/hrd_payroll?id=eq.'+PH[i].id,{method:'DELETE'});logAct('Deleted payroll run','Payroll',lbl);try{await pUndo201(rid0)}catch(e){}loadH()}catch(x){alert(x.message)}}
 let PPZ='13in 8.5in',PPZU=false;
 const PZO=[['13in 8.5in','Long bond 8.5 × 13 (landscape)'],['14in 8.5in','Legal 8.5 × 14 (landscape)'],['8.5in 13in','Long bond 8.5 × 13 (portrait)'],['8.5in 14in','Legal 8.5 × 14 (portrait)']];
 const pzCur=()=>PPZ;
@@ -11631,9 +11651,9 @@ async function syDoRep(d,x){
 /* v637: payroll sync moved someone to another department -> the 201 File department becomes the latest one and "date: OLD dept -> NEW dept" is added to the employee's Transfer History */
 async function sy201(name,dp,cls){
  try{const r=await apiAll('/rest/v1/hrd_employees?select=id,name,dept&order=name',{_quiet:true});if(!Array.isArray(r))return 0;
-  const k=pNm(name),e=r.find(q=>pNm(q.name)===k);if(!e)return 0;
+  const e=f201Find(r,name);if(!e)return 0;
   const n2=p201Dept(dp,cls),od=String(e.dept||'').trim();if(!n2||!od||nd(od)===n2)return 0;
-  const n=await pXferBatch([{s:{name:name},fd:od,fg:'',td:n2,tg:String(cls||'')}],true);
+  const n=await pXferBatch([{s:{name:name},eid:e.id,rid:(typeof SYR!=='undefined'&&SYR&&SYR.id)||null,fd:od,fg:'',td:dp,tg:String(cls||'')}],true);
   if(n)try{toast(name+': 201 File updated · '+od+' → '+n2+' (Transfer History saved)')}catch(x){}
   return n}catch(e){return 0}}
 async function syDoAdd(d,x){
