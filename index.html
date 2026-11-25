@@ -11837,7 +11837,13 @@ function psmPaid(p){const d=p&&p.data;if(!d||!d.rows||!d.rates)return null;let c
    try{if(pHeld(s))return;const v=pVals0(s);if(!s0){let o=PAYI.get(d);if(!o){o={};PAYI.set(d,o)}o[String(id)]={net:v.net}}if(v.net>0&&v.pay>0)ids.add(String(id))}catch(e){if(s0)ids.add(String(id));else{const r=d.rows[id]||{};if(pn(r.days)>0||pn(r.pay)>0)ids.add(String(id))}}})}
  catch(e){okc=false}finally{PP=oP;PF=oF}
  if(!okc)return null;PAYC.set(d,ids);return ids}
-const people=p=>{const PD=psmPaid(p),ids=Object.keys((p.data&&p.data.rates)||{}).filter(id=>!PD||PD.has(String(id)));return ids.filter(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id));return s?pxGrpOk(s.dept,pGrp(s)):!!(PS.nm&&PS.nm[String(id)])}).map(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id)),inf=(PAYI.get(p.data)||{})[String(id)];return{id:String(id),n:s?s.name:String(PS.nm[String(id)]||'')+(PS.nmx&&PS.nmx[String(id)]?'':' (removed)')}}).sort((a,b)=>a.n.localeCompare(b.n))};
+/* CLASS / DEPARTMENT OF A PERSON *AT THAT CUTOFF* (from the Transfers log): a transfer only counts from the cutoff it happened in. Older cutoffs keep the old department / class. */
+function psmAt(id,p,s){const to=String((p&&p.data&&p.data.to)||''),fo=(()=>{try{return pFo(p.data)}catch(e){return''}})();
+ try{const L=((PDS&&PDS._mv&&PDS._mv.L)||[]).filter(e=>e&&String(e.id)===String(id)).slice().sort((a,b)=>String(a.d).localeCompare(String(b.d)));
+  for(const e of L){const t=new Date(e.d);if(isNaN(t))continue;const md=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+   if(to&&to<md&&(!fo||!e.fd||e.fd===fo))return{dp:e.fd||(s?s.dept:''),g:e.fg||''}}}catch(e){}
+ return{dp:s?s.dept:'',g:s?pGrp(s):''}}
+const people=p=>{const PD=psmPaid(p),ids=Object.keys((p.data&&p.data.rates)||{}).filter(id=>!PD||PD.has(String(id)));return ids.filter(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id));if(!s)return!!(PS.nm&&PS.nm[String(id)]);const a=psmAt(id,p,s);return pxGrpOk(a.dp,a.g)}).map(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id)),inf=(PAYI.get(p.data)||{})[String(id)];return{id:String(id),n:s?s.name:String(PS.nm[String(id)]||'')+(PS.nmx&&PS.nmx[String(id)]?'':' (removed)'),g:s?psmAt(id,p,s).g:''}}).sort((a,b)=>a.n.localeCompare(b.n))};
 async function getRet(id){const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(key(id))+'&select=data');return(Array.isArray(r)&&r[0]&&r[0].data&&r[0].data.ret)||{}}
 async function putRet(id,ret){await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify([{name:key(id),data:{ret:ret},updated_at:new Date().toISOString()}])})}
 /* names of employees who were removed from payroll: looked up from the move log and the attendance sheets (they store each person's name beside the id) */
@@ -11865,6 +11871,7 @@ window.psm=async function(){
  try{if(STF===undefined||STF===null)await loadS();if(!Array.isArray(PH))await loadH(1)}catch(e){}
  if(PG!=='psm')return;
  if(!Array.isArray(PH)||!Array.isArray(STF)){$('main').innerHTML='<h1>Payslip Monitoring</h1><p class="sub">The saved payrolls could not be loaded. Check your connection and open this page again.</p>';return}
+ try{if(PDOK!==true)await pdLoad()}catch(e){}
  try{await psmNm()}catch(e){}
  const F=pFolders().filter(f=>runs(f).length);
  if(!F.includes(PS.d)){PS.d='';PS.r=''}
@@ -11891,7 +11898,7 @@ async function psmSet(ids,on){if(!psmEd())return toast('View only: you do not ha
    try{logAct((on?'Marked payslip returned':'Cleared payslip returned'),'Payslip Monitoring',PS.d+' — '+lb(p.data.from,p.data.to)+' ('+ids.length+')')}catch(e){}}
   catch(e){alert('Could not save: '+(e.message||e));try{if(String(PS.r)===String(pid)){PS.ret=await getRet(pid);psmDraw()}}catch(x){}}
  });return PSQ}
-function psmCl(x){const s=(STF||[]).find(y=>String(y.id)===String(x.id));return gCls(s?pGrp(s):'')||'(no class)'}
+function psmCl(x){if(x&&x.g!=null)return gCls(x.g)||'(no class)';const s=(STF||[]).find(y=>String(y.id)===String(x.id));return gCls(s?pGrp(s):'')||'(no class)'}
 let PCL=[];
 window.psmCAll=async k=>{if(!psmEd())return toast('View only: you do not have access to mark payslips.');const ids=PCL[k]||[];if(!ids.length)return;const on=!ids.every(id=>PS.ret[id]);if(!confirm((on?'Mark ':'Clear ')+ids.length+' name(s) of this class as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(ids,on)};
 /* scope opened from the Dashboard: '2' = classes with 14 days (B2/B4/B7/B14), '1' = classes with 7 days, '' = all classes */
@@ -12051,7 +12058,7 @@ function psmGridDraw(){
  C.forEach(k=>{(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&(p.data.from+'|'+p.data.to)===k&&ord.includes(pFo(p.data))).forEach(p=>{
   const d=pFo(p.data);if((PS.gh||[]).includes(d))return;
   const ret=PS.all[String(p.id)]||{};if(!D.has(d))D.set(d,new Map());const cm=D.get(d);
-  people(p).forEach(x=>{const st=(STF||[]).find(y=>String(y.id)===x.id),cn=gCls(st?pGrp(st):'')||'~';
+  people(p).forEach(x=>{const st=(STF||[]).find(y=>String(y.id)===x.id),cn=gCls(x.g!=null?x.g:(st?pGrp(st):''))||'~';
    if(!cm.has(cn))cm.set(cn,{});const row=cm.get(cn);const c=row[k]||(row[k]={t:0,d:0,pid:String(p.id)});c.t++;if(ret[x.id])c.d++;c.pid=String(p.id)})})});
  const depts=[...D.keys()].sort((a,b)=>ord.indexOf(a)-ord.indexOf(b));GK=[];GDL=ord.filter(f=>runs(f).length);GM={C:C,depts:depts,D:D};
  const op=(v,l,c)=>`<option value="${esc(v)}"${c?' selected':''}>${esc(l)}</option>`;
@@ -12068,7 +12075,7 @@ ${depts.length?`<div class="psg-w"><table class="psg"><tr><th style="text-align:
    Time allowed from that Friday: 14 days for B2 / B4 / B7 / B14, 7 days for everyone else. DUE_WARN = days before the deadline when the warning starts. */
 const psmNav=a=>`<div class="psm-seg">${[['due','Dashboard'],['grid','Summary']].map(([v,l])=>`<button type="button" class="${v===a?'on':''}" onclick="psmView('${v}')">${l}</button>`).join('')}</div>${a==='list'?`<button class="btn o sm" onclick="psmBack()">← Back</button>`:can('pay')?`<button class="btn o sm" onclick="go('pay')">← Back</button>`:''}`;
 const DUE_WARN=2;
-const psm2w=(s,x)=>{let g='';try{g=[s&&s.dept,s&&pGrp(s),psmCl(x)].join(' ')}catch(e){}return /(^|[^A-Z0-9])B(2|4|7|14)(?![0-9])/i.test(g)};
+const psm2w=(s,x)=>{let g='';try{g=[s&&s.dept,(x&&x.g!=null)?x.g:(s&&pGrp(s)),psmCl(x)].join(' ')}catch(e){}return /(^|[^A-Z0-9])B(2|4|7|14)(?![0-9])/i.test(g)};
 function psmDueRows(){const t0=new Date();t0.setHours(0,0,0,0);const out=[];
  (PH||[]).forEach(p=>{const d=p.data;if(!d||!d.from||!d.to||!pFolders().includes(pFo(d)))return;
   const e=new Date(d.to+'T00:00:00');if(isNaN(e))return;
@@ -12485,30 +12492,72 @@ create policy "evl submit" on public.hrd_evaluations for insert to authenticated
 alter table public.hrd_evaluations add column if not exists evaluator_dept text, add column if not exists evaluator_position text;
 create or replace function public.hrd_eval_people() returns table(id text,name text,dept text,"position" text,me boolean)
 language sql stable security definer set search_path=public as $$
-  with p as (select e.id::text as id, e.name, e.dept, e."position" as pos,
-    exists(select 1 from public.hrd_access a where a.user_id=auth.uid() and lower(trim(a.full_name))=lower(trim(e.name))) as me
-    from public.hrd_employees e
-    where exists(select 1 from public.hrd_access b where b.user_id=auth.uid() and b.active))
-  select id,name,dept,pos,me from p where me or coalesce(dept,'') !~* '^\\s*(top\\s+)?management(\\W|$)' order by name $$;
+  select e.id::text, e.name, e.dept, e."position",
+    exists(select 1 from public.hrd_access a where a.user_id=auth.uid() and lower(trim(a.full_name))=lower(trim(e.name)))
+  from public.hrd_employees e
+  where exists(select 1 from public.hrd_access b where b.user_id=auth.uid() and b.active)
+  order by e.name $$;
 grant execute on function public.hrd_eval_people() to authenticated;`;
 const EVC=[['quality','Quality of work'],['prod','Productivity / quantity of work'],['know','Job knowledge'],['att','Attendance & punctuality'],['team','Teamwork & cooperation'],['init','Initiative & dependability'],['disc','Discipline & company policies'],['comm','Communication & attitude']];
 const EVT=['Annual','Probationary - 3rd month','Probationary - 5th month','Regularization','Promotion','Special'];
 const EVR=['Retain / no action','Recommend for regularization','Recommend for promotion','Recommend for salary increase','Needs training','Needs improvement - monitor','Warning / disciplinary action','Not recommended to continue'];
 let EVL=null,EVQ='',EVD='',EVY='',EVOK=null,EVCUR=null,EVP=null,EVDONE=false;
-const evPeople=()=>EVP&&EVP.length?EVP:(Array.isArray(E)&&E.length?E:(EALL||[]));
+const evPeople=()=>EVP&&EVP.length?EVP:(Array.isArray(EALL)&&EALL.length?EALL:(Array.isArray(E)?E:[]));
+const EVH=[
+{t:'Leadership and Team Management',q:['Demonstrates strong leadership by effectively guiding the team towards achieving goals','Encourages open communication and fosters a collaborative work environment.','Successfully led the team through a challenging project, resulting in an increase in productivity','Have the ability to address team disagreement and develop conflict resolution skills to handle team dispute']},
+{t:'Strategic Thinking and Problem Solving',q:['Exhibits excellent strategic thinking by identifying long-term goals and creating actionable plans','Proactively addresses potential issues before they escalate.','Implemented a new workflow process that reduced project completion time.','With enhance data analysis skills to support strategic decisions with more tough evidence']},
+{t:'Communication Skills',q:['Communicates clearly and effectively with team members and stakeholders.','Provides constructive feedback that helps team members improve their performance.','Regularly conducts team meetings that keep everyone informed and aligned with project goals with knowledge in written communication skills for more concise and impactful reports.']},
+{t:'Decision-Making and Accountability',q:["Makes informed decisions that align with the company's objectives.",'Takes responsibility for the outcomes of decisions and learns from mistakes.','Made a critical decision to pivot the project direction, which ultimately led to its success','Encourage team members more to engage in the decision-making process to leverage diverse perspective']},
+{t:'Performance and Results',q:['Consistently meets and exceeds performance targets.','Drives the team to achieve high levels of productivity and quality.','Achieved an increase in sales revenue through effective team management and strategic planning.','Focus more on long-term performance metrics rather than short-term gains']},
+{t:'Integrity',q:['Speaking the truth and remaining transparent in all dealings, avoid misleading statements.','Demonstrate Fairness without bias or favoritism.','Stay true to principles regardless of pressure or circumstances, valuing others perspective, rights and dignity maintaining integrity not just once, but in every situation.']}];
+const EVG=[
+{t:'Mission/Goal o Mithiin',q:['Nag set ng malinaw na mission sa aming grupo','Doable at Achievable ang mission na naka-set','Aligned sa mission ng kumpanya']},
+{t:'Communication - Pakikinig at Pagsalita',q:['Maliwanag at klaro napaparating sa amin ang aming mission/ rules and regulation.','Nakikinig sa aming mga idea at concerns o balakid sa trabaho','Maliwanag mag bigay ng feedback kung mayroon akong nagawang tama o mali.']},
+{t:'Cooperation/Teamwork',q:['Mayroon kakayanan na pag buklod-buklurin kami upang magtulungan sa isang mithiin']},
+{t:'Delegation',q:['Epektibo sa pag-atas ng responsibilidad at trabaho sa amin.','Nag bibigay ng suporta at gabay sa mga naka-atas na responsibilidad at trabaho sa amin.']},
+{t:'Overall Performance',q:['Mayroon kakayanan na kamtin ang aming mission na sama-sama','Walang kinikilingan o favoritism','Kayang gumawa ng well-informed desisyon']}];
+const EVM=[
+{t:'Organizational Skills',q:['Maintains an organized workspace and filing system.','Efficiently manages multiple tasks and priorities and meet deadlines.','Keeps accurate and up-to-date records.']},
+{t:'Communication Skills',q:['Communicates clearly and professionally with colleagues and clients.','Provides timely and constructive feedback.','Listens actively and responds appropriately.']},
+{t:'Time Management',q:['Prioritizes task effectively to meet deadlines','Manages time efficiently to handle multiple responsibilities.','Setting clear and achievable goals.']},
+{t:'Values',q:['Demonstrate honesty and transparency in work.','Acts ethically and respect work policies','Show responsibility and accountability in task.']},
+{t:'Accuracy & Attention to Detail',q:['Ensures accuracy in reports, documents and data entry (Posting)','Pay close attention to instructions and guidelines minimize errors']}];
+/* Question set by the evaluated person's DEPARTMENT: Management -> leadership set (EVH, keys h<sec>_<item>); every other department -> Tagalog set (EVG, keys t<sec>_<item>). Both are rated 1-10 and the average is stored as its 5-scale equivalent (avg / 2). Old evaluations that used the 8 standard items (1-5) still open as they were saved. */
+const evSetOf=()=>isMgt(($('ev_d')||{}).value)?(/\bhead\b/i.test(($('ev_p')||{}).value||'')?'h':'m'):'t'; /* Management + Head -> h (leadership); Management staff / admin assistant (not head) -> m; other departments -> t (Tagalog) */
+let EVMODE=null;
+const evKind=s=>{const k=Object.keys(s||{});return k.some(x=>/^h\d/.test(x))?'h':k.some(x=>/^t\d/.test(x))?'t':k.some(x=>/^m\d/.test(x))?'m':k.length?'s':null};
+const evStdHtml=s=>`<div style="margin-top:14px;border:1px solid var(--ln2);border-radius:10px;overflow:hidden">${EVC.map(([k,l],i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;${i?'border-top:1px solid var(--ln2)':''}"><span style="flex:1">${l}</span><select class="fi" data-k="${k}" style="width:92px;margin:0" onchange="evCalc()"><option value="">–</option>${[5,4,3,2,1].map(n=>`<option value="${n}"${+s[k]===n?' selected':''}>${n}</option>`).join('')}</select></div>`).join('')}<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:2px solid var(--ln2);background:var(--soft)"><b style="flex:1">Average score</b><b id="ev_a" style="font-size:18px">0.00</b><span id="ev_r" class="ev-b" style="background:#888">—</span></div></div>`;
+const evSetHtml=(m,s)=>{const D=m==='h'?EVH:m==='m'?EVM:EVG,intro=m==='h'?'Management Head: leadership evaluation. Rate each statement from 1 (lowest) to 10 (highest).':m==='m'?'Management staff / admin assistant. Rate each statement from 1 (lowest) to 10 (highest).':'Rate each statement from 1 (lowest) to 10 (highest).';return`<style>.ev-sc{display:flex;gap:4px;flex-wrap:wrap}.ev-n{position:relative}.ev-n input{position:absolute;opacity:0;pointer-events:none}.ev-n span{display:inline-block;min-width:32px;text-align:center;padding:4px 0;border:1px solid var(--ln2);border-radius:6px;cursor:pointer;font-weight:600}.ev-n input:checked+span{background:#1f4e9e;color:#fff;border-color:#1f4e9e}</style><p class="sub" style="margin:12px 0 0;font-size:13px">${intro}</p>${D.map((g,i)=>`<div style="margin-top:12px;border:1px solid var(--ln2);border-radius:10px;overflow:hidden"><div style="background:var(--soft);padding:8px 12px;font-weight:700">${i+1}. ${g.t}</div>${g.q.map((q,j)=>{const k=m+(i+1)+'_'+(j+1);return`<div style="padding:8px 12px;border-top:1px solid var(--ln2)"><div style="margin-bottom:6px">${q}</div><div class="ev-sc">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<label class="ev-n"><input type="radio" name="${k}" value="${n}"${+s[k]===n?' checked':''} onchange="evCalc()"><span>${n}</span></label>`).join('')}</div></div>`}).join('')}</div>`).join('')}<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-top:12px;border:1px solid var(--ln2);border-radius:10px;background:var(--soft)"><b style="flex:1">Average score (out of 10)</b><b id="ev_a" style="font-size:18px">0.00</b><span id="ev_r" class="ev-b" style="background:#888">—</span></div>`};
+function evCritDraw(first){const box=$('ev_crit');if(!box)return;const S=first&&EVCUR&&EVCUR.scores&&Object.keys(EVCUR.scores).length?EVCUR.scores:{};
+ const gv=i=>String(($(i)||{}).value||'').trim(),ready=!!(Object.keys(S).length||(gv('ev_n')&&gv('ev_d')&&gv('ev_p')));
+ /* the questions appear only after the employee to evaluate (name + department + position) is chosen */
+ if(!ready){if(first||EVMODE==null||EVMODE==='x'){EVMODE='x';const mi=[!gv('ev_n')&&'Name',!gv('ev_d')&&'Department',!gv('ev_p')&&'Position'].filter(Boolean);box.innerHTML='<div style="margin-top:16px;padding:16px;border:1px dashed var(--ln2);border-radius:10px;text-align:center;color:var(--mu);font-size:13.5px">Select the employee to evaluate first.<br>The questions will appear once the <b>Name</b>, <b>Department</b> and <b>Position</b> are filled in.'+(gv('ev_n')&&mi.length?'<br><b style="color:#b36b00">Not found in the records, please type: '+mi.join(' and ')+'</b>':'')+'</div>'}return}
+ let m=first?evKind(S):null;if(!m)m=evSetOf();if(!first&&EVMODE==='s')return;if(!first&&m===EVMODE)return;EVMODE=m;box.innerHTML=m==='s'?evStdHtml(S):evSetHtml(m,S);evCalc()}
+function evPrintTbl(x,s,a){const m=evKind(s);
+ if(m!=='h'&&m!=='t'&&m!=='m')return`<table><thead><tr><th>Criteria</th><th>Rating (1–5)</th></tr></thead><tbody>${EVC.map(c=>`<tr><td>${c[1]}</td><td class="n">${s[c[0]]||'—'}</td></tr>`).join('')}<tr><td><b>Average score</b></td><td class="n">${a.toFixed(2)}</td></tr><tr><td><b>Rating</b></td><td class="n">${esc(x.rating||evRate(a))}</td></tr></tbody></table>`;
+ const D=m==='h'?EVH:m==='m'?EVM:EVG;return`<table><thead><tr><th>Criteria</th><th>Rating (1–10)</th></tr></thead><tbody>${D.map((g,i)=>`<tr><td colspan="2" style="background:#eee"><b>${i+1}. ${g.t}</b></td></tr>`+g.q.map((q,j)=>`<tr><td>${q}</td><td class="n">${s[m+(i+1)+'_'+(j+1)]||'—'}</td></tr>`).join('')).join('')}<tr><td><b>Average score (out of 10)</b></td><td class="n">${(a*2).toFixed(2)}</td></tr><tr><td><b>Rating</b></td><td class="n">${esc(x.rating||evRate(a))}</td></tr></tbody></table>`}
 const evRate=a=>a>=4.5?'Outstanding':a>=3.5?'Very Satisfactory':a>=2.5?'Satisfactory':a>=1.5?'Needs Improvement':'Poor';
 const evCol=a=>a>=4.5?'#1f7a3d':a>=3.5?'#2e7d4f':a>=2.5?'#8a5a00':a>=1.5?'#c0661a':'#b3392f';
-const evAvg=s=>{const v=EVC.map(c=>+s[c[0]]||0).filter(x=>x>0);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length*100)/100:0};
+const evAvg=s=>{const hk=Object.keys(s).filter(k=>/^[htm]\d/.test(k));if(hk.length){const w=hk.map(k=>+s[k]).filter(x=>x>0);return w.length?Math.round(w.reduce((a,b)=>a+b,0)/w.length/2*100)/100:0}const v=EVC.map(c=>+s[c[0]]||0).filter(x=>x>0);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length*100)/100:0};
 const evFd=d=>{if(!d)return'';const x=new Date(String(d).slice(0,10)+'T00:00:00');return isNaN(x)?String(d):x.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})};
 const evWho=()=>{try{const n=(((MYA&&MYA.full_name)||(ME.user_metadata||{}).full_name)||'').trim();return n||(ME&&ME.email)||''}catch(e){return''}};
 const evMissing=e=>/hrd_evaluations|does not exist|PGRST20[45]|42P01|schema cache/i.test(String(e&&e.message||e));
 function evSqlBox(){return`<div class="cx-card" style="padding:18px;max-width:860px"><h2 style="margin:0 0 6px">One-time setup needed</h2><p class="sub" style="font-size:14px">The Evaluation table does not exist yet. Copy this SQL, open Supabase → SQL Editor, paste and press Run. Then press Reload.</p><textarea id="evsql" readonly style="width:100%;height:230px;font:12px/1.45 Consolas,monospace;padding:10px;border:1px solid var(--ln2);border-radius:8px;box-sizing:border-box">${esc(EVSQL)}</textarea><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(EVSQL).then(()=>toast('SQL copied ✔'))">Copy SQL</button><button class="btn o" onclick="evl()">Reload</button></div></div>`}
+/* names for the "Employee" picker: 1) hrd_eval_people() (works even without 201 Files access), 2) 201 Files list, 3) names the app already knows (payroll staff etc.) */
+async function evLoadPeople(){
+ try{const r=await api('/rest/v1/rpc/hrd_eval_people',{method:'POST',body:'{}',_quiet:true});if(Array.isArray(r)&&r.length){EVP=r;return}}catch(e){}
+ EVP=null;try{if(!(Array.isArray(EALL)&&EALL.length))await loadE()}catch(e){}
+ if(Array.isArray(EALL)&&EALL.length)return;
+ try{const m=new Map(),add=(n,d)=>{n=String(n||'').trim();if(!n)return;const k=n.toLowerCase(),o=m.get(k);if(!o)m.set(k,{id:'',name:n,dept:d||'',position:''});else if(!o.dept&&d)o.dept=d};
+  (typeof STF!=='undefined'&&Array.isArray(STF)?STF:[]).forEach(x=>x&&add(x.name,x.dept));
+  (typeof PSEED!=='undefined'?PSEED:[]).forEach(g=>(g[1]||[]).forEach(r=>r&&r[0]&&add(r[0],g[0])));
+  EVP=[...m.values()].sort((a,b)=>a.name.localeCompare(b.name))}catch(e){EVP=null}}
 async function evl(){
  if(!can('evl')){ /* no access to the results: show ONLY the blank form to fill up (they can submit, never view the list) */
   if(!(MYA&&MYA.active))return noAcc('Employee Evaluation');
   return evPub()}
  $('main').innerHTML='<h1>Employee Evaluation</h1><p class="sub">Loading…</p>';
- try{if(!(Array.isArray(EALL)&&EALL.length))await loadE()}catch(e){}
+ await evLoadPeople();
  try{const r=await apiAll('/rest/v1/hrd_evaluations?select=*&order=period_to.desc.nullslast,created_at.desc',{_quiet:true});EVL=Array.isArray(r)?r:[];EVOK=true}
  catch(e){if(PG!=='evl')return;EVOK=false;$('main').innerHTML='<h1>Employee Evaluation</h1>'+(evMissing(e)?evSqlBox():'<p class="empty">'+esc(e.message||e)+'</p>');return}
  if(PG==='evl')evDraw()}
@@ -12520,25 +12569,23 @@ function evDraw(){
  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><input class="fi" type="search" placeholder="🔍 Search name, department, rating…" value="${esc(EVQ)}" style="width:260px;margin:0" oninput="EVQ=this.value;evBody()"><select class="fi" style="width:auto;margin:0" onchange="EVD=this.value;evBody()"><option value="">All departments</option>${D.map(d=>`<option${EVD===d?' selected':''}>${esc(d)}</option>`).join('')}</select><select class="fi" style="width:auto;margin:0" onchange="EVY=this.value;evBody()"><option value="">All years</option>${Y.map(y=>`<option${EVY===y?' selected':''}>${y}</option>`).join('')}</select><span id="evct" class="sub" style="align-self:center;margin:0"></span></div>
  <div class="cx-card" style="padding:0;overflow-x:auto"><table class="ev-t"><thead><tr><th>Period</th><th>Employee</th><th>Department</th><th>Type</th><th>Score</th><th>Rating</th><th>Recommendation</th><th>Evaluator</th><th></th></tr></thead><tbody id="evtb"></tbody></table></div>`;evBody()}
 function evBody(){const R=evRows(),tb=$('evtb'),c=$('evct');if(c)c.textContent=R.length+' evaluation'+(R.length===1?'':'s');if(!tb)return;
- tb.innerHTML=R.length?R.map(x=>{const a=+x.total||0;return`<tr><td style="white-space:nowrap">${esc(evFd(x.period_from))}${x.period_to?' – '+esc(evFd(x.period_to)):''}</td><td><b>${esc(x.emp_name)}</b><div class="sub" style="margin:0;font-size:12px">${esc(x.position||'')}</div></td><td>${esc(x.dept||'')}</td><td>${esc(x.eval_type||'')}</td><td><b>${a.toFixed(2)}</b></td><td><span class="ev-b" style="background:${evCol(a)}">${esc(x.rating||evRate(a))}</span></td><td>${esc(x.recommendation||'')}</td><td>${esc(x.evaluator||'')}</td><td style="white-space:nowrap"><button class="btn o sm" onclick="evOpen('${x.id}')">Open</button> <button class="btn o sm" onclick="evPrint('${x.id}')">🖨 Print</button> <button class="btn o sm" style="color:#b3392f" onclick="evDel('${x.id}')">Delete</button></td></tr>`}).join(''):'<tr><td colspan="9" class="empty" style="padding:18px">No evaluations yet. Press “+ New evaluation”.</td></tr>'}
+ tb.innerHTML=R.length?R.map(x=>{const a=+x.total||0;return`<tr><td style="white-space:nowrap">${esc(evFd(x.period_from))}${x.period_to?' – '+esc(evFd(x.period_to)):''}</td><td><b>${esc(x.emp_name)}</b><div class="sub" style="margin:0;font-size:12px">${esc(x.position||'')}</div></td><td>${esc(x.dept||'')}</td><td>${esc(x.eval_type||'')}</td><td><b>${Object.keys(x.scores||{}).some(k=>/^[htm]\d/.test(k))?(a*2).toFixed(2)+' /10':a.toFixed(2)}</b></td><td><span class="ev-b" style="background:${evCol(a)}">${esc(x.rating||evRate(a))}</span></td><td>${esc(x.recommendation||'')}</td><td>${esc(x.evaluator||'')}</td><td style="white-space:nowrap"><button class="btn o sm" onclick="evOpen('${x.id}')">Open</button> <button class="btn o sm" onclick="evPrint('${x.id}')">🖨 Print</button> <button class="btn o sm" style="color:#b3392f" onclick="evDel('${x.id}')">Delete</button></td></tr>`}).join(''):'<tr><td colspan="9" class="empty" style="padding:18px">No evaluations yet. Press “+ New evaluation”.</td></tr>'}
 function evOpen(id,inl){
  const x=id?(EVL||[]).find(q=>q.id===id):null;if(id&&!x)return;EVCUR=x||null;const s=(x&&x.scores)||{},P=evPeople().slice().sort((a,b)=>String(a.name).localeCompare(String(b.name))),d=inl?$('evf'):ovl('evf');
  const fi='width:100%;box-sizing:border-box;margin:3px 0 0',lb='display:block;font-size:12.5px;font-weight:600;color:var(--mu);margin-top:10px';
- d.innerHTML=`<div style="background:var(--sf);color:var(--ink);border-radius:14px;padding:18px 20px;width:min(760px,96vw);${inl?'border:1px solid var(--ln2);margin-bottom:30px':'max-height:92vh;overflow:auto'}"><h2 style="margin:0 0 4px">${x?'Evaluation':'New evaluation'}</h2><p class="sub" style="margin:0 0 6px;font-size:13px">Rate each item from 1 (poor) to 5 (outstanding). The average and rating are computed automatically.</p>
+ d.innerHTML=`<div style="background:var(--sf);color:var(--ink);border-radius:14px;padding:18px 20px;width:min(760px,96vw);${inl?'border:1px solid var(--ln2);margin-bottom:30px':'max-height:92vh;overflow:auto'}"><h2 style="margin:0 0 4px">${x?'Evaluation':'New evaluation'}</h2><p class="sub" style="margin:0 0 6px;font-size:13px">Pick the employee first, then rate each statement. The average and rating are computed automatically.</p>
  <datalist id="evnames">${P.map(e=>`<option value="${esc(e.name)}">`).join('')}</datalist>
  <label style="${lb}">Employee<input id="ev_n" class="fi" list="evnames" autocomplete="off" style="${fi}" value="${esc(x?x.emp_name:'')}" oninput="evPick(this.value)" placeholder="Type or pick a name"></label>
- <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px"><label style="${lb}">Department<input id="ev_d" class="fi" style="${fi}" value="${esc(x?x.dept||'':'')}"></label><label style="${lb}">Position<input id="ev_p" class="fi" style="${fi}" value="${esc(x?x.position||'':'')}"></label>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px"><label style="${lb}">Department<input id="ev_d" class="fi" oninput="evCritDraw()" style="${fi}" value="${esc(x?x.dept||'':'')}"></label><label style="${lb}">Position<input id="ev_p" class="fi" oninput="evCritDraw()" style="${fi}" value="${esc(x?x.position||'':'')}"></label>
  <label style="${lb}">Period from<input id="ev_f" type="date" class="fi" style="${fi}" value="${esc(x&&x.period_from?String(x.period_from).slice(0,10):'')}"></label><label style="${lb}">Period to<input id="ev_t" type="date" class="fi" style="${fi}" value="${esc(x&&x.period_to?String(x.period_to).slice(0,10):new Date().toLocaleDateString('en-CA'))}"></label>
  <label style="${lb}">Evaluation type<select id="ev_y" class="fi" style="${fi}">${EVT.map(t=>`<option${x&&x.eval_type===t?' selected':''}>${t}</option>`).join('')}</select></label><label style="${lb}">Evaluator<input id="ev_e" class="fi" style="${fi}" value="${esc(x?x.evaluator||'':evWho())}"></label></div>
- <div style="margin-top:14px;border:1px solid var(--ln2);border-radius:10px;overflow:hidden">${EVC.map(([k,l],i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;${i?'border-top:1px solid var(--ln2)':''}"><span style="flex:1">${l}</span><select class="fi" data-k="${k}" style="width:92px;margin:0" onchange="evCalc()"><option value="">–</option>${[5,4,3,2,1].map(n=>`<option value="${n}"${+s[k]===n?' selected':''}>${n}</option>`).join('')}</select></div>`).join('')}
- <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:2px solid var(--ln2);background:var(--soft)"><b style="flex:1">Average score</b><b id="ev_a" style="font-size:18px">0.00</b><span id="ev_r" class="ev-b" style="background:#888">—</span></div></div>
+ <div id="ev_crit"></div>
  <label style="${lb}">Strengths<textarea id="ev_s" class="fi" rows="2" style="${fi}">${esc(x?x.strengths||'':'')}</textarea></label><label style="${lb}">Areas to improve<textarea id="ev_i" class="fi" rows="2" style="${fi}">${esc(x?x.improve||'':'')}</textarea></label>
  <label style="${lb}">Recommendation<select id="ev_c" class="fi" style="${fi}"><option value="">—</option>${EVR.map(t=>`<option${x&&x.recommendation===t?' selected':''}>${t}</option>`).join('')}</select></label><label style="${lb}">Remarks<textarea id="ev_m" class="fi" rows="2" style="${fi}">${esc(x?x.remarks||'':'')}</textarea></label>
- <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">${inl?'<button class="btn o" onclick="evl()">Clear</button>':'<button class="btn o" onclick="$(\'evf\').remove()">Cancel</button>'}<button class="btn" id="ev_sv" onclick="evSave()">${inl?'Submit':'Save'}</button></div></div>`;evCalc()}
+ <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">${inl?'<button class="btn o" onclick="evl()">Clear</button>':'<button class="btn o" onclick="$(\'evf\').remove()">Cancel</button>'}<button class="btn" id="ev_sv" onclick="evSave()">${inl?'Submit':'Save'}</button></div></div>`;EVMODE=null;evCritDraw(true)}
 async function evPub(){
  EVCUR=null;$('main').innerHTML='<h1>Employee Evaluation</h1><p class="sub">Loading…</p>';
- try{EVP=await api('/rest/v1/rpc/hrd_eval_people',{method:'POST',body:'{}'});if(!Array.isArray(EVP))EVP=null}catch(e){EVP=null}
- if(!EVP){try{if(!(Array.isArray(EALL)&&EALL.length))await loadE()}catch(e){}}
+ await evLoadPeople();
  if(PG!=='evl')return;
  const P=evPeople().slice().sort((a,b)=>String(a.name).localeCompare(String(b.name))),nm=evWho(),
   me=(Array.isArray(EVP)&&EVP.find(q=>q.me))||P.find(q=>String(q.name||'').trim().toLowerCase()===String(nm).trim().toLowerCase())||null,
@@ -12557,20 +12604,18 @@ async function evPub(){
  ${sec('Employee being evaluated')}
  <datalist id="evnames">${P.map(e=>`<option value="${esc(e.name)}">`).join('')}</datalist>
  <label style="${lb}">Name<input id="ev_n" class="fi" list="evnames" autocomplete="off" style="${fi}" oninput="evPick(this.value)" placeholder="Type or pick the name of the employee to evaluate"></label>
- <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px"><label style="${lb}">Department<input id="ev_d" class="fi" style="${fi}"></label><label style="${lb}">Position<input id="ev_p" class="fi" style="${fi}"></label>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px"><label style="${lb}">Department<input id="ev_d" class="fi" oninput="evCritDraw()" style="${fi}"></label><label style="${lb}">Position<input id="ev_p" class="fi" oninput="evCritDraw()" style="${fi}"></label>
  <label style="${lb}">Evaluation type<select id="ev_y" class="fi" style="${fi}">${EVT.map(t=>`<option>${t}</option>`).join('')}</select></label><label style="${lb}">Period covered: from<input id="ev_f" type="date" class="fi" style="${fi}"></label></div>
- ${sec('Evaluation')}<p class="sub" style="margin:6px 0 6px;font-size:13px">Rate each item from 1 (poor) to 5 (outstanding). The average and rating are computed automatically.</p>
- <div style="border:1px solid var(--ln2);border-radius:10px;overflow:hidden">${EVC.map(([k,l],i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;${i?'border-top:1px solid var(--ln2)':''}"><span style="flex:1">${l}</span><select class="fi" data-k="${k}" style="width:92px;margin:0" onchange="evCalc()"><option value="">–</option>${[5,4,3,2,1].map(n=>`<option value="${n}">${n}</option>`).join('')}</select></div>`).join('')}
- <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:2px solid var(--ln2);background:var(--soft)"><b style="flex:1">Average score</b><b id="ev_a" style="font-size:18px">0.00</b><span id="ev_r" class="ev-b" style="background:#888">—</span></div></div>
+ ${sec('Evaluation')}<div id="ev_crit"></div>
  <label style="${lb}">Strengths<textarea id="ev_s" class="fi" rows="2" style="${fi}"></textarea></label><label style="${lb}">Areas to improve<textarea id="ev_i" class="fi" rows="2" style="${fi}"></textarea></label>
  <label style="${lb}">Recommendation<select id="ev_c" class="fi" style="${fi}"><option value="">—</option>${EVR.map(t=>`<option>${t}</option>`).join('')}</select></label><label style="${lb}">Remarks<textarea id="ev_m" class="fi" rows="2" style="${fi}"></textarea></label>
  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button class="btn o" onclick="evl()">Clear</button><button class="btn" id="ev_sv" onclick="evSave()">Submit</button></div></div>`;
- evCalc();if(done){toast('✔ Evaluation submitted successfully.');try{scrollTo(0,0)}catch(e){}}}
-function evPick(v){const P=evPeople(),e=P.find(q=>String(q.name)===v);if(!e)return;const d=$('ev_d'),p=$('ev_p');if(d)d.value=e.dept||'';if(p)p.value=e.position||''}
-function evScores(){const s={};document.querySelectorAll('#evf select[data-k]').forEach(q=>{if(q.value)s[q.dataset.k]=+q.value});return s}
-function evCalc(){const a=evAvg(evScores()),A=$('ev_a'),R=$('ev_r');if(A)A.textContent=a.toFixed(2);if(R){R.textContent=a?evRate(a):'—';R.style.background=a?evCol(a):'#888'}}
+ EVMODE=null;evCritDraw(true);if(done){toast('✔ Evaluation submitted successfully.');try{scrollTo(0,0)}catch(e){}}}
+function evPick(v){const P=evPeople(),e=P.find(q=>String(q.name)===v);if(!e)return;const d=$('ev_d'),p=$('ev_p');if(d)d.value=e.dept||'';if(p)p.value=e.position||'';evCritDraw()}
+function evScores(){const s={};document.querySelectorAll('#evf select[data-k]').forEach(q=>{if(q.value)s[q.dataset.k]=+q.value});document.querySelectorAll('#evf input[type=radio]:checked').forEach(q=>{s[q.name]=+q.value});return s}
+function evCalc(){const a=evAvg(evScores()),A=$('ev_a'),R=$('ev_r');if(A)A.textContent=EVMODE!=='s'?(a*2).toFixed(2)+' / 10':a.toFixed(2);if(R){R.textContent=a?evRate(a):'—';R.style.background=a?evCol(a):'#888'}}
 async function evSave(){
- const g=i=>($(i)||{}).value||'',n=g('ev_n').trim(),s=evScores();if(!n)return toast($('ev_ed')?'Please enter the name of the employee to evaluate.':'Please enter the employee name.');if(!Object.keys(s).length)return toast('Please rate at least one item.');
+ const g=i=>($(i)||{}).value||'',n=g('ev_n').trim(),s=evScores();if(!n)return toast($('ev_ed')?'Please enter the name of the employee to evaluate.':'Please enter the employee name.');if(!Object.keys(s).length)return toast(EVMODE==='x'?'Fill in the name, department and position of the employee first.':'Please rate at least one item.');
  const P=evPeople().find(q=>String(q.name)===n),a=evAvg(s),now=new Date().toISOString(),
  body={emp_id:P?String(P.id):(EVCUR?EVCUR.emp_id:null),emp_name:n,dept:g('ev_d').trim()||null,position:g('ev_p').trim()||null,eval_type:g('ev_y'),period_from:g('ev_f')||null,period_to:g('ev_t')||null,scores:s,total:a,rating:evRate(a),strengths:g('ev_s').trim()||null,improve:g('ev_i').trim()||null,recommendation:g('ev_c')||null,remarks:g('ev_m').trim()||null,evaluator:g('ev_e').trim()||null,updated_by:evWho(),updated_at:now},b=$('ev_sv');if($('ev_ed')){body.evaluator_dept=g('ev_ed').trim()||null;body.evaluator_position=g('ev_ep').trim()||null}if(b)b.disabled=true;
  try{if(EVCUR)await api('/rest/v1/hrd_evaluations?id=eq.'+EVCUR.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(body)});
@@ -12579,7 +12624,7 @@ async function evSave(){
  catch(e){if(b)b.disabled=false;alert(evMissing(e)?'The Evaluation table is not set up yet. Close this and open the Employee Evaluation page to see the one-time SQL.':'Could not save: '+(e.message||e))}}
 async function evDel(id){const x=(EVL||[]).find(q=>q.id===id);if(!x||!confirm('Delete the evaluation of '+x.emp_name+' ('+evFd(x.period_to)+')?'))return;
  try{await api('/rest/v1/hrd_evaluations?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});logAct('Deleted evaluation','Employee Evaluation',x.emp_name);toast('Deleted');evl()}catch(e){alert('Could not delete: '+(e.message||e))}}
-function evCsv(){const R=evRows();cxCsv('Employee-Evaluations.csv',[['Period from','Period to','Employee','Department','Position','Type',...EVC.map(c=>c[1]),'Average','Rating','Recommendation','Strengths','Areas to improve','Remarks','Evaluator'],...R.map(x=>[x.period_from||'',x.period_to||'',x.emp_name,x.dept||'',x.position||'',x.eval_type||'',...EVC.map(c=>(x.scores||{})[c[0]]||''),x.total,x.rating||'',x.recommendation||'',x.strengths||'',x.improve||'',x.remarks||'',x.evaluator||''])])}
+function evCsv(){const R=evRows();cxCsv('Employee-Evaluations.csv',[['Period from','Period to','Employee','Department','Position','Type',...EVC.map(c=>c[1]),...EVH.flatMap((g,i)=>g.q.map((q,j)=>'Head '+(i+1)+'.'+(j+1)+' '+q.slice(0,40))),...EVG.flatMap((g,i)=>g.q.map((q,j)=>'Q'+(i+1)+'.'+(j+1)+' '+q.slice(0,40))),...EVM.flatMap((g,i)=>g.q.map((q,j)=>'Staff '+(i+1)+'.'+(j+1)+' '+q.slice(0,40))),'Average (5-scale)','Rating','Recommendation','Strengths','Areas to improve','Remarks','Evaluator'],...R.map(x=>[x.period_from||'',x.period_to||'',x.emp_name,x.dept||'',x.position||'',x.eval_type||'',...EVC.map(c=>(x.scores||{})[c[0]]||''),...EVH.flatMap((g,i)=>g.q.map((q,j)=>(x.scores||{})['h'+(i+1)+'_'+(j+1)]||'')),...EVG.flatMap((g,i)=>g.q.map((q,j)=>(x.scores||{})['t'+(i+1)+'_'+(j+1)]||'')),...EVM.flatMap((g,i)=>g.q.map((q,j)=>(x.scores||{})['m'+(i+1)+'_'+(j+1)]||'')),x.total,x.rating||'',x.recommendation||'',x.strengths||'',x.improve||'',x.remarks||'',x.evaluator||''])])}
 function evPrint(id){const x=(EVL||[]).find(q=>q.id===id);if(!x)return;const s=x.scores||{},a=+x.total||0,w=window.open('','_blank');if(!w)return toast('Allow pop-ups to print.');
  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Evaluation - ${esc(x.emp_name)}</title><style>@page{size:8.5in 13in;margin:12mm}body{font:13px/1.5 Arial,Helvetica,sans-serif;color:#000;margin:0}h1{font:bold 18px Georgia,serif;margin:0}h2{font-size:12px;margin:0 0 10px;color:#1f4e9e}.g{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin:12px 0}.g div{border-bottom:1px solid #999;padding:3px 0}.g b{color:#555;font-weight:600;margin-right:6px}table{width:100%;border-collapse:collapse;margin:10px 0}th,td{border:1px solid #000;padding:6px 8px;text-align:left}td.n{text-align:center;width:90px;font-weight:bold}.bx{border:1px solid #000;padding:8px;min-height:46px;margin:4px 0 10px;white-space:pre-wrap}.sg{display:flex;gap:40px;margin-top:46px}.sg div{flex:1;border-top:1px solid #000;padding-top:4px;text-align:center;font-size:12px}</style></head><body>
  <h1>Rayanton Farms &amp; Livestock Corp.</h1><h2>EMPLOYEE PERFORMANCE EVALUATION</h2>
