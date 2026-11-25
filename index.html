@@ -5024,11 +5024,11 @@ function p201Dept(td,tg){/* payroll dept/class -> the 201 File department name (
  if(g&&(r=hit(g)))return r;
  if(/^FMVM$/i.test(d)){if(/feed/i.test(g))return 'FEEDMILL';if(/vet/i.test(g))return 'VETMED'}
  return null}
-async function pXferBatch(items){/* items: [{s,fd,fg,td,tg}] -> adds a Transfer History line to each employee's 201 File. Returns how many were saved. */
- if(!items.length||!can('emp'))return 0;let L=null;try{const r=await apiAll('/rest/v1/hrd_employees?select=id,name,notes&order=name',{_quiet:true});if(Array.isArray(r))L=r}catch(e){}if(!L)return 0;
+async function pXferBatch(items,force){/* items: [{s,fd,fg,td,tg}] -> adds a Transfer History line to each employee's 201 File. Returns how many were saved. force = system update from a payroll sync (does not need the 201 Files permission) */
+ if(!items.length||(!force&&!can('emp')))return 0;let L=null;try{const r=await apiAll('/rest/v1/hrd_employees?select=id,name,dept,notes&order=name',{_quiet:true});if(Array.isArray(r))L=r}catch(e){}if(!L)return 0;
  const day=new Date().toLocaleDateString('en-CA');let n=0;
  for(const it of items){try{const k=pNm(it.s.name),e=L.find(q=>pNm(q.name)===k);if(!e)continue;const P=splitN(e.notes),X=P.x,A=xferOf(X);
-  const od=e.dept||'',n2=p201Dept(it.td,it.tg),ch=!!n2&&nd(od)!==n2&&(!isMgt(n2)||can('mge'));
+  const od=e.dept||'',n2=p201Dept(it.td,it.tg),ch=!!n2&&nd(od)!==n2&&(force||!isMgt(n2)||can('mge'));
   A.unshift(Object.assign({d:day,fd:it.fd,fg:it.fg||'',td:it.td,tg:it.tg||'',by:pBy()},ch?{od:od,nd:n2}:{}));X.xfer=JSON.stringify(A);
   const b={notes:joinN(X,P.rest)};if(ch)b.dept=n2;if(HASAUD()){b.updated_by=ME.email||null;b.updated_at=new Date().toISOString()}
   const r=await api('/rest/v1/hrd_employees?id=eq.'+e.id,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(b)});
@@ -10785,7 +10785,9 @@ const spAmt=(e,z)=>r2(pn(z.d)*pdOf(e));
 function spSumH(sh,e){const L=spList(e);if(!L.length)return'';const t=tot(sh,e),own=String(e.c==null?'':e.c).trim(),oth=L.filter(z=>String(spGrp(sh,z.c)).trim()!==own),sa=oth.reduce((q,z)=>q+spAmt(e,z),0),od=r2(t.days-oth.reduce((q,z)=>q+pn(z.d),0)),st='font-size:15px;line-height:1.45;margin-top:4px;font-weight:700;';
  return oth.map(z=>'<div class="atsm atspr" style="color:var(--lk);'+st+'">\u2702 Hatian: '+esc(spGrp(sh,z.c))+' \u00B7 '+nf(pn(z.d))+' days \u00B7 '+fm(spAmt(e,z))+'</div>').join('')+'<div class="atsm atspr" style="'+(od<0?'color:#c0392b;':'color:var(--h);')+st+'">\u21B3 Naiwan sa '+esc(own)+' (class niya): '+nf(od)+' days \u00B7 '+fm(r2(t.amt-sa))+(od<0?' (over-divided)':'')+'</div>'}
 /* ---------- BROILER: Hatiin ang sahod — a person's days / pay can be divided among classes (groups such as B6:192). The person's total pay does not change; only the class totals do. ---------- */
-const isBl=sh=>/broiler/i.test(String(sh&&sh.dept||''));
+const isBl=sh=>/broiler/i.test(String(sh&&sh.dept||''))||String(sh&&sh.dept||'').trim().toUpperCase()==='EXTRA PAYROLL';
+/* v639: EXTRA PAYROLL attendance also has Hatian, but only for the EXTRA BROILER people (their class, e.g. EXTRA BROILER : B1:192) */
+const atSpOk=(sh,e)=>/broiler/i.test(String(sh&&sh.dept||''))||/broiler/i.test(String(e&&e.c||''));
 const spGrp=(sh,c)=>{const u=String(c==null?'':c).trim().toUpperCase(),f=sh.emps.map(x=>x.c).find(x=>String(x==null?'':x).trim().toUpperCase()===u);return f!=null?f:String(c==null?'':c).trim()};
 const spCl=(sh,e)=>isBr(sh)?(clOf(e)||'(no class)'):String(e.c||sh.dept);
 function spIn(sh){const M={};sh.emps.forEach((e,i)=>{spList(e).forEach(z=>{const g=spGrp(sh,z.c);if(String(g)===String(e.c))return;(M[g]=M[g]||[]).push({i,e,z,a:spAmt(e,z)})})});return M}
@@ -11080,7 +11082,7 @@ function drawSheet(){const sh=S();if(!sh){return drawList()}Object.keys(sh.d||{}
  A.gs=[];const subR=(id,lbl,idx,cls,gg)=>{A.gs.push({id,idx,g:gg});const z=gsumG(sh,idx,gg);return`<tr class="atsub ${cls||''}"><td class="sn" colspan="${br?3:2}"><b>${esc(lbl)}</b></td><td colspan="${D.length}"></td><td class="sd" id="atgd_${id}"><b>${z[0]?nd3(z[0]):'-'}</b></td><td class="sj" id="atgj_${id}"><b>${z[2]?fm(z[2]):'-'}</b></td><td class="sa" id="atga_${id}"><b>${z[1]?fm(z[1]):'-'}</b></td><td></td></tr>`};
  let body='';gk.forEach((g,gi)=>{body+=`<tr class="atg"><td colspan="${colN}"><div><span>${esc(g)}</span><button class="btn o sm" data-c="${esc(g)}" onclick="atAdd(this.dataset.c)">+ Add employee</button> <button class="btn o sm no-print" data-c="${esc(g)}" onclick="atGrpRen(this.dataset.c)" title="Change the name of this class / group">✎ Rename class</button></div></td></tr>`;
   G[g].forEach(i=>{const e=sh.emps[i],s=sumH(sh,i);
-   body+=`<tr class="atrw" data-n="${esc(e.n)}"><td class="sn"><b>${esc(e.n)}</b><br><button class="atq" onclick="atFillRow(${i})" title="Put 1 on every empty day. Click again to remove the 1s">✓ all days</button> <button class="atq atrm" onclick="atRemove(${i})" title="Remove this employee from this attendance">🗑 Remove</button> <button class="atq atmv no-print" onclick="atMv(${i})" title="Move this employee to another class / group (or type a new one)">⇄ Move</button> <button class="atq atrn no-print" onclick="atRnm(${i})" title="Rename this employee in this attendance">✎ Rename</button>${isBl(sh)?` <button class="atq atsp no-print" onclick="atSp(${i})" title="Hatiin ang sahod ng taong ito sa ibang class">✂ Hatiin</button>`:''}</td>
+   body+=`<tr class="atrw" data-n="${esc(e.n)}"><td class="sn"><b>${esc(e.n)}</b><br><button class="atq" onclick="atFillRow(${i})" title="Put 1 on every empty day. Click again to remove the 1s">✓ all days</button> <button class="atq atrm" onclick="atRemove(${i})" title="Remove this employee from this attendance">🗑 Remove</button> <button class="atq atmv no-print" onclick="atMv(${i})" title="Move this employee to another class / group (or type a new one)">⇄ Move</button> <button class="atq atrn no-print" onclick="atRnm(${i})" title="Rename this employee in this attendance">✎ Rename</button>${isBl(sh)&&atSpOk(sh,e)?` <button class="atq atsp no-print" onclick="atSp(${i})" title="Hatiin ang sahod ng taong ito sa ibang class">✂ Hatiin</button>`:''}</td>
 <td class="sr"><input class="atv" style="width:86px" type="number" step="any" min="0" value="${rLast(e)||''}" oninput="atR(${i},this)" aria-label="Rate"><span class="atsm">${e.pd?'per day':`gross ÷ <input class="atv" id="atfd_${i}" style="width:44px;padding:2px" type="number" step="any" min="1" value="${e.fd>0?e.fd:7}" oninput="atFd(${i},this)" title="Fixed days (same as Fixed Days in the payroll)" aria-label="Fixed days">`}</span>${rcH(e,i)}</td>${br?`<td class="sc"><input class="fi atcli" list="atcll" value="${esc(clOf(e))}" oninput="atCl(${i},this)" onchange="this.value=this.value.trim().toUpperCase();atCl(${i},this)" placeholder="Class" aria-label="Class"><span class="atcp">${esc(clOf(e))}</span><button class="atq" onclick="atSp(${i})" title="Hatiin ang sahod sa ibang class">✂ Hatiin</button>${spList(e).map(z=>`<div class="atsm">↳ ${esc(z.c)} · ${nf(pn(z.d))} days</div>`).join('')}</td>`:''}${D.map(dt=>cellH(sh,i,dt)).join('')}<td class="sd" id="atd_${i}"><b>${s[0]}</b></td><td class="sj"><input class="atv atadj" type="number" step="any" value="${(sh.adj&&sh.adj[e.k])||''}" placeholder="0" oninput="atAdj(${i},this)" aria-label="Adjustment" title="Add (+) or deduct (−) an amount. It is included in the Total amount."></td><td class="sa" id="ata_${i}"><b>${s[1]}</b></td><td class="rm"><div class="atrmw no-print"><input style="margin:0;flex:1;min-width:90px" value="${esc(sh.rm[e.k]||'')}" class="fi atrmi" oninput="atRm(${i},this)" placeholder="Remarks (type or pick)" aria-label="Remarks"><select class="fi atrms" onchange="atRmPick(${i},this)" aria-label="Quick remarks" title="Pick a remark (or just type your own)"><option value="">▾</option>${RM_OPTS.map(o=>`<option value="${o}">${o}</option>`).join('')}</select></div><div class="atpr" style="font-weight:400" id="atrp_${i}">${esc(sh.rm[e.k]||'')}</div>${isBl(sh)?spSumH(sh,e):''}</td></tr>`});body+=subR('g'+gi,'Total · '+g,G[g],'',g)});
  if(gk.length)body+=subR('all','GRAND TOTAL',sh.emps.map((_,i)=>i),'atgt');
  const mg=sh.m==='g';
@@ -11312,7 +11314,10 @@ window.atCopyRm=()=>{const sh=S();if(!sh)return;const p=prevAtt(sh.dept,sh.from)
 /* Attendance print: paper is set to Long Bond 8.5 x 13 in (landscape) automatically for every user, so the print window already shows it */
 window.atPrint=()=>{let st=document.getElementById('atpg');if(!st){st=document.createElement('style');st.id='atpg';document.head.appendChild(st)}st.textContent='@page{size:8.5in 13in landscape;margin:8mm}';const done=()=>{window.removeEventListener('afterprint',done);const e=document.getElementById('atpg');if(e)e.remove()};window.addEventListener('afterprint',done);try{window.print()}catch(e){done()}};
 window.atSyncNames=()=>{if(!hrx())return toast('Only HR head or a Creator can sync names from payroll.');const sh=S(),have=new Set(sh.emps.map(e=>e.k)),b=buildEmps(sh.dept,have),sk=atDupFilter(b,sh.dept,sh.from,sh.to);if(!b.E.length){atDupNote(sk,sh.dept);return toast(sk.length?'Nobody added: the missing names are already in another department.':'Already up to date. Nobody is missing.')}b.E.forEach(e=>sh.emps.push(e));drawSheet();sv();atDupNote(sk,sh.dept);toast(b.E.length+' employee'+(b.E.length>1?'s':'')+' added from the latest payroll ✔')};
-window.atAdd=async cls=>{if(!Array.isArray(STF)){try{await loadS()}catch(e){}}let POOL=[];try{POOL=await xnPeople()}catch(e){POOL=(STF||[]).slice()}const sh=S(),have=new Set(sh.emps.map(e=>e.k)),pool=window.__atPool=POOL.slice().sort((a,b)=>a.name.localeCompare(b.name)||a.dept.localeCompare(b.dept)),
+window.atAdd=async cls=>{if(!Array.isArray(STF)){try{await loadS()}catch(e){}}let POOL=[];let ADM=false;try{ADM=!!(adm()||!allowed())}catch(e){ADM=!!SUPER}try{POOL=await xnPeople(ADM)}catch(e){POOL=(STF||[]).slice()}
+/* v638/v640: users with access to ALL departments (admin or no department restriction) can search everybody incl. Management in this box only; Management rate stays hidden without the Management permission; others never see Management here */
+if(!ADM){try{POOL=POOL.filter(x=>!(isMgt(x.dept)||isMg(x.dept)||isMgt(x.cd)||isMg(x.cd)))}catch(e){}}
+const sh=S(),have=new Set(sh.emps.map(e=>e.k)),pool=window.__atPool=POOL.slice().sort((a,b)=>a.name.localeCompare(b.name)||a.dept.localeCompare(b.dept)),
  cl=[...new Set([...sh.emps.map(e=>e.c),...((typeof PGO!=='undefined'&&PGO[sh.dept])||[]),sh.dept])],d=ovl('atad');
  d.innerHTML=`<div class="atbox"><h3 style="margin:0 0 2px">Add employee</h3><div class="sub" style="margin:0;font-size:13px">${esc(sh.dept)} · ${esc(lab(sh.from,sh.to))}</div>
 <label>Existing employee (all departments · the department is shown beside the name)<div class="scb"><input id="ata_q" class="fi" type="search" autocomplete="off" placeholder="🔍 Type a name to search all employees (201 Files + payroll)" oninput="$('ata_s').value='';atExClr();atCbF()" onfocus="if(($('ata_q').value||'').trim())atCbF()" onblur="setTimeout(()=>{const l=$('ata_l');if(l)l.hidden=true},160)" onkeydown="atCbKey(event)"><input type="hidden" id="ata_s" value=""><div id="ata_l" class="scl" hidden></div></div></label>
@@ -11402,9 +11407,12 @@ window.atCbPick=id=>{if(String(id).indexOf('e:')===0){const s=(window.__atPool||
 window.atCbKey=e=>{if(e.key==='Escape'){const l=$('ata_l');if(l)l.hidden=true}else if(e.key==='Enter'){e.preventDefault();const f=document.querySelector('#ata_l .sco');if(f)atCbPick(f.dataset.i)}};
 const payRate=s=>{const L=(PH||[]).filter(p=>p.data&&p.data.rates&&p.data.rates[s.id]!=null).sort((a,b)=>String(b.data.to||'').localeCompare(String(a.data.to||''))||String(b.created_at).localeCompare(String(a.created_at)));return L[0]?pn(L[0].data.rates[s.id]):null};
 window.atNameChk=()=>{if(!$('ata_s')||$('ata_s').value)return;const q=nzS($('ata_n').value);if(!q)return;const m=(window.__atPool||[]).filter(s=>nzS(s.name)===q);if(m.length===1){$('ata_s').value=m[0].id;$('ata_q').value=m[0].name+' — '+m[0].dept;atAddPick(m[0].id)}};
-window.atAddPick=id=>{if(!id)return;const s=(window.__atPool||[]).find(x=>String(x.id)===String(id))||(STF||[]).find(x=>String(x.id)===String(id));if(!s)return;{const sh0=S(),ix=atInSheet(sh0,s);if(ix>=0){$('ata_s').value='';atExShow(ix);return}}atExClr();const sh=S(),cf0=atDupOf(sh.dept,sh.from,sh.to,{k:s.id,n:s.name});if(cf0)toast('ℹ '+s.name+' is currently in the attendance of '+cf0+' (same cutoff). You can add him/her here; '+cf0+' will be notified.');const e=empFrom(s,s.dept,latestPay(s.dept),sh.m),pr=payRate(s);$('ata_n').value=s.name;$('ata_r').value=(pr!=null?pr:e.r)||'';if(!$('ata_c').value)$('ata_c').value=sh.dept;{const q=$('ata_cl2');if(q)q.value=clDef({k:s.id})}$('ata_t').value=sh.m==='g'?'0':'1'};
+window.atAddPick=id=>{if(!id)return;const s=(window.__atPool||[]).find(x=>String(x.id)===String(id))||(STF||[]).find(x=>String(x.id)===String(id));if(!s)return;{const sh0=S(),ix=atInSheet(sh0,s);if(ix>=0){$('ata_s').value='';atExShow(ix);return}}atExClr();const sh=S(),cf0=atDupOf(sh.dept,sh.from,sh.to,{k:s.id,n:s.name});if(cf0)toast('ℹ '+s.name+' is currently in the attendance of '+cf0+' (same cutoff). You can add him/her here; '+cf0+' will be notified.');const hideR=!!s._mg&&!can('mgp'),e=empFrom(s,s.dept,latestPay(s.dept),sh.m),pr=hideR?null:payRate(s);$('ata_n').value=s.name;$('ata_r').value=hideR?'':((pr!=null?pr:e.r)||'');if(!$('ata_c').value)$('ata_c').value=sh.dept;{const q=$('ata_cl2');if(q)q.value=clDef({k:s.id})}$('ata_t').value=sh.m==='g'?'0':'1'};
 window.atAddSave=()=>{atNameChk();{const ex=$('ata_ex');if(ex){const e=S().emps[+ex.dataset.i];return alert('This employee is already in this attendance'+(e?' (class '+(e.c||S().dept)+')':'')+'.\n\nUse the Move button to change the class.')}}const sh=S(),sid=$('ata_s').value,s=sid?((window.__atPool||[]).find(x=>String(x.id)===String(sid)&&!x.f201)||(STF||[]).find(x=>String(x.id)===String(sid))):null,n=($('ata_n').value||'').trim();if(!n)return alert('Please enter the employee name.');
  let xf='';{const cf=atDupOf(sh.dept,sh.from,sh.to,{k:s?String(s.id):'',n});if(cf){if(!confirm('↪ '+n+' is currently in the attendance of '+cf+' for '+lab(sh.from,sh.to)+'.\n\nAdd him/her to '+sh.dept+'?\n\nThe '+cf+' department will be notified that he/she was transferred to '+sh.dept+', so they can remove the name from their attendance.'))return;xf=cf}}
+ /* v636: employee comes from another department (201 File / payroll) -> that department gets the "Transferred out" notice too, even if he/she is not in its attendance */
+ if(!xf){const PL=window.__atPool||[],ps=(sid?PL.find(x=>String(x.id)===String(sid)):null)||(()=>{const q=nzS(n),m=PL.filter(x=>nzS(x.name)===q);return m.length===1?m[0]:null})();let hc=ps?String(ps.cd||ps.dept||'').trim():'',sc=String(sh.dept||'').trim();try{hc=pCanon(hc);sc=pCanon(sc)}catch(e){}
+  if(hc&&hc!=='—'&&hc.toLowerCase()!==sc.toLowerCase()&&['Common','Rest House'].indexOf(hc)<0){if(!confirm('↪ '+n+' is from the '+hc+' department.\n\nAdd him/her to '+sh.dept+'?\n\nThe '+hc+' department will be notified that he/she was transferred to '+sh.dept+'.'))return;xf=hc}}
  {const dp=sh.emps.map(e=>[e,atNmSame(e.n,n)]).filter(x=>x[1]),ex=dp.find(x=>x[1]===2),sm=dp.find(x=>x[1]===1);
   if(ex)return alert('⚠ '+n+' is already in this attendance.\n\nThe same name can only be once in an attendance. Use the existing line, or remove it first.');
   if(sm&&!confirm('⚠ '+n+' looks like '+sm[0].n+' (same name and surname, only the middle name is different).\n\nA name can only be once in an attendance. Add anyway?'))return}
@@ -11567,7 +11575,8 @@ async function syDoCls(d,x){
  try{pMvLog(s,s.dept,cur,s.dept,x.nw)}catch(e){}
  try{pdSave()}catch(e){}
  x.done=1;
- logAct('Class changed (attendance sync)','Payroll',x.n+': '+(cur||s.dept)+' → '+x.nw)}
+ logAct('Class changed (attendance sync)','Payroll',x.n+': '+(cur||s.dept)+' → '+x.nw);
+ try{await sy201(s.name,s.dept,x.nw)}catch(e){}}
 /* Replace: the attendance name and the payroll name are the same person -> the payroll employee gets the attendance name (settings by name move along, like renaming in the payroll) and the attendance days / remarks are copied */
 /* rename one payroll employee (database + every setting that is stored by name) */
 async function syRen(d,s,v){
@@ -11603,6 +11612,14 @@ async function syDoRep(d,x){
  d.sy.gone=(d.sy.gone||[]).filter(n=>pNm(n)!==pNm(old));
  x.done=1;x.rep=1;
  }
+/* v637: payroll sync moved someone to another department -> the 201 File department becomes the latest one and "date: OLD dept -> NEW dept" is added to the employee's Transfer History */
+async function sy201(name,dp,cls){
+ try{const r=await apiAll('/rest/v1/hrd_employees?select=id,name,dept&order=name',{_quiet:true});if(!Array.isArray(r))return 0;
+  const k=pNm(name),e=r.find(q=>pNm(q.name)===k);if(!e)return 0;
+  const n2=p201Dept(dp,cls),od=String(e.dept||'').trim();if(!n2||!od||nd(od)===n2)return 0;
+  const n=await pXferBatch([{s:{name:name},fd:od,fg:'',td:n2,tg:String(cls||'')}],true);
+  if(n)try{toast(name+': 201 File updated · '+od+' → '+n2+' (Transfer History saved)')}catch(x){}
+  return n}catch(e){return 0}}
 async function syDoAdd(d,x){
  const dp=d.sy.dept;if(isMgt(dp)&&!can('mgp'))throw new Error('You do not have permission to add to the Management payroll.');
  const k0=pNm(x.n);let s=(STF||[]).find(z=>pNm(z.dept)===pNm(dp)&&pNm(z.name)===k0);
@@ -11615,7 +11632,8 @@ async function syDoAdd(d,x){
  d.rates[s.id]=x.r;const row=d.rows[s.id]=d.rows[s.id]||{};
  if(x.days!=='')row.days=x.days;if(x.arem)row.arem=x.arem;if(x.hold)row.hold=x.hold;if(!Object.keys(row).length)delete d.rows[s.id];
  d.sy.pg=r2(pn(d.sy.pg)+(x.days!==''?syPay(x.r,pn(x.days),x.pd,x.fd):0));x.done=1;
- logAct('Added to payroll (attendance sync)','Payroll',x.n+' ('+dp+') · '+fm(x.r))}
+ logAct('Added to payroll (attendance sync)','Payroll',x.n+' ('+dp+') · '+fm(x.r));
+ try{await sy201(x.n,dp,x.c)}catch(e){}}
 function syDraw(){
  if(!SYR)return;const y=SYR.d.sy;
  if(!y){const o=$('sydlg');if(o)o.remove();return}
@@ -12353,25 +12371,25 @@ if(document.body)init();else document.addEventListener('DOMContentLoaded',init);
  window.xnAdd=async function(items){
   items=(Array.isArray(items)?items:[items]).filter(function(x){return x&&x.fd&&x.td&&x.fd!==x.td});if(!items.length)return;
   try{await mut(function(a){items.forEach(function(x){a.unshift(Object.assign({id:uid(),at:new Date().toISOString(),by:by()},x))});return a});draw()}catch(e){}};
- var AS=null,ASt=0;
- window.xnAllStaff=async function(){
-  if(AS&&Date.now()-ASt<60000)return AS;
+ var AS={},ASt={};
+ window.xnAllStaff=async function(mg){
+  var ck=mg?1:0;if(AS[ck]&&Date.now()-ASt[ck]<60000)return AS[ck];
   var L=null;
   try{var r=await apiAll('/rest/v1/hrd_pay_staff?select=*&order=name',{_quiet:true});if(Array.isArray(r))L=r}catch(e){}
   if(!L)L=Array.isArray(STF)?STF.slice():[];
   var m={};(STF||[]).forEach(function(x){m[String(x.id)]=x});
   L=L.filter(function(x){
    if(!x||!x.name||['Common','Rest House'].indexOf(x.dept)>=0)return false;
-   try{if(!can('mgp')&&isMgt(x.dept))return false}catch(e){}
+   if(!mg){try{if(!can('mgp')&&isMgt(x.dept))return false}catch(e){}}
    try{if(isMg(x.dept)&&PMEX.has(pNm(x.name)))return false}catch(e){}
    return true}).map(function(x){var o=m[String(x.id)];if(o)return o;try{var n=pCanon(x.dept);if(n&&n!==x.dept)return Object.assign({},x,{dept:n})}catch(e){}return x});
-  AS=L;ASt=Date.now();window.__allStaff=L;return L};
- var PP_=null,PPt=0;
+  AS[ck]=L;ASt[ck]=Date.now();if(!mg)window.__allStaff=L;return L};
+ var PP_={},PPt={};
  function nzp(t){return String(t==null?'':t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim()}
  /* Every person: the 201 Files record is the main source (current department = 201 department); the payroll record (id, rate, payroll department) is attached when the person is in the payroll. */
- window.xnPeople=async function(){
-  if(PP_&&Date.now()-PPt<60000)return PP_;
-  var ALLS=[];try{ALLS=await window.xnAllStaff()}catch(e){ALLS=Array.isArray(STF)?STF:[]}
+ window.xnPeople=async function(mg){
+  var ck=mg?1:0;if(PP_[ck]&&Date.now()-PPt[ck]<60000)return PP_[ck];
+  var ALLS=[];try{ALLS=await window.xnAllStaff(mg)}catch(e){ALLS=Array.isArray(STF)?STF:[]}
   var src=null;try{src=(Array.isArray(EALL)&&EALL.length)?EALL:await apiAll('/rest/v1/hrd_employees?select=id,name,dept&order=name',{_quiet:true})}catch(e){}
   var byN={};ALLS.forEach(function(x){var k=nzp(x.name);if(k&&!byN[k])byN[k]=x});
   var seen={},out=[],mgOk=false;try{mgOk=!!(can('mge')||can('mgp'))}catch(e){}
@@ -12379,13 +12397,15 @@ if(document.body)init();else document.addEventListener('DOMContentLoaded',init);
    if(!e||!e.name)return;var k=nzp(e.name);if(!k||seen[k])return;
    if(/resign|awol|terminat|end of contract|separated/i.test(String(e.status||'')))return;
    var md=false;try{md=isMgt(e.dept)||isMg(e.dept)}catch(x){}
-   if(md&&!mgOk)return;
+   if(md&&!mgOk&&!mg)return;
    if(md){try{if(PMEX.has(pNm(e.name)))return}catch(x){}}
    seen[k]=1;var st=byN[k];
    if(st)out.push(Object.assign({},st,{cd:String(e.dept||'')}));
    else out.push({id:'e:'+(e.id!=null?e.id:k),name:String(e.name),dept:String(e.dept||'—'),cd:String(e.dept||'—'),f201:1,rate:0})});
   ALLS.forEach(function(x){var k=nzp(x.name);if(k&&!seen[k]){seen[k]=1;out.push(x)}});
-  PP_=out;PPt=Date.now();window.__people=out;return out};
+  /* Management people are only searchable (name + department); their rate stays hidden without the Management permission */
+  if(mg&&!mgOk)out=out.map(function(x){var m=false;try{m=isMgt(x.dept)||isMg(x.dept)||isMgt(x.cd)||isMg(x.cd)}catch(e){}return m?Object.assign({},x,{rate:0,_mg:1}):x});
+  PP_[ck]=out;PPt[ck]=Date.now();if(!mg)window.__people=out;return out};
  window.xnFlush=function(){var p=window.__xnPend||[];window.__xnPend=[];return p.length?window.xnAdd(p):0};
  window.xnDone=async function(id){try{await mut(function(a){return a.filter(function(x){return x.id!==id})});draw()}catch(e){try{toast('Could not update the notice: '+(e.message||e))}catch(x){}}};
  function fd(t){try{return new Date(t).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}catch(e){return''}}
