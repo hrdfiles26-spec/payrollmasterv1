@@ -7917,7 +7917,8 @@ function chatRead(k){const ids=cUnreadIds(k);if(!ids.length)return;const ms=CM.f
  api('/rest/v1/rpc/hrd_chat_mark_read',{method:'POST',body:JSON.stringify({p_ids:ids})}).catch(()=>{ms.forEach(m=>m.read_by=(m.read_by||[]).filter(u=>u!==ME.sub));chatBadge()})}
 function markSeen(k){const s=cSeen(),l=cMsgs(k).slice(-1)[0];s[k]=l?l.created_at:new Date().toISOString();try{localStorage['hrd_cs_'+ME.sub]=JSON.stringify(s)}catch(e){}if(CRB&&!document.hidden)chatRead(k)}
 const tcase=s=>String(s||'').toLowerCase().replace(/(^|[\s.\-'’(\/])([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase());
-const cname=id=>{if(id==='all')return'Team chat';const u=CU.find(x=>x.user_id===id);return u?tcase(dn(u.full_name,u.email)):'User'};
+const cfirst=(nm,em)=>{const n=String(nm||'').trim();if(!n)return dn(nm,em);if(n.indexOf(',')>0){const f=n.split(',')[1].trim().split(/\s+/)[0];if(f)return f}const p=n.split(/\s+/);if(p.length<2)return p[0];let i=1;while(i<p.length-1&&/^(de|del|dela|delos|delas|la|los|san|santa|van|von)$/i.test(p[i-1]))i++;return p[i]};
+const cname=id=>{if(id==='all')return'Team chat';const u=CU.find(x=>x.user_id===id);return u?tcase(cfirst(u.full_name,u.email)):'User'};
 const cst=id=>id===ME.sub?stat():PRES[id]?(((PRES[id].metas||[]).slice(-1)[0]||{}).st==='busy'?'busy':'online'):'offline';
 function chatBadge(){const el=$('b8');const n=['all',...CU.filter(u=>u.user_id!==ME.sub).map(u=>u.user_id)].reduce((t,k)=>t+cUnread(k),0);if(el)el.textContent=n||'';const f=$('b9');if(f)f.textContent=n||'';if(!chatBadge.t0)chatBadge.t0=document.title.replace(/^\(\d+\)\s*/,'');document.title=(n?'('+n+') ':'')+chatBadge.t0}
 async function chatLoad(){try{CU=await api('/rest/v1/rpc/hrd_chat_users',{method:'POST',body:'{}'});const fresh=(await api('/rest/v1/hrd_chat?select=*&order=id.desc&limit=500')).reverse();CM=fresh.concat(CM.filter(m=>m.tmp));CON=true;CERR='';try{await api('/rest/v1/hrd_chat?select=read_by&limit=1');CRB=true}catch(e){CRB=false}try{await api('/rest/v1/hrd_chat?select=hidden_by&limit=1');CHD=true}catch(e){CHD=false}try{await api('/rest/v1/rpc/hrd_chat_unsend',{method:'POST',body:JSON.stringify({p_id:0})});CUS=true}catch(e){CUS=false}try{await api('/rest/v1/rpc/hrd_chat_edit',{method:'POST',body:JSON.stringify({p_id:0,p_body:'x'})});CED=true}catch(e){CED=false}}catch(e){CON=false;CERR=e.message}}
@@ -7943,9 +7944,11 @@ function setStat(v){try{localStorage.hrd_st=v}catch(e){}
  if(RT&&RT.readyState===1)RT.send(JSON.stringify({topic:'realtime:hrd',event:'presence',payload:{type:'presence',event:'track',payload:myMeta()},ref:'st'+Date.now()}));
  if(CW){drawList();drawHead()}refreshOnline()}
 function drawList(){const el=$('cl');if(!el)return;const o={online:0,busy:1,offline:2};
- const L=CU.filter(u=>u.user_id!==ME.sub).map(u=>({id:u.user_id,n:tcase(dn(u.full_name,u.email)),s:cst(u.user_id)})).sort((a,b)=>o[a.s]-o[b.s]||a.n.localeCompare(b.n));
+ const L=CU.filter(u=>u.user_id!==ME.sub).map(u=>({id:u.user_id,n:tcase(cfirst(u.full_name,u.email)),s:cst(u.user_id)})).sort((a,b)=>o[a.s]-o[b.s]||a.n.localeCompare(b.n));
  const row=(id,n,s)=>{const c=CSL[s]||['#2e9e5b'],u=cUnread(id),lm=cMsgs(id).slice(-1)[0],pv=lm?(lm.from_id===ME.sub?'You: ':(id==='all'?cname(lm.from_id)+': ':''))+cPv(lm.body).replace(/\s+/g,' ').slice(0,44):(s?c[1]:'Everyone');return `<div class="cr${id===CP?' on':''}${u?' un':''}" onclick="chatPick('${id}')"><span class="cd" style="background:${c[0]}" title="${s?c[1]:''}"></span><div style="flex:1;min-width:0"><b>${esc(n)}</b><br><small class="pv"${u?' style="font-weight:700;color:var(--ink)"':''}>${esc(pv)}</small></div>${u?`<i class="cb" title="Unread messages">${u}</i>`:''}</div>`};
- el.innerHTML=row('all','Team chat','')+L.map(u=>row(u.id,u.n,u.s)).join('')}
+ const hd=t=>`<div style="padding:8px 14px 5px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--mu);background:var(--sf2);border-bottom:1px solid var(--ln)">${t}</div>`,
+  ON=L.filter(u=>u.s!=='offline'),HI=L.filter(u=>cMsgs(u.id).length);
+ el.innerHTML=hd('Online now')+(ON.length?ON.map(u=>row(u.id,u.n,u.s)).join(''):'<div class="sub" style="padding:10px 14px;margin:0;font-size:13px">No one else is online.</div>')+hd('Chats')+row('all','Team chat','')+HI.map(u=>row(u.id,u.n,u.s)).join('')}
 function drawHead(){const el=$('ch');if(!el)return;const s=CP==='all'?'':cst(CP),c=CSL[s];
  el.innerHTML=`<b style="font-size:16px">${esc(cname(CP))}</b>${s?`<span class="cd" style="background:${c[0]}"></span><small>${c[1]}</small>`:'<small>All registered users</small>'}<button class="btn o sm" style="margin-left:auto" onclick="chatClear()">Clear chat</button>`}
 function cSt(m){if(m.tmp)return m.fail?`<span class="cs fail">\u26A0 Failed to send \u00b7 <a onclick="chatRetry('${m.id}')">Retry</a> \u00b7 <a onclick="chatDiscard('${m.id}')">Delete</a></span>`:'<span class="cs">Sending\u2026</span>';
@@ -12586,7 +12589,7 @@ const evCol=a=>a>=4.5?'#1f7a3d':a>=3.5?'#2e7d4f':a>=2.5?'#8a5a00':a>=1.5?'#c0661
 const evAvg=s=>{const hk=Object.keys(s).filter(k=>/^[a-z]\d/.test(k));if(hk.length){const w=hk.map(k=>+s[k]).filter(x=>x>0);return w.length?Math.round(w.reduce((a,b)=>a+b,0)/w.length/2*100)/100:0}const v=EVC.map(c=>+s[c[0]]||0).filter(x=>x>0);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length*100)/100:0};
 const evFd=d=>{if(!d)return'';const x=new Date(String(d).slice(0,10)+'T00:00:00');return isNaN(x)?String(d):x.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})};
 const evWho=()=>{try{const n=(((MYA&&MYA.full_name)||(ME.user_metadata||{}).full_name)||'').trim();return n||(ME&&ME.email)||''}catch(e){return''}};
-const evSee=()=>can('evl')||can('evl_e')||can('evl_p');const evMine1=x=>!!(x&&x.created_uid&&ME&&x.created_uid===ME.sub);const evCanP=x=>can('evl_p')||evMine1(x);
+const evSee=()=>can('evl')||can('evl_e')||can('evl_p');const evMine1=x=>{if(!x||!ME)return false;if(x.created_uid&&x.created_uid===ME.sub)return true;const k=v=>String(v||'').trim().toLowerCase(),w=k(evWho()),em=k(ME.email);return !!((w&&(k(x.created_by)===w||k(x.evaluator)===w))||(em&&k(x.created_by)===em))};const evCanP=x=>can('evl_p')||evMine1(x);
 const evMissing=e=>/hrd_evaluations|does not exist|PGRST20[45]|42P01|schema cache/i.test(String(e&&e.message||e));
 function evSqlBox(){return`<div class="cx-card" style="padding:18px;max-width:860px"><h2 style="margin:0 0 6px">One-time setup needed</h2><p class="sub" style="font-size:14px">The Evaluation table does not exist yet. Copy this SQL, open Supabase → SQL Editor, paste and press Run. Then press Reload.</p><textarea id="evsql" readonly style="width:100%;height:230px;font:12px/1.45 Consolas,monospace;padding:10px;border:1px solid var(--ln2);border-radius:8px;box-sizing:border-box">${esc(EVSQL)}</textarea><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(EVSQL).then(()=>toast('SQL copied ✔'))">Copy SQL</button><button class="btn o" onclick="evl()">Reload</button></div></div>`}
 /* names for the "Employee" picker: 1) hrd_eval_people() (works even without 201 Files access), 2) 201 Files list, 3) names the app already knows (payroll staff etc.) */
@@ -12724,8 +12727,18 @@ function evDocHtml(x){const s=x.scores||{},a=+x.total||0,pd=[x.evaluator_positio
  <div class="evd-g"><div><span>Employee:</span>${esc(x.emp_name)}</div><div><span>Department:</span>${esc(x.dept||'')}</div><div><span>Position:</span>${esc(x.position||'')}</div><div><span>Type:</span>${esc(x.eval_type||'')}</div><div><span>Period:</span>${esc(evFd(x.period_from))}${x.period_to?' – '+esc(evFd(x.period_to)):''}</div><div><span>Evaluator:</span>${esc(x.evaluator||'')}${pd?' ('+esc(pd)+')':''}</div></div>
  ${evPrintTbl(x,s,a)}<h4>Strengths</h4><div class="bx">${esc(x.strengths||'')}</div><h4>Areas to improve</h4><div class="bx">${esc(x.improve||'')}</div><h4>Recommendation</h4><div class="bx">${esc([x.recommendation,x.remarks?'Remarks: '+x.remarks:''].filter(Boolean).join('\n'))}</div>
  <div class="evd-sg"><div>Evaluated by</div><div>Employee (acknowledged)</div><div>Approved by</div></div></div>`}
-function evPrintDocs(L){const w=window.open('','_blank');if(!w)return toast('Allow pop-ups to print.');
- w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${L.length===1?'Evaluation - '+esc(L[0].emp_name):'Employee Evaluations'}</title><style>@page{size:8.5in 13in;margin:12mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;background:#fff}${EVDCSS}.evd{border:0;border-radius:0;padding:0;break-after:page;page-break-after:always}.evd:last-child{break-after:auto;page-break-after:auto}</style></head><body>${L.map(evDocHtml).join('')}</body></html>`);w.document.close();setTimeout(()=>{try{w.focus();w.print()}catch(e){}},400)}
+function evPrintDocs(L){
+ const ttl=L.length===1?'Evaluation - '+(L[0].emp_name||''):'Employee Evaluations';
+ const html=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(ttl)}</title><style>@page{size:8.5in 13in;margin:12mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;background:#fff}${EVDCSS}.evd{border:0;border-radius:0;padding:0;break-after:page;page-break-after:always}.evd:last-child{break-after:auto;page-break-after:auto}</style></head><body>${L.map(evDocHtml).join('')}</body></html>`;
+ const old=document.getElementById('evpf');if(old)old.remove();
+ const f=document.createElement('iframe');f.id='evpf';f.setAttribute('aria-hidden','true');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+ document.body.appendChild(f);
+ const w=f.contentWindow,d=w.document,t0=document.title;
+ d.open();d.write(html);d.close();
+ const done=()=>{document.title=t0;setTimeout(()=>{try{f.remove()}catch(e){}},500)};
+ w.onafterprint=done;
+ setTimeout(()=>{try{document.title=ttl;w.focus();w.print()}catch(e){done();alert('Could not print: '+(e.message||e))}},400);
+ setTimeout(()=>{if(document.getElementById('evpf')===f)done()},120000)}
 function evPrint(id){const x=(EVL||[]).find(q=>q.id===id);if(!x)return;if(!evCanP(x))return toast(evNoP('print'));try{evPrintDocs([x])}catch(e){alert('Could not print: '+(e.message||e))}}
 function evPickIds(){const c=[...document.querySelectorAll('.evsel:checked')].map(e=>e.value);return c.length?c:evRows().map(x=>x.id)}
 function evSelAll(v){document.querySelectorAll('.evsel').forEach(e=>{e.checked=v})}
