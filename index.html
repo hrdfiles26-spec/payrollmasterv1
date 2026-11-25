@@ -678,7 +678,7 @@ div.chd{padding:13px 16px;border-bottom:1px solid var(--ln);display:flex;align-i
 .cg{max-width:78%;align-self:flex-start;display:flex;flex-direction:column;gap:2px}.cg.me{align-self:flex-end;align-items:flex-end}.cg small{color:var(--mu);font-size:11.5px}
 .cbb{background:var(--sf2);border:1px solid var(--ln);border-radius:12px;padding:8px 12px;white-space:pre-wrap;overflow-wrap:anywhere}.cg.me .cbb{background:var(--g);color:#fff;border-color:var(--g)}
 .cin{display:flex;gap:10px;padding:12px;border-top:1px solid var(--ln)}.cin textarea{flex:1;resize:none;font:inherit;padding:9px 12px;border:1px solid var(--ln2);border-radius:8px;background:var(--sf);color:var(--ink);max-height:110px}
-.cp{position:relative}.cin .cem{padding:0 11px;font-size:18px;line-height:1;flex:none}.cin .cem.gf{font-size:13px;font-weight:700}
+.cp{position:relative}.ced{min-width:240px}.ced textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--ln2);border-radius:8px;background:var(--sf);color:var(--ink);resize:vertical}.cel{cursor:pointer;text-decoration:underline;color:var(--mu);font-size:11.5px}.ceh{font-size:12.5px;color:var(--mu);border-left:3px solid var(--ln2);padding:5px 9px;margin-top:3px;max-width:100%;overflow-wrap:anywhere;white-space:pre-wrap;text-align:left;background:var(--sf2);border-radius:0 8px 8px 0}.cbb.un,.cg.me .cbb.un{background:transparent;color:var(--mu);border:1px dashed var(--ln2);font-style:italic;font-size:13px}.cin .cem{padding:0 11px;font-size:18px;line-height:1;flex:none}.cin .cem.gf{font-size:13px;font-weight:700}
 .cgif{display:block;max-width:240px;max-height:240px;border-radius:10px;height:auto}.cg.me .cbb.gb,.cbb.gb{background:transparent;border:0;padding:0}
 #cpop{position:absolute;left:12px;right:12px;bottom:68px;max-height:300px;overflow:auto;background:var(--sf);border:1px solid var(--ln2);border-radius:12px;box-shadow:0 10px 30px #0003;padding:10px;z-index:5;color:var(--ink)}
 #cpop .eg{display:flex;flex-wrap:wrap;gap:2px}#cpop .eg button{border:0;background:none;font-size:23px;line-height:1;padding:5px;border-radius:8px;cursor:pointer}#cpop .eg button:hover{background:var(--soft)}
@@ -7803,9 +7803,22 @@ create or replace function public.hrd_chat_clear(p_ids bigint[]) returns void
   where id=any(p_ids) and (to_id is null or to_id=auth.uid() or from_id=auth.uid()) and not (auth.uid()=any(hidden_by)) $$;
 revoke all on function public.hrd_chat_clear(bigint[]) from public, anon;
 grant execute on function public.hrd_chat_clear(bigint[]) to authenticated;
+alter table public.hrd_chat add column if not exists edits jsonb not null default '[]'::jsonb;
+alter table public.hrd_chat add column if not exists edited_at timestamptz;
+create or replace function public.hrd_chat_unsend(p_id bigint) returns void
+  language sql security definer set search_path=public as $$
+  update public.hrd_chat set body=chr(8203)||'[unsent]'||chr(8203), edits='[]'::jsonb, edited_at=null where id=p_id and from_id=auth.uid() $$;
+create or replace function public.hrd_chat_edit(p_id bigint, p_body text) returns void
+  language sql security definer set search_path=public as $$
+  update public.hrd_chat set edits=edits||jsonb_build_array(jsonb_build_object('b',body,'t',now())), body=p_body, edited_at=now()
+  where id=p_id and from_id=auth.uid() and body<>chr(8203)||'[unsent]'||chr(8203) and length(p_body) between 1 and 2000 and p_body<>body $$;
+revoke all on function public.hrd_chat_edit(bigint,text) from public, anon;
+grant execute on function public.hrd_chat_edit(bigint,text) to authenticated;
+revoke all on function public.hrd_chat_unsend(bigint) from public, anon;
+grant execute on function public.hrd_chat_unsend(bigint) to authenticated;
 do $$ begin alter publication supabase_realtime add table public.hrd_chat;
 exception when duplicate_object then null; end $$;`;
-let CW=false,CU=[],CM=[],CP='all',CON=null,CERR='',CRB=false,CHD=false,CNEW=new Set(),CTMP=0;
+let CW=false,CU=[],CM=[],CP='all',CON=null,CERR='',CRB=false,CHD=false,CUS=false,CED=false,CEDIT='',CEDV='',CHV=new Set(),CNEW=new Set(),CTMP=0;
 const CSL={online:['#2e9e5b','Online'],busy:['#d9962b','Busy'],offline:['#9aa5b8','Offline']};
 const stat=()=>{try{return localStorage.hrd_st==='busy'?'busy':'online'}catch(e){return'online'}};
 const cBase=()=>{try{const k='hrd_cb_'+ME.sub;return localStorage[k]||(localStorage[k]=new Date().toISOString())}catch(e){return new Date().toISOString()}};
@@ -7820,6 +7833,16 @@ async function chatClear(){
  markSeen(CP);CNEW=new Set();drawList();drawMsgs();chatBadge();
  try{await api('/rest/v1/rpc/hrd_chat_clear',{method:'POST',body:JSON.stringify({p_ids:ids})});toast('Chat cleared \u2714')}
  catch(e){L.forEach(m=>m.hidden_by=(m.hidden_by||[]).filter(u=>u!==ME.sub));drawList();drawMsgs();chatBadge();toast('Could not clear chat: '+(e.message||e))}}
+async function chatUnsend(id){const m=CM.find(x=>String(x.id)===String(id));if(!m||m.tmp||m.from_id!==ME.sub||cIsUns(m.body))return;
+ if(!CUS)return toast('Unsend needs a one-time database update. Ask the Creator to open Chat and run the SQL.');
+ if(!confirm('Unsend this message?\n\nIt will be removed for everybody. They will only see that you unsent a message.'))return;
+ const old=m.body,oe=m.edits,oa=m.edited_at;m.body=C_UNS;m.edits=[];m.edited_at=null;drawList();drawMsgs();
+ try{await api('/rest/v1/rpc/hrd_chat_unsend',{method:'POST',body:JSON.stringify({p_id:m.id})});toast('Message unsent \u2714')}
+ catch(e){m.body=old;m.edits=oe;m.edited_at=oa;drawList();drawMsgs();toast('Could not unsend: '+(e.message||e))}}
+async function chatRefreshUS(){if(!CUS||!CM.length)return false;
+ const ids=CM.filter(m=>!m.tmp).map(m=>m.id);if(!ids.length)return false;const lo=Math.min(...ids);
+ const r=await api('/rest/v1/hrd_chat?select=id&id=gte.'+lo+'&body=eq.'+encodeURIComponent(C_UNS)),set=new Set(r.map(x=>x.id));let ch=false;
+ CM.forEach(m=>{if(!m.tmp&&set.has(m.id)&&!cIsUns(m.body)){m.body=C_UNS;m.edits=[];m.edited_at=null;ch=true}});return ch}
 async function chatRefreshHB(){if(!CHD||!CM.length)return false;
  const lo=Math.min(...CM.filter(m=>!m.tmp).map(m=>m.id));if(!isFinite(lo))return false;
  const r=await api('/rest/v1/hrd_chat?select=id&id=gte.'+lo+'&hidden_by=cs.'+encodeURIComponent('{'+ME.sub+'}')),set=new Set(r.map(x=>x.id));let ch=false;
@@ -7832,7 +7855,7 @@ function markSeen(k){const s=cSeen(),l=cMsgs(k).slice(-1)[0];s[k]=l?l.created_at
 const cname=id=>{if(id==='all')return'Team chat';const u=CU.find(x=>x.user_id===id);return u?dn(u.full_name,u.email):'User'};
 const cst=id=>id===ME.sub?stat():PRES[id]?(((PRES[id].metas||[]).slice(-1)[0]||{}).st==='busy'?'busy':'online'):'offline';
 function chatBadge(){const el=$('b8');const n=['all',...CU.filter(u=>u.user_id!==ME.sub).map(u=>u.user_id)].reduce((t,k)=>t+cUnread(k),0);if(el)el.textContent=n||'';const f=$('b9');if(f)f.textContent=n||'';if(!chatBadge.t0)chatBadge.t0=document.title.replace(/^\(\d+\)\s*/,'');document.title=(n?'('+n+') ':'')+chatBadge.t0}
-async function chatLoad(){try{CU=await api('/rest/v1/rpc/hrd_chat_users',{method:'POST',body:'{}'});const fresh=(await api('/rest/v1/hrd_chat?select=*&order=id.desc&limit=500')).reverse();CM=fresh.concat(CM.filter(m=>m.tmp));CON=true;CERR='';try{await api('/rest/v1/hrd_chat?select=read_by&limit=1');CRB=true}catch(e){CRB=false}try{await api('/rest/v1/hrd_chat?select=hidden_by&limit=1');CHD=true}catch(e){CHD=false}}catch(e){CON=false;CERR=e.message}}
+async function chatLoad(){try{CU=await api('/rest/v1/rpc/hrd_chat_users',{method:'POST',body:'{}'});const fresh=(await api('/rest/v1/hrd_chat?select=*&order=id.desc&limit=500')).reverse();CM=fresh.concat(CM.filter(m=>m.tmp));CON=true;CERR='';try{await api('/rest/v1/hrd_chat?select=read_by&limit=1');CRB=true}catch(e){CRB=false}try{await api('/rest/v1/hrd_chat?select=hidden_by&limit=1');CHD=true}catch(e){CHD=false}try{await api('/rest/v1/rpc/hrd_chat_unsend',{method:'POST',body:JSON.stringify({p_id:0})});CUS=true}catch(e){CUS=false}try{await api('/rest/v1/rpc/hrd_chat_edit',{method:'POST',body:JSON.stringify({p_id:0,p_body:'x'})});CED=true}catch(e){CED=false}}catch(e){CON=false;CERR=e.message}}
 async function chatReload(){await chatLoad();if(CON)rtStart();chatClose();chatOpen()}
 function chatNotify(t,b){try{if(document.hidden&&window.Notification&&Notification.permission==='granted'){const n=new Notification(t,{body:b,tag:'hrd-chat'});n.onclick=()=>{window.focus();n.close()}}}catch(e){}}
 async function chatRefreshRB(){if(!CRB)return false;const tot=CU.filter(u=>u.user_id!==ME.sub).length;
@@ -7847,6 +7870,8 @@ async function chatSync(){if(!CON)return;try{const l=Math.max(0,...CM.filter(m=>
    if(!here)toast('\u{1F4AC} '+who+': '+pv);chatNotify('New message from '+who,pv)}}
  if(await chatRefreshRB())ch=true;
  if(await chatRefreshHB())ch=true;
+ if(await chatRefreshUS())ch=true;
+ if(await chatRefreshED())ch=true;
  if(ch&&CW){drawList();drawMsgs()}
  chatBadge()}catch(e){}}
 function setStat(v){try{localStorage.hrd_st=v}catch(e){}
@@ -7862,9 +7887,34 @@ function cSt(m){if(m.tmp)return m.fail?`<span class="cs fail">\u26A0 Failed to s
  if(!CRB)return'<span class="cs">\u2713 Sent</span>';
  if(m.to_id)return(m.read_by||[]).includes(m.to_id)?'<span class="cs seen">\u2713\u2713 Seen</span>':'<span class="cs">\u2713 Sent</span>';
  const r=(m.read_by||[]).filter(u=>u!==ME.sub),tot=CU.filter(u=>u.user_id!==ME.sub).length;
- return r.length?`<span class="cs seen" title="${esc(r.map(u=>cname(u)).join(', '))}">\u2713\u2713 Seen by ${tot&&r.length>=tot?'everyone':r.length}</span>`:'<span class="cs">\u2713 Sent</span>'}
+ const fn=u=>{let n=String(cname(u)||'').trim();if(n.indexOf(',')>0)n=n.split(',')[1].trim();return n.split(/\s+/)[0]||n},F=r.map(fn),sh=F.join(', ');
+ return r.length?`<span class="cs seen" title="${esc(r.map(u=>cname(u)).join(', '))}">\u2713\u2713 Seen by ${esc(sh)}${tot&&r.length>=tot?' (everyone)':''}</span>`:'<span class="cs">\u2713 Sent</span>'}
+const cTm=t=>{try{return new Date(t).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}catch(e){return''}};
+function cBub(m,me,un){
+ if(un)return `<div class="cbb un">\u{1F6AB} ${me?'You':esc(cname(m.from_id))} unsent a message</div>`;
+ if(me&&CEDIT===String(m.id))return `<div class="ced"><textarea id="cedt" rows="2" maxlength="2000" oninput="CEDV=this.value" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatEditSave()}else if(event.key==='Escape'){chatEditCancel()}">${esc(CEDV)}</textarea><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:5px"><button type="button" class="btn o sm" onclick="chatEditCancel()">Cancel</button><button type="button" class="btn sm" onclick="chatEditSave()">Save</button></div></div>`;
+ const E=Array.isArray(m.edits)?m.edits:[];
+ let h=`<div class="cbb${cGifU(m.body)?' gb':''}">${cBody(m.body)}</div>`;
+ if(E.length){const open=CHV.has(String(m.id));h+=`<small><a class="cel" onclick="chatHist('${m.id}')">\u270E edited${m.edited_at?' '+esc(cTm(m.edited_at)):''} \u00b7 ${open?'hide':'view'} history (${E.length})</a></small>`;
+  if(open)h+=`<div class="ceh"><b>Edit history</b> (oldest first)${E.map((x,k)=>`<div style="margin-top:4px"><small>Version ${k+1} \u00b7 until ${esc(cTm(x.t))}</small><br>${esc(x.b)}</div>`).join('')}<div style="margin-top:4px"><small>Current version</small></div></div>`}
+ return h}
+window.chatHist=id=>{id=String(id);if(CHV.has(id))CHV.delete(id);else CHV.add(id);drawMsgs()};
+window.chatEditOpen=id=>{const m=CM.find(x=>String(x.id)===String(id));if(!m||m.tmp||m.from_id!==ME.sub||cIsUns(m.body)||cGifU(m.body))return;
+ if(!CED)return toast('Edit needs a one-time database update. Ask the Creator to open Chat and run the SQL.');
+ CEDIT=String(m.id);CEDV=m.body;drawMsgs();const t=$('cedt');if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length)}};
+window.chatEditCancel=()=>{CEDIT='';CEDV='';drawMsgs()};
+window.chatEditSave=async()=>{const m=CM.find(x=>String(x.id)===CEDIT);if(!m)return chatEditCancel();const v=String(CEDV||'').trim();
+ if(!v)return toast('The message cannot be empty. Use Unsend to remove it.');if(v===m.body)return chatEditCancel();
+ const old=m.body,oe=m.edits,oa=m.edited_at,now=new Date().toISOString();
+ m.edits=[...(Array.isArray(m.edits)?m.edits:[]),{b:old,t:now}];m.body=v;m.edited_at=now;CEDIT='';CEDV='';drawList();drawMsgs();
+ try{await api('/rest/v1/rpc/hrd_chat_edit',{method:'POST',body:JSON.stringify({p_id:m.id,p_body:v})});toast('Message edited \u2714')}
+ catch(e){m.body=old;m.edits=oe;m.edited_at=oa;drawList();drawMsgs();toast('Could not edit: '+(e.message||e))}};
+async function chatRefreshED(){if(!CED||!CM.length)return false;
+ const ids=CM.filter(m=>!m.tmp).map(m=>m.id);if(!ids.length)return false;const lo=Math.min(...ids);
+ const r=await api('/rest/v1/hrd_chat?select=id,body,edits,edited_at&id=gte.'+lo+'&edited_at=not.is.null'),by=new Map(r.map(x=>[x.id,x]));let ch=false;
+ CM.forEach(m=>{if(m.tmp)return;const x=by.get(m.id);if(x&&x.edited_at!==m.edited_at&&String(CEDIT)!==String(m.id)){m.body=x.body;m.edits=x.edits;m.edited_at=x.edited_at;ch=true}});return ch}
 function drawMsgs(){const el=$('cm');if(!el)return;const L=cMsgs(CP),g=CP==='all';let dv=false;
- el.innerHTML=L.length?L.map(m=>{const me=m.from_id===ME.sub,nw=!me&&CNEW.has(m.id)&&!dv&&(dv=true);return `${nw?'<div class="cdv"><span>New messages</span></div>':''}<div class="cg${me?' me':''}">${g&&!me?`<small>${esc(cname(m.from_id))}</small>`:''}<div class="cbb${cGifU(m.body)?' gb':''}">${cBody(m.body)}</div><small>${new Date(m.created_at).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}${me?' \u00b7 '+cSt(m):''}</small></div>`}).join(''):'<p class="empty" style="margin:auto">No messages yet. Say hello!</p>';
+ el.innerHTML=L.length?L.map(m=>{const me=m.from_id===ME.sub,nw=!me&&CNEW.has(m.id)&&!dv&&(dv=true);const un=cIsUns(m.body);return `${nw?'<div class="cdv"><span>New messages</span></div>':''}<div class="cg${me?' me':''}">${g&&!me?`<small>${esc(cname(m.from_id))}</small>`:''}${cBub(m,me,un)}<small>${new Date(m.created_at).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}${me&&!un?' \u00b7 '+cSt(m)+(m.tmp?'':(cGifU(m.body)?'':' \u00b7 <a class="cs" style="cursor:pointer;text-decoration:underline" onclick="chatEditOpen(\''+m.id+'\')" title="Change this message (the old version stays visible in the history)">Edit</a>')+' \u00b7 <a class="cs" style="cursor:pointer;text-decoration:underline" onclick="chatUnsend(\''+m.id+'\')" title="Remove this message for everybody">Unsend</a>'):''}</small></div>`}).join(''):'<p class="empty" style="margin:auto">No messages yet. Say hello!</p>';
  el.dataset.stick='1';el.scrollTop=el.scrollHeight}
 function chatPick(id){CP=id;CNEW=new Set(cUnreadIds(id));markSeen(id);drawList();drawHead();drawMsgs();chatBadge();const i=$('cin');i&&i.focus()}
 async function chatSend(){const i=$('cin'),t=i.value.trim();if(!t)return;i.value='';chatPopClose();await chatSendRaw(t)}
@@ -7874,7 +7924,9 @@ async function chatSendRaw(t){
 /* ---------- Emoji + GIF in the chat. A GIF is stored as the text "[gif]https://..." (no database change needed) ---------- */
 const GIPHY_KEY='G9aecFM7OT2yBCZZhoLiOkAvpkD6pm5Z';/* optional: put a free Giphy API key here (developers.giphy.com) so everybody can search GIFs; otherwise each user can save a key in the GIF box */
 const cGifU=b=>{const m=/^\[gif\](https:\/\/[^\s<>"']+)$/.exec(String(b==null?'':b).trim());return m?m[1]:''};
-const cPv=b=>cGifU(b)?'\u{1F5BC} GIF':String(b==null?'':b);
+const C_UNS='\u200b[unsent]\u200b';
+const cIsUns=b=>String(b==null?'':b)===C_UNS;
+const cPv=b=>cIsUns(b)?'\u{1F6AB} Message unsent':cGifU(b)?'\u{1F5BC} GIF':String(b==null?'':b);
 const cBody=b=>{const u=cGifU(b);return u?`<img class="cgif" src="${esc(u)}" alt="GIF" loading="lazy" referrerpolicy="no-referrer" onload="var q=document.getElementById('cm');if(q&&q.dataset.stick==='1')q.scrollTop=q.scrollHeight" onerror="this.outerHTML='<i>GIF not available</i>'">`:esc(b)};
 const EMO=[['Faces','\u{1F600} \u{1F603} \u{1F604} \u{1F601} \u{1F606} \u{1F605} \u{1F923} \u{1F602} \u{1F642} \u{1F609} \u{1F60A} \u{1F607} \u{1F970} \u{1F60D} \u{1F929} \u{1F618} \u{1F60B} \u{1F61B} \u{1F61C} \u{1F92A} \u{1F917} \u{1F914} \u{1F910} \u{1F610} \u{1F611} \u{1F636} \u{1F644} \u{1F60F} \u{1F634} \u{1F60C} \u{1F614} \u{1F62A} \u{1F924} \u{1F637} \u{1F912} \u{1F915} \u{1F975} \u{1F976} \u{1F635} \u{1F92F} \u{1F920} \u{1F973} \u{1F60E} \u{1F913} \u{1F615} \u{1F61F} \u{1F641} \u{1F62E} \u{1F632} \u{1F633} \u{1F97A} \u{1F622} \u{1F62D} \u{1F631} \u{1F616} \u{1F61E} \u{1F613} \u{1F629} \u{1F62B} \u{1F971} \u{1F624} \u{1F621} \u{1F620} \u{1F92C} \u{1F92D} \u{1FAE1} \u{1F972}'],
 ['Hands','\u{1F44D} \u{1F44E} \u{1F44C} \u270C\uFE0F \u{1F91E} \u{1F91F} \u{1F918} \u{1F919} \u{1F448} \u{1F449} \u{1F446} \u{1F447} \u261D\uFE0F \u270B \u{1F590}\uFE0F \u{1F596} \u{1F44B} \u{1F44F} \u{1F64C} \u{1F91D} \u{1F64F} \u{1F4AA} \u270D\uFE0F \u{1F440}'],
@@ -7925,8 +7977,8 @@ function chatToggle(){CW?chatClose():chatOpen()}
 function chatClose(){CW=false;const w=$('cw');w&&w.remove()}
 async function chatOpen(){if(CW)return;CW=true;try{if(window.Notification&&Notification.permission==='default')Notification.requestPermission()}catch(e){}
  const w=document.createElement('div');w.id='cw';w.className='no-print';
- w.innerHTML=`<div class="cwh"><b>Chat</b><label>My status <select id="cst" onchange="setStat(this.value)" style="font:inherit;padding:5px 9px;border:1px solid var(--ln2);border-radius:8px;background:var(--sf);color:var(--ink)"><option value="online">Online</option><option value="busy">Busy</option></select></label><button class="btn o sm" onclick="chatClose()">Close</button></div><div id="crb" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;background:#fff6dd;color:#7a5a00;font-size:13px;border-bottom:1px solid var(--ln)"><span style="flex:1">One-time database update needed (Seen/Unread tracking and account-wide Clear chat).</span><button class="btn o sm" onclick="copySql(CSQL)">📋 Copy SQL</button><button class="btn sm" onclick="chatReload()">I've run it — reload</button></div><div id="cwb" class="cwb"><p class="sub" style="padding:8px">Loading\u2026</p></div>`;
- document.body.appendChild(w);$('cst').value=stat();await chatLoad();if(!CW)return;const B=$('cwb');{const bn=$('crb');if(bn)bn.style.display=(CON&&(!CRB||!CHD)&&isAdm())?'flex':'none'}
+ w.innerHTML=`<div class="cwh"><b>Chat</b><label>My status <select id="cst" onchange="setStat(this.value)" style="font:inherit;padding:5px 9px;border:1px solid var(--ln2);border-radius:8px;background:var(--sf);color:var(--ink)"><option value="online">Online</option><option value="busy">Busy</option></select></label><button class="btn o sm" onclick="chatClose()">Close</button></div><div id="crb" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;background:#fff6dd;color:#7a5a00;font-size:13px;border-bottom:1px solid var(--ln)"><span style="flex:1">One-time database update needed (Seen/Unread tracking, account-wide Clear chat, Unsend and Edit).</span><button class="btn o sm" onclick="copySql(CSQL)">📋 Copy SQL</button><button class="btn sm" onclick="chatReload()">I've run it — reload</button></div><div id="cwb" class="cwb"><p class="sub" style="padding:8px">Loading\u2026</p></div>`;
+ document.body.appendChild(w);$('cst').value=stat();await chatLoad();if(!CW)return;const B=$('cwb');{const bn=$('crb');if(bn)bn.style.display=(CON&&(!CRB||!CHD||!CUS||!CED)&&isAdm())?'flex':'none'}
  if(!CON){B.style.display='block';return B.innerHTML=`<p class="sub">The chat table must be created first.</p><div class="panel" style="max-width:none"><h3>Run this in Supabase \u2192 SQL Editor</h3><pre style="white-space:pre-wrap;font-size:12px;background:#f3f5f9;padding:12px;border-radius:8px;max-height:260px;overflow:auto">${esc(CSQL)}</pre>${CERR?`<p class="sub" style="font-size:12px">Last error: ${esc(CERR)}</p>`:''}<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn o" onclick="copySql(CSQL)">\u{1F4CB} Copy SQL</button><button class="btn" onclick="chatReload()">I've run it \u2014 reload</button></div></div>`}
  B.innerHTML=`<div class="chat"><div id="cl" class="cl"></div><div class="cp"><div id="ch" class="chd"></div><div id="cm" class="cms"></div><div class="cin"><button type="button" class="btn o cem" title="Emoji" onclick="chatEmoji(event)">\u{1F60A}</button><button type="button" class="btn o cem gf" title="GIF" onclick="chatGif(event)">GIF</button><textarea id="cin" rows="1" maxlength="2000" placeholder="Type a message\u2026 (Enter to send)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend()}"></textarea><button class="btn" onclick="chatSend()">Send</button></div></div></div>`;
  if(CP!=='all'&&!CU.some(u=>u.user_id===CP))CP='all';CNEW=new Set(cUnreadIds(CP));markSeen(CP);drawList();drawHead();drawMsgs();chatBadge()}
