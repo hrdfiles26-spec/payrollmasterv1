@@ -2927,7 +2927,10 @@ const catOf=e=>SEP.includes(e.emp_status)?e.emp_status:isExtra(e)?'Extra':stage(
 const DCATS=['Regular','Probationary','Training','Extra','End of Contract','Resigned','AWOL','Terminated'];
 const roleLbl=()=>SUPER||(MYA&&MYA.role==='admin')?'Creator':MYA?(ROLES[MYA.role]||[MYA.role])[0]:'';
 function b0(){try{rqBadge()}catch(e){}const n=(can('sub')?R.filter(r=>r.status==='pending').length:0)+(can('emp')?new Set(alerts().map(a=>a.i)).size:0);const el=$('b0');if(el)el.textContent=n||''}
-const myMeta=()=>({st:stat(),email:ME.email||'',name:(MYA&&MYA.full_name)||'',role:roleLbl(),at:new Date().toISOString()});
+const myMeta=()=>({st:stat(),email:ME.email||'',name:(MYA&&MYA.full_name)||'',role:roleLbl(),rk:SUPER?'admin':((MYA&&MYA.role)||''),v:2,at:new Date().toISOString()});
+/* the role shown for another online user comes from his role KEY (rk), so it always follows the current names; a browser still running the old file sends no key, only the old label -> translate it */
+const OLDR={'Admin':'Creator','Staff':'Admin','HR Staff':'HR Head'};
+const roleOfM=m=>{if(m&&m.rk&&typeof ROLES!=='undefined'&&ROLES[m.rk])return ROLES[m.rk][0];const r=String((m&&m.role)||'');return(m&&m.v===2)?r:(OLDR[r]||r)}
 function presMsg(d,send){if(d.topic!=='realtime:hrd')return;
  if(d.event==='phx_reply'&&d.payload&&d.payload.status==='ok'&&!PT){PT=true;send('realtime:hrd','presence',{type:'presence',event:'track',payload:myMeta()})}
  else if(d.event==='presence_state'){PRES=d.payload||{};presReady=true;refreshOnline();b0()}
@@ -2936,7 +2939,7 @@ function presMsg(d,send){if(d.topic!=='realtime:hrd')return;
   Object.keys(J).forEach(k=>{const was=!!PRES[k];if(!was)PRES[k]={metas:[]};PRES[k].metas=PRES[k].metas.concat(J[k].metas||[]);
    if(!was&&k!==ME.sub&&presReady){const m=(J[k].metas||[])[0]||{};toast('🟢 '+(m.name||m.email||'A user')+' signed in')}});
   refreshOnline()}}
-function onlineUsers(){const L=[];Object.entries(PRES).forEach(([k,v])=>{const ms=v.metas||[],m=ms[ms.length-1]||{};L.push({k,email:m.email||'',name:m.name||'',role:m.role||'',st:m.st||'online',at:m.at,n:ms.length})});
+function onlineUsers(){const L=[];Object.entries(PRES).forEach(([k,v])=>{const ms=v.metas||[],m=ms[ms.length-1]||{};L.push({k,email:m.email||'',name:m.name||'',role:roleOfM(m),st:m.st||'online',at:m.at,n:ms.length})});
  if(!L.some(u=>u.k===ME.sub))L.unshift({k:ME.sub,email:ME.email||'',name:(MYA&&MYA.full_name)||'',role:roleLbl(),st:stat(),at:null,n:1});
  L.sort((a,b)=>(b.k===ME.sub)-(a.k===ME.sub)||(a.name||a.email).localeCompare(b.name||b.email));return L}
 const dn=(name,email)=>String(name||'').trim()||String(email||'').split('@')[0]||'user';
