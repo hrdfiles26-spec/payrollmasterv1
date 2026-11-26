@@ -2168,8 +2168,18 @@ async function enter(){
  if(!SUPER&&MYA&&!MYA.active){alert('Your account is disabled. Please contact the Creator.');return logout()}
  const f=applyNav();try{if(typeof tick==='function')tick()}catch(e){}try{sndUI()}catch(e){}
  /* every signed-in user lands on the Dashboard first (it can be viewed by everyone), even if they only have Attendance / Time Mark / Monthly / Benefits access */
- go('dash');setTimeout(()=>{try{autoSync()}catch(e){}},4000);
+ go('dash');setTimeout(()=>{try{autoSync()}catch(e){}},4000);setTimeout(()=>{dbSizeCheck().catch(()=>{})},8000);
  try{can('att')&&window.atRvBoot&&window.atRvBoot()}catch(e){}if(can('emp'))loadND().then(()=>loadE(true));if(can('act'))actPoll();setInterval(()=>can('act')&&actPoll(),240000);can('tmk')&&tmNotifSync(true);can('tma')&&tmDecSync(true);Promise.all([pdLoad().catch(()=>0),chatLoad()]).then(()=>{chatBadge();liveStart()})}
+/* Warns the Admin when the database is getting full (free quota 500 MB). One read per day per browser. Disk IO is not readable from the app: check it in the Supabase dashboard. */
+async function dbSizeCheck(){
+ if(!(SUPER||(MYA&&MYA.active&&MYA.role==='admin')))return;
+ const day=new Date().toDateString();let c={};try{c=JSON.parse(localStorage.hrd_dbsize||'{}')||{}}catch(e){}
+ if(c.day!==day){let n;try{n=Number(await api('/rest/v1/rpc/hrd_db_size',{_quiet:true}))}catch(e){return}if(!(n>0))return;c={day:day,b:n};try{localStorage.hrd_dbsize=JSON.stringify(c)}catch(e){}}
+ const mb=c.b/1048576,old=$('dbwarn');if(old)old.remove();if(mb<350)return;
+ const red=mb>=450,d=document.createElement('div');d.id='dbwarn';d.className='no-print';d.setAttribute('role','alert');
+ d.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:95;width:min(620px,calc(100vw - 32px));padding:13px 16px;border-radius:12px;font-size:13.5px;line-height:1.5;display:flex;gap:12px;align-items:center;box-shadow:0 12px 32px #0005;'+(red?'background:#fbe9e6;color:#8c2620;border:2px solid #b3392f':'background:#fff3d6;color:#76520a;border:2px solid #b0792a');
+ d.innerHTML='<span style="flex:1"><b>'+(red?'\u{1F6A8} The database is almost full':'\u26A0\uFE0F The database is getting full')+':</b> '+mb.toFixed(0)+' MB of 500 MB ('+Math.round(mb/5)+'%). Please contact '+esc(FULL_CONTACT)+'.</span><button class="btn o sm" onclick="this.parentNode.remove()">Close</button>';
+ document.body.appendChild(d)}
 function applyNav(){ADM=can('usr');{const a=$('nEv');if(a)a.style.display=(can('evl')||(MYA&&MYA.active))?'':'none'}{const a=$('ndel');if(a)a.style.display=SUPER?'none':''}
  ['req','sub','emp','pay','act','usr'].forEach((k,j)=>$('n'+(j+1)).style.display=can(k)?'':'none');$('n7').style.display=isAdm()?'':'none';{const a=$('n2');if(a&&(rqCan('chk')||rqCan('apr')))a.style.display=''}rqNavSync();['addc','m13'].forEach((k,j)=>{const a=$('n'+(9+j));a.style.display='';a.classList.toggle('lkd',!can(k));a.title=can(k)?'':'Needs permission from the admin'});{const a=$('n14');if(a)a.style.display=can('att')?'':'none';}{const a=$('n16');if(a)a.style.display=can('att')?'':'none';}{const a=$('n15');if(a)a.style.display=(can('psm')&&!can('pay'))?'':'none';}{const a=$('n19');if(a)a.style.display=can('att')?'':'none';}atNavSync(null);{const a=$('n11');if(a)a.style.display=can('tmk')?'':'none';}{const a=$('n12');if(a)a.style.display=can('mg')?'':'none';}{const a=$('n13');if(a)a.style.display=can('ben')?'':'none';}
  const rl=SUPER||(MYA&&MYA.role==='admin')?'Admin':MYA?(ROLES[MYA.role]||[MYA.role])[0]:'';
@@ -10571,7 +10581,7 @@ function mgHistHtml(){
 </script>
 <script>
 /* build 11-17-c: the first time this build is opened, clear the old saved copy of the app (service worker + cache) and reload once, so the newest index.html is the one that runs */
-(function(){var B='11-26-entf';try{if(localStorage.getItem('hrdBuild')===B)return;localStorage.setItem('hrdBuild',B);if(sessionStorage.getItem('hrdRl'))return;sessionStorage.setItem('hrdRl','1');if(!(navigator.serviceWorker&&location.protocol.indexOf('http')===0))return;navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}).then(function(){return window.caches?caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}):0}).then(function(){location.reload()}).catch(function(){})}catch(e){}})();
+(function(){var B='11-26-lvnames';try{if(localStorage.getItem('hrdBuild')===B)return;localStorage.setItem('hrdBuild',B);if(sessionStorage.getItem('hrdRl'))return;sessionStorage.setItem('hrdRl','1');if(!(navigator.serviceWorker&&location.protocol.indexOf('http')===0))return;navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}).then(function(){return window.caches?caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}):0}).then(function(){location.reload()}).catch(function(){})}catch(e){}})();
 </script>
 <script>
 if(location.protocol.indexOf('http')===0&&(function(){try{return !!navigator.serviceWorker}catch(e){return false}})()){
@@ -12519,17 +12529,23 @@ let _t=0;window.PSMQ=v=>{PS.q=v;clearTimeout(_t);_t=setTimeout(()=>{psmDraw();co
    Farm departments = 15 VL + 15 SL, Management = 10 VL + 10 SL (changeable: defaults, or per employee). Saved in hrd_attendance under the name "_lv|<year>" (no new SQL needed). ===== */
 (function(){
 const KEY=y=>'_lv|'+y,Y0=new Date().getFullYear();
-const LV={y:String(Y0),d:'__all',q:'',D:null,bad:false,emp:''};
+/* Excel leave sheets (VL + SL 2026): NOT stored in this file. They are in table hrd_leave_excel (SQL: hrd_leave_excel_2026_v2.sql), readable only after login.
+   One record: n=name, x=department sheet, sec=section, h=date hired, vl/sl={d:[[date,days]],c:consumed,nt:notes,cr:credits} */
+const LVXY='2026',LVXN=380;let LVX=[],LVXP=null;
+const LV={y:String(Y0),d:'',only:false,defOpen:false,q:'',D:null,bad:false,emp:'',t:'vl'};
 const edit=()=>!!(SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||MYA.role==='hr'||MYA.role==='payroll'||can('att'))));
 const me=()=>{try{return(MYA&&MYA.full_name)||((ME&&ME.user_metadata)||{}).full_name||(ME&&ME.email)||''}catch(e){return''}};
-const isM=d=>{try{return isMg(d)||isMgt(d)}catch(e){return/management/i.test(String(d||''))}};
+const isM=d=>{if(/^\s*general services\s*$/i.test(String(d||'')))return true;try{return isMg(d)||isMgt(d)}catch(e){return/management/i.test(String(d||''))}};
 const num=v=>{const n=parseFloat(String(v==null?'':v).replace(',','.'));return isFinite(n)?n:0};
 const r2=n=>Math.round(n*100)/100;
-const blank=()=>({def:{farm:{vl:15,sl:15},mg:{vl:10,sl:10}},cr:{},ent:[]});
-const norm=o=>{o=o&&typeof o==='object'?o:{};const b=blank(),df=o.def||{};return{def:{farm:Object.assign({},b.def.farm,df.farm),mg:Object.assign({},b.def.mg,df.mg)},cr:o.cr&&typeof o.cr==='object'?o.cr:{},ent:Array.isArray(o.ent)?o.ent:[]}};
+const blank=()=>({def:{farm:{vl:8,sl:7},br:{vl:15,sl:7},mg:{vl:10,sl:10}},cr:{},ent:[],hx:[],same:{},dn:{},ln:{},gone:{},sc:{}});
+const norm=o=>{o=o&&typeof o==='object'?o:{};const b=blank(),df=o.def||{};const ob=k=>o[k]&&typeof o[k]==='object'&&!Array.isArray(o[k])?o[k]:{};return{def:{farm:Object.assign({},b.def.farm,df.farm&&+df.farm.vl===15&&+df.farm.sl===15?null:df.farm),br:Object.assign({},b.def.br,df.br),mg:Object.assign({},b.def.mg,df.mg)},cr:o.cr&&typeof o.cr==='object'?o.cr:{},ent:Array.isArray(o.ent)?o.ent:[],hx:Array.isArray(o.hx)?o.hx:[],same:ob('same'),dn:ob('dn'),ln:ob('ln'),gone:ob('gone'),sc:ob('sc')}};
 const allowed=()=>{if(SUPER||!MYA||MYA.role==='admin')return null;const a=(MYA.pages||[]).filter(x=>String(x).indexOf('attd:')===0).map(x=>String(x).slice(5));return a.length?a:null};
-const emp=id=>(Array.isArray(STF)?STF:[]).find(s=>String(s.id)===String(id));
-const cls=s=>isM(s.dept)?'mg':'farm';
+const emp0=id=>{const s=(Array.isArray(STF)?STF:[]).find(s=>String(s.id)===String(id));if(s)return s;const p=((LV.D||{}).pp||{})[String(id)];return p?{id:String(id),name:p.n,dept:p.dept,xl:1}:null};
+/* GENERAL SERVICES: Management employees whose section (or Excel sheet) in the leave Excel starts with "General Services / Gen. Services" are shown as their own department, apart from Management */
+const GSR=/^\s*gen(eral|\.)?\s*serv/i,gsOf=(s,key,D)=>!!D&&isM(s.dept)&&!/^\s*general services\s*$/i.test(String(s.dept||''))&&(GSR.test(String((D.sec||{})[key]||''))||GSR.test(String((D.xs||{})[key]||'')));
+const emp=id=>{let s=emp0(id);const n=((LV.D||{}).dn||{})[String(id)];if(s&&gsOf(s,String(id),LV.D))s=Object.assign({},s,{dept:'GENERAL SERVICES'});return s&&n?Object.assign({},s,{name:n}):s};
+const cls=s=>isM(s.dept)?'mg':/^\s*broiler\b/i.test(String(s.dept||''))?'br':'farm';
 const fd=s=>{const p=String(s||'').split('-');if(p.length<3)return s||'';return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})};
 const fr=e=>e.t==='il'&&!e.to?fd(e.f)+' – ongoing':(e.to&&e.to!==e.f?fd(e.f)+' – '+fd(e.to):fd(e.f));
 const endOf=e=>e.t==='il'&&!e.to?'9999-12-31':(e.to||e.f);
@@ -12545,12 +12561,12 @@ async function mut(y,fn){
   const c=await fetchY(y);fn(c.d);const now=new Date().toISOString();let ok=false;
   if(c.u){const q=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(KEY(y))+'&updated_at=eq.'+encodeURIComponent(c.u),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({data:{lv:c.d},updated_at:now})});ok=Array.isArray(q)&&q.length>0}
   else{const q=await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=ignore-duplicates,return=representation'},body:JSON.stringify({name:KEY(y),data:{lv:c.d},updated_at:now})});ok=Array.isArray(q)&&q.length>0}
-  if(ok){if(String(y)===LV.y)LV.D=c.d;return c.d}
+  if(ok){if(String(y)===LV.y)LV.D=ovl(c.d,y);return c.d}
  }
  throw new Error('Someone else is saving the leave records at the same time. Please try again.')}
 
-function cred(s,D){const c=(D.cr||{})[String(s.id)]||{},df=D.def[cls(s)];return{vl:c.vl!=null?num(c.vl):num(df.vl),sl:c.sl!=null?num(c.sl):num(df.sl),cv:c.vl!=null,cs:c.sl!=null}}
-function used(id,D){const u={vl:0,sl:0},n=[];D.ent.forEach(e=>{if(String(e.e)===String(id)&&KN[e.t]){if(u[e.t]!=null)u[e.t]+=num(e.n);n.push(e)}});return{vl:r2(u.vl),sl:r2(u.sl),n:n}}
+function cred(s,D){const c=(D.cr||{})[String(s.id)]||{};return{vl:c.vl!=null?num(c.vl):autoDef(s,D,'vl'),sl:c.sl!=null?num(c.sl):autoDef(s,D,'sl'),cv:c.vl!=null,cs:c.sl!=null,el:eligOf(s,D)}}
+function used(id,D){const u={vl:0,sl:0},n=[];D.ent.forEach(e=>{if(String(e.e)===String(id)&&KN[e.t]){if(u[e.t]!=null)u[e.t]+=num(e.n);n.push(e)}});const k=(D.cons||{})[String(id)]||{};u.vl+=num(k.vl);u.sl+=num(k.sl);return{vl:r2(u.vl),sl:r2(u.sl),n:n}}
 function depts(){const S=Array.isArray(STF)?STF:[],al=allowed();let L=[...new Set(S.map(s=>s.dept).filter(Boolean))];if(al)L=L.filter(x=>al.includes(x));const o=x=>{let i=-1;try{i=PORD.indexOf(x)}catch(e){}return i<0?999:i};return L.sort((a,b)=>o(a)-o(b)||String(a).localeCompare(String(b)))}
 const balCls=b=>b<0?'neg':b===0?'zero':'ok';
 /* Every department (Farm and Management): blank boxes 1-15 per leave type; every leave date fills one box (more rows of 15 appear if there are more than 15 dates) */
@@ -12561,144 +12577,459 @@ function bxRow(s,u){const ot=u.n.filter(e=>e.t==='ml'||e.t==='il').sort((a,b)=>S
  return`<tr class="lv-bxr"><td></td><td colspan="8">${bxGrp(u.n,'vl')}${bxGrp(u.n,'sl')}${ot.length?`<div class="lv-ot">${ot.map(e=>`<span class="tg ${esc(e.t)}">${esc(e.t.toUpperCase())}</span> ${esc(fr(e))}`).join(' &nbsp;&nbsp; ')}</div>`:''}</td></tr>`}
 
 const CSS=`<style>
-:is(.lvp){max-width:1120px}
-.lvp h1{margin:0 0 4px;font-family:'Playfair Display',Georgia,serif;font-weight:600;font-size:clamp(26px,4vw,34px);letter-spacing:.2px;color:var(--h)}
-.lvp .sub{margin:0;color:var(--mu);font-size:14px}
-.lv-rule{width:64px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--au),transparent);margin:14px 0 22px}
-.lv-bar{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-bottom:18px;padding:14px 16px;background:var(--sf);border:1px solid var(--ln);border-radius:16px;box-shadow:0 1px 2px #12305c0f,0 12px 28px -20px #12305c55}
-.lv-bar label{display:flex;flex-direction:column;gap:5px;font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--mu)}
-.lv-bar label:last-child{flex:1;min-width:200px}
-.lv-bar .fi{margin:0;width:100%;min-width:170px;border-radius:10px;font-size:14px;letter-spacing:0;text-transform:none;font-weight:400}
-.lv-def{background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:16px 18px;margin-bottom:26px;font-size:13px;box-shadow:0 1px 2px #12305c0f,0 12px 28px -20px #12305c55}
-.lv-def>b{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weight:600;color:var(--h)}
-.lv-def .r{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px;margin-top:12px}
-.lv-def .r>span{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:12px 14px;border-radius:12px;background:var(--sf2);border:1px solid var(--ln);border-left:3px solid var(--au);color:var(--ink2)}
-.lv-def input{width:60px;text-align:center;padding:5px 6px;border:1px solid var(--ln2);border-radius:8px;background:var(--sf);color:var(--ink);margin:0 6px 0 2px;font-weight:600}
-.lv-def input:focus,.lv-in:focus{outline:2px solid color-mix(in srgb,var(--au) 55%,transparent);outline-offset:1px}
-.lv-def small{display:block;color:var(--mu);margin-top:12px;line-height:1.55;font-size:12.5px}
-.lv-dept{margin-bottom:34px}
-.lv-dept h2{font-family:'Playfair Display',Georgia,serif;font-weight:600;font-size:19px;color:var(--h);margin:0 0 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.lv-dept h2::before{content:"";width:4px;height:20px;border-radius:2px;background:var(--au)}
-.lv-dept h2 small{font-family:'DM Sans',system-ui,sans-serif;font-weight:600;color:var(--mu);font-size:11.5px;padding:3px 10px;border-radius:999px;background:var(--soft);letter-spacing:.2px}
-.lv-w{overflow-x:auto;border:1px solid var(--ln);border-radius:16px;background:var(--sf);box-shadow:0 1px 2px #12305c0f,0 14px 32px -22px #12305c66}
-.lv-t{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px}
-.lv-t th,.lv-t td{padding:9px 12px;border-bottom:1px solid var(--ln);text-align:center;white-space:nowrap}
-.lv-t tbody tr:last-child td{border-bottom:0}
-.lv-t thead th{background:var(--soft);font-weight:700;font-size:10.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--ink2);padding-top:11px;padding-bottom:11px}
-.lv-t thead th.gv{color:color-mix(in srgb,#2f6fbf 78%,var(--ink));box-shadow:inset 0 3px 0 #2f6fbf}
-.lv-t thead th.gs{color:color-mix(in srgb,#c2573a 78%,var(--ink));box-shadow:inset 0 3px 0 #c2573a}
-.lv-t tr.s th{font-weight:600;color:var(--mu);font-size:10px;background:color-mix(in srgb,var(--soft) 60%,var(--sf))}
-.lv-t td.nm{text-align:left;font-weight:600;color:var(--ink);min-width:210px;white-space:normal}.lv-t th.nm{text-align:left}
-.lv-t .g{border-left:1px solid var(--ln)}
-.lv-t td.ix{color:var(--mu);width:38px;font-size:12px;font-variant-numeric:tabular-nums}
-.lv-t tbody td{font-variant-numeric:tabular-nums;transition:background .15s}
-.lv-t tbody tr:hover>td{background:color-mix(in srgb,var(--soft) 55%,transparent)}
-.lv-t tbody tr.lv-bxr:hover>td{background:transparent}
-.lv-in{width:62px;text-align:center;padding:5px 6px;border:1px solid var(--ln2);border-radius:8px;background:var(--sf2);color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.lvp{max-width:none;--vl:#2c66ad;--sl:#a9533b;--np:#b3362d}
+html[data-theme=dark] .lvp{--vl:#4d8bd6;--sl:#c96f54;--np:#e0675d}
+#main .lvz h1,.lvz h1{margin:0;font-family:'Playfair Display',Georgia,serif;font-weight:600;font-size:clamp(28px,3.4vw,40px);line-height:1.15;color:var(--h)}
+.lvz-lead{margin:8px 0 0;color:var(--mu);font-size:14.5px;line-height:1.6;max-width:62ch}
+.lvz-head{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end;justify-content:space-between;padding-bottom:20px;margin-bottom:24px;border-bottom:1px solid var(--ln);position:relative}
+.lvz-head::after{content:"";position:absolute;left:0;bottom:-1px;width:72px;height:2px;background:var(--au)}
+.lvz-back{display:inline-block;background:none;border:0;padding:0;margin:0 0 12px;color:var(--mu);font-size:13.5px;font-weight:600}
+.lvz-back:hover{color:var(--h)}
+.lvz-ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.lvz-head>.lvz-ctl{flex:1 1 520px;justify-content:flex-end}
+@media(max-width:640px){.lvz-head>.lvz-ctl{flex-basis:100%;justify-content:flex-start}}
+.lvz-f{height:40px;margin:0;padding:0 14px;border:1px solid var(--ln2);border-radius:10px;background:var(--sf);color:var(--ink);font:inherit;font-size:14px}
+input.lvz-f{width:min(280px,100%)}
+.lvz-seg{display:inline-flex;padding:3px;border:1px solid var(--ln2);border-radius:12px;background:var(--sf2)}
+.lvz-seg button{border:0;background:none;height:32px;padding:0 16px;border-radius:9px;color:var(--ink2);font-size:13.5px;font-weight:600}
+.lvz-seg button.on.vl{background:var(--vl);color:#fff}.lvz-seg button.on.sl{background:var(--sl);color:#fff}
+.lvz :is(button,input,select,summary):focus-visible{outline:2px solid var(--au);outline-offset:2px}
+.lvz-grp{margin:0 0 34px}
+.lvz-grp h2{margin:0 0 14px;font-family:'Playfair Display',Georgia,serif;font-size:19px;font-weight:600;color:var(--h)}
+.lvz-idx{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.lvz-dp{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:112px;text-align:left;padding:18px 20px;background:var(--sf);border:1px solid var(--ln);border-radius:14px;color:var(--ink);transition:border-color .15s,background .15s}
+.lvz-dp:hover{border-color:var(--au);background:color-mix(in srgb,var(--au) 6%,var(--sf))}
+.lvz-dp b{font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:600;color:var(--h);line-height:1.3}
+.lvz-dp span{font-size:13px;color:var(--mu);margin-top:auto}
+.lvz-dp span em{font-style:normal;font-weight:700;color:var(--np)}
+.lvz-bar{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.lvz-key{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--mu);align-items:center}
+.lvz-key span{display:inline-flex;align-items:center;gap:7px}.lvz-key i{width:22px;height:14px;border-radius:4px}
+.lvz-only{height:36px;padding:0 15px;border-radius:999px;border:1px solid color-mix(in srgb,var(--np) 45%,var(--ln));background:var(--sf);color:var(--np);font-size:13px;font-weight:700}
+.lvz-only.on{background:var(--np);border-color:var(--np);color:#fff}
+.lvz-list{background:var(--sf);border:1px solid var(--ln);border-radius:16px}
+.lvz-row{display:grid;grid-template-columns:minmax(200px,260px) minmax(0,1fr) 76px 52px 80px 104px;grid-template-areas:"who days cr us bal act";column-gap:14px;align-items:center;padding:13px 18px;border-top:1px solid var(--ln)}
+.lvz-row:hover{background:color-mix(in srgb,var(--soft) 45%,transparent)}
+.lvz-th{position:sticky;top:0;z-index:5;border-top:0;border-radius:15px 15px 0 0;background:var(--soft);padding-top:11px;padding-bottom:11px;font-size:12.5px;font-weight:700;color:var(--ink2)}
+.lvz-th:hover{background:var(--soft)}
+.lvz-who{grid-area:who;min-width:0}.lvz-days{grid-area:days;min-width:0}.lvz-cr{grid-area:cr;text-align:center}.lvz-us{grid-area:us;text-align:center}.lvz-bal{grid-area:bal;text-align:center}.lvz-act{grid-area:act;display:flex;gap:6px;justify-content:flex-end}
+.lvz-nm{display:block;background:none;border:0;padding:0;text-align:left;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--ink)}
+.lvz-nm:hover{color:var(--lk);text-decoration:underline;text-underline-offset:3px}
+.lvz-meta{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:3px;font-size:12px;color:var(--mu)}
+.lvz-tag{padding:1px 8px;border-radius:999px;font-size:10.5px;font-weight:700;border:1px solid var(--ln2);color:var(--mu)}
+.lvz-tag.warn{border-color:#d9a21b;color:#8a6410;background:#fdf3d7}
+html[data-theme=dark] .lvz-tag.warn{background:#2c2410;color:#f1d48a;border-color:#6d561c}
+.lvz-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,58px));gap:5px}
+.lvz-s{height:28px;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lvz-s.free{border:1px dashed var(--ln2)}
+.lvz-s.vl{background:color-mix(in srgb,var(--vl) 13%,var(--sf));color:color-mix(in srgb,var(--vl) 65%,var(--ink));box-shadow:inset 0 -2px 0 var(--vl)}
+.lvz-s.sl{background:color-mix(in srgb,var(--sl) 13%,var(--sf));color:color-mix(in srgb,var(--sl) 65%,var(--ink));box-shadow:inset 0 -2px 0 var(--sl)}
+.lvz-s.cn{background:#fdf0c4;color:#6f5200;font-size:10px}
+.lvz-s.np{background:var(--np);color:#fff}
+.lvz-hd{cursor:grab;color:var(--mu);user-select:none;padding:0 3px;font-size:15px;line-height:1;letter-spacing:-2px}
+.lvz-hd:active{cursor:grabbing}
+.lvz-mv{height:24px;max-width:190px;font-size:11.5px;border:1px solid var(--ln2);border-radius:6px;background:var(--sf);color:var(--ink);padding:0 4px}
+.lvz-row.dragging{opacity:.4}
+.lvz-over{outline:2px dashed var(--au);outline-offset:-2px}
+.lvz-nmw{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.lvz-nm.sp{display:inline-block;padding:1px 8px;border-radius:7px}
+.lvz-nm.sp:hover{color:inherit}
+.lvz-sep{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.lvz-row.sep{background:color-mix(in srgb,#b02a2a 6%,transparent)}
+.lvz-row.nw{background:color-mix(in srgb,#d9a21b 6%,transparent)}
+.lvz-rm{margin-top:6px;font-size:12px;color:var(--mu);line-height:1.5}
+.lvz-num{font-size:14px;font-variant-numeric:tabular-nums}
+.lvz-act .btn{height:32px;padding:0 11px;border-radius:9px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.lvz-sec{padding:10px 18px;border-top:1px solid var(--ln);background:var(--sf2);font-family:'Playfair Display',Georgia,serif;font-size:14px;font-weight:600;color:var(--h)}
+.lvz-lbl{display:none}
+button.lvz-tag{background:#fdf3d7;cursor:pointer}
+.lvz-check{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:16px;padding:12px 16px;border-radius:12px;border:1px solid color-mix(in srgb,#d9a21b 55%,var(--ln));background:color-mix(in srgb,#d9a21b 9%,var(--sf));font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.lvz-it{margin-top:14px;padding:14px 16px;border:1px solid var(--ln);border-radius:14px}
+.lvz-ith,.lvz-mt{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.lvz-ith b{font-size:14.5px}.lvz-mt{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--sf2);font-size:13.5px;font-weight:600}.lvz-mt .lvz-meta{font-weight:400}
+.lvz-oth{margin-top:10px;width:100%}
+.lvp .lvz-del{color:var(--np,#b3362d)}
+.lvz-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:16px 0}
+.lvz-cmp{border:1px solid var(--ln);border-radius:14px;padding:14px 16px;background:var(--sf2)}.lvz-cmp b{font-size:14.5px}
+.lvz-cmp dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:10px 0 0;font-size:13px}.lvz-cmp dt{color:var(--mu)}.lvz-cmp dd{margin:0;font-weight:600}
+.lvz-pick{border:1px solid var(--au);border-radius:14px;padding:12px 16px;margin:0}.lvz-pick legend{font-weight:700;font-size:13.5px;color:var(--h);padding:0 6px}
+.lvz-pick label{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:7px 0;font-size:14px;font-weight:600}.lvz-pick .lvz-f{flex:1;min-width:220px}
+.lvz-title{margin:30px 0 12px;font-family:'Playfair Display',Georgia,serif;font-size:19px;color:var(--h)}
+.lvz details{margin-top:16px;background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:13px 18px;font-size:13.5px;color:var(--ink2)}
+.lvz summary{cursor:pointer;font-weight:700;color:var(--h)}
+.lvz details ul{margin:10px 0 0;padding-left:18px;columns:2 240px;column-gap:28px;line-height:1.7}
+.lvz-def{display:flex;flex-wrap:wrap;gap:12px 32px;margin-top:14px}
+.lvz-def label{display:inline-flex;align-items:center;gap:6px;margin-left:12px}
+.lvz-def input{width:64px;height:34px;text-align:center;border:1px solid var(--ln2);border-radius:8px;background:var(--sf2);color:var(--ink);font:inherit;font-weight:600}
+.lvz details small{display:block;margin-top:12px;color:var(--mu);line-height:1.6;max-width:70ch}
+.lv-in{width:62px;text-align:center;padding:6px;border:1px solid var(--ln2);border-radius:8px;background:var(--sf2);color:var(--ink);font:inherit;font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums}
 .lv-in.c{border-color:var(--au);background:color-mix(in srgb,var(--au) 10%,var(--sf2));box-shadow:inset 0 0 0 1px var(--au)}
 .lv-in:disabled{opacity:.75}
-.lv-b{display:inline-block;min-width:36px;padding:2px 10px;border-radius:999px;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.5}
+.lv-b{display:inline-block;min-width:40px;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.5}
 .lv-b.ok{color:#1b6b43;background:#e3f4ea}.lv-b.zero{color:#8a5a0a;background:#fdf0d2}.lv-b.neg{color:#a3302a;background:#fbe0de}
 html[data-theme=dark] .lv-b.ok{color:#7fe0a8;background:#12382a}html[data-theme=dark] .lv-b.zero{color:#f1c668;background:#3b2f10}html[data-theme=dark] .lv-b.neg{color:#ff9d96;background:#45191a}
-.lv-n{display:inline-block;margin-left:6px;min-width:18px;padding:0 6px;border-radius:9px;background:var(--au);color:#fff;font-size:11px;font-weight:700;line-height:18px}
-.lv-t td.act{text-align:right}.lv-t td.act .btn{margin-left:4px;border-radius:9px}
-.lv-emp{color:var(--mu);padding:26px;text-align:center;background:var(--sf);border:1px dashed var(--ln2);border-radius:14px}
-.lv-warn{background:#fff6dc;color:#7a5600;border:1px solid #ecc766;border-left:4px solid #d9a21b;border-radius:12px;padding:11px 14px;margin-bottom:16px;font-size:13px}
+.lv-emp{color:var(--mu);padding:34px;text-align:center;background:var(--sf);border:1px dashed var(--ln2);border-radius:14px}
+.lv-warn{background:#fff6dc;color:#7a5600;border:1px solid #ecc766;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13.5px;line-height:1.6}
 html[data-theme=dark] .lv-warn{background:#2c2410;color:#f1d48a;border-color:#5d4a17}
 .lv-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:16px 0}
-.lv-sum div{border:1px solid var(--ln);border-radius:14px;padding:12px 14px;background:var(--sf2);border-top:3px solid #2f6fbf}
-.lv-sum div+div{border-top-color:#c2573a}
-.lv-sum b{display:block;font-size:10.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--mu);margin-bottom:6px}.lv-sum span{font-size:13px;color:var(--ink2)}
-.lv-fm{border:1px solid var(--ln);border-radius:14px;padding:14px;margin:14px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end;background:var(--sf2)}
-.lv-fm>b{grid-column:1/-1;font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weight:600;color:var(--h)}
-.lv-fm label{display:flex;flex-direction:column;gap:5px;font-size:10.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--mu)}.lv-fm .fi{margin:0;width:100%;border-radius:10px;text-transform:none;letter-spacing:0;font-weight:400;font-size:14px}.lv-fm .w{grid-column:1/-1}
-.lv-l{width:100%;border-collapse:collapse;font-size:13px}.lv-l th,.lv-l td{padding:8px 10px;border-bottom:1px solid var(--ln);text-align:left;vertical-align:top}.lv-l th{font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--mu);font-weight:700}
-.lv-l .tg,.lv-t .tg{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:700;letter-spacing:.4px;color:#fff}
-.lv-l .tg.vl,.lv-t .tg.vl{background:#2f6fbf}.lv-l .tg.sl,.lv-t .tg.sl{background:#c2573a}.lv-l .tg.ml,.lv-t .tg.ml{background:#8e4fc0}.lv-l .tg.il,.lv-t .tg.il{background:#5f6b7d}
-.lv-t tr.lv-pr td{border-bottom:0}.lv-t tr.lv-bxr td{text-align:left;padding:0 14px 14px;white-space:normal;background:transparent}
-.lv-bg{margin-top:2px}
-.lv-bl{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:700;letter-spacing:.9px;color:var(--mu);margin:8px 0 5px}
-.lv-bl::before{content:"";width:8px;height:8px;border-radius:50%;background:#2f6fbf}
-.lv-bg+.lv-bg .lv-bl::before{background:#c2573a}
-.lv-bxs{display:grid;grid-template-columns:repeat(15,minmax(38px,1fr));gap:4px}
-.lv-bx{height:28px;border:1px dashed var(--ln2);border-radius:7px;font-size:10px;color:var(--mu);opacity:.55;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.05;background:transparent}
-.lv-bx.f{border-style:solid;color:#fff;font-weight:600;font-size:10.5px;opacity:1;box-shadow:0 2px 6px -2px #0004}.lv-bx.f.vl{background:linear-gradient(160deg,#3d7fd0,#2a62ad);border-color:#2a62ad}.lv-bx.f.sl{background:linear-gradient(160deg,#d0684a,#b04a30);border-color:#b04a30}
-.lv-ot{margin-top:10px;font-size:12px;color:var(--ink2)}
+.lv-sum div{border:1px solid var(--ln);border-radius:14px;padding:12px 14px;background:var(--sf2);border-top:3px solid var(--vl)}
+.lv-sum div+div{border-top-color:var(--sl)}
+.lv-sum b{display:block;font-size:13px;color:var(--h);margin-bottom:6px}.lv-sum span{font-size:13px;color:var(--ink2)}
+.lv-fm{border:1px solid var(--ln);border-radius:14px;padding:16px;margin:14px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end;background:var(--sf2)}
+.lv-fm>b{grid-column:1/-1;font-family:'Playfair Display',Georgia,serif;font-size:16px;font-weight:600;color:var(--h)}
+.lv-fm label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:var(--mu)}.lv-fm .fi{margin:0;width:100%;border-radius:10px;font-weight:400;font-size:14px}.lv-fm .w{grid-column:1/-1}
 .lv-fm.editing{border-color:var(--au);box-shadow:0 0 0 3px color-mix(in srgb,var(--au) 22%,transparent)}
+.lv-l{width:100%;border-collapse:collapse;font-size:13px}.lvp .lv-l th,.lvp .lv-l td{padding:9px 10px;border:0;border-bottom:1px solid var(--ln);text-align:left;vertical-align:top}.lv-l th{font-size:12.5px;color:var(--mu);font-weight:700}
+.lv-l .tg{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:700;color:#fff}
+.lv-l .tg.vl{background:var(--vl)}.lv-l .tg.sl{background:var(--sl)}.lv-l .tg.ml{background:#8e4fc0}.lv-l .tg.il{background:#5f6b7d}
 .lv-fa{display:flex;gap:8px}
 .lv-l tr.lv-ed td{background:color-mix(in srgb,var(--au) 14%,transparent)}
 .lv-l td:last-child{white-space:nowrap;text-align:right}
-@media(max-width:640px){.lv-bar{padding:12px}.lv-bar .fi{min-width:0}.lv-t th,.lv-t td{padding:8px 9px}}
+@media(max-width:1180px){.lvz-th{display:none}.lvz-row{grid-template-columns:minmax(0,1fr) auto auto auto auto;grid-template-areas:"who cr us bal act" "days days days days days";row-gap:11px}.lvz-row:nth-child(2){border-top:0}
+.lvz-lbl{display:block;font-size:11px;color:var(--mu);margin-bottom:2px}.lvz-act{align-self:end}}
+@media(max-width:640px){.lvz-row{grid-template-columns:repeat(3,minmax(0,1fr)) auto;grid-template-areas:"who who who who" "days days days days" "cr us bal act";padding:14px 12px}
+.lvz-ctl,input.lvz-f{width:100%}.lvz-ctl select{flex:1}.lvz-idx{grid-template-columns:1fr}.lvz-slots{grid-template-columns:repeat(auto-fill,minmax(54px,1fr))}.lvz-act{flex-direction:column;align-items:flex-end}}
 </style>`;
 
-function shell(){
- const dl=depts(),yrs=[];for(let y=Y0-3;y<=Y0+1;y++)yrs.push(String(y));if(!yrs.includes(LV.y))yrs.push(LV.y);yrs.sort();
- return`<div class="lvp">${CSS}<h1>Vacation &amp; Sick Leave</h1><p class="sub">Leave credits and leave dates of every employee, per department.</p><div class="lv-rule"></div>
-<div class="lv-bar"><label>Department<select id="lvds" class="fi" onchange="lvSel('d',this.value)"><option value="__all">All departments</option>${dl.map(d=>`<option value="${esc(d)}"${LV.d===d?' selected':''}>${esc(d)}</option>`).join('')}</select></label>
-<label>Year<select id="lvys" class="fi" onchange="lvSel('y',this.value)">${yrs.map(y=>`<option${LV.y===y?' selected':''}>${y}</option>`).join('')}</select></label>
-<label>Search<input id="lvq" class="fi" placeholder="Employee name…" value="${esc(LV.q)}" oninput="lvSel('q',this.value)"></label></div><div id="lvb"></div></div>`}
+function shell(){return`<div class="lvp lvz">${CSS}<div id="lvb"></div></div>`}
 
-function body(){
- const b=$('lvb');if(PG!=='lvc'||!b)return;
- const D=LV.D||norm(null),ed=edit()&&!LV.bad,S=Array.isArray(STF)?STF:[],dl=depts(),q=LV.q.trim().toUpperCase();
- if(LV.d!=='__all'&&!dl.includes(LV.d))LV.d='__all';
- const show=LV.d==='__all'?dl:[LV.d];
- const dis=ed?'':' disabled';
- const dinp=(c,k)=>`<input type="number" min="0" step="0.5" value="${D.def[c][k]}" data-c="${c}" data-k="${k}" onchange="lvDef(this)"${dis}>`;
- let h=LV.bad?`<div class="lv-warn">⚠ The leave records could not be loaded. Check your connection and open this page again. Editing is turned off so nothing gets overwritten.</div>`:'';
- if(!edit())h+=`<div class="lv-warn" style="background:var(--soft);color:var(--ink2);border-color:var(--ln)">View only: you can see the leave records but cannot change them.</div>`;
- h+=`<div class="lv-def"><b>Default credits per employee · ${esc(LV.y)}</b><div class="r"><span>Farm departments &nbsp; VL ${dinp('farm','vl')} SL ${dinp('farm','sl')} days</span><span>Management &nbsp; VL ${dinp('mg','vl')} SL ${dinp('mg','sl')} days</span></div><small>A new default applies to everyone who has no custom credits. To give one employee different credits, type the number in the table (a gold border = custom). Delete the number or press ↺ to go back to the default.</small></div>`;
- let any=false;
+/* ===== Excel-style sheet (like the VL / SL Excel files): Name | Date hired | 1..N dates | Remarks | Credits | Used | Remaining. Dates after the credits are EXCESS = NO PAY. ===== */
+const tk=x=>tmN(x).split(' ').filter(Boolean);
+const mkPool=L=>L.map(o=>{const t=tk(o.name);return{o:o,t:t,k:t.join(' '),ks:t.slice().sort().join(' ')}});
+function findIn(pool,name){const t=tk(name);if(!t.length)return null;const k=t.join(' '),ks=t.slice().sort().join(' ');
+ let r=pool.find(p=>p.k===k);if(r)return r.o;r=pool.find(p=>p.ks===ks);if(r)return r.o;
+ const c=pool.filter(p=>{const a=p.t,sm=a.length<=t.length?a:t,bg=a.length<=t.length?t:a;return sm.length>=2&&sm[0]===bg[0]&&sm.every(x=>bg.includes(x))});return c.length===1?c[0].o:null}
+let P201=null,P201n=-1;
+const p201=()=>{const A=(Array.isArray(EALL)&&EALL.length)?EALL:null;if(!A)return null;if(!P201||P201n!==A.length){P201=mkPool(A);P201n=A.length}return P201};
+const in201=name=>{const P=p201();return P?!!findIn(P,name):true};
+const h201=name=>{const P=p201(),e=P&&findIn(P,name);return e&&e.hired?String(e.hired).slice(0,10):''};
+/* ===== 1-YEAR RULE: no leave credits before the 1st anniversary of the date hired. In the year of the 1st anniversary the default credits are divided by 12 and multiplied by the months left in that year (the anniversary month counts as a full month, rounded to the nearest 0.5). The user can still type any number for one employee. ===== */
+const pad2=n=>String(n).padStart(2,'0'),isoD=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+function elig(h,y){if(!/^\d{4}-\d\d-\d\d$/.test(h||''))return{st:'full'};
+ const p=h.split('-').map(Number),a=new Date(p[0]+1,p[1]-1,p[2]),on=isoD(a),ay=a.getFullYear(),yr=+y,n=new Date(),y0=n.getFullYear();
+ if(ay<yr)return{st:'full',on:on};
+ if(ay>yr)return{st:'wait',on:on};
+ const ref=yr<y0?yr+'-12-31':yr===y0?isoD(n):yr+'-01-01',m=12-a.getMonth();
+ return on>ref?{st:'wait',on:on,m:m}:{st:'pro',on:on,m:m}}
+let ECn=-1;const EC=new Map();
+const e201=name=>{const P=p201();if(!P)return null;if(ECn!==P201n){EC.clear();ECn=P201n}const k=String(name||'');if(EC.has(k))return EC.get(k);const e=findIn(P,name)||null;EC.set(k,e);return e};
+const hireOf=(D,key,name)=>{let v=(D.hd||{})[key]||'';if(!v){const e=e201(name);v=e&&e.hired?String(e.hired).slice(0,10):''}return /^\d{4}-\d\d-\d\d$/.test(v)?v:''};
+const eligOf=(s,D)=>elig(hireOf(D,String(s.id),s.name),LV.y);
+function autoDef(s,D,k){const df=num(D.def[cls(s)][k]),el=eligOf(s,D);return el.st==='wait'?0:el.st==='pro'?Math.round(df*el.m/12*2)/2:df}
+/* resigned / AWOL / end of contract / terminated (from the Status in 201 Files) */
+const SEPS=['Resigned','AWOL','End of Contract','Terminated'],SEPC={Resigned:['#ead9f5','#6a2f94'],AWOL:['#fcd9d9','#b02a2a'],'End of Contract':['#fde4cc','#9a4a05'],Terminated:['#3a1c1c','#ffffff']};
+const sepOf=s=>{const e=e201(s.name),t=e&&String(e.emp_status||'').trim().toLowerCase();let k=SEPS.find(x=>x.toLowerCase()===t);
+ /* also: a 201 record that carries resignation details but whose Status was never set, and a leave-Excel section named Resigned / AWOL / End of Contract / Terminated */
+ if(!k&&e&&!t&&typeof sepLike==='function'){try{if(sepLike(e))k='Resigned'}catch(x){}}
+ if(!k){const sc=String(((LV.D||{}).sec||{})[String(s.id)]||''),m=/^\s*(resign|awol|end of contract|terminat)/i.exec(sc);if(m)k=SEPS.find(x=>x.toLowerCase().indexOf(m[1].toLowerCase())===0)||null}
+ return k?{k:k,d:e&&e.status_date?String(e.status_date).slice(0,10):''}:null};
+const SECO={};const secIx=x=>x?(SECO[x]==null?9999:SECO[x]):-1;
+const T2={vl:'VL',sl:'SL'};
+function npMsg(s,t,bal,n){const T=T2[t];return bal<=0?s.name+' has no '+T+' credits left. This leave ('+n+' day'+(n===1?'':'s')+') will be NO PAY. Save anyway?':s.name+' has only '+bal+' '+T+' credit'+(bal===1?'':'s')+' left, but this leave is '+n+' day'+(n===1?'':'s')+'. The days beyond the credits are NO PAY. Save anyway?'}
+function npAfter(s,t){try{const D=LV.D,c=cred(s,D),u=used(s.id,D),bl=r2(c[t]-u[t]);if(bl<=0)alert('\uD83D\uDEAB '+s.name+' has used all '+T2[t]+' credits'+(bl<0?' ('+(-bl)+' day'+(bl===-1?'':'s')+' over)':'')+'.\n\nNO PAY na ang susunod na '+(t==='vl'?'vacation':'sick')+' leave niya.')}catch(e){}}
+/* The Excel sheets are read from Supabase ONCE per session (kept in memory), then merged with the small saved record, which only holds what you add, change or delete. The app never writes to hrd_leave_excel. */
+let BASE=null,BASEn=-1;
+function loadX(y){if(String(y)!==LVXY||LVX.length)return Promise.resolve();
+ return LVXP||(LVXP=(async()=>{const r=await api('/rest/v1/hrd_leave_excel?year=eq.'+LVXY+'&select=data&order=seq',{_quiet:true});
+  /* the order matters: the ids of the Excel dates (used when one is deleted) come from it. An incomplete list would show wrong balances. */
+  if(!Array.isArray(r)||r.length<LVXN)throw new Error('The 2026 Excel leave sheets are missing or incomplete ('+(Array.isArray(r)?r.length:0)+' of '+LVXN+'). Run the leave SQL in Supabase, or ask the Admin to check your access.');
+  LVX=r.map(x=>x.data);LVX.forEach((z,i)=>{if(z.sec&&SECO[z.sec]==null)SECO[z.sec]=i});BASE=null})().finally(()=>{LVXP=null}))}
+async function readY(y){try{const c=(await Promise.all([fetchY(y),loadX(y)]))[0];LV.D=ovl(c.d,y);LV.bad=false;LV.why=''}catch(e){LV.D=norm(null);LV.bad=true;LV.why=String((e&&e.message)||e)}}
+function baseData(){const S=Array.isArray(STF)?STF:[];if(BASE&&BASEn===S.length)return BASE;
+ const pool=mkPool(S),dm={},rows=LVX.map(r=>({r:r,s:findIn(pool,r.n)}));
+ rows.forEach(z=>{if(z.s){const m=dm[z.r.x]||(dm[z.r.x]={});m[z.s.dept]=(m[z.s.dept]||0)+1}});
+ const dOf=x=>{const m=dm[x];return m?Object.keys(m).sort((a,b)=>m[b]-m[a])[0]:x};
+ const B={ent:[],bc:{},dept:{},pp:{},sec:{},nt:{},cons:{},hd:{},xs:{}},seen=new Set();let cnt=0;
+ rows.forEach(({r,s})=>{const dept=s?s.dept:dOf(r.x),key=s?String(s.id):'x:'+tk(r.n).join(' ')+'|'+r.x;B.dept[key]=dept;B.xs[key]=r.x;
+  if(!s)B.pp[key]={n:r.n.trim(),dept:dept,x:r.x};
+  if(r.sec)B.sec[key]=r.sec;if(r.h)B.hd[key]=r.h;else if(r.hn&&!B.hd[key])B.hd[key]=r.hn;
+  ['vl','sl'].forEach(t=>{const T=r[t]||{};
+   (T.d||[]).forEach(a=>{const k=key+'|'+t+'|'+a[0]+'|'+a[1];if(seen.has(k))return;seen.add(k);B.ent.push({i:'xl'+key.length+'_'+(++cnt),e:key,t:t,f:a[0],to:a[0],n:a[1],r:'',by:'Excel sheet',xl:1})});
+   if(T.c){const o=B.cons[key]||(B.cons[key]={});o[t]=(o[t]||0)+T.c}
+   if(T.nt&&T.nt.length){const o=B.nt[key]||(B.nt[key]={});o[t]=[...new Set([o[t],...T.nt].filter(Boolean))].join(' / ')}
+   if(T.cr!=null){const o=B.bc[key]||(B.bc[key]={});o[t]=Math.max(0,num(T.cr))}})});
+ BASE=B;BASEn=S.length;return B}
+const bcOf=(id,k)=>{try{const B=baseData().bc,o=B[String(id)];if(o&&o[k]!=null)return o[k];const D=LV.D||{};
+ for(const f of Object.keys(D.same||{})){if(rootOf(D.same,f)!==String(id))continue;const c=(D.cr||{})[f];if(c&&c[k]!=null)return c[k];if(B[f]&&B[f][k]!=null)return B[f][k]}return null}catch(e){return null}};
+/* class / section moved by the user (drag or the Class box): saved in D.sc, wins over the section in the Excel sheet */
+function ovl(D,y){const o=Object.assign({},linked(base(D,y))),S=D.sc||{},ks=Object.keys(S);if(ks.length){o.sec=Object.assign({},o.sec||{});ks.forEach(k=>{o.sec[k]=S[k]==='__none'?'':S[k]})}return o}
+/* "Same person": two names saved as one. Nothing is rewritten or erased: the records are only counted together when the page is shown, so it can be undone. */
+function rootOf(M,k){let c=String(k);const seen=new Set();while(M&&M[c]&&M[c].to&&!seen.has(c)){seen.add(c);c=String(M[c].to)}return c}
+function linked(D){const M=D.same||{},from=Object.keys(M);if(!from.length)return D;
+ const o=Object.assign({},D),cr=Object.assign({},D.cr),cons=Object.assign({},D.cons),nt=Object.assign({},D.nt),hd=Object.assign({},D.hd),seen={},ent=[];
+ (D.ent||[]).forEach(e=>{const was=String(e.e),r=rootOf(M,was),x=Object.assign({},e,{e:r});
+  const k=[r,e.t,e.f,e.to,e.n].join('|'),p=seen[k];
+  /* the same date encoded under both names is counted once */
+  if(p&&p.was!==was){(p.x.dups||(p.x.dups=[])).push(e.i);return}
+  if(!p)seen[k]={x:x,was:was};ent.push(x)});
+ from.forEach(f=>{const r=rootOf(M,f);if(r===f)return;
+  if(cr[f])cr[r]=Object.assign({},cr[f],cr[r]);
+  if(cons[f]){const c=Object.assign({},cons[r]);['vl','sl'].forEach(t=>{const v=Math.max(num(c[t]),num(cons[f][t]));if(v)c[t]=v});cons[r]=c}
+  if(nt[f]){const n=Object.assign({},nt[r]);['vl','sl'].forEach(t=>{if(nt[f][t])n[t]=[...new Set([n[t],nt[f][t]].filter(Boolean))].join(' / ')});nt[r]=n}
+  if(!hd[r]&&hd[f])hd[r]=hd[f]});
+ o.ent=ent;o.cr=cr;o.cons=cons;o.nt=nt;o.hd=hd;return o}
+function base(D,y){if(String(y)!==LVXY)return D;const B=baseData(),hx=new Set(D.hx||[]),o=Object.assign({},D),cr={};
+ Object.keys(B.bc).forEach(k=>{const mgk=isM(B.dept[k]),dv=D.def[mgk?'mg':/^\s*broiler\b/i.test(String(B.dept[k]||''))?'br':'farm'];['vl','sl'].forEach(t=>{const v=B.bc[k][t];if(v!=null&&(mgk||num(v)!==num(dv[t]))){(cr[k]||(cr[k]={}))[t]=v}})});
+ Object.keys(D.cr||{}).forEach(k=>{cr[k]=Object.assign({},cr[k],D.cr[k])});
+ o.cr=cr;o.ent=(D.ent||[]).concat(B.ent.filter(e=>!hx.has(e.i)));o.pp=B.pp;o.sec=B.sec;o.nt=B.nt;o.cons=B.cons;o.hd=B.hd;o.xs=B.xs;return o}
+function roster(D){const S=Array.isArray(STF)?STF:[],al=allowed(),R={},M=D.same||{},G=D.gone||{},N=D.dn||{};
+ const add=(x0,key)=>{if(M[key]||G[key])return;const gs=gsOf(x0,key,D),x=gs?Object.assign({},x0,{dept:'GENERAL SERVICES'}):x0;if(gs&&al&&!al.includes(x0.dept))return;(R[x.dept]||(R[x.dept]=[])).push({s:N[key]?Object.assign({},x,{name:N[key]}):x,key:key,orig:x.name})};
+ S.forEach(x=>add(x,String(x.id)));
+ Object.keys(D.pp||{}).forEach(k=>{const p=D.pp[k];if(al&&!al.includes(p.dept))return;add({id:k,name:p.n,dept:p.dept,xl:1},k)});return R}
+/* a name counts as "in 201 Files" when it, a name linked to it, or the 201 record the user picked is there */
+const okRow=(r,D)=>!!((D.ln||{})[r.key]||in201(r.s.name)||in201(r.orig)||Object.keys(D.same||{}).some(f=>rootOf(D.same,f)===r.key&&in201(D.same[f].n)));
+function cellsOf(u,id,D,t){const o=[],k=(D.cons||{})[String(id)]||{};for(let i=0;i<num(k[t]);i++)o.push({x:'CONSUMED',c:'cn',w:1});
+ u.n.filter(e=>e.t===t).slice().sort((a,b)=>String(a.f).localeCompare(String(b.f))).forEach(e=>{const sp=spanDays(e);if(sp.length===1&&num(e.n)>0&&num(e.n)<1)o.push({x:md(sp[0])+' \u00BD',c:'f',w:.5,t:fd(sp[0])});else sp.forEach(d=>o.push({x:md(d),c:'f',w:1,t:fd(d)}))});return o}
+const hdTx=(D,key,name)=>{const v=(D.hd||{})[key]||h201(name)||'';return /^\d{4}-\d\d-\d\d$/.test(v)?fd(v):esc(v)};
+/* leave-credit slots: one box per credit. Filled = a leave date, dashed = still available, red = beyond the credits (NO PAY) */
+function slots(z,t){const cr=z.c[t],bl=r2(cr-z.u[t]);let cum=0,h='';
+ z.cl.forEach(c=>{const ex=c.c!=='cn'&&cum>=cr;cum+=c.w;const lab=c.c==='cn'?'Used':c.x,tip=(c.c==='cn'?'Consumed':c.t||'')+(ex?' · NO PAY':'');
+  h+=`<span class="lvz-s ${c.c==='cn'?'cn':ex?'np':t}" title="${esc(tip)}">${esc(lab)}</span>`});
+ for(let i=0,n=Math.min(60,Math.max(0,Math.ceil(bl)));i<n;i++)h+='<span class="lvz-s free" title="Available"></span>';
+ return h?`<div class="lvz-slots">${h}</div>`:'<span class="lvz-meta">No credits</span>'}
+const isNP=(r,D)=>{const c=cred(r.s,D),u=used(r.s.id,D);if(c.el.st==='wait'&&!u.vl&&!u.sl&&!c.cv&&!c.cs)return{vl:false,sl:false};return{vl:r2(c.vl-u.vl)<=0,sl:r2(c.sl-u.sl)<=0}};
+const byName=(a,b)=>String(a.s.name||'').trim().localeCompare(String(b.s.name||'').trim());
+const yearSel=()=>{const yrs=[];for(let y=Y0-3;y<=Y0+1;y++)yrs.push(String(y));if(!yrs.includes(LV.y))yrs.push(LV.y);yrs.sort();
+ return`<select id="lvys" class="lvz-f" aria-label="Year" onchange="lvSel('y',this.value)">${yrs.map(y=>`<option${LV.y===y?' selected':''}>${y}</option>`).join('')}</select>`};
+const warns=()=>edit()?'':'<div class="lv-warn">View only: you can see the leave records but cannot change them.</div>';
+/* first screen: choose a department */
+function picker(D,R,dl){
+ const card=d=>{const L=R[d]||[],n=L.filter(r=>{if(sepOf(r.s))return false;const z=isNP(r,D);return z.vl||z.sl}).length;
+  return`<button type="button" class="lvz-dp" data-d="${esc(d)}" onclick="lvSel('d',this.dataset.d)"><b>${esc(d)}</b><span>${L.length} employee${L.length===1?'':'s'}${n?` · <em>${n} with no pay</em>`:''}</span></button>`};
+ const have=dl.filter(d=>(R[d]||[]).length),farm=have.filter(d=>!isM(d)),mg=have.filter(d=>isM(d));
+ const grp=(t,a)=>a.length?`<section class="lvz-grp"><h2>${t}</h2><div class="lvz-idx">${a.map(card).join('')}</div></section>`:'';
+ return`<header class="lvz-head"><div><h1>Vacation &amp; Sick Leave</h1><p class="lvz-lead">Choose a department to see its leave credits and leave dates.</p></div><div class="lvz-ctl">${yearSel()}${edit()?'<button type="button" class="btn o" onclick="lvChk()">Check names</button>':''}${have.length>1?`<button type="button" class="btn o" data-d="__all" onclick="lvSel('d',this.dataset.d)">Show all departments</button>`:''}${have.length?'<button type="button" class="btn o" onclick="lvXls(\'all\')" title="Download every department (Vacation and Sick) as Excel">Export Excel (VL + SL)</button>':''}</div></header>
+${warns()}${grp('Farm departments',farm)}${grp('Management',mg)}${have.length?'':'<div class="lv-emp">No employees found.</div>'}`}
+/* the list of one department (or all); redrawn alone while typing in the search box */
+function list(){
+ const box=$('lvl');if(!box)return;
+ const D=LV.D||norm(null),ed=edit()&&!LV.bad,q=LV.q.trim().toUpperCase(),t=LV.t==='sl'?'sl':'vl',R=roster(D);
+ const dl=deptList(R),show=LV.d==='__all'?dl:[LV.d],dis=ed?'':' disabled';
+ let h='',any=false;
  show.forEach(dp=>{
-  const L=S.filter(s=>s.dept===dp&&(!q||String(s.name||'').toUpperCase().includes(q))).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
-  if(!L.length){if(LV.d!=='__all')h+=`<div class="lv-emp">No employees${q?' match your search':''} in ${esc(dp)}.</div>`;return}
-  any=true;const dd=D.def[isM(dp)?'mg':'farm'],fm=true;
-  h+=`<section class="lv-dept"><h2>${esc(dp)}<small>${L.length} employee${L.length>1?'s':''} · default ${dd.vl} VL / ${dd.sl} SL</small></h2><div class="lv-w"><table class="lv-t"><thead><tr><th rowspan="2">#</th><th rowspan="2" class="nm">Employee</th><th colspan="3" class="g gv">Vacation Leave (VL)</th><th colspan="3" class="g gs">Sick Leave (SL)</th><th rowspan="2" class="g"></th></tr><tr class="s"><th class="g">Credits</th><th>Used</th><th>Balance</th><th class="g">Credits</th><th>Used</th><th>Balance</th></tr></thead><tbody>`;
-  L.forEach((s,i)=>{
-   const c=cred(s,D),u=used(s.id,D),bv=r2(c.vl-u.vl),bs=r2(c.sl-u.sl),id=esc(String(s.id));
-   h+=`<tr${fm?' class="lv-pr"':''}><td class="ix">${i+1}</td><td class="nm">${esc(s.name)}</td>
-<td class="g"><input class="lv-in${c.cv?' c':''}" type="number" min="0" step="0.5" value="${c.vl}" data-id="${id}" data-k="vl" onchange="lvCr(this)"${dis}></td><td>${u.vl}</td><td><span class="lv-b ${balCls(bv)}">${bv}</span></td>
-<td class="g"><input class="lv-in${c.cs?' c':''}" type="number" min="0" step="0.5" value="${c.sl}" data-id="${id}" data-k="sl" onchange="lvCr(this)"${dis}></td><td>${u.sl}</td><td><span class="lv-b ${balCls(bs)}">${bs}</span></td>
-<td class="g act"><button class="btn o sm" data-id="${id}" onclick="lvOpen(this.dataset.id)">📅 Leave dates${u.n.length?`<span class="lv-n">${u.n.length}</span>`:''}</button>${ed&&(c.cv||c.cs)?`<button class="btn o sm" data-id="${id}" title="Back to the default credits" onclick="lvRst(this.dataset.id)">↺</button>`:''}</td></tr>${fm?bxRow(s,u):''}`});
-  h+=`</tbody></table></div></section>`});
- if(!any&&LV.d==='__all')h+=`<div class="lv-emp">No employees found${q?' for that search':''}.</div>`;
- b.innerHTML=h}
+  let L=(R[dp]||[]).filter(r=>!q||String(r.s.name||'').toUpperCase().includes(q));
+  if(LV.only)L=L.filter(r=>isNP(r,D)[t]);
+  L.sort((a,b)=>secIx((D.sec||{})[a.key])-secIx((D.sec||{})[b.key])||byName(a,b));
+  const SO=secOpts(R[dp]||[],D);
+  const SPA=L.filter(r=>sepOf(r.s)),SP=LV.sep?SPA.filter(r=>sepOf(r.s).k===LV.sep):[];L=LV.sep?[]:L.filter(r=>!sepOf(r.s));
+  const NW=L.filter(r=>cred(r.s,D).el.st==='wait');L=L.filter(r=>cred(r.s,D).el.st!=='wait');
+  if(!L.length&&!NW.length&&!SP.length)return;any=true;
+  let rows='',ps=null;
+  const draw=(r,nw,ns)=>{const s=r.s,key=r.key,z={c:cred(s,D),u:used(s.id,D)};z.cl=cellsOf(z.u,s.id,D,t);
+   const sc=ns?'':(D.sec||{})[key]||'';if(!ns&&sc!==ps&&(sc||ps)){ps=sc;rows+=`<div class="lvz-sec" data-sec="${esc(sc)}" data-dp="${esc(dp)}">${esc(sc||'Others')}</div>`}
+   const cr=z.c[t],us=z.u[t],bl=r2(cr-us),id=esc(String(key)),nt=((D.nt||{})[key]||{})[t]||'',cu=t==='vl'?z.c.cv:z.c.cs,hired=hdTx(D,key,s.name),nm=esc(String(s.name||'').trim());const sp=sepOf(s),el=z.c.el,sc2=sp?SEPC[sp.k]:null;
+   rows+=`<div class="lvz-row${bl<=0&&!nw?' np':''}${sp?' sep':''}${nw?' nw':''}"${ns?'':` data-sec="${esc(sc)}" data-dp="${esc(dp)}"`}><div class="lvz-who"><div class="lvz-nmw">${ed&&!ns?`<span class="lvz-hd" draggable="true" data-id="${id}" title="Drag to another class">&#8942;&#8942;</span>`:''}<button type="button" class="lvz-nm${sp?' sp':''}" data-id="${id}" onclick="lvOpen(this.dataset.id)"${sc2?` style="background:${sc2[0]};color:${sc2[1]}"`:''}>${nm}</button>${sp?`<span class="lvz-sep" style="background:${sc2[0]};color:${sc2[1]}" title="Status in 201 Files">${esc(sp.k)}${sp.d?' · '+esc(fd(sp.d)):''}</span>`:''}</div><div class="lvz-meta">${hired?`<span>Hired ${hired}</span>`:''}${ed&&!ns&&SO.length?`<select class="lvz-mv" data-id="${id}" title="Class (you can also drag the &#8942;&#8942; handle)" onchange="lvMove(this.dataset.id,this.value)"><option value=""${sc?'':' selected'}>Others (no class)</option>${SO.map(o=>`<option value="${esc(o)}"${o===sc?' selected':''}>${esc(o)}</option>`).join('')}</select>`:''}${el.st==='pro'&&!(t==='vl'?z.c.cv:z.c.cs)?`<span class="lvz-tag" title="1 year of service reached on ${esc(fd(el.on))}. Credits = default ÷ 12 × ${el.m} month(s) left in ${esc(LV.y)}. You can type a different number.">Prorated ${el.m}/12</span>`:''}${okRow(r,D)?'':ed?`<button type="button" class="lvz-tag warn" data-id="${id}" title="Check if this is the same person as another name" onclick="lvChk(this.dataset.id)">Not in 201 \u00B7 check</button>`:'<span class="lvz-tag warn" title="Not in 201 Files">Not in 201</span>'}${s.xl?'<span class="lvz-tag" title="Only in the Excel sheet, not in the payroll staff list">Sheet only</span>':''}</div></div>
+<div class="lvz-days">${slots(z,t)}${nw?`<div class="lvz-rm"><b>1 year of service on ${esc(fd(el.on))}.</b> Leave credits start then${el.m?` (prorated ${el.m}/12 of ${esc(LV.y)})`:''}. After that you decide how many credits to give.</div>`:''}${nt?`<div class="lvz-rm">${esc(nt)}</div>`:''}</div>
+<div class="lvz-cr"><span class="lvz-lbl">Credits</span><input class="lv-in${cu?' c':''}" type="number" min="0" step="0.5" value="${cr}" data-id="${id}" data-k="${t}" aria-label="${t.toUpperCase()} credits of ${nm}" onchange="lvCr(this)"${nw?' disabled title="Leave credits start after 1 year of service"':dis}></div>
+<div class="lvz-us"><span class="lvz-lbl">Used</span><span class="lvz-num">${us}</span></div>
+<div class="lvz-bal"><span class="lvz-lbl">Left</span>${nw&&!us?'<span class="lv-b">&mdash;</span>':`<span class="lv-b ${balCls(bl)}"${bl<=0?' title="NO PAY"':''}>${bl}</span>`}</div>
+<div class="lvz-act">${ed&&(z.c.cv||z.c.cs)?`<button type="button" class="btn o sm" data-id="${id}" title="Back to the default credits" aria-label="Back to the default credits" onclick="lvRst(this.dataset.id)">↺</button>`:''}<button type="button" class="btn o sm" data-id="${id}" onclick="lvOpen(this.dataset.id)">${ed?'Add leave':'View'}</button></div></div>`};
+  L.forEach(r=>draw(r,0));
+  if(NW.length){NW.sort((a,b)=>String(cred(a.s,D).el.on).localeCompare(String(cred(b.s,D).el.on))||byName(a,b));rows+=`<div class="lvz-sec">Newly hired · leave credits start after 1 year of service</div>`;NW.forEach(r=>draw(r,1,1))}
+  if(SP.length)SEPS.forEach(k=>{const g=SP.filter(r=>sepOf(r.s).k===k).sort(byName);if(!g.length)return;rows+=`<div class="lvz-sec">${esc(k)} · ${g.length}</div>`;g.forEach(r=>draw(r,0,1))});
+  h+=`${LV.d==='__all'?`<h2 class="lvz-title">${esc(dp)}</h2>`:''}<div class="lvz-list"><div class="lvz-row lvz-th"><div class="lvz-who">Employee</div><div class="lvz-days">${t==='vl'?'Vacation':'Sick'} leave dates</div><div class="lvz-cr">Credits</div><div class="lvz-us">Used</div><div class="lvz-bal">Left</div><div class="lvz-act"></div></div>${rows}</div>`});
+ box.innerHTML=h||`<div class="lv-emp">${q?'No employee matches your search.':LV.only?'Everyone still has credits left.':'No employees here.'}</div>`;ddInit(box)}
+const secOpts=(rows,D)=>{const bs=(BASE&&BASE.sec)||{},st=new Set();rows.forEach(r=>{const a=(D.sec||{})[r.key],b=bs[r.key];if(a)st.add(a);if(b)st.add(b)});return[...st].sort((x,y)=>secIx(x)-secIx(y)||String(x).localeCompare(String(y)))};
+function ddInit(box){if(!box||box._dd)return;box._dd=1;
+ box.addEventListener('dragstart',e=>{const h=e.target.closest&&e.target.closest('.lvz-hd');if(!h)return;const row=h.closest('.lvz-row');LV.drag={id:h.dataset.id,dp:row&&row.dataset.dp};row.classList.add('dragging');try{e.dataTransfer.setData('text/plain',h.dataset.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setDragImage(row,16,16)}catch(x){}});
+ box.addEventListener('dragend',()=>{LV.drag=null;box.querySelectorAll('.dragging,.lvz-over').forEach(x=>x.classList.remove('dragging','lvz-over'))});
+ const tg=e=>{const t=e.target.closest&&e.target.closest('[data-sec]');return t&&LV.drag&&t.dataset.dp===LV.drag.dp?t:null};
+ box.addEventListener('dragover',e=>{const t=tg(e);box.querySelectorAll('.lvz-over').forEach(x=>{if(x!==t)x.classList.remove('lvz-over')});if(t){e.preventDefault();t.classList.add('lvz-over')}});
+ box.addEventListener('drop',e=>{const t=tg(e);if(!t)return;e.preventDefault();const id=LV.drag.id;LV.drag=null;window.lvMove(id,t.dataset.sec)})}
+const deptList=R=>{const dl=depts().slice();Object.keys(R).forEach(d=>{if(!dl.includes(d))dl.push(d)});return dl};
+function body(){
+  const b=$('lvb');if(PG!=='lvc'||!b)return;
+ if(LV.bad){b.innerHTML=`<header class="lvz-head"><div><h1>Vacation &amp; Sick Leave</h1></div><div class="lvz-ctl">${yearSel()}</div></header><div class="lv-warn">⚠ The leave records could not be loaded, so no balances are shown. ${esc(LV.why||'')}<br><button class="btn o sm" style="margin-top:8px" onclick="lvc()">Try again</button></div>`;return}
+ const D=LV.D||norm(null),ed=edit(),t=LV.t==='sl'?'sl':'vl',R=roster(D),dl=deptList(R);
+ if(LV.d&&LV.d!=='__all'&&!dl.includes(LV.d))LV.d='';
+ if(!LV.d){b.innerHTML=picker(D,R,dl);return}
+ /* keep the cursor in the same box after a save redraws the page */
+ const a=document.activeElement,keep=a&&b.contains(a)&&a.classList.contains('lv-in')?a.dataset.id:null;
+ const show=LV.d==='__all'?dl:[LV.d],all=[].concat(...show.map(d=>R[d]||[])),np=all.filter(r=>!sepOf(r.s)&&isNP(r,D)[t]).length;
+ if(!np)LV.only=false;
+ const miss=p201()?all.filter(r=>!okRow(r,D)).length:null,hid=Object.keys(D.same||{}).length+Object.keys(D.gone||{}).length+Object.keys(D.dn||{}).length;
+ const dinp=(c,k)=>`<input type="number" min="0" step="0.5" value="${D.def[c][k]}" data-c="${c}" data-k="${k}" onchange="lvDef(this)"${ed?'':' disabled'}>`;
+ b.innerHTML=`<header class="lvz-head"><div><button type="button" class="lvz-back" onclick="lvSel('d','')">← Departments</button><h1>${LV.d==='__all'?'All departments':esc(LV.d)}</h1><p class="lvz-lead">${all.length} employee${all.length===1?'':'s'}. ${t==='vl'?'Vacation':'Sick'} leave for ${esc(LV.y)}.</p></div>
+<div class="lvz-ctl"><div class="lvz-seg" role="group" aria-label="Leave type">${[['vl','Vacation'],['sl','Sick']].map(([k,n])=>`<button type="button" class="${k}${t===k?' on':''}" aria-pressed="${t===k}" onclick="lvSel('t','${k}')">${n}</button>`).join('')}</div>
+<select id="lvds" class="lvz-f" aria-label="Department" onchange="lvSel('d',this.value)"><option value="__all"${LV.d==='__all'?' selected':''}>All departments</option>${dl.filter(d=>(R[d]||[]).length).map(d=>`<option value="${esc(d)}"${LV.d===d?' selected':''}>${esc(d)}</option>`).join('')}</select>${yearSel()}
+<input id="lvq" class="lvz-f" type="search" placeholder="Search employee name" aria-label="Search employee name" value="${esc(LV.q)}" oninput="lvSel('q',this.value)"><button type="button" class="btn o" onclick="lvXls()" title="Download this list as Excel, same as on screen">Export Excel</button></div></header>
+${warns()}${miss===null?'<div class="lv-warn">The 201 Files could not be checked (not loaded for this account).</div>':''}${miss||(ed&&hid)?`<div class="lvz-check"><span>${miss?`<b>${miss} name${miss>1?'s are':' is'} not in 201 Files.</b>${ed?` Check if ${miss>1?'they are':'it is'} the same person as another name, or remove ${miss>1?'them':'it'}.`:''}`:'Some names were linked, renamed or removed.'}</span>${ed?'<button type="button" class="btn o sm" onclick="lvChk()">Check names</button>':''}</div>`:''}<div class="lvz-bar"><div class="lvz-key"><span><i class="lvz-s ${t}"></i>Leave taken</span><span><i class="lvz-s free"></i>Available</span><span><i class="lvz-s np"></i>No pay</span></div>${np?`<button type="button" class="lvz-only${LV.only?' on':''}" aria-pressed="${!!LV.only}" onclick="lvSel('np')">${LV.only?'Show everyone':`${np} with no credits left`}</button>`:''}${SEPS.map(k=>[k,all.filter(r=>{const x=sepOf(r.s);return x&&x.k===k}).length]).filter(x=>x[1]).map(([k,n])=>{const c=SEPC[k];return`<button type="button" class="lvz-only lvz-sc${LV.sep===k?' on':''}" style="${LV.sep===k?`background:${c[0]};color:${c[1]};border-color:${c[0]}`:`color:${c[0]==='#3a1c1c'?c[0]:c[1]};border-color:${c[1]}55`}" aria-pressed="${LV.sep===k}" onclick="lvSel('sep','${k}')" title="${LV.sep===k?'Back to the active employees':'Show the '+k+' employees'}">${esc(k)} · ${n}</button>`}).join('')}</div>
+<div id="lvl"></div>
+<details${LV.defOpen?' open':''} ontoggle="lvSel('def',this.open)"><summary>Default credits per employee, ${esc(LV.y)}</summary><div class="lvz-def"><div>Broiler <label>VL ${dinp('br','vl')}</label><label>SL ${dinp('br','sl')}</label></div><div>Other farm departments <label>VL ${dinp('farm','vl')}</label><label>SL ${dinp('farm','sl')}</label></div><div>Management (follows the uploaded Excel credits; this is only for those without one) <label>VL ${dinp('mg','vl')}</label><label>SL ${dinp('mg','sl')}</label></div></div><small>Employees with less than 1 year of service have no credits yet (they are listed at the bottom with the date their credits start). In the year of the 1st anniversary the default is divided by 12 and multiplied by the months left in that year (the anniversary month counts, rounded to 0.5). A new default applies to everyone without custom credits. To give one employee different credits, type the number in the list (a gold border means custom). Delete the number or press ↺ to go back to the default.</small></details>
+`;
+ list();
+ if(keep){const el=[...b.querySelectorAll('.lv-in')].find(x=>x.dataset.id===keep);if(el)el.focus({preventScroll:true})}}
+
 
 window.lvc=async function(){
+ LV.d='';LV.q='';LV.only=false;LV.sep='';LV.chk=null;LV.emp='';
  const m=$('main');m.innerHTML='<h1>Vacation &amp; Sick Leave</h1><p class="sub">Loading…</p>';
  try{if(STF===undefined||STF===null)await loadS()}catch(e){}
  if(PG!=='lvc')return;
  if(!Array.isArray(STF)){m.innerHTML='<h1>Vacation &amp; Sick Leave</h1><p class="sub">The employee list could not be loaded. Check your connection and open this page again.</p>';return}
- try{LV.D=(await fetchY(LV.y)).d;LV.bad=false}catch(e){LV.D=norm(null);LV.bad=true}
+ await readY(LV.y);
  if(PG!=='lvc')return;
  m.innerHTML=shell();body()};
 
 window.lvSel=async(k,v)=>{
- if(k==='q'){LV.q=v;return body()}
- if(k==='d'){LV.d=v;return body()}
- if(k==='y'){LV.y=v;try{LV.D=(await fetchY(v)).d;LV.bad=false}catch(e){LV.D=norm(null);LV.bad=true}body()}};
+ if(k==='q'){LV.q=v;return list()}
+ if(k==='np'){LV.only=!LV.only;LV.sep='';return body()}
+ if(k==='sep'){LV.sep=LV.sep===v?'':v;LV.only=false;return body()}
+ if(k==='def'){LV.defOpen=!!v;return}
+ if(k==='t'){LV.t=v==='sl'?'sl':'vl';return body()}
+ if(k==='d'){LV.d=v;LV.q='';LV.only=false;LV.sep='';body();window.scrollTo(0,0);return}
+ if(k==='y'){LV.y=v;await readY(v);body()}};
 
 const guard=()=>{if(!edit()||LV.bad){toast('View only: you cannot change leave records.');return false}return true};
-async function save(fn,y,okMsg){try{await mut(y||LV.y,fn);if(okMsg)toast(okMsg);return true}catch(e){alert('Could not save: '+(e.message||e));try{LV.D=(await fetchY(LV.y)).d}catch(x){}return false}finally{body();if(LV.emp&&$('lvm'))modal()}}
+async function save(fn,y,okMsg){try{await mut(y||LV.y,fn);if(okMsg)toast(okMsg);return true}catch(e){alert('Could not save: '+(e.message||e));try{LV.D=ovl((await fetchY(LV.y)).d,LV.y)}catch(x){}return false}finally{body();if($('lvm')){if(LV.emp)modal();else if(LV.chk)chkDraw()}}}
 
 window.lvDef=async el=>{if(!guard()){body();return}const c=el.dataset.c,k=el.dataset.k,v=Math.max(0,num(el.value));await save(d=>{d.def[c][k]=v},LV.y,'Default credits saved ✔')};
 window.lvCr=async el=>{if(!guard()){body();return}const id=String(el.dataset.id),k=el.dataset.k,s=emp(id);if(!s)return;const raw=String(el.value).trim(),df=LV.D.def[cls(s)][k];
- await save(d=>{const o=d.cr[id]||(d.cr[id]={}),dv=d.def[cls(s)][k];if(raw===''||num(raw)===num(dv))delete o[k];else o[k]=Math.max(0,num(raw));if(!Object.keys(o).length)delete d.cr[id]},LV.y,'Credits saved ✔');
+ await save(d=>{const o=d.cr[id]||(d.cr[id]={}),dv=autoDef(s,Object.assign({},LV.D,{def:d.def}),k);const bq=bcOf(id,k);if(raw===''||(num(raw)===num(dv)&&!(bq!=null&&num(bq)!==num(dv))))delete o[k];else o[k]=Math.max(0,num(raw));if(!Object.keys(o).length)delete d.cr[id]},LV.y,'Credits saved ✔');
  try{logAct('Changed leave credits','Leave',(s.name||'')+' — '+k.toUpperCase()+' '+(raw===''?'default':raw)+' ('+LV.y+')')}catch(e){}};
+window.lvMove=async(id,sec)=>{if(!guard())return;id=String(id);const s=emp(id);if(!s)return;const cur=((LV.D||{}).sec||{})[id]||'';sec=String(sec||'');if(sec===cur)return;
+ const ok=await save(d=>{d.sc=d.sc||{};d.sc[id]=sec||'__none'},LV.y,'Moved to '+(sec||'Others')+' ✔');
+ if(ok){try{logAct('Moved leave class','Leave',s.name+' → '+(sec||'Others')+' ('+s.dept+', '+LV.y+')')}catch(e){}}};
 window.lvRst=async id=>{if(!guard())return;const s=emp(id);if(!s)return;if(!confirm('Put the VL and SL credits of '+s.name+' back to the default?'))return;await save(d=>{delete d.cr[String(id)]},LV.y,'Back to the default credits ✔')};
+
+function dropIds(d,ids){d.ent=d.ent.filter(x=>!ids.includes(x.i));ids.filter(i=>String(i).indexOf('xl')===0).forEach(i=>{if(!(d.hx||(d.hx=[])).includes(i))d.hx.push(i)})}
+/* ===== Check names: same person (pick the name to keep) or remove a name. Leave page only: 201 Files, Payroll and Attendance are not changed. ===== */
+const nTok=n=>String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9, ]+/g,' ');
+const nParse=n=>{const t=nTok(n),i=t.indexOf(','),w=x=>x.split(/[ ,]+/).filter(Boolean),sx=a=>a.filter(v=>!/^(JR|SR|II|III|IV)$/.test(v));
+ const all=sx(w(t)),sur=i<0?[]:sx(w(t.slice(0,i))),giv=i<0?[]:sx(w(t.slice(i+1)));
+ return{all:all,sur:sur,giv:giv,sfx:w(t).filter(v=>/^(JR|SR|II|III|IV)$/.test(v)).join(),set:all.concat(all.slice(1).map((v,k)=>all[k]+v))}};
+function lev(a,b){let p=[...Array(b.length+1).keys()];for(let i=1;i<=a.length;i++){const c=[i];for(let j=1;j<=b.length;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[b.length]}
+const alike=(a,b)=>a===b||(Math.min(a.length,b.length)>=4&&lev(a,b)<=(Math.min(a.length,b.length)>=7?2:1));
+/* null = not a likely match. Never automatic: the user always decides. */
+function likeness(x,y){const a=nParse(x),b=nParse(y);if(a.all.length<2||b.all.length<2)return null;
+ const has=(P,w)=>P.set.some(v=>alike(v,w));
+ const dir=(c,o)=>{if(!c.giv.length)return false;const f=c.giv[0],f2=c.giv.slice(0,2).join('');return(has(o,f)||has(o,f2))&&c.sur.some(w=>w.length>2&&has(o,w))};
+ const hits=a.all.filter(w=>has(b,w)).length;
+ if(a.sur.length||b.sur.length){if(!dir(a,b)&&!dir(b,a))return null}else if(hits<2)return null;
+ const exact=a.all.filter(w=>b.all.includes(w)).length,sameSur=a.sur.join('')===b.sur.join('')&&a.sur.length>0,sameFirst=a.giv[0]===b.giv[0]&&!!a.giv[0];
+ let why='Only part of the name matches';
+ if(a.all.slice().sort().join()===b.all.slice().sort().join())why='Same words in the name';
+ else if(sameSur&&sameFirst)why='Same surname and first name; the rest differs';
+ else if(hits>exact)why='Spelling differs';
+ if(a.sfx!==b.sfx)why+='. Check Jr/Sr carefully';
+ return{score:exact*3+hits*2+(sameSur?2:0)+(sameFirst?2:0)-(a.sfx!==b.sfx?3:0),why:why}}
+/* everyone a name can be matched with: the leave list, then 201 Files records that are not on it */
+function people(D){const R=roster(D),al=allowed(),L=[],have=new Set();
+ Object.keys(R).forEach(d=>R[d].forEach(r=>{L.push({key:r.key,name:String(r.s.name||'').trim(),dept:d,xl:!!r.s.xl,r:r});have.add(nParse(r.s.name).all.join(' '))}));
+ (Array.isArray(EALL)?EALL:[]).forEach((e,i)=>{if(!e||!e.name||(al&&!al.includes(e.dept)))return;const k=nParse(e.name).all.join(' ');if(have.has(k))return;have.add(k);
+  L.push({key:'201:'+i,name:String(e.name).trim(),dept:e.dept||'',f201:true,hired:e.hired?String(e.hired).slice(0,10):''})});
+ return L}
+const srcTx=p=>p.f201?'201 Files':p.xl?'Excel sheet only':okRow(p.r,LV.D)?'Payroll list, in 201 Files':'Payroll list';
+window.lvChk=id=>{if(!guard())return;LV.emp='';LV.chk={a:id?String(id):'',b:'',only:id?String(id):'',scope:LV.d&&LV.d!=='__all'?LV.d:''};ov();chkDraw()};
+function chkDraw(){const o=$('lvm'),C=LV.chk;if(!o||!C)return;const D=LV.D,P=people(D),BXs=(typeof BX!=='undefined'?BX:'background:var(--sf);color:var(--ink);border-radius:16px;max-width:820px;width:100%;max-height:88vh;overflow:auto;padding:22px');
+ const wrap=(title,sub,inner)=>{const sc=o.firstElementChild?o.firstElementChild.scrollTop:0;o.innerHTML=`<div class="lvp" role="dialog" aria-modal="true" aria-label="${esc(title)}" style="${BXs};max-width:820px">${CSS}<div style="display:flex;gap:10px;align-items:flex-start"><div style="flex:1"><h2 style="margin:0;font-size:20px">${esc(title)}</h2><div class="lvz-meta">${sub}</div></div><button class="btn o sm" onclick="lvClose()">Close</button></div>${inner}</div>`;o.firstElementChild.scrollTop=sc};
+ const A=P.find(p=>p.key===C.a&&!p.f201),B=C.b&&P.find(p=>p.key===C.b);
+ if(A&&B)return compare(wrap,D,A,B);
+ const sugg=p=>P.filter(q=>q.key!==p.key).map(q=>({q:q,m:likeness(p.name,q.name)})).filter(x=>x.m).sort((x,y)=>y.m.score-x.m.score).slice(0,3);
+ let todo=P.filter(p=>!p.f201&&!okRow(p.r,D));
+ if(C.only)todo=P.filter(p=>p.key===C.only&&!p.f201);else if(C.scope)todo=todo.filter(p=>p.dept===C.scope);
+ todo.sort((a,b)=>a.dept.localeCompare(b.dept)||a.name.localeCompare(b.name));
+ const opts=P.slice().sort((a,b)=>a.name.localeCompare(b.name));
+ const items=todo.map(p=>{const g=sugg(p),id=esc(p.key);return`<div class="lvz-it"><div class="lvz-ith"><div><b>${esc(p.name)}</b><div class="lvz-meta">${esc(p.dept)} · ${srcTx(p)}</div></div><button type="button" class="btn o sm lvz-del" data-id="${id}" onclick="lvNmDel(this.dataset.id)">Remove</button></div>
+${g.length?g.map(x=>`<div class="lvz-mt"><div><span>${esc(x.q.name)}</span><div class="lvz-meta">${esc(x.q.dept)} · ${srcTx(x.q)} · ${esc(x.m.why)}</div></div><button type="button" class="btn sm" data-a="${id}" data-b="${esc(x.q.key)}" onclick="lvPair(this.dataset.a,this.dataset.b)">Compare</button></div>`).join(''):'<div class="lvz-meta" style="margin-top:8px">No similar name found.</div>'}
+<select class="lvz-f lvz-oth" data-a="${id}" aria-label="Choose another name to compare with ${esc(p.name)}" onchange="if(this.value)lvPair(this.dataset.a,this.value)"><option value="">Compare with another name…</option>${opts.filter(q=>q.key!==p.key).map(q=>`<option value="${esc(q.key)}">${esc(q.name)} (${esc(q.dept)})</option>`).join('')}</select></div>`}).join('');
+ const M=D.same||{},G=D.gone||{},nameOf=k=>{const e=emp(k);return e?e.name:k};
+ const undo=Object.keys(M).map(k=>`<div class="lvz-mt"><div><span>${esc(M[k].n)}</span><div class="lvz-meta">Same person as ${esc(nameOf(rootOf(M,k)))}${M[k].by?' · by '+esc(M[k].by):''}</div></div><button type="button" class="btn o sm" data-id="${esc(k)}" onclick="lvSplit(this.dataset.id)">Separate again</button></div>`).join('')
+  +Object.keys(G).map(k=>`<div class="lvz-mt"><div><span>${esc(G[k].n)}</span><div class="lvz-meta">Removed from ${esc(G[k].d)}${G[k].by?' · by '+esc(G[k].by):''}</div></div><button type="button" class="btn o sm" data-id="${esc(k)}" onclick="lvNmBack(this.dataset.id)">Restore</button></div>`).join('');
+ const targets=new Set(Object.keys(M).map(k=>rootOf(M,k))),ren=Object.keys(D.dn||{}).filter(k=>!targets.has(k)&&!M[k]&&!G[k]).map(k=>{const s=emp0(k);return`<div class="lvz-mt"><div><span>${esc(D.dn[k])}</span><div class="lvz-meta">Name changed${s?' from '+esc(String(s.name).trim()):''}</div></div><button type="button" class="btn o sm" data-id="${esc(k)}" onclick="lvNmOld(this.dataset.id)">Use old name</button></div>`}).join('');
+ wrap('Check names',`${todo.length} name${todo.length===1?'':'s'} to check${C.scope&&!C.only?' in '+esc(C.scope):''}. Changes here apply to the ${esc(LV.y)} leave records only.`,
+  `${items||'<div class="lv-emp" style="margin-top:14px">Nothing to check.</div>'}${undo||ren?`<h3 class="lvz-title">Linked, renamed and removed names</h3>${undo}${ren}`:''}`)}
+function compare(wrap,D,A,B){
+ const info=p=>{if(p.f201)return{hired:p.hired?fd(p.hired):'',v:null,days:[]};const s=emp(p.key),c=cred(s,D),u=used(s.id,D);return{hired:hdTx(D,p.key,s.name),v:{c:c,u:u},days:u.n.map(e=>e.t+e.f)}};
+ const a=info(A),b=info(B),both=a.days.filter(d=>b.days.includes(d)).length;
+ const col=(p,i)=>`<div class="lvz-cmp"><b>${esc(p.name)}</b><dl><dt>Department</dt><dd>${esc(p.dept||'—')}</dd><dt>Found in</dt><dd>${srcTx(p)}</dd><dt>Date hired</dt><dd>${i.hired||'—'}</dd>${i.v?`<dt>Vacation</dt><dd>${i.v.u.vl} used of ${i.v.c.vl}</dd><dt>Sick</dt><dd>${i.v.u.sl} used of ${i.v.c.sl}</dd>`:'<dt>Leave records</dt><dd>None on this page</dd>'}</dl></div>`;
+ /* the most complete name is picked first; the user can change it */
+ const full=n=>nParse(n).all.filter(w=>w.length>1).length*100+(n.indexOf(',')>=0?50:0)+n.length,pick=full(B.name)>=full(A.name)?'b':'a',kp=keepOf(A,B);
+ wrap('Is this the same person?',both?`${both} leave date${both>1?'s appear':' appears'} under both names and will be counted once.`:'Compare the two before you accept.',
+  `<div class="lvz-two">${col(A,a)}${col(B,b)}</div><fieldset class="lvz-pick"><legend>Which name should be used?</legend>
+${[['a',A.name],['b',B.name]].map(([k,n])=>`<label><input type="radio" name="lvnm" value="${k}" data-n="${esc(n)}"${pick===k?' checked':''}> ${esc(n)}</label>`).join('')}
+<label><input type="radio" name="lvnm" value="o"> Another spelling <input id="lvnmo" class="lvz-f" maxlength="120" placeholder="SURNAME, FIRST MIDDLE" oninput="this.parentNode.querySelector('[type=radio]').checked=true"></label></fieldset>
+<p class="lvz-meta" style="font-size:12.5px">${B.f201?'The leave records stay where they are and take the name you choose.':`The two become one row in ${esc(kp.keep.dept)}, and their leave dates are counted together. Credits of the row that is kept are followed.`} 201 Files, Payroll and Attendance are not changed. You can undo this.</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" onclick="lvSame()">Yes, same person</button><button type="button" class="btn o" onclick="lvPair('','')">Back</button></div>`)}
+/* the row that stays: a payroll row wins over a row that is only in the Excel sheet */
+const keepOf=(A,B)=>!A.xl&&B.xl?{keep:A,drop:B}:{keep:B,drop:A};
+window.lvPair=(a,b)=>{if(!LV.chk)return;LV.chk.a=a||LV.chk.only;LV.chk.b=b;chkDraw();const o=$('lvm');if(o&&o.firstElementChild&&b)o.firstElementChild.scrollTop=0};
+window.lvSame=async()=>{if(!guard()||!LV.chk)return;const P=people(LV.D),A=P.find(p=>p.key===LV.chk.a&&!p.f201),B=P.find(p=>p.key===LV.chk.b);if(!A||!B)return;
+ const r=document.querySelector('#lvm input[name=lvnm]:checked');if(!r)return toast('Choose which name to use.');
+ const name=(r.value==='o'?($('lvnmo').value||''):r.dataset.n).replace(/\s+/g,' ').trim();if(name.length<3)return toast('Type the name to use.');
+ const{keep,drop}=B.f201?{keep:A,drop:null}:keepOf(A,B);
+ LV.chk.a=LV.chk.b=LV.chk.only='';
+ const ok=await save(d=>{if(drop){d.same[drop.key]={to:keep.key,n:drop.r.orig,d:drop.dept,by:me(),at:new Date().toISOString()};delete d.dn[drop.key];if(d.ln[drop.key]){d.ln[keep.key]=d.ln[drop.key];delete d.ln[drop.key]}}else d.ln[keep.key]=B.name;d.dn[keep.key]=name},LV.y,'Saved. Name used: '+name);
+ if(ok){try{logAct('Linked names (same person)','Leave',A.name+' + '+B.name+' → '+name)}catch(e){}}};
+window.lvNmOld=async k=>{if(!guard())return;const n=(LV.D.dn||{})[k];if(!n)return;const ok=await save(d=>{delete d.dn[k];delete d.ln[k]},LV.y,'Old name is back \u2714');if(ok){try{logAct('Went back to the old name','Leave',n)}catch(e){}}};
+window.lvSplit=async k=>{if(!guard())return;const m=(LV.D.same||{})[k];if(!m)return;if(!confirm('Show "'+m.n+'" as a separate name again?'))return;
+ const ok=await save(d=>{const x=d.same[k];if(!x)return;delete d.same[k];if(!Object.keys(d.same).some(f=>d.same[f].to===x.to)){delete d.dn[x.to];delete d.ln[x.to]}},LV.y,'Separated again ✔');
+ if(ok){try{logAct('Separated linked names','Leave',m.n)}catch(e){}}};
+window.lvNmDel=async id=>{if(!guard())return;const s=emp(id);if(!s)return;
+ if(!confirm('Remove "'+String(s.name).trim()+'" from the '+LV.y+' leave list?\n\n201 Files, Payroll and Attendance are not affected. You can restore it under Check names.'))return;
+ if(LV.emp){LV.emp='';const o=$('lvm');if(o)o.remove()}else if(LV.chk){LV.chk.a=LV.chk.b=LV.chk.only=''}
+ const ok=await save(d=>{d.gone[String(id)]={n:String(s.name).trim(),d:s.dept,by:me(),at:new Date().toISOString()}},LV.y,'Removed from the leave list ✔');
+ if(ok){try{logAct('Removed a name from the leave list','Leave',s.name+' ('+s.dept+', '+LV.y+')')}catch(e){}}};
+window.lvNmBack=async k=>{if(!guard())return;const g=(LV.D.gone||{})[k];if(!g)return;const ok=await save(d=>{delete d.gone[k]},LV.y,'Restored ✔');if(ok){try{logAct('Restored a name to the leave list','Leave',g.n)}catch(e){}}};
+
+/* ===== Export to Excel: same look as the screen (name + status, one box per credit, Credits / Used / Left); newly hired at the bottom with their note ===== */
+function slotList(z,t){const cr=z.c[t],bl=r2(cr-z.u[t]);let cum=0;const o=[];
+ z.cl.forEach(c=>{const ex=c.c!=='cn'&&cum>=cr;cum+=c.w;o.push({x:c.c==='cn'?'Used':c.x,k:c.c==='cn'?'cn':ex?'np':t})});
+ for(let i=0,n=Math.min(60,Math.max(0,Math.ceil(bl)));i<n;i++)o.push({x:'',k:'free'});return o}
+window.lvXls=function(mode){
+ if(LV.bad)return toast('The leave records are not loaded yet.');
+ if(typeof xgSheet!=='function'||typeof xgBuild!=='function')return toast('Excel export is not available.');
+ const D=LV.D||norm(null),R=roster(D),all=mode==='all',dl=deptList(R),deps=(all||!LV.d||LV.d==='__all')?dl:[LV.d],types=all?['vl','sl']:[LV.t==='sl'?'sl':'vl'],q=all?'':LV.q.trim().toUpperCase(),only=all?false:LV.only;
+ const BD='thin:FFBFC5CF',B4={bl:BD,br:BD,bt:BD,bb:BD},HD=Object.assign({fill:'FF12305C',col:'FFFFFFFF',b:1,h:'center',wrap:1},B4),ax=h=>'FF'+h.slice(1).toUpperCase();
+ const FILL={vl:['FFDCE8F7','FF1F4E8C'],sl:['FFF6E0D9','FF8A3A25'],np:['FFB3362D','FFFFFFFF'],cn:['FFFDF0C4','FF6F5200']};
+ const sheets=[],names={},today=new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
+ const sn=(d,t)=>{const b=(String(d).replace(/[\[\]:*?\/\\]/g,'-').trim().slice(0,27)||'Sheet')+' '+t.toUpperCase();let n=b,i=2;while(names[n.toLowerCase()]){n=b.slice(0,28)+' '+i++}names[n.toLowerCase()]=1;return n};
+ deps.forEach(dp=>types.forEach(t=>{
+  let L=(R[dp]||[]).filter(r=>!q||String(r.s.name||'').toUpperCase().includes(q));if(only)L=L.filter(r=>isNP(r,D)[t]);if(!L.length)return;
+  const dat=r=>{const z={c:cred(r.s,D),u:used(r.s.id,D)};z.cl=cellsOf(z.u,r.s.id,D,t);return{r:r,z:z,sl:slotList(z,t)}};
+  const sv=all?'':LV.sep,L2=sv?[]:L.filter(r=>!sepOf(r.s)),C=L.filter(r=>{const x=sepOf(r.s);return x&&sv&&x.k===sv}).sort((a,b)=>SEPS.indexOf(sepOf(a.s).k)-SEPS.indexOf(sepOf(b.s).k)||byName(a,b)).map(dat),A=L2.filter(r=>cred(r.s,D).el.st!=='wait').sort((a,b)=>secIx((D.sec||{})[a.key])-secIx((D.sec||{})[b.key])||byName(a,b)).map(dat),
+   B=L2.filter(r=>cred(r.s,D).el.st==='wait').sort((a,b)=>String(cred(a.s,D).el.on).localeCompare(String(cred(b.s,D).el.on))||byName(a,b)).map(dat);
+  const nb=Math.min(60,Math.max(15,...A.concat(B,C).map(x=>x.sl.length))),last=nb+7,cC=nb+4,cU=nb+5,cL=nb+6,cR=nb+7,TT=t==='vl'?'Vacation':'Sick';
+  const S=xgSheet(sn(dp,t));S.cols=[36,13,26].concat(Array(nb).fill(8.5),[9,8,8,40]);
+  S.put(1,1,last,'Vacation & Sick Leave · '+dp,{fn:'Georgia',sz:14,b:1,col:'FF12305C'});
+  S.put(2,1,last,TT+' leave · '+LV.y+'  |  Rayanton Farms & Livestock Corp.  |  Exported '+today,{sz:9,col:'FF666666'});
+  S.put(3,1,last,'Colored box = leave date · empty box = credit still available · red = beyond the credits (NO PAY) · yellow = consumed',{sz:9,col:'FF666666'});
+  ['Employee','Date hired','Status'].forEach((h,i)=>S.put(4,i+1,i+1,h,HD));
+  S.put(4,4,3+nb,TT+' leave dates',HD);
+  ['Credits','Used','Left','Remarks'].forEach((h,i)=>S.put(4,cC+i,cC+i,h,HD));
+  let r0=5,ps=null;
+  const put=(x,nw)=>{const s=x.r.s,key=x.r.key,z=x.z,sp=sepOf(s),el=z.c.el,cr=z.c[t],us=z.u[t],bl=r2(cr-us),sf=sp?SEPC[sp.k]:null,hd=hireOf(D,key,s.name),nt=((D.nt||{})[key]||{})[t]||'',sfx=sf?{fill:ax(sf[0]),col:ax(sf[1])}:{};
+   S.put(r0,1,1,String(s.name||'').trim(),Object.assign({b:1},B4,sfx));
+   S.put(r0,2,2,hd?fd(hd):'',Object.assign({h:'center'},B4));
+   S.put(r0,3,3,sp?sp.k+(sp.d?' · '+fd(sp.d):''):'',Object.assign({b:1,h:'center'},B4,sfx));
+   if(nw&&!x.sl.length)S.put(r0,4,3+nb,'1 year of service on '+fd(el.on)+' · leave credits start then'+(el.m?' (prorated '+el.m+'/12 of '+LV.y+')':''),Object.assign({i:1,col:'FF8A6410',fill:'FFFDF3D7'},B4));
+   else x.sl.forEach((b,k)=>{const f=FILL[b.k];S.put(r0,4+k,4+k,b.x,Object.assign({h:'center',sz:9},B4,f?{fill:f[0],col:f[1]}:{}))});
+   const dash=nw&&!us;
+   S.put(r0,cC,cC,dash?'-':cr,Object.assign({h:'center'},B4));
+   S.put(r0,cU,cU,us,Object.assign({h:'center'},B4));
+   S.put(r0,cL,cL,dash?'-':bl,Object.assign({h:'center',b:1},B4,dash?{}:bl<=0?{col:'FFB3362D',fill:'FFFBE3E1'}:{col:'FF1D6B49'}));
+   S.put(r0,cR,cR,[nt,bl<=0&&!nw?'NO PAY':''].filter(Boolean).join(' · '),Object.assign({sz:9,wrap:1},B4));r0++};
+  A.forEach(x=>{const sc=(D.sec||{})[x.r.key]||'';if(sc!==ps&&(sc||ps)){ps=sc;S.put(r0,1,last,sc||'Others',{fn:'Georgia',b:1,fill:'FFF1F3F7',col:'FF12305C'});r0++}put(x,0)});
+  if(B.length){S.put(r0,1,last,'Newly hired · leave credits start after 1 year of service',{fn:'Georgia',b:1,fill:'FFFDF3D7',col:'FF8A6410'});r0++;B.forEach(x=>put(x,1))}
+  SEPS.forEach(k=>{const g=C.filter(x=>sepOf(x.r.s).k===k);if(!g.length)return;S.put(r0,1,last,k+' · '+g.length,{fn:'Georgia',b:1,fill:'FFF1F3F7',col:'FF12305C'});r0++;g.forEach(x=>put(x,0))});
+  S.freeze=4;S.fit=1;S.orient='landscape';sheets.push(S)}));
+ if(!sheets.length)return toast('Nothing to export.');
+ const slug=v=>String(v||'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,''),fn='Leave-'+LV.y+'-'+(all?'All-VL-SL':(deps.length===1?slug(deps[0]):'All')+'-'+types[0].toUpperCase())+'.xlsx';
+ const b=xgBuild(sheets),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},4000);
+ try{logAct('Exported leave list','Leave',fn)}catch(e){}toast('Exported ✔')};
 
 /* ---- leave dates of one employee ---- */
 function ov(){let o=$('lvm');if(o)o.remove();o=document.createElement('div');o.id='lvm';o.className='no-print';o.style.cssText='position:fixed;inset:0;background:#0006;z-index:90;display:grid;place-items:center;padding:14px';o.addEventListener('mousedown',e=>{o._dn=e.target===o},true);o.onclick=e=>{if(e.target===o&&o._dn!==false)window.lvClose()};document.body.appendChild(o);return o}
-window.lvClose=()=>{const o=$('lvm');if(o)o.remove();LV.emp='';LV.ed='';body()};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('lvm')&&LV.emp)window.lvClose()});
-window.lvOpen=id=>{LV.emp=String(id);LV.ed='';ov();modal()};
-window.lvEd=i=>{if(!guard())return;LV.ed=String(i);modal();const f=$('lvf');if(f&&f.scrollIntoView)f.scrollIntoView({block:'center',behavior:'smooth'})};
+window.lvClose=()=>{const o=$('lvm');if(o)o.remove();LV.emp='';LV.ed='';LV.chk=null;body()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('lvm')&&(LV.emp||LV.chk)){e.preventDefault();window.lvClose()}});
+window.lvOpen=id=>{LV.chk=null;LV.emp=String(id);LV.ed='';ov();modal()};
+window.lvEd=i=>{if(!guard())return;{const x=(LV.D.ent||[]).find(z=>z.i===i);if(x&&x.xl)return toast('This date comes from the Excel sheet. Delete it, then add the correct one.')}LV.ed=String(i);modal();const f=$('lvf');if(f&&f.scrollIntoView)f.scrollIntoView({block:'center',behavior:'smooth'})};
 window.lvEdX=()=>{LV.ed='';modal()};
 function modal(){
  const o=$('lvm'),s=emp(LV.emp);if(!o||!s)return;const D=LV.D||norm(null),c=cred(s,D),u=used(s.id,D),ed=edit()&&!LV.bad;
  const EE=LV.ed?(D.ent||[]).find(x=>x.i===LV.ed&&String(x.e)===String(s.id)):null,bv=r2(c.vl-u.vl),bs=r2(c.sl-u.sl),L=u.n.slice().sort((a,b)=>String(b.f).localeCompare(String(a.f)));
  const BXs=(typeof BX!=='undefined'?BX:'background:var(--sf);color:var(--ink);border-radius:14px;max-width:780px;width:100%;max-height:88vh;overflow:auto;padding:20px');
- o.innerHTML=`<div class="lvp" style="${BXs};max-width:760px">${CSS}<div style="display:flex;gap:10px;align-items:flex-start"><h2 style="flex:1;margin:0;font-size:18px">${esc(s.name)}<small style="display:block;font-weight:400;color:var(--mu);font-size:12px;margin-top:2px">${esc(s.dept)} · ${esc(LV.y)}</small></h2><button class="btn o sm" onclick="lvClose()">Close</button></div>
+ o.innerHTML=`<div class="lvp" style="${BXs};max-width:760px">${CSS}<div style="display:flex;gap:10px;align-items:flex-start"><h2 style="flex:1;margin:0;font-size:18px">${esc(s.name)}<small style="display:block;font-weight:400;color:var(--mu);font-size:12px;margin-top:2px">${esc(s.dept)} · ${esc(LV.y)}</small></h2>${edit()&&!LV.bad?'<button class="btn o sm" data-id="'+esc(String(s.id))+'" onclick="lvChk(this.dataset.id)">Same person?</button><button class="btn o sm lvz-del" data-id="'+esc(String(s.id))+'" onclick="lvNmDel(this.dataset.id)">Remove name</button>':''}<button class="btn o sm" onclick="lvClose()">Close</button></div>
 <div class="lv-sum"><div><b>Vacation Leave (VL)</b><span>Credits ${c.vl} · Used ${u.vl} · Balance <span class="lv-b ${balCls(bv)}">${bv}</span></span></div><div><b>Sick Leave (SL)</b><span>Credits ${c.sl} · Used ${u.sl} · Balance <span class="lv-b ${balCls(bs)}">${bs}</span></span></div></div>
 ${ed?`<div class="lv-fm${EE?' editing':''}"><b>${EE?'Edit leave':'Add leave'}</b><label>Type<select id="lvt" class="fi" onchange="lvTy()"><option value="vl"${EE&&EE.t==='vl'?' selected':''}>Vacation Leave (VL)</option><option value="sl"${EE&&EE.t==='sl'?' selected':''}>Sick Leave (SL)</option><option value="ml"${EE&&EE.t==='ml'?' selected':''}>Maternity Leave</option><option value="il"${EE&&EE.t==='il'?' selected':''}>Indefinite Leave</option></select></label><label>Date of leave (from)<input id="lvf" type="date" class="fi" onchange="lvCalc('f')" value="${EE?esc(EE.f):''}"></label><label>Until (leave blank if 1 day)<input id="lvto" type="date" class="fi" onchange="lvCalc('t')" value="${EE&&EE.to&&EE.to!==EE.f?esc(EE.to):''}"${EE&&EE.t==='il'?' disabled':''}></label><label>Days<input id="lvd" type="number" min="0.5" step="0.5" class="fi" value="${EE?(EE.t==='il'?'':esc(String(EE.n))):1}"${EE&&EE.t==='il'?' disabled':''}></label><label class="w">Remarks<input id="lvr" class="fi" placeholder="optional (e.g. fever, family event)" value="${EE?esc(EE.r||''):''}"></label><div class="w lv-fa"><button class="btn ok" onclick="lvAdd()">${EE?'Save changes':'Add leave'}</button>${EE?'<button class="btn o" onclick="lvEdX()">Cancel</button>':''}</div></div>`:''}
 <b style="font-size:13px">Leave dates in ${esc(LV.y)}</b>
@@ -12720,17 +13051,17 @@ window.lvAdd=async()=>{
   if(f.slice(0,4)!==LV.y)return toast('Keep the date inside '+LV.y+', or delete this leave and add it under the other year.');
   const dupE=LV.D.ent.some(e=>e.i!==EI&&String(e.e)===String(s.id)&&e.f<=(il?'9999-12-31':to)&&endOf(e)>=f);
   if(dupE&&!confirm('This employee already has another leave on some of those dates. Save anyway?'))return;
-  if(t==='vl'||t==='sl'){const c=cred(s,LV.D),u=used(s.id,LV.D),bal=r2(c[t]-u[t]+(o.t===t?num(o.n):0));if(n>bal&&!confirm('Only '+bal+' day'+(bal===1?'':'s')+' of '+t.toUpperCase()+' available. This leave is '+n+' day'+(n===1?'':'s')+'. Save anyway?'))return}
+  if(t==='vl'||t==='sl'){const c=cred(s,LV.D),u=used(s.id,LV.D),bal=r2(c[t]-u[t]+(o.t===t?num(o.n):0));if(n>bal&&!confirm(npMsg(s,t,bal,n)))return}
   const before=fr(o)+' ('+o.t.toUpperCase()+')';
-  const ok=await save(d=>{const x=d.ent.find(z=>z.i===EI);if(x){x.t=t;x.f=f;x.to=to;x.n=n;x.r=r}},LV.y,'Leave updated ✔');
+  const ok=await save(d=>{dropIds(d,o.dups||[]);const x=d.ent.find(z=>z.i===EI);if(x){x.t=t;x.f=f;x.to=to;x.n=n;x.r=r}},LV.y,'Leave updated ✔');
   if(ok){LV.ed='';modal();try{logAct('Edited '+t.toUpperCase()+' leave','Leave',(s.name||'')+' — '+before+' → '+fr({f:f,to:to,t:t})+' ('+n+' day'+(n===1?'':'s')+')')}catch(x){}}
   return}
  const y=f.slice(0,4),D=LV.D,dup=y===LV.y&&D.ent.some(e=>String(e.e)===String(s.id)&&e.f<=(il?'9999-12-31':to)&&endOf(e)>=f);
  if(dup&&!confirm('This employee already has a leave on some of those dates. Add anyway?'))return;
- if(y===LV.y&&(t==='vl'||t==='sl')){const c=cred(s,D),u=used(s.id,D),bal=r2(c[t]-u[t]);if(n>bal&&!confirm('Only '+bal+' day'+(bal===1?'':'s')+' of '+t.toUpperCase()+' left. This leave is '+n+' day'+(n===1?'':'s')+'. Add anyway?'))return}
+ if(y===LV.y&&(t==='vl'||t==='sl')){const c=cred(s,D),u=used(s.id,D),bal=r2(c[t]-u[t]);if(n>bal&&!confirm(npMsg(s,t,bal,n)))return}
  const e={i:Date.now().toString(36)+Math.random().toString(36).slice(2,6),e:String(s.id),t:t,f:f,to:to,n:n,r:r,by:me(),at:new Date().toISOString()};
  const ok=await save(d=>{d.ent.push(e)},y,y===LV.y?'Leave added ✔':'Leave added under '+y+' ✔');
- if(ok){try{logAct('Added '+t.toUpperCase()+' leave','Leave',(s.name||'')+' — '+fr(e)+' ('+n+' day'+(n===1?'':'s')+')')}catch(x){}}};
+ if(ok){try{logAct('Added '+t.toUpperCase()+' leave','Leave',(s.name||'')+' — '+fr(e)+' ('+n+' day'+(n===1?'':'s')+')')}catch(x){}npAfter(s,t)}};
 window.lvEnd=async i=>{if(!guard())return;const e=(LV.D.ent||[]).find(x=>x.i===i);if(!e)return;
  const v=(prompt('Last day of this indefinite leave (YYYY-MM-DD):',new Date().toISOString().slice(0,10))||'').trim();if(!v)return;
  if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v<e.f)return toast('Enter a valid date (YYYY-MM-DD) that is not before the start date.');
@@ -12738,7 +13069,7 @@ window.lvEnd=async i=>{if(!guard())return;const e=(LV.D.ent||[]).find(x=>x.i===i
  const ok=await save(d=>{const x=d.ent.find(z=>z.i===i);if(x){x.to=v;x.n=n}},LV.y,'End date saved ✔');
  if(ok){try{logAct('Ended IL leave','Leave',((s&&s.name)||'')+' — until '+v)}catch(x){}}};
 window.lvDel=async i=>{if(!guard())return;const e=(LV.D.ent||[]).find(x=>x.i===i);if(!e)return;if(!confirm('Delete this leave ('+e.t.toUpperCase()+', '+fr(e)+')?'))return;
- if(LV.ed===i)LV.ed='';const ok=await save(d=>{d.ent=d.ent.filter(x=>x.i!==i)},LV.y,'Leave deleted ✔');if(ok){try{const s=emp(e.e);logAct('Deleted '+e.t.toUpperCase()+' leave','Leave',((s&&s.name)||'')+' — '+fr(e))}catch(x){}}};
+ if(LV.ed===i)LV.ed='';const ok=await save(d=>dropIds(d,[i].concat(e.dups||[])),LV.y,'Leave deleted ✔');if(ok){try{const s=emp(e.e);logAct('Deleted '+e.t.toUpperCase()+' leave','Leave',((s&&s.name)||'')+' — '+fr(e))}catch(x){}}};
 })();
 </script>
 
