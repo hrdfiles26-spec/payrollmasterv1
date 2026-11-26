@@ -5294,7 +5294,7 @@ function pXls(){if(PV==='form'&&!pxCan('exp'))return pxNo();if(PV==='form'&&(!PP
  HXC.forEach((c,j)=>inGrp(j)?put(HR+1,HS+j,HS+j,pT('h_'+c.k,pDef(c.k)),hdr):put(HR,HS+j,HS+j,pT('h_'+c.k,pDef(c.k)),hdr,HR+1));
  r=HR+2;
  // --- body ---
- const noSum=['days','fd','pd','rem','arem','acct'],GT={net:0,coop:0,tot:0},SUBR=[],TS=Object.fromEntries(cols.map(c=>[c.k,0]));
+ const noSum=['days','fd','pd','rem','arem','acct'],GT={net:0,coop:0,tot:0},SUBR=[],TS=Object.fromEntries(cols.map(c=>[c.k,0])),ROWOF={},SMF=[];let TOTR=0;
  const bodyBase={sz:10,col:INK,bl:GRID,br:GRID,bt:GRID,bb:GRID,v:'center'};
  /* wrapped Remarks: estimate how many lines the text needs in a column w wide so the row grows to show all of it */
  const wrapH=(t,w)=>{t=String(t==null?'':t).trim();if(!t)return 17;const cap=Math.max(6,Math.floor(w*1.05));let n=1,len=0;t.split(/\s+/).forEach(x=>{while(x.length>cap){if(len)n++;n+=Math.floor((x.length-1)/cap);x=x.slice(((x.length-1)/cap|0)*cap);len=0;if(x.length<=cap)break}if(len&&len+1+x.length>cap){n++;len=x.length}else len+=(len?1:0)+x.length});return Math.max(17,n*13+4)};
@@ -5309,7 +5309,7 @@ function pXls(){if(PV==='form'&&!pxCan('exp'))return pxNo();if(PV==='form'&&(!PP
   if(!pSameT(d)){hts[r]=17;put(r,1,NC,pGL(d),{fn:'Georgia',sz:10.5,b:1,col:'FF7A5A12',fill:'FFF3ECE0',bl:'thin:FF000000',br:'thin:FF000000',bt:'thin:FF000000',bb:'thin:FF000000',v:'center'});r++}
   const S=Object.fromEntries(cols.map(c=>[c.k,0])),g0=r;
   L.forEach(s=>{const v=pVals(s,1),rw=pRow(s),hd=pHeld(s),HX=hd?pHoldX[pHoldK(rw.hold)]:{};hts[r]=17;if(!hd){GT.net+=v.net;GT.coop+=v.coop;GT.tot+=v.tot}
-   put(r,1,1,s.name,{...bodyBase,h:'left',...HX});put(r,2,2,pRate(s)||'',{...bodyBase,h:'center',...HX});
+   if(!hd)ROWOF[s.id]=r;put(r,1,1,s.name,{...bodyBase,h:'left',...HX});put(r,2,2,pRate(s)||'',{...bodyBase,h:'center',...HX});
    cols.forEach((c,i)=>{const k=c.k,x=3+i;let val='',st={...bodyBase,h:'center'};
     if(k==='rem'||k==='arem'){val=rw[k]||'';st.h=k==='rem'?'center':'left';st.wrap=1;hts[r]=Math.max(hts[r]||17,wrapH(val,wd[x]))}
     else if(k==='acct'){val=String(pAcctV(s)||'');st.h='center';st.col='FF800000'}
@@ -5336,7 +5336,11 @@ function pXls(){if(PV==='form'&&!pxCan('exp'))return pxNo();if(PV==='form'&&(!PP
    if(!hd)try{const KC=k=>{let i=cols.findIndex(q=>q.k===k);if(i>=0)return 3+i;i=HXC.findIndex(q=>q.k===k);return i>=0?HS+i:0},cl0=vc=>vc?cells.get(ck(r,vc)):null,val=vc=>{const o=cl0(vc);return o&&typeof o.v==='number'?o.v:0},rf=vc=>pColL(HRm(vc))+r,
      xcA=(PP.xc||[]).filter(q=>q&&q.m==='add').map(q=>q.id),xcL=(PP.xc||[]).filter(q=>q&&q.m==='less').map(q=>q.id),
      cp=KC('pay'),cd=KC('days'),c2=cl0(2),cdo=cl0(cd),po=cl0(cp);
-    if(PP.m==='r'&&po&&typeof po.v==='number'&&c2&&typeof c2.v==='number'&&cdo&&typeof cdo.v==='number'&&Math.abs(r2(c2.v*cdo.v)-po.v)<.005)po.f='ROUND('+rf(2)+'*'+rf(cd)+',2)';
+    if(po&&typeof po.v==='number'&&c2&&typeof c2.v==='number'&&cdo&&typeof cdo.v==='number'){const cfd=KC('fd'),cpd=KC('pd'),fdo=cl0(cfd),pdo=cl0(cpd),fdv=pFDs(s),C=[[c2.v*cdo.v,'ROUND('+rf(2)+'*'+rf(cd)+',2)']];
+     if(fdo&&typeof fdo.v==='number'&&fdo.v>0)C.push([c2.v/fdo.v*cdo.v,'ROUND('+rf(2)+'/'+rf(cfd)+'*'+rf(cd)+',2)']);
+     if(fdv>0)C.push([c2.v/fdv*cdo.v,'ROUND('+rf(2)+'/'+fdv+'*'+rf(cd)+',2)']);
+     if(pdo&&typeof pdo.v==='number')C.push([pdo.v*cdo.v,'ROUND('+rf(cpd)+'*'+rf(cd)+',2)']);
+     const hit=C.find(q=>Math.abs(r2(q[0])-po.v)<.005);if(hit)po.f=hit[1]}
     const adds=['pay','adj',...xcA].filter(k=>KC(k)),less=['vale','sss','phic','hdmf','tax','ps',...xcL].filter(k=>KC(k)),ct=KC('tot'),cn=KC('net'),cdd=KC('ded'),cc=KC('coop'),
      sTot=adds.map(k=>rf(KC(k))).join('+')+(less.length?'-'+less.map(k=>rf(KC(k))).join('-'):''),
      eTot=adds.reduce((a,k)=>a+val(KC(k)),0)-less.reduce((a,k)=>a+val(KC(k)),0);
@@ -5346,7 +5350,7 @@ function pXls(){if(PV==='form'&&!pxCan('exp'))return pxNo();if(PV==='form'&&(!PP
     if(no&&typeof no.v==='number'&&adds.length&&Math.abs(r2(eTot-val(cdd)-val(cc))-no.v)<.005)no.f='ROUND('+(totOk?rf(ct):sTot)+(cdd?'-'+rf(cdd):'')+(cc?'-'+rf(cc):'')+',2)'}catch(_){}
    if(hasVC)put(r,XC,XC,VCM(s),{...bodyBase,h:'left',wrap:1,sz:9.5,col:'FF4A566B'});r++});
   {const g1=r-1;SUBR.push(r);sumRow('Subtotal',S,'FFF7F9FC','FF2F3B52','thin:FF000000',{r0:g0,r1:g1})}});
- if(G.length)sumRow('TOTAL',TS,'FFEAF0F9',NAVY,'medium:FF12305C',{rows:SUBR});
+ if(G.length){TOTR=r;sumRow('TOTAL',TS,'FFEAF0F9',NAVY,'medium:FF12305C',{rows:SUBR})}
  // --- Summary (same look as the on-screen summary): bold right-aligned label | Debit | Credit | Remarks. Salaries line in Debit; SSP / Tax / Deductions / Bank in Credit. ---
  {const SR=smVals();if(SR){const RC=NC,CC=NC-1,DC=NC-2,l1=NC-3;let l0=l1,lw=wd[l1]||11;while(l0>3&&lw<34){l0--;lw+=wd[l0]||11}let d1=l0-1,d0=d1,dw=wd[d1]||11;while(d0>2&&dw<14){d0--;dw+=wd[d0]||11}const sx0=d0,sl0={sz:10,col:INK,bl:GRID,br:GRID,bt:GRID,bb:GRID,v:'center'},rmS={sz:10,col:'FF66738A',v:'center',h:'left'},rk=k=>{try{return smRK(k)||''}catch(e){return''}};
   const row=(lab,labSt,dv,cv,rem,vs)=>{r++;hts[r]=Math.max(hts[r]||0,18);put(r,d0,l1,lab,{...sl0,...labSt});put(r,DC,DC,dv,{...sl0,...vs,nf:PESO,h:'right'});put(r,CC,CC,cv,{...sl0,...vs,nf:PESO,h:'right'});put(r,RC,RC,rem,rmS)};
@@ -5356,28 +5360,69 @@ function pXls(){if(PV==='form'&&!pxCan('exp'))return pxNo();if(PV==='form'&&(!PP
    SR.ents.forEach(e=>{const rows=smFmRows(e),r0=r+1;
     for(let i=0;i<rows.length;){let j=i;while(smFMV()&&j<rows.length&&rows[j].g.toLowerCase()===rows[i].g.toLowerCase())j++;if(j===i)j++;put(r0+i,d0,d1,rows[i].g,smFMV()?{...fs,b:1,h:'center',wrap:1}:{...fs,h:'left',wrap:1},r0+j-1);i=j}
     rows.forEach((q,i)=>{const z=q.z,x=z.x,cr=x.k==='ssp'||x.k==='tax'||x.k==='ded',rr=r0+i;hts[rr]=Math.max(hts[rr]||0,String(q.it).length>lw?30:18);
-     put(rr,l0,l1,q.it,{...fs,h:'left',wrap:1});put(rr,DC,DC,cr?'':(z.a?z.a:'-'),{...fs,nf:PESO,h:'right'});put(rr,CC,CC,cr?(z.a?z.a:'-'):'',{...fs,nf:PESO,h:'right'});
+     put(rr,l0,l1,q.it,{...fs,h:'left',wrap:1});put(rr,DC,DC,cr?'':(z.a?z.a:'-'),{...fs,nf:PESO,h:'right'});put(rr,CC,CC,cr?(z.a?z.a:'-'):'',{...fs,nf:PESO,h:'right'});SMF.push({t:'ln',r:rr,c:cr?CC:DC,cr,z,e});
      if(rk('L:'+x.id))put(rr,RC,RC,rk('L:'+x.id),rmS)});
     r+=rows.length;if(!smFMV()){r++;hts[r]=12;put(r,d0,CC,'',fs)}r++;hts[r]=20;
-    put(r,d0,l1,'',fs);put(r,DC,DC,'Bank',{...fs,b:1,h:'right',col:RED});put(r,CC,CC,r2(e.bank),{...fs,b:1,h:'right',col:RED,nf:PESO});
-    if(rk('B:'+e.n))put(r,RC,RC,rk('B:'+e.n),rmS)});if(smFMV()||SR.ents.length>1){r++;hts[r]=30;r++;hts[r]=22;put(r,d0,l1,'',fs);put(r,DC,DC,'TOTAL',{...fs,b:1,h:'right',col:RED});put(r,CC,CC,r2(SR.bank),{...fs,b:1,h:'right',col:RED,nf:PESO});if(rk('X:gt'))put(r,RC,RC,rk('X:gt'),rmS)}}
+    put(r,d0,l1,'',fs);put(r,DC,DC,'Bank',{...fs,b:1,h:'right',col:RED});put(r,CC,CC,r2(e.bank),{...fs,b:1,h:'right',col:RED,nf:PESO});SMF.push({t:'bk',r,c:CC,e});
+    if(rk('B:'+e.n))put(r,RC,RC,rk('B:'+e.n),rmS)});if(smFMV()||SR.ents.length>1){r++;hts[r]=30;r++;hts[r]=22;put(r,d0,l1,'',fs);put(r,DC,DC,'TOTAL',{...fs,b:1,h:'right',col:RED});put(r,CC,CC,r2(SR.bank),{...fs,b:1,h:'right',col:RED,nf:PESO});SMF.push({t:'gt',r,c:CC});if(rk('X:gt'))put(r,RC,RC,rk('X:gt'),rmS)}}
   else{
   SR.ents.forEach((e,ei)=>{
    e.lines.filter(z=>z.a||rk('L:'+z.x.id)).forEach(z=>{const cr=z.x.k==='ssp'||z.x.k==='tax'||z.x.k==='ded',v=z.a?z.a:'';
-    row((smDnOf(z.x)?smDnOf(z.x)+' - ':'')+smLb(z.x,z.x.l),PF==='EXTRA PAYROLL'?{h:'left'}:{b:1,h:'right'},cr?'':v,cr?v:'',rk('L:'+z.x.id),{})});
-   if(PF==='EXTRA PAYROLL')row('BANK',{b:1,h:'left',col:'FFC00000'},r2(e.bank),'',rk('B:'+e.n),{b:1});else row('Bank',{b:1,h:'right'},'',r2(e.bank),rk('B:'+e.n),{b:1});
+    row((smDnOf(z.x)?smDnOf(z.x)+' - ':'')+smLb(z.x,z.x.l),PF==='EXTRA PAYROLL'?{h:'left'}:{b:1,h:'right'},cr?'':v,cr?v:'',rk('L:'+z.x.id),{});SMF.push({t:'ln',r,c:cr?CC:DC,cr,z,e})});
+   if(PF==='EXTRA PAYROLL')row('BANK',{b:1,h:'left',col:'FFC00000'},r2(e.bank),'',rk('B:'+e.n),{b:1});else row('Bank',{b:1,h:'right'},'',r2(e.bank),rk('B:'+e.n),{b:1});SMF.push({t:'bk',r,c:PF==='EXTRA PAYROLL'?DC:CC,e});
    if(ei<SR.ents.length-1)r++});
   r++;
-  if(SR.net||rk('X:atm'))row('ATM',{h:'left'},r2(SR.net)||'','',rk('X:atm'),{});
-  if(SR.coop||rk('X:coop'))row('COOP',{h:'left'},r2(SR.coop)||'','',rk('X:coop'),{});
-  if(SR.ded||rk('X:ded'))row('Deductions',{h:'left'},r2(SR.ded)||'','',rk('X:ded'),{});
-  row('Total',{h:'left',b:1},r2(SR.all),'',rk('X:tot'),{b:1,col:'FFC00000'})}
+  if(SR.net||rk('X:atm')){row('ATM',{h:'left'},r2(SR.net)||'','',rk('X:atm'),{});SMF.push({t:'col',k:'net',r,c:DC})}
+  if(SR.coop||rk('X:coop')){row('COOP',{h:'left'},r2(SR.coop)||'','',rk('X:coop'),{});SMF.push({t:'col',k:'coop',r,c:DC})}
+  if(SR.ded||rk('X:ded')){row('Deductions',{h:'left'},r2(SR.ded)||'','',rk('X:ded'),{});SMF.push({t:'col',k:'ded',r,c:DC})}
+  row('Total',{h:'left',b:1},r2(SR.all),'',rk('X:tot'),{b:1,col:'FFC00000'});SMF.push({t:'all',r,c:DC})}
   {const X=PP.smx;if(X&&Array.isArray(X.rows)&&X.rows.length){const bk={bl:'thin:FF000000',br:'thin:FF000000',bt:'thin:FF000000',bb:'thin:FF000000'},fx={sz:10,col:'FF000000',v:'center',...bk};r++;const r0=r+1,n=X.rows.length;
    put(r0,d0,d1,X.g||'',{...fx,b:1,h:'center',wrap:1},r0+n-1);
    X.rows.forEach((q,i)=>{const rr=r0+i;hts[rr]=Math.max(hts[rr]||0,String(q.l||'').length>30?30:18);
     put(rr,l0,l1,q.l||'',{...fx,b:1,h:'center',wrap:1,...(q.hl?{fill:'FFE6B8B7'}:{})});put(rr,DC,DC,smxNum(q.d),{...fx,nf:PESO,h:'right'});put(rr,CC,CC,smxNum(q.c),{...fx,nf:PESO,h:'right'})});
    r=r0+n-1}}
  }}
+ /* v700: the SUMMARY is also computed with real Excel formulas, so it shows how each amount was taken from the payroll table above
+    (Salaries = Total + Tax + SSS + PhilHealth + Pag-IBIG of the people in that line; SSP / Tax / Deductions = the same columns; Bank = Debit - Credit; ATM / COOP / Deductions = TOTAL row).
+    Broiler hatian (Salary division) is written as + / - amounts inside the formula and explained in the Remarks column.
+    A formula is used only when it gives exactly the same amount as the app; otherwise the number stays as it is. */
+ try{if(SMF.length){const KCs=k=>{let i=cols.findIndex(q=>q.k===k);if(i>=0)return 3+i;i=HXC.findIndex(q=>q.k===k);return i>=0?HS+i:0},
+   cvl=(rr,vc)=>{const o=cells.get(ck(rr,vc));return o&&typeof o.v==='number'?o.v:0},cref=(rr,vc)=>pColL(HRm(vc))+rr,
+   rng=(rows,vc)=>{const L=pColL(HRm(vc)),o=[];let a=null,b=null;const fl=()=>{if(a!=null)o.push(a===b?L+a:L+a+':'+L+b)};rows.forEach(q=>{if(a!=null&&q===b+1)b=q;else{fl();a=b=q}});fl();return o},
+   /* SUM of the cells of these people for the given columns; KS = [[key, +1/-1], ...] */
+   fxOf=(ids,KS)=>{const rows=[...new Set(ids.map(id=>ROWOF[id]).filter(Boolean))].sort((a,b)=>a-b);if(!rows.length)return{f:'',v:0,n:0};let f='',v=0;
+    for(const [k,sg] of KS){const vc=KCs(k);if(!vc){if(ids.some(id=>V[id]&&Math.abs(+V[id][k]||0)>=.005))return null;continue}const P=rng(rows,vc);if(P.length>200)return null;const pv=rows.reduce((t,q)=>t+cvl(q,vc),0);if(!f&&sg<0)f='0';f+=(sg<0?'-':(f?'+':''))+(P.length===1&&P[0].indexOf(':')<0?P[0]:'SUM('+P.join(',')+')');v+=sg*pv}
+    return{f,v:r2(v),n:rows.length}},
+   num=a=>(a<0?'-':'+')+Math.abs(r2(a)).toFixed(2),
+   setF=(rr,vc,f)=>{const o=cells.get(ck(rr,vc));if(o&&typeof o.v==='number'&&f)o.f=f.replace(/^\+/,'')},
+   addRm=(rr,t)=>{if(!t)return;const o=cell(rr,NC);o.v=o.v?o.v+' · '+t:t;Object.assign(o.st,{sz:10,col:'FF66738A',v:'center',h:'left'})},
+   emp=(STF||[]).filter(q=>q.dept===PF),V=Object.fromEntries(emp.map(q=>[q.id,pVals(q)])),nmOf=id=>{const q=emp.find(z=>z.id===id);return q?q.name:id};
+  /* Broiler Salary division (hatian), same as the summary in the app */
+  const CSP={},CSR={},CSI=new Set(),CSD={},CSO={};
+  if(/^\s*broiler/i.test(String(PF))){const S0=smGet()||[],EX=new Set(S0.filter(x=>x.k==='sal'&&!x.man).map(csLn));emp.forEach(q=>{if(!csGet(q.id).length)return;const z=csShare(q,V[q.id],EX);if(!z.ok.length)return;CSI.add(q.id);CSR[q.id]=z.rem;CSO[q.id]=z.ok;z.ok.forEach(y=>{const k=y.c.toLowerCase();CSP[k]=r2((CSP[k]||0)+y.a);(CSD[k]=CSD[k]||[]).push(nmOf(q.id)+' '+dy3(y.d)+' days '+pf(y.a))})})}
+  const salKS=x=>smFMV()&&!hasXB()?[['pay',1],['adj',1],...(PP.xc||[]).filter(c=>c&&c.m==='add').map(c=>[c.id,1]),['vale',-1]]:hasXB()?[['pay',1],['adj',1],['vale',-1]]:PF==='EXTRA PAYROLL'&&x&&/LAYERS/i.test(x.l||'')?[['pay',1]]:null,
+   salKS2=[[['tot',1],['tax',1],['sss',1],['phic',1],['hdmf',1]],[['net',1],['coop',1],['ded',1],['tax',1],['sss',1],['phic',1],['hdmf',1]]],
+   CSU=new Set(),LN=new Map();
+  SMF.filter(m=>m.t==='ln').forEach(m=>{const z=m.z,x=z.x,e=m.e;if(typeof z.a!=='number'||!z.a)return;
+   const salIds=new Set();e.lines.forEach(w=>{if(w.x.k==='sal')smMem(w.x).forEach(id=>salIds.add(id))});const pool=e.hasSal?emp.filter(q=>salIds.has(q.id)).map(q=>q.id):emp.map(q=>q.id);
+   let C=[],extra=0,why=!!(z.ad0||z.sub||z.hov||z.fold||z.ad),rm='';
+   if(x.k==='ssp'&&!x.nz)C=[[['sss',1],['phic',1],['hdmf',1]]].map(KS=>fxOf(pool,KS));
+   else if(x.k==='tax')C=[fxOf(pool,[['tax',1]])];
+   else if(x.k==='ded'&&x.src){const ids=x.of?(()=>{const o=e.lines.find(w=>w.x.id===x.of);const mm=new Set(o?smMem(o.x):[]);return pool.filter(id=>mm.has(id))})():pool;C=[fxOf(ids,[[x.src,1]])]}
+   else if(x.k==='sal'&&!x.man){const mem=smMem(x).filter(id=>V[id]),cs=mem.filter(id=>CSI.has(id)),q=csLn(x),K1=salKS(x);C=(K1?[K1]:salKS2).map(KS=>fxOf(mem,KS));
+    cs.forEach(id=>{const gone=r2((CSO[id]||[]).reduce((t,y)=>t+y.a,0));if(!gone)return;extra-=gone;rm+=(rm?'; ':'')+nmOf(id)+' hatian palabas \u2212'+pf(gone)+' ('+(CSO[id]||[]).map(y=>y.c+' '+dy3(y.d)+' days').join(', ')+')'});
+    if(CSP[q]&&!CSU.has(q)){CSU.add(q);extra+=CSP[q];rm+=(rm?'; ':'')+'Hatian papasok +'+pf(CSP[q])+': '+CSD[q].join(', ')}}
+   else return;
+   const hit=C.filter(Boolean).map(c=>({...c,d:r2(z.a-(c.v+extra))})).sort((a,b)=>Math.abs(a.d)-Math.abs(b.d))[0];if(!hit)return;
+   let f=hit.f;if(Math.abs(extra)>=.005)f+=num(extra);
+   if(Math.abs(hit.d)>=.005){if(!why)return;f+=num(hit.d);rm+=(rm?'; ':'')+'Adjustment '+(hit.d<0?'−':'+')+pf(Math.abs(hit.d))}
+   if(!f)return;setF(m.r,m.c,f);LN.set(m,1);if(rm)addRm(m.r,'✂ '+rm)});
+  /* Bank = Debit - Credit of its own block; Grand TOTAL = sum of the banks; ATM / COOP / Deductions = TOTAL row */
+  const BK=[];SMF.forEach((m,i)=>{if(m.t==='bk'){const L=SMF.filter(w=>w.t==='ln'&&w.e===m.e&&!w.z.fold&&typeof w.z.a==='number'&&w.z.a);const v=r2(L.reduce((t,w)=>t+(w.cr?-1:1)*cvl(w.r,w.c),0));
+    if(L.length&&Math.abs(v-cvl(m.r,m.c))<.005){const D=L.filter(w=>!w.cr).map(w=>cref(w.r,w.c)),Cr=L.filter(w=>w.cr).map(w=>cref(w.r,w.c));setF(m.r,m.c,(D.length?D.join('+'):'0')+(Cr.length?'-'+Cr.join('-'):''))}BK.push(m)}
+   else if(m.t==='gt'&&BK.length){const v=r2(BK.reduce((t,b)=>t+cvl(b.r,b.c),0));if(Math.abs(v-cvl(m.r,m.c))<.005)setF(m.r,m.c,'SUM('+BK.map(b=>cref(b.r,b.c)).join(',')+')')}
+   else if(m.t==='col'&&TOTR){const vc=KCs(m.k);if(vc&&Math.abs(cvl(TOTR,vc)-cvl(m.r,m.c))<.005)setF(m.r,m.c,cref(TOTR,vc))}
+   else if(m.t==='all'){const L=SMF.filter(w=>w.t==='col');const v=r2(L.reduce((t,w)=>t+cvl(w.r,w.c),0));if(L.length&&Math.abs(v-cvl(m.r,m.c))<.005)setF(m.r,m.c,L.map(w=>cref(w.r,w.c)).join('+'))}})}}catch(_){}
  // --- signatures + ATM / COOP / Total ---
  r++;hts[r]=26;const fr=r,ul={bb:'thin:FF000000',h:'center',v:'bottom',sz:10.5,b:1,col:'FF000000'},lb={sz:9.5,h:'center',col:'FF444444'};
  /* the Prepared by / Checked by names must show in full: widen the signature cells over more columns until the name fits, and wrap + grow the row only if it still does not */
@@ -10961,7 +11006,7 @@ const clDef=e=>{try{const s=(STF||[]).find(x=>String(x.id)===String(e.k));if(s&&
 const clOf=e=>e.cl!=null?String(e.cl):clDef(e);
 const clBase=()=>{try{return[].concat(typeof XBS!=='undefined'?XBS:[],typeof XBR!=='undefined'?XBR:[],typeof XBL!=='undefined'?XBL:[],typeof XBX!=='undefined'?XBX:[])}catch(x){return[]}};
 const clList=sh=>[...new Set([...(typeof xbCm==='function'?Object.keys(xbCm()):[]),...clBase(),...sh.emps.map(clOf)].map(x=>String(x||'').trim()).filter(Boolean))];
-const pdOf=e=>e.pd?pn(rLast(e)):pn(rLast(e))/(e.fd>0?e.fd:7);
+const pdOf=e=>{try{const sh=S();if(sh&&e.rc&&e.rc.length&&sh.emps.indexOf(e)>=0){const t=tot(sh,e);if(t.days>0&&t.base>0)return t.base/t.days}}catch(x){}return e.pd?pn(rLast(e)):pn(rLast(e))/(e.fd>0?e.fd:7)};
 const spList=e=>(e.sp||[]).filter(z=>z&&String(z.c||'').trim()&&pn(z.d)>0);
 const spAmt=(e,z)=>r2(pn(z.d)*pdOf(e));
 /* Broiler attendance row: under the name, show every hatian line AND what stays in the person's own class (days + amount) */
@@ -10975,7 +11020,12 @@ const spGrp=(sh,c)=>{const u=String(c==null?'':c).trim().toUpperCase(),f=sh.emps
 const spCl=(sh,e)=>isBr(sh)?(clOf(e)||'(no class)'):String(e.c||sh.dept);
 function spIn(sh){const M={};sh.emps.forEach((e,i)=>{spList(e).forEach(z=>{const g=spGrp(sh,z.c);if(String(g)===String(e.c))return;(M[g]=M[g]||[]).push({i,e,z,a:spAmt(e,z)})})});return M}
 function brAdj(sh,g){let d=0,a=0;sh.emps.forEach(e=>{spList(e).forEach(z=>{const to=spGrp(sh,z.c),own=String(e.c);if(String(to)===own)return;if(own===String(g)){d-=pn(z.d);a-=spAmt(e,z)}else if(String(to)===String(g)){d+=pn(z.d);a+=spAmt(e,z)}})});return[d,r2(a)]}
-function gsumG(sh,idx,g){const z=gsum(sh,idx);if(g==null||!isBl(sh))return z;const a=brAdj(sh,g);return[r2(z[0]+a[0]),r2(z[1]+a[1]),z[2]]}
+function gsumB(sh,idx,g){if(g==null||!isBl(sh))return'';const a=brAdj(sh,g);if(!a[0]&&!a[1])return'';return'\u2702 Note lang (hindi kasama sa total): Hatian '+(a[1]<0?'\u2212':'+')+fm(Math.abs(a[1]))+' ('+(a[0]<0?'\u2212':'+')+nd3(Math.abs(a[0]))+' days) \u2014 lalabas lang sa Summary ng Broiler payroll'}
+/* self-check: the Totals of all classes must add up to the GRAND TOTAL (days and amount) */
+function gchk(sh){const L=A.gs||[],all=L.find(g=>g.id==='all');if(!all)return'';let d=0,a=0;L.forEach(g=>{if(g.id==='all')return;const z=gsumG(sh,g.idx,g.g);d+=z[0];a+=z[1]});const t=gsumG(sh,all.idx,all.g),dd=r2(d-t[0]),da=r2(a-t[1]);return(Math.abs(dd)<.01&&Math.abs(da)<.01)?'<span style="color:#2e7d4f">\u2714 Totals checked: all classes add up to the Grand Total</span>':'<span style="color:#c0392b;font-weight:700">\u26A0 Class totals differ from the Grand Total by '+fm(da)+' / '+nd3(dd)+' days. Please check the Hatiin lines.</span>'}
+const gnote=(sh,idx,g,id)=>id==='all'?gchk(sh):gsumB(sh,idx,g);
+/* v700: BROILER hatian is a NOTE only (for HR head / payroll master). The person counts fully in his own class; the hatian does not change any total or subtotal of the attendance. It shows only in the Broiler payroll summary. */
+function gsumG(sh,idx,g){return gsum(sh,idx)}
 const atSpTxt=e=>spList(e).map(z=>'Split: '+z.c+' '+nf(pn(z.d))+' days (PHP '+nf(spAmt(e,z))+')').join('; ');
 const atFarm=g=>{g=String(g||'');return /paper\s*clip|p\s*-?\s*clip|pclip/i.test(g)?'COMMON PAPER CLIP':/john\s*-?\s*myr|johnmyr|\bjm\b/i.test(g)?'COMMON JOHNMYR':/tanay/i.test(g)?'COMMON TANAY':''};
 const atCmL=k=>(((typeof PDS!=='undefined'&&PDS._atcm)||{})[k]||[]).slice();
@@ -11259,10 +11309,10 @@ function sumH(sh,i){const e=sh.emps[i],t=tot(sh,e),P=[t.vl?'VL '+nf(t.vl):'',t.s
 function drawSheet(){const sh=S();if(!sh){return drawList()}Object.keys(sh.d||{}).forEach(k=>{Object.keys(sh.d[k]||{}).forEach(dt=>{const c=sh.d[k]&&sh.d[k][dt];if(c&&c.t==='HLD'){c.t='';if(c.v===0||c.v==='0')c.v='';tidy(sh,k,dt)}})});A.v='sheet';const D=dayList(sh),w=$('atw'),sl=w?w.scrollLeft:0,st=w?w.scrollTop:0,wx=window.scrollX,wy=window.scrollY;
  /* A–Z by name: inside every class the employees are always in alphabetical order (after add / remove / move / rename / sync) */
  sh.emps.sort((a,b)=>String(a.n||'').trim().localeCompare(String(b.n||'').trim(),'es',{sensitivity:'base'}));
- const ord=[];const G={};sh.emps.forEach((e,i)=>{(G[e.c]=G[e.c]||[]).push(i)});if(isBl(sh))Object.keys(spIn(sh)).forEach(g=>{if(!(g in G))G[g]=[]});
+ const ord=[];const G={};sh.emps.forEach((e,i)=>{(G[e.c]=G[e.c]||[]).push(i)});
  const gk=Object.keys(G),ix=(typeof PGO!=='undefined'&&PGO[sh.dept])||[];gk.sort((a,b)=>{const x=ix.indexOf(a),y=ix.indexOf(b);return(x<0?99:x)-(y<0?99:y)});if(/broiler/i.test(String(sh.dept||''))){const rk=((g)=>{g=String(g==null?'':g);const m=/^\s*B\s*(\d+)/i.exec(g);return m?+m[1]:(/common/i.test(g)?100000:5000)});gk.sort((a,b)=>rk(a)-rk(b)||String(a).localeCompare(String(b),'es',{numeric:true,sensitivity:'base'}))};
  const br=isBr(sh),colN=D.length+6+(br?1:0);if(!sh.rm)sh.rm={};
- A.gs=[];const subR=(id,lbl,idx,cls,gg)=>{A.gs.push({id,idx,g:gg});const z=gsumG(sh,idx,gg);return`<tr class="atsub ${cls||''}"><td class="sn" colspan="${br?3:2}"><b>${esc(lbl)}</b></td><td colspan="${D.length}"></td><td class="sd" id="atgd_${id}"><b>${z[0]?nd3(z[0]):'-'}</b></td><td class="sj" id="atgj_${id}"><b>${z[2]?fm(z[2]):'-'}</b></td><td class="sa" id="atga_${id}"><b>${z[1]?fm(z[1]):'-'}</b></td><td></td></tr>`};
+ A.gs=[];const subR=(id,lbl,idx,cls,gg)=>{A.gs.push({id,idx,g:gg});const z=gsumG(sh,idx,gg);return`<tr class="atsub ${cls||''}"><td class="sn" colspan="${br?3:2}"><b>${esc(lbl)}</b><div class="atsm" id="atgb_${id}" style="font-weight:400;font-size:11.5px;white-space:normal;color:var(--mu)">${gnote(sh,idx,gg,id)}</div></td><td colspan="${D.length}"></td><td class="sd" id="atgd_${id}"><b>${z[0]?nd3(z[0]):'-'}</b></td><td class="sj" id="atgj_${id}"><b>${z[2]?fm(z[2]):'-'}</b></td><td class="sa" id="atga_${id}"><b>${z[1]?fm(z[1]):'-'}</b></td><td></td></tr>`};
  let body='';gk.forEach((g,gi)=>{body+=`<tr class="atg"><td colspan="${colN}"><div><span>${esc(g)}</span><button class="btn o sm" data-c="${esc(g)}" onclick="atAdd(this.dataset.c)">+ Add employee</button> <button class="btn o sm no-print" data-c="${esc(g)}" onclick="atGrpRen(this.dataset.c)" title="Change the name of this class / group">✎ Rename class</button></div></td></tr>`;
   G[g].forEach(i=>{const e=sh.emps[i],s=sumH(sh,i);
    body+=`<tr class="atrw" data-n="${esc(e.n)}"><td class="sn"><b>${esc(e.n)}</b><br><button class="atq" onclick="atFillRow(${i})" title="Put 1 on every empty day. Click again to remove the 1s">✓ all days</button> <button class="atq atrm" onclick="atRemove(${i})" title="Remove this employee from this attendance">🗑 Remove</button> <button class="atq atmv no-print" onclick="atMv(${i})" title="Move this employee to another class / group (or type a new one)">⇄ Move</button> <button class="atq atrn no-print" onclick="atRnm(${i})" title="Rename this employee in this attendance">✎ Rename</button>${isBl(sh)&&atSpOk(sh,e)?` <button class="atq atsp no-print" onclick="atSp(${i})" title="Hatiin ang sahod ng taong ito sa ibang class">✂ Hatiin</button>`:''}</td>
@@ -11286,7 +11336,7 @@ function upNotes(){const sh=S(),el=$('atnotes');if(!sh||!el)return;const L=[];sh
  const R=sh.emps.filter(e=>sh.rm&&sh.rm[e.k]).map(e=>`<div><b>${esc(e.n)}</b>: ${esc(sh.rm[e.k])}</div>`);
  el.innerHTML=(L.length?'<div style="font-weight:700;margin-bottom:2px">Comments</div>'+L.join(''):'')+(R.length&&L.length?'<div style="height:6px"></div>':'')+(R.length?'<div style="font-weight:700;margin-bottom:2px">Remarks</div>'+R.join(''):'')}
 function gsum(sh,idx){let d=0,a=0,j=0;idx.forEach(i=>{const t=tot(sh,sh.emps[i]);d+=t.days;a+=t.amt;j+=t.adj});return[d,r2(a),r2(j)]}
-function upTot(){const sh=S();if(!sh||!A.gs)return;upCls();A.gs.forEach(g=>{const z=gsumG(sh,g.idx,g.g),d=$('atgd_'+g.id),a=$('atga_'+g.id),j=$('atgj_'+g.id);if(d)d.innerHTML='<b>'+(z[0]?nd3(z[0]):'-')+'</b>';if(j)j.innerHTML='<b>'+(z[2]?fm(z[2]):'-')+'</b>';if(a)a.innerHTML='<b>'+(z[1]?fm(z[1]):'-')+'</b>'})}
+function upTot(){const sh=S();if(!sh||!A.gs)return;upCls();A.gs.forEach(g=>{const z=gsumG(sh,g.idx,g.g),d=$('atgd_'+g.id),a=$('atga_'+g.id),j=$('atgj_'+g.id);if(d)d.innerHTML='<b>'+(z[0]?nd3(z[0]):'-')+'</b>';if(j)j.innerHTML='<b>'+(z[2]?fm(z[2]):'-')+'</b>';if(a)a.innerHTML='<b>'+(z[1]?fm(z[1]):'-')+'</b>';const b=$('atgb_'+g.id);if(b)b.innerHTML=gnote(sh,g.idx,g.g,g.id)})}
 function upRow(i){const sh=S(),s=sumH(sh,i),d=$('atd_'+i),a=$('ata_'+i);if(d)d.innerHTML='<b>'+s[0]+'</b>';if(a)a.innerHTML='<b>'+s[1]+'</b>';upTot()}
 window.atV=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1),v=el.value;c.v=v===''?'':Math.max(0,+v||0);stampC(c);tidy(sh,e.k,dt);upCell(i,dt);sv()};
 window.atT=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1),pvT=c.t,BL=['VLN','SLN','ABS','OFF'],inp=el.parentNode.querySelector('.atv'),dflt=c.v===''||c.v==null||c.v===0||c.v==='0'||c.v===1||c.v==='1',set=v=>{c.v=v;if(inp)inp.value=v};c.t=el.value;/* VL NP / SL NP / Absent / Off: the day stays BLANK (not 1, not 0); VL / SL default to 1 */if(BL.includes(c.t)){if(dflt)set('')}else if(c.t){if(c.v===''||c.v==null||(BL.includes(pvT)&&dflt))set(1)}else if(BL.includes(pvT)&&dflt)set('');stampC(c);tidy(sh,e.k,dt);upCell(i,dt);sv()};
@@ -11435,7 +11485,7 @@ window.atCm=(i,dt)=>{const sh=S(),e=sh.emps[i],c=(sh.d[e.k]||{})[dt]||{},d=ovl('
 window.atCmSave=(i,dt,rm)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1);c.c=rm?'':($('atcmt').value||'').trim();{const rv0=c.rv;stampC(c);if(rv0)c.rv=rv0}tidy(sh,e.k,dt);const o=$('atcm');if(o)o.remove();upCell(i,dt);sv()};
 
 /* ---------- EXPORT: Excel (.xlsx) and CSV of the attendance sheet ---------- */
-function atGroups(sh){const G={};sh.emps.forEach((e,i)=>{(G[e.c]=G[e.c]||[]).push(i)});if(isBl(sh))Object.keys(spIn(sh)).forEach(g=>{if(!(g in G))G[g]=[]});const gk=Object.keys(G),ix=(typeof PGO!=='undefined'&&PGO[sh.dept])||[];gk.sort((a,b)=>{const x=ix.indexOf(a),y=ix.indexOf(b);return(x<0?99:x)-(y<0?99:y)});if(/broiler/i.test(String(sh.dept||''))){const rk=((g)=>{g=String(g==null?'':g);const m=/^\s*B\s*(\d+)/i.exec(g);return m?+m[1]:(/common/i.test(g)?100000:5000)});gk.sort((a,b)=>rk(a)-rk(b)||String(a).localeCompare(String(b),'es',{numeric:true,sensitivity:'base'}))};return{G,gk}}
+function atGroups(sh){const G={};sh.emps.forEach((e,i)=>{(G[e.c]=G[e.c]||[]).push(i)});const gk=Object.keys(G),ix=(typeof PGO!=='undefined'&&PGO[sh.dept])||[];gk.sort((a,b)=>{const x=ix.indexOf(a),y=ix.indexOf(b);return(x<0?99:x)-(y<0?99:y)});if(/broiler/i.test(String(sh.dept||''))){const rk=((g)=>{g=String(g==null?'':g);const m=/^\s*B\s*(\d+)/i.exec(g);return m?+m[1]:(/common/i.test(g)?100000:5000)});gk.sort((a,b)=>rk(a)-rk(b)||String(a).localeCompare(String(b),'es',{numeric:true,sensitivity:'base'}))};return{G,gk}}
 const atShort={VL:'VL',SL:'SL',VLN:'VL NP',SLN:'SL NP',ABS:'ABSENT',OFF:'OFF'};
 function atCellX(c){if(!c)return{v:'',st:5};const v=+c.v||0;if(c.t)return{v:atShort[c.t]+(v&&v!==1?' '+nf(v):''),st:c.t==='VL'?13:c.t==='SL'?14:15};if(c.v===''||c.v==null)return{v:'',st:5};return{v:v,st:v>0?12:5}}
 const atBasis=e=>e.pd?'per day':'gross ÷ '+(e.fd>0?e.fd:7);
@@ -11444,7 +11494,7 @@ const atFile=(sh,ext)=>'attendance_'+String(sh.dept).replace(/[^A-Za-z0-9]+/g,'_
 const atDl=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)};
 function atXlsxBuild(sh){const D=dayList(sh),br=isBr(sh),{G,gk}=atGroups(sh),H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',RT='http://schemas.openxmlformats.org/officeDocument/2006/relationships',
  c0=br?5:4,nd=D.length,cTD=c0+nd,cAJ=cTD+1,cTA=cAJ+1,cRM=cTA+1,LAST=cRM,R=[],MG=[];let r=0;
- const X=(c,v,st)=>{const ref=pColL(c)+r;if(v===''||v==null||(typeof v==='number'&&!isFinite(v)))return`<c r="${ref}" s="${st}"/>`;if(typeof v==='number')return`<c r="${ref}" s="${st}"><v>${v}</v></c>`;return`<c r="${ref}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${esc(v)}</t></is></c>`};
+ const X=(c,v,st,f)=>{const ref=pColL(c)+r;if(v===''||v==null||(typeof v==='number'&&!isFinite(v)))return f?`<c r="${ref}" s="${st}"><f>${esc(f)}</f></c>`:`<c r="${ref}" s="${st}"/>`;if(typeof v==='number')return f?`<c r="${ref}" s="${st}"><f>${esc(f)}</f><v>${v}</v></c>`:`<c r="${ref}" s="${st}"><v>${v}</v></c>`;return`<c r="${ref}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${esc(v)}</t></is></c>`};
  const ROW=(cs,ht)=>{R.push(`<row r="${r}"${ht?` ht="${ht}" customHeight="1"`:''}>${cs.join('')}</row>`)};
  const mg=(c1,c2)=>{if(c2>c1)MG.push(pColL(c1)+r+':'+pColL(c2)+r)};
  const dh=dt=>{const d=dt0(dt);return(d.getMonth()+1)+'/'+d.getDate()+' '+d.toLocaleDateString('en',{weekday:'short'})};
@@ -11452,9 +11502,21 @@ function atXlsxBuild(sh){const D=dayList(sh),br=isBr(sh),{G,gk}=atGroups(sh),H='
  r++;ROW([X(1,'Attendance · '+sh.dept+' · '+lab(sh.from,sh.to),21)],20);mg(1,LAST);
  r++;ROW([],8);
  r++;const HR=r;ROW([X(1,'Name',3),X(2,sh.m==='g'?'Rate / Gross':'Rate',3),X(3,'Basis',3),...(br?[X(4,'Class',3)]:[]),...D.map((dt,i)=>X(c0+i,dh(dt),3)),X(cTD,'Total days',3),X(cAJ,'Adjustment',3),X(cTA,'Total amount',3),X(cRM,'Remarks',3)],30);
- const sub=(lbl,idx,gs,gg)=>{const z=gsumG(sh,idx,gg);r++;ROW([X(1,lbl,gs?16:9),...Array.from({length:c0-2},(_,i)=>X(2+i,'',gs?16:9)),...D.map((_,i)=>X(c0+i,'',gs?16:9)),X(cTD,z[0]||'',gs?18:11),X(cAJ,z[2]||'',gs?17:10),X(cTA,z[1]||'',gs?17:10),X(cRM,'',gs?16:9)]);mg(1,c0-1)};
- gk.forEach(g=>{r++;ROW([X(1,g,8),...Array.from({length:LAST-1},(_,i)=>X(2+i,'',8))]);mg(1,LAST);
-  G[g].forEach(i=>{const e=sh.emps[i],t=tot(sh,e),row=sh.d[e.k]||{},rmT=[(sh.rm&&sh.rm[e.k])||'',atRcTxt(e),isBl(sh)?atSpTxt(e):''].filter(Boolean).join(' · '),rmH=rmT.length>42?Math.min(400,Math.ceil(rmT.length/42)*15+6):0;r++;ROW([X(1,e.n,4),X(2,pn(rLast(e)),6),X(3,atBasis(e),5),...(br?[X(4,atClTxt(e),5)]:[]),...D.map((dt,k)=>{const q=atCellX(row[dt]);return X(c0+k,q.v,q.st)}),X(cTD,t.any?t.days:'',7),X(cAJ,t.adj||'',6),X(cTA,(t.any||t.adj)?t.amt:'',6),X(cRM,rmT,22)],rmH)});
+ /* v700: Total days, Total amount, the class Totals and the GRAND TOTAL are real Excel formulas (each one only when it gives exactly the app's number) */
+ const SUBS=[],RV={};let gR=[];
+ const fSum=(c,rows)=>{if(!rows.length)return'';const L=pColL(c),o=[];let a=null,b=null;const fl=()=>{if(a!=null)o.push(a===b?L+a:L+a+':'+L+b)};rows.forEach(q=>{if(a!=null&&q===b+1)b=q;else{fl();a=b=q}});fl();return'SUM('+o.join(',')+')'};
+ const sub=(lbl,idx,gs,gg)=>{const z=gsumG(sh,idx,gg);r++;const rows=gs?SUBS.slice():gR.slice(),ok=k=>Math.abs(r2(rows.reduce((t,q)=>t+((RV[q]||{})[k]||0),0))-r2(z[k]||0))<.005,
+  ff=(c,k)=>!rows.length||!ok(k)?'':gs?rows.map(q=>pColL(c)+q).join('+'):fSum(c,rows);
+  const sv={0:z[0],1:z[1],2:z[2]};RV[r]={0:r2(sv[0]||0),1:r2(sv[1]||0),2:r2(sv[2]||0)};if(!gs)SUBS.push(r);
+  ROW([X(1,lbl,gs?16:9),...Array.from({length:c0-2},(_,i)=>X(2+i,'',gs?16:9)),...D.map((_,i)=>X(c0+i,'',gs?16:9)),X(cTD,z[0]||'',gs?18:11,ff(cTD,0)),X(cAJ,z[2]||'',gs?17:10,ff(cAJ,2)),X(cTA,z[1]||'',gs?17:10,ff(cTA,1)),X(cRM,'',gs?16:9)]);mg(1,c0-1)};
+ gk.forEach(g=>{gR=[];r++;ROW([X(1,g,8),...Array.from({length:LAST-1},(_,i)=>X(2+i,'',8))]);mg(1,LAST);
+  G[g].forEach(i=>{const e=sh.emps[i],t=tot(sh,e),row=sh.d[e.k]||{},rmT=[(sh.rm&&sh.rm[e.k])||'',atRcTxt(e),isBl(sh)?atSpTxt(e):''].filter(Boolean).join(' · '),rmH=rmT.length>42?Math.min(400,Math.ceil(rmT.length/42)*15+6):0;r++;
+   const QX=D.map(dt=>atCellX(row[dt])),dsum=r2(QX.reduce((a,q)=>a+(typeof q.v==='number'?q.v:0),0)),dD=t.any?t.days:'',aA=(t.any||t.adj)?t.amt:'',rate=pn(rLast(e)),fdv=e.fd>0?e.fd:7,
+    fD=t.any&&Math.abs(dsum-r2(t.days))<.005?'SUM('+pColL(c0)+r+':'+pColL(c0+nd-1)+r+')':'',
+    hasRc=e.rc&&e.rc.length,base=e.pd?r2(rate*t.days):r2(rate/fdv*t.days),
+    fA=aA!==''&&!hasRc&&Math.abs(r2(base+t.adj)-r2(t.amt))<.005?(t.any?'ROUND(B'+r+(e.pd?'':'/'+fdv)+'*'+pColL(cTD)+r+',2)':'0')+'+'+pColL(cAJ)+r:'';
+   RV[r]={0:r2(t.any?t.days:0),1:r2(aA===''?0:t.amt),2:r2(t.adj||0)};gR.push(r);
+   ROW([X(1,e.n,4),X(2,rate,6),X(3,atBasis(e),5),...(br?[X(4,atClTxt(e),5)]:[]),...QX.map((q,k)=>X(c0+k,q.v,q.st)),X(cTD,dD,7,fD),X(cAJ,t.adj||'',6),X(cTA,aA,6,fA),X(cRM,rmT,22)],rmH)});
   sub('Total · '+g,G[g],0,g)});
  if(gk.length)sub('GRAND TOTAL',sh.emps.map((_,i)=>i),1);
  const CM=[],RMK=[];sh.emps.forEach(e=>{const q=sh.d[e.k]||{};Object.keys(q).sort().forEach(dt=>{if(q[dt]&&q[dt].c){const d=dt0(dt);CM.push(e.n+' · '+(d.getMonth()+1)+'/'+d.getDate()+(q[dt].t?' ('+TL[q[dt].t]+')':'')+': '+q[dt].c)}});if(sh.rm&&sh.rm[e.k])RMK.push(e.n+': '+sh.rm[e.k])});
@@ -11485,7 +11547,7 @@ window.atCsv=()=>{const sh=S();if(!sh)return;if(!sh.emps.length)return toast('No
  L.push(['Group','Name','Rate / Gross','Basis',...(br?['Class']:[]),...D.map(dh),'Total days','Adjustment','Total amount','Remarks']);
  gk.forEach(g=>G[g].forEach(i=>{const e=sh.emps[i],t=tot(sh,e),row=sh.d[e.k]||{};L.push([g,e.n,pn(rLast(e)),atBasis(e),...(br?[atClTxt(e)]:[]),...D.map(dt=>{const x=atCellX(row[dt]);return x.v}),t.any?t.days:'',t.adj||'',(t.any||t.adj)?t.amt:'',[(sh.rm&&sh.rm[e.k])||'',atRcTxt(e),isBl(sh)?atSpTxt(e):''].filter(Boolean).join(' · ')])}));
  {const z=gsum(sh,sh.emps.map((_,i)=>i));L.push(['GRAND TOTAL','','','',...(br?['']:[]),...D.map(()=>''),z[0],z[2]||'',z[1],''])}
- if(isBl(sh)&&sh.emps.some(e=>spList(e).length)){L.push([]);L.push(['Total per class (after split)','Total days','Total amount']);gk.forEach(g=>{const z=gsumG(sh,G[g],g);L.push([g,z[0],z[1]])})}
+ if(isBl(sh)&&sh.emps.some(e=>spList(e).length)){L.push([]);L.push(['Hatian (note only - not included in the totals; shown only in the Broiler payroll summary)']);L.push(['Name','Own class','Hatian to class','Days','Amount']);sh.emps.forEach(e=>spList(e).forEach(z=>{const to=String(spGrp(sh,z.c)).trim();if(to===String(e.c==null?'':e.c).trim())return;L.push([e.n,e.c||'',to,pn(z.d),spAmt(e,z)])}))}
  if(br&&sh.emps.length){const M=clModel(sh);L.push([]);L.push(['Summary per class']);L.push(['Class','Name','Amount']);M.B.forEach(b=>{b.rows.forEach(z=>L.push([b.c||'(no class)',z[0],z[1]]));L.push([b.c||'(no class)','TOTAL',b.t])});L.push(['GRAND TOTAL (all classes)','',M.T])}
  const pb=sh.pb!=null?sh.pb:pbDef(sh.dept);L.push([]);L.push(['Prepared by:',String(pb||'').toUpperCase()]);
  atDl(new Blob(['\ufeff'+L.map(r=>r.map(q).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),atFile(sh,'csv'));try{logAct('Exported attendance (CSV)','Attendance',sh.dept+' — '+lab(sh.from,sh.to))}catch(e){}toast('Exported ✔')};
