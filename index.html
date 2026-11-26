@@ -6382,7 +6382,7 @@ function drawForm0(){
  const fx=s=>`<td class="k_fd"><input class="pi plk" id="i_${s.id}_fd" type="number" step="any" readonly tabindex="-1" title="Fixed days · edit in 📅 Days" value="${pGPD(s)?'':esc(pFDs(s)||'')}"></td>`;
  const pdc=s=>`<td class="k_pd"><input class="pi plk" id="i_${s.id}_pd" type="number" step="any" readonly tabindex="-1" title="${pGPD(s)?'Per day · daily rate':'Per day · Gross ÷ fixed days'}" value="${esc(pdv(s))}"></td>`;
  const cell=(s,k)=>k==='pd'?pdc(s):k==='fd'?fx(s):k==='rem'||k==='arem'||k==='acct'?t(s,k):k==='pay'?(PP.m==='g'?gp(s):cv(s,'pay')):k==='lbal'?lb(s):k==='net'?cv(s,'net',1):k==='tot'?cv(s,'tot'):k==='bal'||k==='cbal'?nb(s,k):n(s,k);
- const row=s=>`<tr${pHeld(s)?` class="hold hk-${pHoldK(pRow(s).hold)}" title="${esc(String(pRow(s).hold))} · kept in the payroll but NOT counted in the totals"`:''}><td class="nm k_name"><button class="no-print rmx" onclick="pDel('${s.id}')" title="Remove ${esc(s.name)} from payroll">✕</button><input class="pi t hp${PU?' ed':''}"${PU?'':' readonly tabindex="-1"'} value="${esc(s.name)}" title="Double-click to edit the name" ondblclick="pNameEd(this,'${s.id}')" onchange="pName('${s.id}',this)"><span class="pt">${esc(s.name)}</span>${pHeld(s)?`<span class="holdtag">${esc(String(pRow(s).hold).slice(0,22))}</span>`:''}<button class="no-print rmy" style="right:28px" onclick="pNameEd(this.parentNode.querySelector('input.hp'),'${s.id}')" title="Edit name">✎</button><button class="no-print rmy" style="right:50px" onclick="rhShow('${s.id}')" title="Rate history of ${esc(s.name)}">🕘</button></td>${PP.m==='g'?'':`<td class="k_rate"><input class="pi${PU?' ed':''}" id="i_${s.id}_rate"${PU?'':' readonly tabindex="-1"'} type="number" step="any" onwheel="this.blur()" value="${esc(pRate(s)||'')}" onchange="pRateSet('${s.id}',this)"></td>`}${cols.map(c=>cell(s,c.k)).join('')}<td class="no-print ac">${PU?`<button class="btn dl sm" onclick="pDel('${s.id}')" title="Delete row">✕</button>`:''}</td></tr>`;
+ const row=s=>`<tr${pHeld(s)?` class="hold hk-${pHoldK(pRow(s).hold)}" title="${esc(String(pRow(s).hold))} · kept in the payroll but NOT counted in the totals"`:(typeof HLC==='function'&&HLC(s)?` class="hl" style="--hlc:${HLC(s)}"`:'')}><td class="nm k_name"><button class="no-print rmx" onclick="pDel('${s.id}')" title="Remove ${esc(s.name)} from payroll">✕</button><input class="pi t hp${PU?' ed':''}"${PU?'':' readonly tabindex="-1"'} value="${esc(s.name)}" title="Double-click to edit the name" ondblclick="pNameEd(this,'${s.id}')" onchange="pName('${s.id}',this)"><span class="pt">${esc(s.name)}</span>${pHeld(s)?`<span class="holdtag">${esc(String(pRow(s).hold).slice(0,22))}</span>`:''}<button class="no-print rmy" style="right:28px" onclick="pNameEd(this.parentNode.querySelector('input.hp'),'${s.id}')" title="Edit name">✎</button><button class="no-print rmy" style="right:50px" onclick="rhShow('${s.id}')" title="Rate history of ${esc(s.name)}">🕘</button>${pHr()?`<button class="no-print rmy" style="right:72px" onclick="pHlOpen('${s.id}',this)" title="Highlight this row (choose a color)">🎨</button>`:''}</td>${PP.m==='g'?'':`<td class="k_rate"><input class="pi${PU?' ed':''}" id="i_${s.id}_rate"${PU?'':' readonly tabindex="-1"'} type="number" step="any" onwheel="this.blur()" value="${esc(pRate(s)||'')}" onchange="pRateSet('${s.id}',this)"></td>`}${cols.map(c=>cell(s,c.k)).join('')}<td class="no-print ac">${PU?`<button class="btn dl sm" onclick="pDel('${s.id}')" title="Delete row">✕</button>`:''}</td></tr>`;
  $('main').innerHTML=`<div class="pz-bar no-print"><button class="btn o" onclick="pBack()">← Payroll History</button><span class="pz-sep"></span><b style="font-size:15px;color:var(--h)">${PP.runId?'Saved payroll':'New payroll'} · ${esc(PF)}</b><span class="no-print" style="font-size:11.5px;font-weight:600;color:#8793a6;margin-left:8px">· ${PP.m==='g'?'Gross salary':'Daily rate'} mode · build 3</span><span class="sp1"></span>${pxCan('edit')?`${isMg(PF)?'':'<button class="btn o sm" onclick="clsOpen()">🏷 Classes</button>'}<button class="btn o sm" onclick="mvhOpen()" title="History of employees moved to another class or department">🔀 Transfers</button><button class="btn o sm" onclick="p201All()" title="Update the 201 File department + Transfer History of employees who moved (earlier cut-offs included)">🔄 201 Files</button><button class="btn o sm" onclick="sspOpen()">⚙ SSP</button>${isMg(PF)?'':'<button class="btn o sm" onclick="mlOpen()">⚙ Loans</button>'}<button class="btn o sm" onclick="peOpen()">✏️ Entries</button><button class="btn o sm" onclick="dysOpen()">📅 Days</button><button class="btn o sm" onclick="cpsOpen()">⚙ COOP</button><button class="btn o sm" onclick="vlsOpen()">💵 Vale</button><button class="btn o sm" onclick="ddsOpen()">➖ Deductions</button>`:''}${pxCan('atm')?`<button class="btn o sm" onclick="atmOpen()">🏧 ATM Accounts</button>`:''}${SM_ON()&&pxCan('edit')?'<button class="btn o sm" onclick="smOpen()">🧾 Summary</button>':''}</div>
 ${pxCan('edit')?'':'<style>.ps .rmx,.ps .rmy,.ps td.no-print .btn.dl{display:none!important}</style>'}<div id="psv" class="pz-note no-print"></div>
 ${!hp?'<p class="pz-note no-print">ℹ There is no saved payroll in this folder yet, so the opening Vale and COOP balances are zero. Type in Bal. if there is a balance.</p>':''}
@@ -7577,8 +7577,8 @@ function m13XlsxBuild(M){
  row(span(1,10,'13th Month Pay: '+fm(M.G.p).slice(1)+'     Net Pay: '+fm(M.G.n).slice(1)+'     With days: '+M.withDays+'/'+M.cnt,st({sz:11,b:1,col:NAVY})),22);
  row({},8);
  const HD=st({b:1,sz:10,col:NAVY,fill:SOFT,bd:'h',v:'center',wrap:1}),HDR=st({b:1,sz:10,col:NAVY,fill:SOFT,bd:'h',h:'right',v:'center',wrap:1}),HDC=st({b:1,sz:10,col:NAVY,fill:SOFT,bd:'h',h:'center',v:'center',wrap:1}),
-  hr=row({1:{v:'Employee',s:HD},2:{v:'Position',s:HD},3:{v:'Account',s:HDC},4:{v:'Rate',s:HDR},5:{v:'No. of Days',s:HDC},6:{v:'13th Month Pay',s:HDR},7:{v:'Mos. Worked',s:HDC},8:{v:'A/R',s:HDR},9:{v:'Vale',s:HDR},10:{v:'Net Pay',s:HDR},11:{v:'Remarks',s:st({b:1,sz:10,col:NAVY,fill:SOFT,bd:'h',v:'center',wrap:1,ind:1})},12:{v:'Start Date',s:HD}},24);
- const sNm=st({b:1,bd:'g'}),sTx=st(TXT),sAcc=st({...TXT,b:1,h:'center',col:'FF800000'}),sTxR=st({...TXT,ind:1}),sNum=st(NUM),sNumB=st({...NUM,b:1}),sDays=st({bd:'g',h:'right'}),sCtr=st({bd:'g',h:'center'}),sRate=st({...NUM,wrap:1}),sRateS=st({bd:'g',h:'right',wrap:1,sz:9});
+  hr=row({1:{v:'Employee',s:HD},2:{v:'Position',s:HD},3:{v:'Account',s:HDC},4:{v:'Rate',s:HDC},5:{v:'No. of Days',s:HDC},6:{v:'13th Month Pay',s:HDR},7:{v:'Mos. Worked',s:HDC},8:{v:'A/R',s:HDR},9:{v:'Vale',s:HDR},10:{v:'Net Pay',s:HDR},11:{v:'Remarks',s:st({b:1,sz:10,col:NAVY,fill:SOFT,bd:'h',v:'center',wrap:1,ind:1})},12:{v:'Start Date',s:HD}},24);
+ const sNm=st({b:1,bd:'g'}),sTx=st(TXT),sAcc=st({...TXT,b:1,h:'center',col:'FF800000'}),sTxR=st({...TXT,ind:1}),sNum=st(NUM),sNumB=st({...NUM,b:1}),sDays=st({bd:'g',h:'right'}),sCtr=st({bd:'g',h:'center'}),sRate=st({...NUM,wrap:1}),sRtC=st({...NUM,h:'center'}),sRateS=st({bd:'g',h:'center',wrap:1,sz:9});
  const tot=(lbl,t,o)=>{const L=st({b:1,col:NAVY,fill:o.fill,bd:o.bd}),N=st({b:1,col:NAVY,fill:o.fill,bd:o.bd,nf:MONEY,h:'right'}),c=span(1,5,lbl,L);
   c[6]={v:t.p,s:N};c[7]={v:undefined,s:L};c[8]={v:t.a,s:N};c[9]={v:t.v,s:N};c[10]={v:t.n,s:N};c[11]={v:undefined,s:L};c[12]={v:undefined,s:L};return row(c,20)};
  M.D.forEach(d=>{
@@ -7587,7 +7587,7 @@ function m13XlsxBuild(M){
    if(sc.title)row(span(1,NC,sc.title+(sc.nw?'  \u00B7  hired in '+MY+': Rate \u00D7 Days \u00F7 12 \u00D7 months worked':''),st({b:1,i:1,col:NAVY,bd:'g'})),20);
    sc.rows.forEach(r=>{
     const tag=r.e&&typeof SEP!=='undefined'&&SEP.includes(r.e.emp_status)?'  ['+lb(r.e.emp_status)+']':'',
-     rate=r.g?{v:fm(r.rate).slice(1)+'\nweekly gross \u00F7 7 = '+fm(r.daily).slice(1)+'/day',s:sRateS}:{v:r2(r.rate),s:sNum},
+     rate=r.g?{v:fm(r.rate).slice(1)+'\nweekly gross \u00F7 7 = '+fm(r.daily).slice(1)+'/day',s:sRateS}:{v:r2(r.rate),s:sRtC},
      num=v=>v===''||v==null?{v:undefined,s:sNum}:{v:+v,s:sNum};
     row({1:{v:r.s.name+tag,s:sNm},2:{v:r.pos||'-',s:sTx},3:{v:r.acct||'-',s:sAcc},4:rate,5:r.has?{v:r.dys,s:sCtr}:{v:undefined,s:sCtr},
      6:r.has?{v:r.pay,s:sNum}:{v:'-',s:sNum},7:r.isNew?{v:r.mo,s:sCtr}:(r.mi===''||r.mi==null?{v:undefined,s:sCtr}:{v:+r.mi,s:sCtr}),8:num(r.iA),9:num(r.iV),10:r.has?{v:r.net,s:sNumB}:{v:'-',s:sNum},11:{v:(r.isNew?'New \u00B7 ':'')+r.rem,s:sTxR},12:{v:r.sd||undefined,s:sDays}},r.g?30:undefined)});
@@ -7644,8 +7644,8 @@ function gnXlsxBuild(f){
  row({},8);
  const HD=st({b:1,sz:10,col:NAVY,fill:SOFT,bd:'h',v:'center',wrap:1}),HDR=st({b:1,sz:10,col:NAVY,fill:SOFT,bd:'h',h:'right',v:'center',wrap:1}),HDC=st({b:1,sz:10,col:NAVY,fill:SOFT,bd:'h',h:'center',v:'center',wrap:1}),
   HN=['Name','Account No.','Rate','No. of Days','13th Month Pay','Mos. Worked','A/R','Vale',...f.dc.map(k=>k.l),'Net Pay','Remarks','Start Date','Comment','Class'],
-  LEFT=new Set([1,2,NC-3,NC-2,NC-1,NC]),hc={};HN.forEach((t,k)=>{hc[k+1]={v:t,s:k+1===2?HDC:(LEFT.has(k+1)?HD:((k+1===4||k+1===6)?HDC:HDR))}});const hr=row(hc,26);
- const sNm=st({b:1,bd:'g'}),sTx=st({bd:'g',wrap:1}),sAcc=st({bd:'g',wrap:1,b:1,h:'center',v:'center',col:'FF800000'}),sNum=st({nf:MONEY,h:'right',bd:'g'}),sNumB=st({nf:MONEY,h:'right',bd:'g',b:1}),sInt=st({bd:'g',h:'center'}),sWk=st({bd:'g',h:'center',nf:166}),sWk1=st({bd:'g',h:'center',nf:167}),sDt=st({bd:'g',h:'left'});
+  LEFT=new Set([1,2,NC-3,NC-2,NC-1,NC]),hc={};HN.forEach((t,k)=>{hc[k+1]={v:t,s:k+1===2?HDC:(LEFT.has(k+1)?HD:((k+1===3||k+1===4||k+1===6)?HDC:HDR))}});const hr=row(hc,26);
+ const sNm=st({b:1,bd:'g'}),sTx=st({bd:'g',wrap:1}),sAcc=st({bd:'g',wrap:1,b:1,h:'center',v:'center',col:'FF800000'}),sNum=st({nf:MONEY,h:'right',bd:'g'}),sRtC=st({nf:MONEY,h:'center',bd:'g'}),sNumB=st({nf:MONEY,h:'right',bd:'g',b:1}),sInt=st({bd:'g',h:'center'}),sWk=st({bd:'g',h:'center',nf:166}),sWk1=st({bd:'g',h:'center',nf:167}),sDt=st({bd:'g',h:'left'});
  const num=v=>v===''||v==null?{v:undefined,s:sNum}:{v:pnn(v),s:sNum};
  const tot=(lbl,t,o,rg)=>{const L=st({b:1,col:NAVY,fill:o.fill,bd:o.bd}),N=st({b:1,col:NAVY,fill:o.fill,bd:o.bd,nf:MONEY,h:'right'}),c=span(1,4,lbl,L);
   c[5]={v:t.pay,s:N};c[6]={v:undefined,s:L};c[7]={v:t.ar,s:N};c[8]={v:t.v,s:N};f.dc.forEach((k,x)=>{c[9+x]={v:t.d[k.id],s:N}});c[9+DC]={v:t.net,s:N};for(let q=10+DC;q<=NC;q++)c[q]={v:undefined,s:L};
@@ -7656,7 +7656,7 @@ function gnXlsxBuild(f){
  GG.forEach(g=>{
   if(g.title&&!g.st)row(span(1,NC,g.title,st({b:1,i:1,col:NAVY,bd:'g'})),20);
   const g0=R+1;let pfb=null;g.rows.forEach(r=>{const fb=gnFarmBrk(f,g,r);if(fb!==null&&fb!==pfb){pfb=fb;row(span(1,NC,fb||'No farm',st({b:1,i:1,col:NAVY,bd:'g'})),18)}const c=gnCalc(r,f),no=gnStat(r)==='no'||g.st==='no',cl={};
-   cl[1]={v:r.name,s:sNm};cl[2]=no?{v:undefined,s:sTx}:{v:r.acct||'-',s:sAcc};cl[3]=no?{v:undefined,s:sNum}:{v:r2(gnRateD(r,f)),s:sNum};cl[4]=(no||gnDaysTx(r)==='')?{v:undefined,s:sInt}:((r.u!=='w'&&!gnFx(r)&&r.days!==''&&r.days!=null&&isFinite(pn(r.days)))?{v:pn(r.days),s:sInt}:{v:gnDaysTx(r),s:sInt});
+   cl[1]={v:r.name,s:sNm};cl[2]=no?{v:undefined,s:sTx}:{v:r.acct||'-',s:sAcc};cl[3]=no?{v:undefined,s:sRtC}:{v:r2(gnRateD(r,f)),s:sRtC};cl[4]=(no||gnDaysTx(r)==='')?{v:undefined,s:sInt}:((r.u!=='w'&&!gnFx(r)&&r.days!==''&&r.days!=null&&isFinite(pn(r.days)))?{v:pn(r.days),s:sInt}:{v:gnDaysTx(r),s:sInt});
    cl[5]=c.has?{v:c.pay,s:sNum}:{v:undefined,s:sNum};cl[6]=no||r.mi===''||r.mi==null?{v:undefined,s:sInt}:{v:pnn(r.mi),s:sInt};cl[7]=num(r.ar);cl[8]=num(r.v);
    f.dc.forEach((k,x)=>{cl[9+x]=num((r.d||{})[k.id])});cl[9+DC]=c.has?{v:c.net,s:sNumB}:{v:undefined,s:sNum};
    cl[10+DC]={v:r.rem||undefined,s:sTx};cl[11+DC]={v:gnDS(r)?m13Long(gnDS(r)):undefined,s:sDt};cl[12+DC]={v:gnCm(r)||undefined,s:sTx};cl[13+DC]={v:gnCls(r)||undefined,s:sTx};
@@ -10669,7 +10669,7 @@ body.m13fv #xmasfx,body.m13fv #xmaslt{display:none!important}
 #main .pw .ps tr.gtt td:first-child{background:#eaf0f9}
 #main .pw .ps td.nm.k_name .rmx{opacity:1!important;right:6px;z-index:5;color:#fff;background:#c0392b;width:20px;height:20px;font-weight:700}
 #main .pw .ps td.nm.k_name .rmy{opacity:1}
-#main .pw .ps td.nm.k_name input.pi.hp{padding-right:76px;text-overflow:ellipsis}
+#main .pw .ps td.nm.k_name input.pi.hp{padding-right:98px;text-overflow:ellipsis}
 /* attendance: the Remove button of each employee is always shown (never hidden or faded) */
 table.at .atq.atrm{display:inline-block;opacity:1;font-weight:600}
 #main .pw .ps td.nm.k_name input.hp{padding-right:30px}
@@ -11269,7 +11269,7 @@ function drawSheet(){const sh=S();if(!sh){return drawList()}Object.keys(sh.d||{}
  $('main').innerHTML=`<div class="atbar no-print">${AT_FP&&AT_FP.k===A.key?'<button class="btn sm" onclick="atBackPay()" title="Return to the payroll you came from">← Back to Payroll</button>':'<button class="btn o sm" onclick="atBack()">← Back</button>'}<h1 style="margin:0;font-size:24px">Attendance · ${esc(sh.dept)}</h1><span class="sub" style="margin:0">${esc(lab(sh.from,sh.to))}</span><span style="flex:1"></span><span id="atdn" class="atdnw no-print">${dnHtml(sh)}</span><span id="atst" class="sub" style="margin:0;font-size:12.5px">${isLk(sh)?'🔒 Locked':UNS?'● Unsaved changes':sh.lk?'✔ Saved · 🔒 Locked':'✔ Saved'}</span>${hrx()?`<button class="btn ${sh.lk?'no':'o'}" onclick="atLock(A.key,${sh.lk?'false':'true'})">${sh.lk?'🔓 Unlock':'🔒 Lock'}</button>`:''}<button class="btn ok" id="atsave" onclick="atSave()"${isLk(sh)&&!rmx()?' disabled':''}>💾 Save</button></div>
 ${sh.lk&&atPm()?`<div class="atlkbar no-print">🔒 <b>${esc(lkTxt(sh))}</b>. Locked for other users (including Admin). As Payroll Master / HR Head you can still edit, rename, remove and save it without unlocking, and its Done / OK status stays the same.</div>`:''}${isLk(sh)?`<div class="atlkbar no-print">🔒 <b>${esc(lkTxt(sh))}</b>. View only: you cannot edit or delete it${rmx()?', except the <b>Remarks</b> column (you can edit, clear and save it)':''}. Print and Export still work. A Creator, HR head or Payroll Master can unlock it.</div>`:''}
 ${rvPanelH(sh)}
-<div class="atbar no-print"><button class="btn ok sm" onclick="atAdd('')">+ Add employee</button><input id="atsq" class="fi" type="search" autocomplete="off" placeholder="🔍 Search name…" value="${esc(AT_Q)}" oninput="atSq(this.value)" style="width:210px;max-width:100%;margin:0">${hrx()?'<button class="btn o sm" onclick="atSyncNames()" title="Add employees that are in the latest payroll but not in this attendance yet">↻ Sync names from payroll</button>':''}${/breeder|layer/i.test(String(sh.dept||''))?'<button class="btn o sm" onclick="atCopyRm()" title="Option: add ONLY the electricity remarks of the previous cutoff (e.g. Nov 4-10) to this attendance. Nothing else is copied. Remarks you already typed stay.">⚡ Add electricity remarks from previous cutoff</button>':''}${hrx()?'<button class="btn o sm" onclick="atSyncPay([A.key])" title="Send the total days of this cutoff to the matching saved payroll">⇄ Sync to Payroll</button>':''}${hrx()?`<button class="btn o sm" id="atrvall" onclick="atRvAll()" title="HR head: mark every VL / SL / Absent that you have not checked yet as correct">✔ OK all VL / SL / Absent (${rvPend(sh)})</button>`:''}<button class="btn o sm" onclick="atPrint()" title="Prints on Long Bond 8.5 × 13 in, Landscape, automatically">🖨 Print</button><button class="btn o sm" onclick="atXlsx()" title="Download this attendance as an Excel file (same layout, colours, totals and the summary per class)">⬇ Export Excel</button><button class="btn o sm" onclick="atCsv()" title="Download this attendance as a CSV file">⬇ Export CSV</button>
+<div class="atbar no-print"><button class="btn ok sm" onclick="atAdd('')">+ Add employee</button><button class="btn o sm" onclick="atUndoS(0)" title="Undo (Ctrl+Z)">↶ Undo</button><button class="btn o sm" onclick="atUndoS(1)" title="Redo (Ctrl+Y)">↷ Redo</button><input id="atsq" class="fi" type="search" autocomplete="off" placeholder="🔍 Search name…" value="${esc(AT_Q)}" oninput="atSq(this.value)" style="width:210px;max-width:100%;margin:0">${hrx()?'<button class="btn o sm" onclick="atSyncNames()" title="Add employees that are in the latest payroll but not in this attendance yet">↻ Sync names from payroll</button>':''}${/breeder|layer/i.test(String(sh.dept||''))?'<button class="btn o sm" onclick="atCopyRm()" title="Option: add ONLY the electricity remarks of the previous cutoff (e.g. Nov 4-10) to this attendance. Nothing else is copied. Remarks you already typed stay.">⚡ Add electricity remarks from previous cutoff</button>':''}${hrx()?'<button class="btn o sm" onclick="atSyncPay([A.key])" title="Send the total days of this cutoff to the matching saved payroll">⇄ Sync to Payroll</button>':''}${hrx()?`<button class="btn o sm" id="atrvall" onclick="atRvAll()" title="HR head: mark every VL / SL / Absent that you have not checked yet as correct">✔ OK all VL / SL / Absent (${rvPend(sh)})</button>`:''}<button class="btn o sm" onclick="atPrint()" title="Prints on Long Bond 8.5 × 13 in, Landscape, automatically">🖨 Print</button><button class="btn o sm" onclick="atXlsx()" title="Download this attendance as an Excel file (same layout, colours, totals and the summary per class)">⬇ Export Excel</button><button class="btn o sm" onclick="atCsv()" title="Download this attendance as a CSV file">⬇ Export CSV</button>
 <label style="font-size:13px;display:inline-flex;gap:6px;align-items:center"><input type="checkbox" ${sh.vp?'checked':''} onchange="atVp(this.checked)"> VL / SL counts as a paid day</label>
 <span class="atl"><span>Legend:</span><i class="a1">1 present</i><i class="a2">VL</i><i class="a3">SL</i><i class="a4">VL / SL no pay (NP)</i><span style="color:var(--mu)">· type a number to edit (½ = 0.5) · 💬 = comment · ✓ on the date = all 1 (click again = remove)</span></span></div>
 <div class="atpr" style="font-size:16px;margin:0 0 6px">Attendance · ${esc(sh.dept)} · ${esc(lab(sh.from,sh.to))}</div><div class="atw" id="atw"><table class="at"><thead><tr><th class="sn">Name</th><th class="sr">${mg?'Rate / Gross':'Rate'}</th>${br?'<th class="sc">Class</th>':''}${D.map(dt=>`<th class="atc">${dh(dt)}<br><button class="atq" onclick="atFillCol('${dt}')" title="Put 1 for everyone who is empty on this day. Click again to remove the 1s">✓</button></th>`).join('')}<th class="sd">Total days</th><th class="sj" title="Add (+) or deduct (−) an amount. It is included in the Total amount.">Adjustment</th><th class="sa">Total amount</th><th class="rm">Remarks</th></tr></thead><tbody>${body||`<tr><td colspan="${colN}" style="padding:24px;text-align:center;color:var(--mu)">No employees yet. Click + Add employee.</td></tr>`}</tbody></table></div>${br?`<datalist id="atcll">${clList(sh).map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`:(isBl(sh)?`<datalist id="atcll">${gk.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`:'')}<div id="atcls">${clSumH(sh)}</div><div class="atpr atnotes" id="atnotes"></div><div class="atbys" id="atbys"></div><div class="atpb" style="margin-top:30px"><div style="font-size:12px;color:var(--mu)">Prepared by:</div><input class="fi atpbi" value="${esc(sh.pb!=null?sh.pb:pbDef(sh.dept))}" oninput="atPbFit(this)" onchange="atPb(this)" placeholder="Name" aria-label="Prepared by" style="width:260px;max-width:100%;border:0;border-bottom:1px solid var(--ink);border-radius:0;background:transparent;font-weight:700;text-transform:uppercase;padding:4px 2px"><div class="atpbp" style="font-weight:700;text-transform:uppercase;border-bottom:1px solid #000;display:none;min-width:260px;width:max-content;max-width:100%;white-space:normal">${esc(sh.pb!=null?sh.pb:pbDef(sh.dept))}</div></div>`;upNotes();upBy();atDupShow();document.querySelectorAll('.atpbi').forEach(atPbFit);
@@ -11969,7 +11969,15 @@ window.atSyncPay=async keys=>{
  showSync(R)};
 
 /* ---------- lock guard: every editing action is blocked while the open attendance is locked ---------- */
-['atV','atT','atR','atFd','atRm','atVp','atFillRow','atFillCol','atCm','atCmSave','atRc','atRcSave','atRcDel','atRemove','atMv','atMvSave','atRnm','atRnmSave','atGrpRen','atGrpRenSave','atSyncNames','atCopyRm','atAdd','atAddSave','atCl','atSp','atSpAdd','atSpSet','atSpDel','atPb','atSave'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;window[n]=function(){if(!((n==='atRm'||n==='atSave')&&rmx())&&noEd())return;return f.apply(this,arguments)}});
+['atV','atT','atR','atFd','atRm','atVp','atFillRow','atFillCol','atCm','atCmSave','atRc','atRcSave','atRcDel','atRemove','atMv','atMvSave','atRnm','atRnmSave','atGrpRen','atGrpRenSave','atSyncNames','atCopyRm','atAdd','atAddSave','atCl','atSp','atSpAdd','atSpSet','atSpDel','atPb','atSave'].forEach(n=>{const f=window[n];if(typeof f!=='function')return;window[n]=function(){if(!((n==='atRm'||n==='atSave')&&rmx())&&noEd())return;if(n!=='atSave')try{auSnap()}catch(e){}return f.apply(this,arguments)}});
+/* ---------- Undo / Redo (Ctrl+Z, Ctrl+Y or Ctrl+Shift+Z, or the buttons) for the attendance sheet. Same rights as editing: whoever can edit the sheet can undo. ---------- */
+const AU={u:[],r:[],k:null},auSj=()=>{try{return JSON.stringify(W)}catch(e){return null}},auKey=()=>{if(AU.k!==A.key){AU.k=A.key;AU.u=[];AU.r=[]}};
+function auSnap(){if(!W||A.v!=='sheet')return;auKey();const j=auSj();if(!j||AU.u[AU.u.length-1]===j)return;AU.u.push(j);if(AU.u.length>80)AU.u.shift();AU.r=[]}
+window.atUndoS=redo=>{if(!W||A.v!=='sheet')return;if(noEd())return;auKey();const from=redo?AU.r:AU.u,to=redo?AU.u:AU.r;if(!from.length)return toast(redo?'Nothing to redo.':'Nothing to undo.');let n;try{n=JSON.parse(from[from.length-1])}catch(e){return}from.pop();const cur=auSj();if(cur)to.push(cur);const keep={lk:W.lk,st:W.st,sd:W.sd,ok:W.ok};['lk','st','sd','ok'].forEach(k=>{if(keep[k]===undefined)delete n[k];else n[k]=keep[k]});W=n;sv();drawSheet();toast(redo?'Redo ✔':'Undo ✔')};
+document.addEventListener('focusin',e=>{const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'))t.__v0=t.value});
+document.addEventListener('keydown',e=>{if(!(e.ctrlKey||e.metaKey)||e.altKey)return;const k=String(e.key).toLowerCase();if(k!=='z'&&k!=='y')return;if(!W||A.v!=='sheet'||!document.getElementById('atw'))return;
+ const t=document.activeElement;if(t&&(t.tagName==='TEXTAREA'||(t.tagName==='INPUT'&&!/^(checkbox|radio|button)$/.test(t.type)))&&t.value!==t.__v0)return;/* still typing in a cell: the browser's own text undo handles it */
+ if(document.querySelector('.atbox,.atovl,[id^="atrnm"]'))return;e.preventDefault();window.atUndoS(k==='y'||e.shiftKey)});
 })();
 </script>
 
@@ -11984,7 +11992,7 @@ const runs=d=>(PH||[]).filter(p=>p.data&&p.data.from&&p.data.to&&pFo(p.data)===d
 const cur=()=>(PH||[]).find(p=>String(p.id)===String(PS.r));
 /* Only people who actually have a payslip in that cutoff (not on hold, with actual pay for days worked (pay > 0) and a net pay above zero; people no longer in payroll only if that cutoff has pay entries for them). Computed from the saved payroll by briefly loading it into PP/PF, then restoring them. */
 const PAYC=new WeakMap(),PAYI=new WeakMap();
-const psmHasRow=r=>!!r&&Object.keys(r).some(k=>!['rem','remD','remA','ssp','hold'].includes(k)&&r[k]!==''&&r[k]!=null&&r[k]!==0&&r[k]!=='0');
+const psmHasRow=r=>!!r&&Object.keys(r).some(k=>!['rem','remD','remA','ssp','hold','hl'].includes(k)&&r[k]!==''&&r[k]!=null&&r[k]!==0&&r[k]!=='0');
 function psmPaid(p){const d=p&&p.data;if(!d||!d.rows||!d.rates)return null;let c=PAYC.get(d);if(c)return c;
  const oP=PP,oF=PF,ids=new Set();let okc=true;
  try{PF=pFo(d);const o={...PP,from:d.from,to:d.to,cm:d.cm||null,fdL:d.fd||7,title:d.title,prep:d.prep,chk:d.chk,rows:{...d.rows},tmd:d.tmd||{},sm:d.sm||null,smx:d.smx||null,att:d.att||null,cs:d.cs||null,xb:d.xb||null,xbk:null,lk:d.rates,open:d.open||{},mail:d.mail||{},xc:JSON.parse(JSON.stringify(d.xc||[])),hc:d.hc||[],ord:d.ord||null,m:d.m||(PCFG[PF]||{}).m||'r',gpd:d.gpd||null,gpe:d.gpe||null,t:d.t||{},det:d.det||[],dirty:false,init:1,runId:p.id};
@@ -13202,6 +13210,57 @@ function evView(id){const x=(EVL||[]).find(q=>q.id===id);if(!x)return;const o=ov
  function start(){var m=document.getElementById('main');if(m)new MutationObserver(later).observe(m,{childList:true});
   setInterval(function(){var pg=null;try{pg=PG}catch(e){}if(pg!==lastPG){lastPG=pg;later()}},700);later();try{document.title=document.title.replace(/ \u00b7 nav2$/,'')+' \u00b7 nav2'}catch(e){}}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+<style id="hl-css">
+/* Payroll: the delete (✕) buttons are always visible (no right-click needed) */
+#main .pw .ps button[data-rcd],#main .pw .xb button[data-rcd]{visibility:visible!important}
+/* Payroll: row highlight chosen by HR Head / Payroll Master (screen only) */
+@media screen{
+#main .pw .ps tr.hl:not(.hold)>td,#main .pw .ps tr.hl:not(.hold)>td.nm.k_name{background:var(--hlc)!important}
+#main .pw .ps tr.hl:not(.hold)>td input.pi:not(:focus){background:transparent!important}
+}
+#hlpop{position:fixed;z-index:9999;width:204px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#fff;border:1px solid #d3d9e6;border-radius:12px;padding:10px;box-shadow:0 14px 34px #12305c45}
+#hlpop .hlt{width:100%;font-size:12px;font-weight:700;color:#2f3b52}
+#hlpop button.sw{width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #c3ccdb;cursor:pointer;padding:0}
+#hlpop button.sw.on{box-shadow:0 0 0 2px #12305c}
+#hlpop label{display:flex;align-items:center;gap:6px;font-size:12px;color:#66738a}
+#hlpop input[type=color]{width:34px;height:26px;padding:0;border:1px solid #cdd5e3;border-radius:6px;background:#fff;cursor:pointer}
+</style>
+<script>
+/* Payroll row highlight: stored in the payroll row (PP.rows[id].hl) so it is saved with the payroll. Only HR Head / Payroll Master (and Creator) see the 🎨 button. */
+var HLC=function(s){try{var v=(PP.rows&&PP.rows[s.id]||{}).hl;return /^#[0-9a-f]{6}$/i.test(v||'')?v:''}catch(e){return''}};
+(function(){
+ var CUR=null;
+ function pop(){return document.getElementById('hlpop')}
+ function close(){var p=pop();if(p)p.remove();CUR=null}
+ function setC(c){
+  if(!CUR||!pHr())return;
+  var s=STF.find(function(x){return String(x.id)===String(CUR.id)});if(!s)return;
+  var r=pRow(s);if(c)r.hl=c;else delete r.hl;
+  var tr=CUR.tr;if(tr){if(c){tr.classList.add('hl');tr.style.setProperty('--hlc',c)}else{tr.classList.remove('hl');tr.style.removeProperty('--hlc')}}
+  try{pDirty()}catch(e){}
+ }
+ window.pHlOpen=function(id,btn){
+  var again=CUR&&String(CUR.id)===String(id)&&pop();close();if(again)return;
+  if(!pHr())return;
+  var s=STF.find(function(x){return String(x.id)===String(id)});if(!s)return;
+  var cur=HLC(s),cols=['#fff59d','#c8e6c9','#bbdefb','#f8bbd0','#ffe0b2','#e1bee7','#b2ebf2','#ffcdd2'];
+  CUR={id:id,tr:btn.closest('tr')};
+  var p=document.createElement('div');p.id='hlpop';
+  p.innerHTML='<div class="hlt">Highlight row · '+String(s.name||'').replace(/[<>&]/g,'')+'</div>'+
+   cols.map(function(c){return '<button type="button" class="sw'+(c.toLowerCase()===cur.toLowerCase()?' on':'')+'" data-c="'+c+'" style="background:'+c+'" title="'+c+'"></button>'}).join('')+
+   '<label>Custom <input type="color" value="'+(cur||'#fff59d')+'"></label><button type="button" class="btn o sm" data-c="">✕ No highlight</button>';
+  document.body.appendChild(p);
+  var r=btn.getBoundingClientRect(),w=p.offsetWidth,h=p.offsetHeight;
+  p.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';
+  p.style.top=(r.bottom+6+h>innerHeight?Math.max(8,r.top-h-6):r.bottom+6)+'px';
+  p.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button[data-c]');if(!b)return;setC(b.getAttribute('data-c'));close()});
+  var ci=p.querySelector('input[type=color]');ci.addEventListener('change',function(){setC(ci.value);close()});
+ };
+ document.addEventListener('mousedown',function(e){var p=pop();if(p&&!p.contains(e.target)&&!(e.target.closest&&e.target.closest('button[onclick^="pHlOpen"]')))close()},true);
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&pop()){e.stopImmediatePropagation();e.preventDefault();close()}},true);
+ window.addEventListener('scroll',function(){if(pop())close()},true);
 })();
 </script>
 </body></html>
