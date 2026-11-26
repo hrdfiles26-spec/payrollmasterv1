@@ -10115,13 +10115,13 @@ function mgDetect(G,sheetName,lenient,fname){
  for(const r of rows){let a=false,b=false,b2=false,ns=0;for(const c in G[r]){const t=H(T(r,+c));if(RATEH(t))a=true;if(PAYH(t)){b=true;if(+c>1)b2=true}if(t&&typeof G[r][c]==='string')ns++}if(!a&&b2&&ns>=2)a=true;if(a&&b){if(!hr&&r<=40)hr=r;if(hr&&r>=hr)heads.push(r)}}
  if(!hr){MG_WHY='no header row with "Rate" and "Payroll" / "Gross Salary"';return null}
  /* column positions of one header row (a sheet can hold more than one table, e.g. Feedmill and VetMed one below the other) */
- const colsOf=h=>{let rc=0,dc=0,gc=0,sc=0,pc=0,hc=0,ac=0,gt='';
+ const colsOf=h=>{let rc=0,dc=0,gc=0,sc=0,pc=0,hc=0,ac=0,tc=0,gt='';
   const scan=(row,sub)=>{for(const c in G[row]){const t=H(T(row,+c)),n=+c;
    if(RATEH(t)&&!rc&&!sub)rc=n;else if(/^#\s*of\s*days/.test(t)&&!dc)dc=n;else if(PAYH(t)&&!gc&&!sub){gc=n;gt=t}
-   else if(ADJH(t)&&!ac)ac=n;else if(/^sss(?!.*loan)/.test(t)&&!sc)sc=n;else if(/^(phic|phil[\s-]*health)(?!.*loan)/.test(t)&&!pc)pc=n;else if(/^(hdmf|pag[\s-]*ibig)(?!.*loan)/.test(t)&&!hc)hc=n}};
+   else if(ADJH(t)&&!ac)ac=n;else if(/^sss(?!.*loan)/.test(t)&&!sc)sc=n;else if(/^(phic|phil[\s-]*health)(?!.*loan)/.test(t)&&!pc)pc=n;else if(/^(hdmf|pag[\s-]*ibig)(?!.*loan)/.test(t)&&!hc)hc=n;else if(/^(w\s*\/?\s*h?\s*)?(withholding\s*)?tax(?!.*(refund|able))/.test(t)&&!tc)tc=n}};
   scan(h,false);if(G[h+1]&&!T(h+1,1))scan(h+1,true);
   /* a Gross Salary form without a "# of days" column holds a WEEKLY gross in Rate */
-  return{rc,dc,gc,sc,pc,hc,ac,wk:!dc&&/^gross/.test(gt)}};
+  return{rc,dc,gc,sc,pc,hc,ac,tc,wk:!dc&&/^gross/.test(gt)}};
  if(!colsOf(hr).gc){MG_WHY='no "Payroll" / "Gross Salary" column';return null}
  let label='',dept='',date=null,cutTxt='',pRow=0;
  for(const r of rows){if(r>=hr)break;
@@ -10145,7 +10145,7 @@ function mgDetect(G,sheetName,lenient,fname){
  if(!date&&label){const m=MG_RANGE.exec(label);if(m&&MG_MON[m[1].toLowerCase()]!=null)date=new Date(+m[4],MG_MON[m[1].toLowerCase()],+m[3])}
  const out=[];let anyContrib=false;
  heads.forEach((h,bi)=>{
-  const K=colsOf(h),{rc,dc,gc,sc,pc,hc,ac}=K;if(!gc)return;
+  const K=colsOf(h),{rc,dc,gc,sc,pc,hc,ac,tc}=K;if(!gc)return;
   if(sc||pc||hc)anyContrib=true;
   const end=bi+1<heads.length?heads[bi+1]:Infinity;
   for(const r of rows){if(r<=h)continue;if(r>=end)break;
@@ -10159,7 +10159,7 @@ function mgDetect(G,sheetName,lenient,fname){
    if(adj&&typeof rate==='number'&&typeof days==='number'&&Math.abs(base-(rate*days+adj))<0.05&&Math.abs(base-rate*days)>=0.05)adj=0;
    const gross=mgR2(base+adj);
    const nv=c=>{const x=c?NUM(G[r][c]):0;return typeof x==='number'?x:0};
-   out.push({key:mgKey(nm),name:nm,rate:rc?(K.wk?mgR2(rate/7):rate):0,days:typeof days==='number'?days:null,gross,adj,sss:nv(sc),phic:nv(pc),hdmf:nv(hc)})}});
+   out.push({key:mgKey(nm),name:nm,rate:rc?(K.wk?mgR2(rate/7):rate):0,days:typeof days==='number'?days:null,gross,adj,sss:nv(sc),phic:nv(pc),hdmf:nv(hc),tax:nv(tc)})}});
  if(!out.length){MG_WHY='no employee rows with a rate';return null}
  return{sheet:sheetName,label:label,dept,date,rows:out,hasContrib:anyContrib,total:mgR2(out.reduce((a,x)=>a+x.gross,0))}}
 
@@ -10181,18 +10181,18 @@ function mgAgg(cuts,CM){
  const canon=CM||mgCanon(L);
  for(const c of L)for(const r0 of c.rows){
   const T=canon.get(mgNk(r0.key)),r={...r0,key:T.key,name:T.name};
-  let e=M.get(r.key);if(!e){e={key:r.key,name:r.name,gross:0,rate:r.rate,rates:[],sss:0,phic:0,hdmf:0,n:0};M.set(r.key,e)}
-  e.gross+=r.gross;e.sss+=r.sss;e.phic+=r.phic;e.hdmf+=r.hdmf;e.n++;
+  let e=M.get(r.key);if(!e){e={key:r.key,name:r.name,gross:0,rate:r.rate,rates:[],sss:0,phic:0,hdmf:0,tax:0,n:0};M.set(r.key,e)}
+  e.gross+=r.gross;e.sss+=r.sss;e.phic+=r.phic;e.hdmf+=r.hdmf;e.tax+=(r.tax||0);e.n++;
   if(r.days!==0||!e.rates.length){e.rate=r.rate}
   if(!e.rates.includes(r.rate))e.rates.push(r.rate)}
- const all=[...M.values()].map(e=>{e.gross=mgR2(e.gross);e.sss=mgR2(e.sss);e.phic=mgR2(e.phic);e.hdmf=mgR2(e.hdmf);e.total=mgR2(e.gross-e.sss-e.phic-e.hdmf);e.contrib=mgR2(e.sss+e.phic+e.hdmf);return e});
+ const all=[...M.values()].map(e=>{e.gross=mgR2(e.gross);e.sss=mgR2(e.sss);e.phic=mgR2(e.phic);e.hdmf=mgR2(e.hdmf);e.tax=mgR2(e.tax||0);e.total=mgR2(e.gross-e.sss-e.phic-e.hdmf);e.contrib=mgR2(e.sss+e.phic+e.hdmf);return e});
  all.sort((a,b)=>a.name.localeCompare(b.name,'en',{sensitivity:'base'}));
  return all}
 const mgSum=(L,k)=>mgR2(L.reduce((a,x)=>a+(x[k]||0),0));
 function mgMonth(cuts){
  const c={};cuts.forEach(x=>{if(x.date){const k=x.date.getFullYear()+'-'+x.date.getMonth();c[k]=(c[k]||0)+1}});
  const k=Object.keys(c).sort((a,b)=>c[b]-c[a])[0];if(!k)return'';const [y,m]=k.split('-');return MG_MN[+m]+' '+y}
-const MG_STOP=new Set(['payroll','cutoff','cut','off','period','sheet','copy','final','xlsx','xls','new','1st','2nd','3rd','4th','first','second','third','fourth','jan','feb','mar','apr','may','jun','jul','aug','sep','sept','oct','nov','dec',...Object.keys(MG_MON)]);
+const MG_STOP=new Set(['to','thru','through','until','hanggang','and','payroll','cutoff','cut','off','period','sheet','copy','final','xlsx','xls','new','1st','2nd','3rd','4th','first','second','third','fourth','jan','feb','mar','apr','may','jun','jul','aug','sep','sept','oct','nov','dec',...Object.keys(MG_MON)]);
 function mgDeptFromFile(fn){
  const base=String(fn||'').split(/[\\/]/).pop().replace(/\.[a-z0-9]+$/i,'').replace(/\(\d+\)/g,' ');
  /* "_" separates different departments (FEEDMILL_VETMED -> FEEDMILL/VETMED); spaces stay inside one name (EXTRA BREEDER) */
@@ -10203,7 +10203,7 @@ function mgDeptFromFile(fn){
    Only if the title has no department name, fall back to the folder, then to the title inside the sheet. */
 function mgDeptClean(s){
  const MON='jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?',re=new RegExp('\\b(?:'+MON+')\\b\\.?','gi');
- return String(s||'').split('/').map(p=>p.replace(/([A-Za-z]{3,})(?:january|february|march|april|june|july|august|september|october|november|december|sept|sep|oct|nov|aug|apr|feb|jun|jul)\b\.?/gi,'$1 ').replace(/\b(?:january|february|september|october|november|december)(?=[A-Za-z]{3,})/gi,' ').replace(re,' ').replace(/\b\d{1,2}\s*-\s*\d{1,2}\b/g,' ').replace(/\b\d{4}\b/g,' ').replace(/[()\[\]]/g,' ').replace(/\s+/g,' ').replace(/^[\s\-–,.]+|[\s\-–,.]+$/g,'').trim()).filter(Boolean).join('/').toUpperCase()}
+ return String(s||'').split('/').map(p=>p.replace(/([A-Za-z]{3,})(?:january|february|march|april|june|july|august|september|october|november|december|sept|sep|oct|nov|aug|apr|feb|jun|jul)\b\.?/gi,'$1 ').replace(/\b(?:january|february|september|october|november|december)(?=[A-Za-z]{3,})/gi,' ').replace(re,' ').replace(/\b\d{1,2}\s*-\s*\d{1,2}\b/g,' ').replace(/\b\d{4}\b/g,' ').replace(/\b(?:to|thru|through|until|hanggang)\b/gi,' ').replace(/[()\[\]]/g,' ').replace(/\s+/g,' ').replace(/^[\s\-–,.]+|[\s\-–,.]+$/g,'').trim()).filter(Boolean).join('/').toUpperCase()}
 function mgDeptFor(path,dept){const r=mgDeptFor0(path,dept);return mgDeptClean(r)||r}
 function mgDeptFor0(path,dept){
  const parts=String(path||'').split(/[\\/]/).filter(Boolean),file=parts.pop()||'';
@@ -10279,7 +10279,19 @@ function mgSheetXml(G){
  table('',G.emp);
  if(G.svc.length){add('');add('');table('SERVICE PROVIDER',G.svc)}
  return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:H${R}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="16.5"/><cols><col min="1" max="1" width="47.4" customWidth="1"/><col min="2" max="2" width="24.9" customWidth="1"/><col min="3" max="3" width="15.4" customWidth="1"/><col min="4" max="4" width="12.7" customWidth="1"/><col min="5" max="5" width="13.7" customWidth="1"/><col min="6" max="6" width="12.6" customWidth="1"/><col min="7" max="7" width="15.9" customWidth="1"/><col min="8" max="8" width="46" customWidth="1"/></cols><sheetData>${rows.join('')}</sheetData><pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="portrait" fitToWidth="1" fitToHeight="0"/></worksheet>`}
+/* v700: extra sheet "26,000 UP": everybody whose MONTHLY gross is 26,000 or more (from all the exported departments). They also stay in their own department sheet. TOTAL = Gross - SSS - PhilHealth - HDMF - Tax (Excel formula). The TAX column is left BLANK for the user to type; the TOTAL follows it. */
+const MG_HI=26000;
+function mgHiList(groups){const L=[];groups.forEach(g=>{if(g._hi)return;[...(g.emp||[]),...(g.svc||[])].forEach(e=>{if((e.gross||0)>=MG_HI)L.push({d:g.name||'',e})})});return L}
+function mgHiXml(G){const rows=[],ht=' ht="16.5" customHeight="1"';let R=0;
+ const tx=(c,s,v)=>v===''||v==null?`<c r="${c}${R}" s="${s}"/>`:`<c r="${c}${R}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${mgX(v)}</t></is></c>`,nu=(c,s,v)=>`<c r="${c}${R}" s="${s}"><v>${+v||0}</v></c>`,fx=(c,s,f,v)=>`<c r="${c}${R}" s="${s}"><f>${f}</f><v>${v}</v></c>`,add=x=>{R++;rows.push(`<row r="${R}"${ht}>${x()}</row>`)};
+ add(()=>tx('A',1,'GROSS 26,000 AND UP')+tx('B',1,''));add(()=>tx('A',2,'PAYROLL PERIOD')+tx('B',3,G.period||''));add(()=>'');
+ add(()=>tx('A',5,'DEPARTMENT')+tx('B',5,'NAME')+tx('C',4,'GROSS SALARY')+tx('D',4,'RATE PER DAY')+tx('E',4,'SSS')+tx('F',4,'PHILHEALTH')+tx('G',4,'HDMF')+tx('H',4,'TAX')+tx('I',4,'TOTAL'));
+ const a=R+1;G._hi.forEach(({d,e})=>add(()=>{const t=mgR2(e.gross-e.sss-e.phic-e.hdmf);return tx('A',6,d)+tx('B',6,e.name)+nu('C',7,e.gross)+(e.rate?nu('D',7,e.rate):tx('D',7,''))+nu('E',7,e.sss)+nu('F',7,e.phic)+nu('G',7,e.hdmf)+tx('H',7,'')+fx('I',8,`C${R}-E${R}-F${R}-G${R}-H${R}`,t)}));
+ const b=R,L=G._hi.map(x=>x.e),sm=k=>mgR2(L.reduce((q,e)=>q+(+e[k]||0),0));
+ add(()=>tx('A',10,'TOTAL ('+L.length+')')+tx('B',10,'')+fx('C',9,`SUM(C${a}:C${b})`,sm('gross'))+tx('D',9,'')+fx('E',9,`SUM(E${a}:E${b})`,sm('sss'))+fx('F',9,`SUM(F${a}:F${b})`,sm('phic'))+fx('G',9,`SUM(G${a}:G${b})`,sm('hdmf'))+fx('H',9,`SUM(H${a}:H${b})`,0)+fx('I',9,`SUM(I${a}:I${b})`,mgR2(sm('gross')-sm('sss')-sm('phic')-sm('hdmf'))));
+ return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:I${R}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="16.5"/><cols><col min="1" max="1" width="20" customWidth="1"/><col min="2" max="2" width="40" customWidth="1"/><col min="3" max="3" width="16" customWidth="1"/><col min="4" max="4" width="14" customWidth="1"/><col min="5" max="8" width="13" customWidth="1"/><col min="9" max="9" width="16" customWidth="1"/></cols><sheetData>${rows.join('')}</sheetData><pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`}
 function mgBuildXlsx(groups){
+ {const hi=mgHiList(groups);if(hi.length)groups=groups.filter(g=>!g._hi).concat([{name:'26,000 UP',_hi:hi,period:(groups[0]&&groups[0].period)||''}])}
  const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',RT='http://schemas.openxmlformats.org/officeDocument/2006/relationships',F='Century Gothic';
  const used=new Set(),sn=g=>{let b=(g.name||'PAYROLL').replace(/[\[\]:*?\/\\]/g,'-').trim().slice(0,31)||'PAYROLL',n=b,i=2;while(used.has(n.toLowerCase())){const sx=' ('+i++ +')';n=b.slice(0,31-sx.length)+sx}used.add(n.toLowerCase());return n};
  const nm=groups.map(sn);
@@ -10296,7 +10308,7 @@ function mgBuildXlsx(groups){
   {name:'xl/workbook.xml',data:H+`<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${RT}"><bookViews><workbookView/></bookViews><sheets>${nm.map((n,i)=>`<sheet name="${mgX(n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`},
   {name:'xl/_rels/workbook.xml.rels',data:H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${groups.map((g,i)=>`<Relationship Id="rId${i+1}" Type="${RT}/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${groups.length+1}" Type="${RT}/styles" Target="styles.xml"/></Relationships>`},
   {name:'xl/styles.xml',data:styles}];
- groups.forEach((g,i)=>files.push({name:`xl/worksheets/sheet${i+1}.xml`,data:mgSheetXml(g)}));
+ groups.forEach((g,i)=>files.push({name:`xl/worksheets/sheet${i+1}.xml`,data:g._hi?mgHiXml(g):mgSheetXml(g)}));
  return mgZip(files)}
 
 /* ---------- screen ---------- */
