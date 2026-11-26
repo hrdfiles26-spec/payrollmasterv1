@@ -5453,13 +5453,12 @@ function pSlipPrint(){pSlipPage();const t=document.title;document.title='Payslip
 addEventListener('beforeprint',()=>{if(PG==='pay'&&PV==='slip')pSlipPage()});
 function pSlipRef(dn){const ks=Array.from({length:10},(_,i)=>'k'+i),v={pay:1,net:1,a0:1,a1:1};ks.forEach(k=>v[k]=1);
  return pSlipHtml({s:{name:'MMMMMMMMMM, MMMMMMMMM MMMMMM'},g:'MAINTENANCE',v,r:{rem:'Remarks'},lab:k=>k==='k0'?'Vale':'HDMF Loan',adds:['a0','a1'],lss:ks,gross:1,td:1,bal:k=>k==='k0'?1:0,rd:[1,1],dn:dn?'CB-500 500.00 · XXXXXXXX 500.00 · XXXXXXXX 500.00':''})}
-function pFitSlips(){const L=[...document.querySelectorAll('.slip')];if(!L.length)return;const MG=isMg(PF),gp={cv:0,rg:0},kd=e=>e.classList.contains('cv')?'cv':'rg';
+function pFitSlips(){const L=[...document.querySelectorAll('.slip')];if(!L.length)return;const kd=e=>e.classList.contains('cv')?'cv':'rg';
  const fit=e=>{e.style.fontSize='';let px=parseFloat(getComputedStyle(e).fontSize);while((e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1)&&px>5){px-=.3;e.style.fontSize=px+'px'}return px};
- L.forEach(e=>{const px=fit(e),k=kd(e);gp[k]=gp[k]?Math.min(gp[k],px):px});
- const e0=L.find(e=>!e.classList.contains('cv'));
- if(!MG&&e0){const keep=e0.innerHTML;e0.innerHTML=pSlipRef(!!document.querySelector('.slip .sl-dn')).replace(/^<div class="slip">/,'').replace(/<\/div>$/,'');const pr=fit(e0);e0.innerHTML=keep;
-  gp.rg=Math.min(gp.rg,pr)}
- L.forEach(e=>e.style.fontSize=gp[kd(e)]+'px')}
+ /* each slip is fitted on its own; the common size is the MEDIAN (not the smallest, and no longer a worst-case 10-deduction sample), so normal slips stay big and readable and only a very busy slip gets smaller */
+ const F=L.map(e=>({e,px:fit(e),k:kd(e)})),M={};
+ ['cv','rg'].forEach(k=>{const a=F.filter(o=>o.k===k).map(o=>o.px).sort((x,y)=>x-y);if(a.length)M[k]=a[Math.floor(a.length/2)]});
+ F.forEach(o=>o.e.style.fontSize=Math.min(o.px,M[o.k])+'px')}
 addEventListener('beforeprint',()=>{if(PG==='pay'&&PV==='slip')try{pFitSlips()}catch(x){}});
 /* page group of a payslip: normally its class; in EXTRA PAYROLL every class of the same kind (EXTRA HAULING : A / B -> HAULING, EXTRA BROILER : B1 / B2 -> BROILER, EXTRA LAYERS) shares one group, so they fill the same sheet instead of wasting paper */
 const pClsKey=g=>{g=String(g||'');/* FM | VM (Feedmill + VetMed): all classes share the same sheet, no page break per class */if(pCanon(PF)==='FMVM')return'';if(PF!=='EXTRA PAYROLL')return g;const t=g.replace(/^\s*extra\s*[-:]?\s*/i,'').trim(),i=t.indexOf(':');return(i<0?t:t.slice(0,i)).trim().toLowerCase()};
@@ -5475,16 +5474,18 @@ function pSlipModel(x){const {s,g,v}=x,r=pRow(s),hid=PP.hc||[],vis=k=>!hid.inclu
  return{s,g,v,r,lab,adds,lss,gross,td,bal,eb,rd,dn}}
 function pSltOne(id){const m=pSE(),cur=m[id]||pDefTyId(id);pSltSet(id,cur==='cv'?'reg':'cv');const y=scrollY;drawSlips();scrollTo(0,y)}
 function pSlip(x){const cv=pIsCvX(x),h=cv?pCvHtml(pSlipModel(x)):pSlipHtml(pSlipModel(x)),id=esc(x.s.id),b=`<button type="button" class="sl-ty no-print" title="Switch this employee between Regular payslip and Cash voucher" onclick="pSltOne('${id}')">⇄ ${cv?'Regular':'Voucher'}</button>`;return h.replace(/^(<div class="slip[^"]*")>/,'$1>'+b)}
-function pSlipHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,eb,rd:rdv,dn}=M,n=Math.ceil(lss.length/2)||1,
+/* payslip/voucher: the automatic 'N days' / '(fixed 7)' remarks are not shown (other remarks still are) */
+const pRemTx=r=>{const m=String((r&&r.rem)||'').trim();return /^(actual\s+)?[\d.]+\s*days?\b/i.test(m)||/\(fixed\s*[\d.]+\)/i.test(m)?'':m};
+function pSlipHtml(M){const {s,g,v,r,lab,adds,lss:LS0,gross,td,bal,eb,rd:rdv,dn}=M,lss=LS0.filter(k=>(+v[k]||0)||bal(k)),cc=lss.length>3?2:1,n=Math.ceil(lss.length/cc)||1,showTd=lss.length>0||Math.abs(+td||0)>=.005,
  anyBal=lss.some(k=>bal(k)),dnm=dn?String(dn).split(' · ').map(q=>q.replace(/\s+-?[\d,]*\.?\d+$/,'').trim()).filter(q=>q&&!/^Other$/i.test(q)):[],
  ll=k=>esc(lab(k))+(k==='ded'&&dnm.length===1?` <small class="sl-dl">(${esc(dnm[0])})</small>`:''),rd='';/* the computation (rate × days) is no longer shown in the payslip */
  return`<div class="slip"><div class="sl-co">Rayanton Farms &amp; Livestock Corp.</div><div class="sl-pr">For the period cut off: ${esc(pCutEnd())}</div><div class="sl-nm">${esc(s.name)}</div>
 <div class="sl-r dep"><span>Department</span><b>${esc(g)}</b></div>
 ${adds.length?`<div class="sl-r"><span>Gross Salary${rd}</span><em>${pf(v.pay)}</em></div>${adds.map(k=>`<div class="sl-r"><span>${esc(lab(k))}</span><em>${pf(v[k])}</em></div>`).join('')}<div class="sl-r ln"><span>Gross Salary</span><b>${pf(gross)}</b></div>`:`<div class="sl-r ln"><span>Gross Salary${rd}</span><b>${pf(gross)}</b></div>`}
-<div class="sl-ls">Less : Deductions${anyBal?'<small>Bal.</small>':''}</div>
-<div class="sl-dg" style="grid-template-rows:repeat(${n},auto)">${lss.map(k=>`<div class="si"><span>${ll(k)}</span><em>${pf(v[k])}</em><i${k===eb?' style="color:#c0392b;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact"':''}>${bal(k)?pf(bal(k)):''}</i></div>`).join('')}</div>
-<div class="sl-r td"><span>Total Deductions :</span><b>${pf(td)}</b></div>
-<div class="sl-net"><span>Net Pay</span><b>${pf(v.net)}</b></div>${r.rem?`<div class="sl-rm">Remarks: ${esc(r.rem)}</div>`:''}${dn&&dnm.length!==1?`<div class="sl-rm sl-dn">Deduction details: ${esc(dn)}</div>`:''}
+${lss.length?`<div class="sl-ls">Less : Deductions</div>
+<div class="sl-dg" style="grid-template-columns:repeat(${cc},1fr);grid-template-rows:repeat(${n},auto)">${lss.map(k=>`<div class="si"><span>${ll(k)}</span><em>${pf(v[k])}</em><i${k===eb?' style="color:#c0392b;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact"':''}>${bal(k)?pf(bal(k)):''}</i></div>`).join('')}</div>`:''}
+${showTd?`<div class="sl-r td"><span>Total Deductions :</span><b>${pf(td)}</b></div>`:''}
+<div class="sl-net"><span>Net Pay</span><b>${pf(v.net)}</b></div>${pRemTx(r)?`<div class="sl-rm">Remarks: ${esc(pRemTx(r))}</div>`:''}${dn&&dnm.length!==1?`<div class="sl-rm sl-dn">Deduction details: ${esc(dn)}</div>`:''}
 <div class="sl-sg">Signature:</div></div>`}
 
 // ===== CASH VOUCHER: alternative layout of the payslip (default for EXTRA PAYROLL; any department can switch) =====
@@ -5524,7 +5525,7 @@ function pFlowPages(L){const mm=v=>{const n=parseFloat(v);return/in$/.test(v)?n*
 function pSetSlt(v){if(v!=='cv'&&v!=='reg')return;PP.slt=v;PP.sltD=PF;pSE();PSE.m={};pSEsave();try{localStorage.setItem(pSltKey(),v)}catch(e){}try{logAct('Changed payslip type','Payroll',PF+' · '+(v==='cv'?'Cash voucher':'Regular payslip'))}catch(e){}drawSlips()}
 /* label in the blue box: EXTRA LAYERS -> Layers, EXTRA HAULING : CINCO -> Hauling/Cinco */
 function pCvTag(g){const s=String(g||'').replace(/^\s*extra\s*[-:]?\s*/i,'').trim(),i=s.indexOf(':'),A=i<0?s:s.slice(0,i),B=i<0?'':s.slice(i+1),tc=w=>w.split(/\s+/).map(x=>/\d/.test(x)||x.length<=3?x:x.charAt(0).toUpperCase()+x.slice(1).toLowerCase()).join(' ');return[tc(A.trim()),tc(B.trim())].filter(Boolean).join('/')||'Extra'}
-function pCvHtml(M){const {s,g,v,r}=M,rm=r&&r.rem?`<div class="cv-rm">Remarks: ${esc(r.rem)}</div>`:'';
+function pCvHtml(M){const {s,g,v,r}=M,rm=pRemTx(r)?`<div class="cv-rm">Remarks: ${esc(pRemTx(r))}</div>`:'';
  return`<div class="slip cv"><div class="cv-t">CASH VOUCHER</div><div class="cv-co"><span class="cv-pr">${esc(pCutEnd())}</span><b class="cv-tag">${esc(pCvTag(g))}</b></div><div class="cv-nm"><span>Name</span><b>${esc(s.name)}</b></div>
 <div class="cv-h"><span>PARTICULARS</span><span>AMOUNT</span></div><div class="cv-r"><span>Salary</span><b>${pf(v.net)}</b></div>${rm}
 <div class="cv-sg"><div>Approved by <i></i></div><div class="rc">Received by <i></i></div></div></div>`}
@@ -5623,7 +5624,7 @@ function pXlsxBuild(X,LL){const L=X?X.M:(LL||pSlipList());if(!L.length)return nu
     if(a&&m.bal(a))put(r,c0+1,c0+1,v[a],{sz:9,nf:MONEY,h:'right'})}
    else if(kd==='td'){put(r,c0,c0+2,'Total Deductions :',{sz:9,b:1,bt:TOP});put(r,c0+3,c4,m.td,{sz:9,b:1,nf:MONEY,h:'right',bt:TOP})}
    else if(kd==='net'){put(r,c0,c0+1,'Net Pay',{sz:10,bt:TOP});put(r,c0+2,c4,v.net,{sz:14,b:1,nf:MONEY,h:'right',bt:TOP})}
-   else if(kd==='rm')put(r,c0,c4,m.r.rem?'Remarks: '+m.r.rem:'',{sz:8,col:'FF444444'});
+   else if(kd==='rm')put(r,c0,c4,pRemTx(m.r)?'Remarks: '+pRemTx(m.r):'',{sz:8,col:'FF444444'});
    else if(kd==='dn')put(r,c0,c4,m.dn?'Deductions: '+m.dn:'',{sz:7,col:'FF444444'});
    else if(kd==='sg')put(r,c0,c4,'Signature:',{sz:8,bt:TOP,v:'top'});
    r++});
@@ -5721,12 +5722,12 @@ function pSlipMailHtml(M){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd}=M,per=pCu
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${ded}</table>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px"><tr><td style="padding:5px 0;border-top:1px solid #000;font-weight:bold">Total Deductions :</td><td align="right" style="padding:5px 0;border-top:1px solid #000;font-weight:bold">${pf(td)}</td></tr>
 <tr><td style="padding:8px 0;border-top:1px solid #000">Net Pay</td><td align="right" style="padding:8px 0;border-top:1px solid #000;font-weight:bold;font-size:20px">${pf(v.net)}</td></tr></table>
-${r.rem?`<div style="font-size:12px;color:#444;padding-top:4px">Remarks: ${esc(r.rem)}</div>`:''}
+${pRemTx(r)?`<div style="font-size:12px;color:#444;padding-top:4px">Remarks: ${esc(pRemTx(r))}</div>`:''}
 </td></tr></table>
 <p style="margin:14px 0 0;color:#666;font-size:12px">This payslip was sent by HRD, Rayanton Farms &amp; Livestock Corp. For any question, please contact HR. Please keep this email confidential.</p></div>`}
 function pSlipMailText(M){const {s,g,v,r,lab,adds,lss,gross,td,bal}=M,L=[];L.push('Rayanton Farms & Livestock Corp.','For the period cut off: '+pCutEnd(),'',s.name,'Department: '+g,'');
  if(adds.length){L.push('Gross Salary: '+pf(v.pay));adds.forEach(k=>L.push(lab(k)+': '+pf(v[k])))}L.push('Gross Salary (total): '+pf(gross),'','Less : Deductions');
- lss.forEach(k=>L.push('  '+lab(k)+': '+pf(v[k])+(bal(k)?'   (Bal. '+pf(bal(k))+')':'')));L.push('Total Deductions: '+pf(td),'NET PAY: '+pf(v.net));if(r.rem)L.push('','Remarks: '+r.rem);return L.join('\n')}
+ lss.forEach(k=>L.push('  '+lab(k)+': '+pf(v[k])+(bal(k)?'   (Bal. '+pf(bal(k))+')':'')));L.push('Total Deductions: '+pf(td),'NET PAY: '+pf(v.net));if(pRemTx(r))L.push('','Remarks: '+pRemTx(r));return L.join('\n')}
 // --- payslip as a white "paper" picture (PNG for the email body, JPEG inside a PDF) so dark mode cannot recolour it ---
 function pSlipDraw(c,M,fin){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd}=M,per=pCutEnd(),anyBal=lss.some(k=>bal(k)),W=520,P=10,L=P+30,R=W-P-30,BX=anyBal?R-100:R,
   F='Arial,Helvetica,sans-serif',G='Georgia,"Times New Roman",serif',NAVY='#12305c',GOLD='#b8923a',INK='#1a2233',MU='#66738a',LN='#e6e9f0';
@@ -5755,7 +5756,7 @@ function pSlipDraw(c,M,fin){const {s,g,v,r,lab,adds,lss,gross,td,bal,rd}=M,per=p
  HL(y-9,L,R,1,NAVY);y+=5;T('Total Deductions',L,y,{b:1});T(pf(td),R,y,{b:1,a:'right'});y+=30;
  // net pay
  RR(L,y,R-L,62,7,NAVY);c.fillStyle=GOLD;c.fillRect(L+8,y+62-3,R-L-16,3);T('NET PAY',L+20,y+29,{b:1,sz:12,c:'#ffffff',ls:2});T(pf(v.net),R-20,y+29,{b:1,sz:28,f:G,c:'#ffffff',a:'right'});y+=62+18;
- if(r.rem){T('Remarks: '+r.rem,L,y,{sz:12,c:MU,i:1});y+=20}
+ if(pRemTx(r)){T('Remarks: '+pRemTx(r),L,y,{sz:12,c:MU,i:1});y+=20}
  y+=8;HL(y,L,R,1,LN);y+=16;
  T('Confidential payslip · Rayanton Farms & Livestock Corp. HRD',W/2,y,{sz:10,c:'#98a2b6',a:'center'});y+=22;
  if(fin){c.lineWidth=1.2;c.strokeStyle='#c9d1e0';c.strokeRect(P,P,W-2*P,y-P)}return y+P}
@@ -8661,8 +8662,25 @@ seasonUI();
 .sl-net{border-top:1px solid #000;display:flex;justify-content:space-between;align-items:center;padding-top:.8mm;padding-bottom:.8mm}
 .sl-net span{font-size:.98em}.sl-net b{font-size:1.4em}
 .sl-rm{font-size:.8em;color:#444;white-space:normal;overflow-wrap:break-word;overflow:visible;text-overflow:clip}
-.sl-dl{display:block;white-space:normal;font-size:.8em;font-weight:600;color:#c00000;line-height:1.15}
-.sl-rm.sl-dn{color:#c00000;font-weight:600;font-size:.9em;white-space:normal;display:block;line-height:1.2}
+.sl-dl{display:block;white-space:normal;font-size:.88em;font-weight:600;color:#c00000;line-height:1.15}
+.sl-rm.sl-dn{color:#c00000;font-weight:600;font-size:1em;white-space:normal;display:block;line-height:1.2}
+.slip .sl-co{font-size:.98em;text-align:center;white-space:nowrap;color:#12305c;letter-spacing:.2px;padding-top:.1em;padding-bottom:.05em;line-height:1.15}
+.slip .sl-pr{font-size:.82em;text-align:center;white-space:nowrap;color:#1f4e9e;font-weight:600;letter-spacing:.1px;padding-bottom:.4em;line-height:1.15}
+/* spacing is in em so it shrinks together with the letters: a busy slip gets slightly smaller, never tiny */
+.slg.fx .slip:not(.cv){font-size:9.2pt;line-height:1.22;padding:.3em .4em .2em}
+.slip .sl-nm{padding-top:.22em;padding-bottom:.22em;margin-top:0}
+.slip .sl-r{margin-top:.2em}
+.slip .sl-r.ln{margin-top:.3em;padding-top:.2em}
+.slip .sl-ls{margin-top:.35em;padding-top:.2em;padding-bottom:.1em;font-size:.92em;letter-spacing:.2px}
+.slip .sl-dg{column-gap:1.1em;row-gap:.08em;padding-top:.15em;padding-bottom:.25em}
+.slip .si{flex-wrap:wrap;column-gap:.4em;line-height:1.2;align-items:baseline}
+.slip .si span{flex:1 1 0;font-weight:600}
+.slip .si em{font-size:1em}
+.slip .si i{flex:0 0 100%;text-align:right;font-size:.8em;line-height:1.1;margin-top:-.1em}
+.slip .si i:not(:empty)::before{content:'Bal. ';font-weight:400}
+.slip .sl-r.td{padding-top:.2em;margin-top:.2em}
+.slip .sl-net{padding-top:.25em;padding-bottom:.25em}
+.slip .sl-sg{padding-top:.35em}
 .sl-sg{border-top:1px solid #000;font-size:.85em;padding-top:3.2mm;padding-bottom:.6mm}
 /* cash voucher layout (elegant: navy + gold, double frame, serif) */
 .slg.fx.cvg{grid-template-columns:repeat(var(--cc),100mm);grid-auto-rows:72mm}
