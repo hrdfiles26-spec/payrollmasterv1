@@ -5281,6 +5281,7 @@ function pXls(){if(PV==='form'&&!pxCan('exp'))return pxNo();if(PV==='form'&&(!PP
  for(let c=1;c<=NC;c++)put(4,c,c,'',{bb:c===cg?'medium:FFB8923A':'thin:FFE3E7EF'});
  r=5;hts[5]=4;r=6;hts[6]=20;
  hts[7]=15;if(!HDI){put(6,1,NC,pT('pay','PAYROLL'),{fn:'Georgia',sz:15,b:1,col:NAVY,h:'center'});put(7,1,NC,pT('perl','PAYROLL PERIOD:')+'  '+pT('per',pLab()),{sz:10,b:1,col:INK,h:'center'})}
+ else{/* v700: the letterhead is a picture, so the same PAYROLL / PAYROLL PERIOD text is also written in the cells under it (tiny white text, not visible) - Monthly Gross reads the file with it */const hid={sz:1,col:'FFFFFFFF',h:'left'};put(6,1,1,'PAYROLL',hid);put(6,2,2,String(PP.title||PF),hid);put(7,1,1,'PAYROLL PERIOD:',hid);put(7,2,2,String(pT('per',pLab())),hid)}
  r=8;(PP.det||[]).forEach(d=>{if(!d)return;hts[r]=15;put(r,1,NC,d,{sz:9.5,col:'FF66738A',h:'center'});r++});
  hts[r]=8;r++;
  // --- table header (two rows, merged groups exactly like the preview) ---
@@ -10106,7 +10107,7 @@ function mgCutDate(x){
  return null}
 const mgDateTxt=d=>MG_MN[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
 
-function mgDetect(G,sheetName,lenient){
+function mgDetect(G,sheetName,lenient,fname){
  const T=(r,c)=>{const v=G[r]&&G[r][c];return v==null?'':String(v).replace(/\s+/g,' ').trim()};
  const rows=Object.keys(G).map(Number).sort((a,b)=>a-b),H=t=>{t=t.toLowerCase();return t.startsWith('=')?t.replace(/^=\s*"?/,''):t},ADJH=t=>/^(adj|add\b|add[’']?l|ad[’']?l\b|additional)/.test(t),RATEH=t=>/^(daily\s*)?rate(\s*per\s*day)?$/.test(t),NUM=v=>typeof v==='string'&&/^\s*-?[\d,]*\.?\d+\s*$/.test(v)?parseFloat(v.replace(/,/g,'')):v,PAYH=t=>t==='payroll'||/^(gross(\s*(salary|pay))?|salary)$/.test(t);
  let hr=0;
@@ -10136,7 +10137,10 @@ function mgDetect(G,sheetName,lenient){
     const d2=mgCutDate(val);if(!cutTxt)cutTxt=typeof val==='number'?(d2?mgDateTxt(d2):''):String(val||'').replace(/\s+/g,' ').trim();if(!date&&d2)date=d2;break}}}
  if(!dept&&pRow&&G[pRow+1]){const cs2=Object.keys(G[pRow+1]).map(Number).sort((x,y)=>x-y);for(const c of cs2){const t=T(pRow+1,c);if(typeof G[pRow+1][c]==='string'&&t&&!MG_RANGE.test(t)&&!/^payroll/i.test(t.replace(/[\s:.]+/g,''))){dept=t;break}}}
  if(!label){for(const r of rows){if(r>=hr)break;const cs3=Object.keys(G[r]).map(Number).sort((x,y)=>x-y);for(const c of cs3){const t=T(r,c);if(typeof G[r][c]==='string'&&MG_RANGE.test(t)&&MG_MON[(MG_RANGE.exec(t)||[])[1].toLowerCase()]!=null){label=t;break}}if(label)break}}
- if(!label&&lenient)label=cutTxt||sheetName;
+ /* v700: payroll files exported from this app have the title as a picture: the cut-off is then taken from the file name (BROILER NOVEMBER 11-17,2026.xlsx) or the sheet name */
+ if(!label){for(const t of[String(fname||'').split(/[\\/]/).pop().replace(/\.[a-z0-9]+$/i,'').replace(/_/g,' '),String(sheetName||'')]){const m=MG_RANGE.exec(t);if(m&&MG_MON[m[1].toLowerCase()]!=null){label=m[0].replace(/\s+/g,' ').trim().toUpperCase();break}}}
+ /* v700: a sheet that has the payroll table (Rate + Payroll / Gross Salary columns and employee rows) is never skipped just because the period is missing: the cut-off text, the file name or the sheet name is used as its label */
+ if(!label)label=cutTxt||String(fname||'').split(/[\\/]/).pop().replace(/\.[a-z0-9]+$/i,'').replace(/_/g,' ').trim()||sheetName;
  if(!label){MG_WHY='no "PAYROLL PERIOD" line';return null} /* a payroll cut-off always has a PAYROLL PERIOD line; other Excel files (petty cash, bank, etc.) do not */
  if(!date&&label){const m=MG_RANGE.exec(label);if(m&&MG_MON[m[1].toLowerCase()]!=null)date=new Date(+m[4],MG_MON[m[1].toLowerCase()],+m[3])}
  const out=[];let anyContrib=false;
@@ -10240,7 +10244,7 @@ function mgGroups0(){
     return mine});
    if(rows.length)vc.push({...c,rows})}
   G.moveIn=Object.entries(fromD).map(([n,v])=>({name:n,from:Object.keys(v)}));G.moveOut=Object.entries(toD).map(([n,v])=>({name:n,to:[...v]}));
-  const full=mgAgg(vc,CM).filter(e=>!(e.gross===0&&e.contrib===0)).map(e=>{if(fromD[e.name]){e.from=Object.keys(fromD[e.name]);e.fromAmt=fromD[e.name]}return e}),all=full.filter(e=>!mgOut(G.key,e)),useSp=MG.sp[G.key]!==false;G.hid=full.filter(e=>mgOut(G.key,e));
+  const full=mgAgg(vc,CM).filter(e=>!(e.gross===0&&e.contrib===0)).map(e=>{if(fromD[e.name]){e.from=Object.keys(fromD[e.name]);e.fromAmt=fromD[e.name]}return e}),all=full.filter(e=>!mgOut(G.key,e)),useSp=MG.sp[G.key]!==false&&all.some(e=>e.contrib>0);G.hid=full.filter(e=>mgOut(G.key,e));
   G.emp=useSp?all.filter(e=>e.contrib>0):all;G.svc=useSp?all.filter(e=>e.contrib<=0):[];
   return G})}
 
@@ -10356,6 +10360,7 @@ function mgGroupHtml(G){
   <tr class="tot"><td>TOTAL (${L.length})</td><td class="n">${mgMoney(mgSum(L,'gross'))}</td><td></td><td class="n">${mgMoney(mgSum(L,'sss'))}</td><td class="n">${mgMoney(mgSum(L,'phic'))}</td><td class="n">${mgMoney(mgSum(L,'hdmf'))}</td><td class="n">${mgMoney(mgSum(L,'total'))}</td>${hn?'<td></td>':''}<td></td></tr></tbody></table></div>`};
  const warn=[];
  if(n&&n!==4)warn.push(`Found ${n} cut-off${n===1?'':'s'} for this department. A month usually has 4 — make sure nothing is missing or double.`);
+ {/* v700: list the uploaded files that could not be read, right here, so a missing cut-off is easy to spot */const okF=new Set(MG.log.filter(x=>x.ok).map(x=>x.file)),bad=[...new Set(MG.log.filter(x=>!x.ok&&!okF.has(x.file)).map(x=>x.file))];if(n&&n!==4&&bad.length)warn.push('Not read: '+bad.map(f=>{const w=(MG.log.find(x=>x.file===f&&!x.ok)||{}).why;return f.split(/[\\/]/).pop()+(w?' ('+w+')':'')}).join('; ')+'. Open “Files checked” above for details.')}
  const dup={};G.inc.forEach(c=>{const k=mgKey(c.label);dup[k]=(dup[k]||0)+1});if(Object.values(dup).some(v=>v>1))warn.push('The same payroll period appears more than once. Untick the duplicate so it is not counted twice.');
  if(G.inc.some(c=>!c.hasContrib))warn.push('One of the included sheets has no SSS / PHIC / HDMF columns, so nothing was deducted from it.');
  return`<div class="cx-card"><div class="mg-top" style="margin-top:0"><div class="mg-fld"><span class="mg-lbl">Department / Payroll title</span><input class="mg-in" value="${esc(G.name)}" data-g="${esc(G.key)}" oninput="MG.names[this.dataset.g]=this.value" placeholder="e.g. FEEDMILL/VETMED"></div>
@@ -10400,7 +10405,7 @@ async function mgAdd(files){
       and the department is the name written after "PAYROLL:" inside the sheet (e.g. Office, A.H. Gen. Services) */
    const offN=x=>['ssp','tax','sssloan','hdmfloan'].includes(String(x.name).replace(/[^a-z]/gi,'').toLowerCase()),officeBook=sheets.filter(offN).length>=2;
    /* visible sheets first; hidden sheets are only tried when the file has no readable visible payroll sheet */
-   for(const s of sheets.filter(x=>!x.hidden).concat([null],sheets.filter(x=>x.hidden))){if(s===null){if(found)break;continue}if(officeBook&&!offN(s))continue;const d=mgDetect(s.G,s.name,officeBook);if(!d){why=MG_WHY;MG.log.push({file:path,sheet:s.name,ok:false,why:MG_WHY,peek:mgPeek(s.G)});continue}found++;
+   for(const s of sheets.filter(x=>!x.hidden).concat([null],sheets.filter(x=>x.hidden))){if(s===null){if(found)break;continue}if(officeBook&&!offN(s))continue;const d=mgDetect(s.G,s.name,officeBook,path);if(!d){why=MG_WHY;MG.log.push({file:path,sheet:s.name,ok:false,why:MG_WHY,peek:mgPeek(s.G)});continue}found++;
     const dept=officeBook&&d.dept?(mgDeptClean(d.dept)||String(d.dept).toUpperCase()):mgDeptFor(path,d.dept);MG.log.push({file:path,sheet:s.name,ok:true,dept,n:d.rows.length,label:d.label});
     MG.cuts.push({id:++MG.seq,seq:MG.seq,file:path,gkey:mgKey(dept),def:dept,on:true,...d});
     /* Extra departments (EXTRA BREEDER, EXTRA PAYROLL) start unticked in Export order; the person can still tick them */
