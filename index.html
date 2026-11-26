@@ -3667,14 +3667,14 @@ function atm201Calc(e,D){
  let cur=seed;const hist=[];
  runs.forEach(p=>{let a='';for(const id of ids){const r=p.data.rows[id];if(r&&r.acct!=null&&String(r.acct).trim()){a=String(r.acct).trim();break}}
   if(a&&a!==cur){hist.push({from:cur,to:a,period:p.data.to||'',saved:p.created_at||'',label:p.label||p.data.title||''});cur=a}});
- try{for(const s of L){const o=PDS['_ao|'+s.id];if(o&&o.a!=null){const a=String(o.a||'').trim();if(a&&a!==cur){hist.push({from:cur,to:a,period:'',saved:o.t||'',label:'ATM Accounts'});cur=a}break}}}catch(_){}
+ try{for(const s of L){const o=PDS['_ao|'+s.id];if(o&&o.a!=null){const a=String(o.a||'').trim();if(a!==cur){if(a)hist.push({from:cur,to:a,period:'',saved:o.t||'',label:'ATM Accounts'});cur=a}break}}}catch(_){}
  return{linked:true,cur,hist,rate:L[0].rate,ids,grs:(((PCFG||{})[L[0].dept])||{}).m==='g'}}
 const atm201D=t=>{if(!t)return '';const d=new Date(/^\d{4}-\d{2}-\d{2}$/.test(t)?t+'T00:00:00':t);return isNaN(d)?String(t):d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})};
 async function atm201Draw(e){
  const box=$('atm201');if(!box||!e||!e.name)return;
  try{
+  window.__atmE=e;try{if(PDOK!==true)await pdLoad()}catch(_){}
   const R=atm201Calc(e,await atm201Data());if(!$('atm201'))return;
-  try{if(PDOK!==true)await pdLoad()}catch(_){}
   const RH=R.linked?[].concat(...(R.ids||[]).map(id=>rhList(id))).sort((a,b)=>String(b.t||'').localeCompare(String(a.t||''))||String(b.at||'').localeCompare(String(a.at||''))):[];
   const rhRows=RH.map(x=>`<div style="padding:7px 0;border-top:1px solid var(--ln);font-size:13px;line-height:1.5${x.s==='i'?';opacity:.65':''}"><b>${esc(atm201D(x.at||x.t))}</b> — Rate changed from <b>${esc(fm(x.r))}</b> to <b>${esc(fm(x.n))}</b>, effective <b>${esc(atm201D(x.t))}</b>${x.s==='p'?' <span style="color:#8a5a00"><b>⏳ pending</b></span>':x.s==='i'?' <span style="color:var(--mu)"><b>ignored</b></span>':''}${(x.by||x.w||x.ac)?`<br><small style="color:var(--mu)">${[x.by?'by '+esc(x.by):'',x.w?esc(x.w):'',x.ac?'accepted '+esc(atm201D(x.ac)):''].filter(Boolean).join(' · ')}</small>`:''}</div>`).join('');
   const rows=R.hist.slice().reverse().map(h=>`<div style="padding:7px 0;border-top:1px solid var(--ln);font-size:13px;line-height:1.5"><b>${esc(atm201D(h.saved||h.period))}</b> — ${h.from?'Changed from <span style="font-family:Consolas,monospace">'+esc(h.from)+'</span> to ':'Account set to '}<b style="font-family:Consolas,monospace">${esc(h.to)}</b><br><small style="color:var(--mu)">Payroll${h.label?': '+esc(h.label):''}${h.period?' · period ending '+esc(atm201D(h.period)):''}</small></div>`).join('');
@@ -4367,7 +4367,7 @@ function acctCheck(list){const bad=[];list.forEach(({el,name})=>{el.style.border
  alert('The ATM account number must be exactly 13 digits (numbers only).\n\nPlease fix:\n'+bad.slice(0,8).map(b=>'• '+b.name+' ('+b.len+')').join('\n')+(bad.length>8?'\n• and '+(bad.length-8)+' more':'')+'\n\nNothing was saved.');return false}
 function atmSave(){const m=$('atmm');if(!m)return;if(!pxCan('atm'))return pxNo();if(!acctCheck([...m.querySelectorAll('.at')].filter(i=>i.value!==i.defaultValue).map(i=>{const st=STF.find(x=>x.id===i.dataset.id);return{el:i,name:st?st.name:(i.dataset.k==='coop'?'COOP account':i.dataset.k==='tmr'?'TMR account':'ATM account')}})))return;let n=0,g=0;[...m.querySelectorAll('.ao')].filter(i=>i.value!==i.defaultValue).forEach(i=>atmOwnSync(i));[...m.querySelectorAll('.ao')].forEach(i=>{if(i.value===i.defaultValue)return;pIn(i.dataset.id,'aown',i.value.trim());n++});[...m.querySelectorAll('.ar')].forEach(i=>{if(i.value===i.defaultValue)return;pIn(i.dataset.id,'arem',i.value.trim());n++});[...m.querySelectorAll('.at')].forEach(i=>{if(i.value===i.defaultValue)return;const k=i.dataset.k,v=i.value.trim();if(k==='emp')pIn(i.dataset.id,'acct',v);else{PDS._atm={...atmCf(),[k]:v};g=1}n++});{const ids=new Set([...m.querySelectorAll('.at[data-k="emp"],.ao,.ar')].filter(i=>i.value!==i.defaultValue&&i.dataset.id).map(i=>i.dataset.id));
  if(ids.size){const now=new Date().toISOString(),by=(typeof rhBy==='function'?rhBy():'');ids.forEach(id=>{const st=(STF||[]).find(x=>x.id===id);if(!st)return;const r=(PP.rows||{})[id]||{};PDS[AOK(id)]={a:String(r.acct!=null?r.acct:(pAcctV(st)||'')).trim(),o:String(r.aown!=null?r.aown:(pAown(st)||'')).trim(),r:String(r.arem!=null?r.arem:(pArem(st)||'')).trim(),t:now,by:by};g=1})}}
- if(g)pdSave();if(n){drawP();atmFormSync();logAct('Edited ATM accounts','Payroll',PF+' · '+pPeriod())}atmDraw();toast(n?'ATM accounts saved ✔':'No changes')}
+ if(g)pdSave();if(n){drawP();atmFormSync();logAct('Edited ATM accounts','Payroll',PF+' · '+pPeriod())}atmDraw();try{if($('atm201')&&window.__atmE)atm201Draw(window.__atmE)}catch(_){}toast(n?'ATM accounts saved ✔':'No changes')}
 // ATM Accounts: edit the account numbers at the top of this window, then Save. The same markup below is used for the preview, print and Excel export.
 function atmModel(){const S=[].concat(...pGroups().map(g=>g[1])).filter(s=>!pHeld(s)),V=S.map(s=>{const v=pVals(s);return{name:s.name,o:String(pAown(s)||'').trim(),a:String(pAcctV(s)||'').trim(),n:pn(v.net),c:pn(v.coop),d:pn(v.ded),m:String(pArem(s)||'').trim(),oo:[String(pAown(s)||'').trim(),String(pArem(s)||'').trim()].filter(Boolean).join(' · ')}}),own={};S.forEach(s=>{const a=String(pAcctV(s)||'').trim();if(a)own[a]=(own[a]?own[a]+' / ':'')+s.name});
  const G={};V.forEach(x=>(G[x.a||'—']=G[x.a||'—']||[]).push(x));
@@ -8120,7 +8120,7 @@ async function liveSync(t){if(!SES.tok)return;
    if(PG==='emp'&&(EV!=='list'||typing())){EPEND=true;return}E=n;ntfNew();if(PG==='emp')drawE();else{badge();if(PG==='dash')drawDash()}}
   if(t==='hrd_pay_staff'&&can('pay')){const n=sVis(await api('/rest/v1/hrd_pay_staff?select=*&order=name')),g=a=>(a||[]).map(x=>x.id+'|'+x.name+'|'+x.rate).join(';');
    if(g(n.filter(x=>!['Common','Rest House'].includes(x.dept)))===g(STF))return;if(PG==='pay'&&typing())return;await loadS();if(PG==='pay'&&pv==='main')drawP();else if(PG==='dash')drawDash()}
-  if(t==='hrd_pay_depts'&&can('pay')&&PDOK===true){const o=PDSNAP;await pdLoad();if(PDSNAP!==o){if(document.getElementById('pdm'))pdDraw();if(PG==='pay'&&!typing()){if(PV==='setup')drawSetup();else if(pv==='main')drawP()}}return}
+  if(t==='hrd_pay_depts'&&can('pay')&&PDOK===true){const o=PDSNAP;await pdLoad();if(PDSNAP!==o){try{if(document.getElementById('atm201')&&window.__atmE)atm201Draw(window.__atmE)}catch(e){}if(document.getElementById('pdm'))pdDraw();if(PG==='pay'&&!typing()){if(PV==='setup')drawSetup();else if(pv==='main')drawP()}}return}
   if(t==='hrd_payroll'&&can('pay')){await loadH(1);if(PG==='pay'&&pv==='main'&&!typing())drawRuns()}
  }catch(e){}}
 async function liveAcc(){
