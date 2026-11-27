@@ -379,6 +379,10 @@ html[data-theme=dark] .t-l{display:inline-block}html[data-theme=dark] .t-d{displ
 .side a.on::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--au)}
 .side a i{margin-left:auto;float:none;font-size:11.5px;font-weight:600;padding:1px 8px}
 .side a i:empty{display:none}
+.side a i#bLv,.side a i#bLvP{background:#d93a3a;color:#fff;border-radius:999px;min-width:22px;text-align:center}
+.side a#n14.open i#bLvP{display:none}
+#lvnote{position:fixed;right:16px;bottom:76px;z-index:94;width:min(380px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px;padding:13px 16px;border-radius:12px;background:var(--sf);color:var(--ink);border:2px solid #d93a3a;box-shadow:0 12px 32px #0005;font-size:13.5px;line-height:1.5}
+#lvnote .b{display:flex;gap:8px;justify-content:flex-end}
 .side a:focus-visible{outline-color:#e8c56d;outline-offset:-2px}
 .who{display:flex;align-items:center;gap:11px;padding:10px 12px;margin:0 0 10px;border-radius:12px;background:#ffffff0d;border:1px solid #ffffff12;opacity:1;word-break:normal}
 .wav{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#f6efdc,#d9b96a);color:#12305c;font:600 13px Georgia,serif}
@@ -1725,11 +1729,11 @@ html[data-theme=dark] #main .stat.al-g .si{background:#1f4a31;color:#7fdca4}
  <a id="n0" tabindex="0" onclick="go('dash')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Dashboard</span><i id="b0"></i></a>
   <a id="nEv" tabindex="0" onclick="go('evl')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 12.5l2 2 4-4M9 18h6"/></svg><span>Evaluation</span></a>
  <a id="n3" tabindex="0" onclick="go('emp')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>201 Files</span><i id="b3"></i></a>
- <a id="n14" tabindex="0" onclick="window.ATH=0;window.ATHm?ATHm(0):go('att')" style="display:none" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><path d="M8.5 15l2.2 2.2L15.5 12.5"/></svg><span>Attendance</span><i id="b14"></i><svg class="rqch" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" onclick="event.stopPropagation();atNavToggle()"><path d="m6 9 6 6 6-6"/></svg></a>
+ <a id="n14" tabindex="0" onclick="window.ATH=0;window.ATHm?ATHm(0):go('att')" style="display:none" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><path d="M8.5 15l2.2 2.2L15.5 12.5"/></svg><span>Attendance</span><i id="b14"></i><i id="bLvP"></i><svg class="rqch" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" onclick="event.stopPropagation();atNavToggle()"><path d="m6 9 6 6 6-6"/></svg></a>
  <div id="atsub" class="subnav">
  <a id="n4" tabindex="0" onclick="go('pay')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg><span>Payroll</span></a>
 <a id="n15" tabindex="0" onclick="go('psm')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 15l2.2 2.2L15.5 12.5"/></svg><span>Payslip Monitoring</span></a>
-<a id="n19" tabindex="0" onclick="go('lvc')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><path d="M12 13.2v3.6M10.2 15h3.6"/></svg><span>Vacation / Sick Leave</span></a>
+<a id="n19" tabindex="0" onclick="go('lvc')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/><path d="M12 13.2v3.6M10.2 15h3.6"/></svg><span>Vacation / Sick Leave</span><i id="bLv"></i></a>
  </div>
  <a id="n10" tabindex="0" onclick="go('m13')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M10 14.2c0-.9.9-1.4 2-1.4s2 .5 2 1.3c0 1.9-4 1-4 3 0 .8.9 1.4 2 1.4s2-.5 2-1.4"/></svg><span>13th Month Pay</span></a>
  <a id="n9" tabindex="0" onclick="go('addc')" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span>Additional Compensation</span></a>
@@ -2181,7 +2185,7 @@ async function dbSizeCheck(){
  d.innerHTML='<span style="flex:1"><b>'+(red?'\u{1F6A8} The database is almost full':'\u26A0\uFE0F The database is getting full')+':</b> '+mb.toFixed(0)+' MB of 500 MB ('+Math.round(mb/5)+'%). Please contact '+esc(FULL_CONTACT)+'.</span><button class="btn o sm" onclick="this.parentNode.remove()">Close</button>';
  document.body.appendChild(d)}
 function applyNav(){ADM=can('usr');{const a=$('nEv');if(a)a.style.display=(can('evl')||(MYA&&MYA.active))?'':'none'}{const a=$('ndel');if(a)a.style.display=SUPER?'none':''}
- ['req','sub','emp','pay','act','usr'].forEach((k,j)=>$('n'+(j+1)).style.display=can(k)?'':'none');$('n7').style.display=isAdm()?'':'none';{const a=$('n2');if(a&&(rqCan('chk')||rqCan('apr')))a.style.display=''}rqNavSync();['addc','m13'].forEach((k,j)=>{const a=$('n'+(9+j));a.style.display='';a.classList.toggle('lkd',!can(k));a.title=can(k)?'':'Needs permission from the admin'});{const a=$('n14');if(a)a.style.display=can('att')?'':'none';}{const a=$('n16');if(a)a.style.display=can('att')?'':'none';}{const a=$('n15');if(a)a.style.display=(can('psm')&&!can('pay'))?'':'none';}{const a=$('n19');if(a)a.style.display=can('att')?'':'none';}atNavSync(null);{const a=$('n11');if(a)a.style.display=can('tmk')?'':'none';}{const a=$('n12');if(a)a.style.display=can('mg')?'':'none';}{const a=$('n13');if(a)a.style.display=can('ben')?'':'none';}
+ ['req','sub','emp','pay','act','usr'].forEach((k,j)=>$('n'+(j+1)).style.display=can(k)?'':'none');$('n7').style.display=isAdm()?'':'none';{const a=$('n2');if(a&&(rqCan('chk')||rqCan('apr')))a.style.display=''}rqNavSync();['addc','m13'].forEach((k,j)=>{const a=$('n'+(9+j));a.style.display='';a.classList.toggle('lkd',!can(k));a.title=can(k)?'':'Needs permission from the admin'});{const a=$('n14');if(a)a.style.display=can('att')?'':'none';}{const a=$('n16');if(a)a.style.display=can('att')?'':'none';}{const a=$('n15');if(a)a.style.display=(can('psm')&&!can('pay'))?'':'none';}{const a=$('n19');if(a)a.style.display=lvAny()?'':'none';}atNavSync(null);{const a=$('n11');if(a)a.style.display=can('tmk')?'':'none';}{const a=$('n12');if(a)a.style.display=can('mg')?'':'none';}{const a=$('n13');if(a)a.style.display=can('ben')?'':'none';}
  const rl=SUPER||(MYA&&MYA.role==='admin')?'Admin':MYA?(ROLES[MYA.role]||[MYA.role])[0]:'';
  {const nk=((MYA&&MYA.full_name)||'').trim();$('who').innerHTML=((nk||rl)?'<b>'+esc(nk||rl)+'</b>':'')+'<small>'+esc(nk&&rl?rl+' · ':'')+esc(ME.email||'')+'</small>'}
  {const nm=((MYA&&MYA.full_name)||ME.email||'?').trim();$('wav').textContent=(nm.includes('@')?nm.slice(0,2):nm.split(/\s+/).map(w=>w[0]).slice(0,2).join('')).toUpperCase()}
@@ -2340,7 +2344,7 @@ function atNavSync(p){const a=$('n14'),b=$('atsub');if(!a||!b)return;const vis=a
 function rqNavSync(){const a=$('n1'),b=$('n2'),p=$('nRq');if(!p)return;const v=(a&&a.style.display!=='none')||(b&&b.style.display!=='none');p.style.display=v?'':'none';if(!v)rqNavOpen(false);rqNavBadge()}
 function rqNavBadge(){const n=x=>parseInt(($(x)||{}).textContent,10)||0,t=n('brq')+n('bd'),e=$('bRq');if(e)e.textContent=t||''}
 try{['brq','bd'].forEach(id=>{const e=$(id);if(e&&window.MutationObserver)new MutationObserver(rqNavBadge).observe(e,{childList:true,characterData:true,subtree:true})})}catch(_){}
-function go(p){if(p==='chk'||p==='apr')p='sub';if(p==='chat')return chatToggle();if(PG==='att'&&p!=='att'&&window.attUns&&attUns()){attLeave(function(){go(p)});return}if(p==='lvc'&&!can('att'))return toast('You do not have access to this page.');if(p!=='dash'&&p!=='chat'&&p!=='addc'&&p!=='m13'&&p!=='evl'&&p!=='lvc'&&(p==='bak'?!isAdm():!(can(p)||(p==='sub'&&(rqCan('chk')||rqCan('apr'))))))return toast('You do not have access to this page.');if(PG==='pay'&&p!=='pay'){if(!pLeave())return;PV='hist';PU=false}if(PG==='m13'&&p!=='m13'&&!m13Leave())return;PG=p;document.body.setAttribute('data-pg',p);if(p!=='dash')chatClose();rqNavOpen(p==='req'||p==='sub');{const a=$('nRq');if(a)a.classList.toggle('pon',p==='req'||p==='sub')}$('n0').classList.toggle('on',p==='dash');{const a=$('nEv');if(a)a.classList.toggle('on',p==='evl')}['req','sub','emp','pay','act','usr','bak','chat'].forEach((k,j)=>$('n'+(j+1)).classList.toggle('on',p===k));$('n9').classList.toggle('on',p==='addc');$('n10').classList.toggle('on',p==='m13');{const a=$('n17');if(a)a.classList.toggle('on',p==='chk')}{const a=$('n18');if(a)a.classList.toggle('on',p==='apr')}{const a=$('n11');if(a)a.classList.toggle('on',p==='tmk')}{const a=$('n12');if(a)a.classList.toggle('on',p==='mg')}{const a=$('n13');if(a)a.classList.toggle('on',p==='ben')}{const a=$('n14');if(a)a.classList.toggle('on',p==='att')}{const a=$('n16');if(a)a.classList.toggle('on',p==='att'&&!!window.ATH)}{const a=$('n15');if(a)a.classList.toggle('on',p==='psm')}{const a=$('n19');if(a)a.classList.toggle('on',p==='lvc')}if(p==='psm'&&can('pay'))$('n4').classList.add('on');atNavSync(p);p==='dash'?dash():p==='psm'?psm():p==='lvc'?lvc():p==='att'?att():p==='req'?pick():p==='sub'?subs():(p==='chk'||p==='apr')?rqQueue():p==='emp'?emps():p==='act'?acts():p==='usr'?users():p==='bak'?backups():p==='chat'?chatOpen():p==='tmk'?tmk():p==='mg'?mg():p==='ben'?ben():p==='evl'?evl():p==='addc'?(can('addc')?addc():noAcc('Additional Compensation')):p==='m13'?(can('m13')?m13():noAcc('13th Month Pay')):pays();scrollTo(0,0)}
+function go(p){setTimeout(()=>{try{window.lvNotif&&window.lvNotif()}catch(e){}},4000);if(p==='chk'||p==='apr')p='sub';if(p==='chat')return chatToggle();if(PG==='att'&&p!=='att'&&window.attUns&&attUns()){attLeave(function(){go(p)});return}if(p==='lvc'&&!lvAny())return toast('You do not have access to this page.');if(p!=='dash'&&p!=='chat'&&p!=='addc'&&p!=='m13'&&p!=='evl'&&p!=='lvc'&&(p==='bak'?!isAdm():!(can(p)||(p==='sub'&&(rqCan('chk')||rqCan('apr'))))))return toast('You do not have access to this page.');if(PG==='pay'&&p!=='pay'){if(!pLeave())return;PV='hist';PU=false}if(PG==='m13'&&p!=='m13'&&!m13Leave())return;PG=p;document.body.setAttribute('data-pg',p);if(p!=='dash')chatClose();rqNavOpen(p==='req'||p==='sub');{const a=$('nRq');if(a)a.classList.toggle('pon',p==='req'||p==='sub')}$('n0').classList.toggle('on',p==='dash');{const a=$('nEv');if(a)a.classList.toggle('on',p==='evl')}['req','sub','emp','pay','act','usr','bak','chat'].forEach((k,j)=>$('n'+(j+1)).classList.toggle('on',p===k));$('n9').classList.toggle('on',p==='addc');$('n10').classList.toggle('on',p==='m13');{const a=$('n17');if(a)a.classList.toggle('on',p==='chk')}{const a=$('n18');if(a)a.classList.toggle('on',p==='apr')}{const a=$('n11');if(a)a.classList.toggle('on',p==='tmk')}{const a=$('n12');if(a)a.classList.toggle('on',p==='mg')}{const a=$('n13');if(a)a.classList.toggle('on',p==='ben')}{const a=$('n14');if(a)a.classList.toggle('on',p==='att')}{const a=$('n16');if(a)a.classList.toggle('on',p==='att'&&!!window.ATH)}{const a=$('n15');if(a)a.classList.toggle('on',p==='psm')}{const a=$('n19');if(a)a.classList.toggle('on',p==='lvc')}if(p==='psm'&&can('pay'))$('n4').classList.add('on');atNavSync(p);p==='dash'?dash():p==='psm'?psm():p==='lvc'?lvc():p==='att'?att():p==='req'?pick():p==='sub'?subs():(p==='chk'||p==='apr')?rqQueue():p==='emp'?emps():p==='act'?acts():p==='usr'?users():p==='bak'?backups():p==='chat'?chatOpen():p==='tmk'?tmk():p==='mg'?mg():p==='ben'?ben():p==='evl'?evl():p==='addc'?(can('addc')?addc():noAcc('Additional Compensation')):p==='m13'?(can('m13')?m13():noAcc('13th Month Pay')):pays();scrollTo(0,0)}
 /* ===== PAYROLL DEPARTMENTS: manage, add, auto icons ===== */
 let PDS=(()=>{try{const o=JSON.parse(localStorage.getItem('hrd_pay_depts')||'{}');return o&&typeof o==='object'?o:{}}catch(e){return{}}})(),PDI='';
 let PDOK=null,PDSNAP='{}';
@@ -6557,6 +6561,8 @@ let M13NF=0;
 const m13Allowed=()=>{if(SUPER||(MYA&&(MYA.role==='admin'||((MYA.role==='hr'||MYA.role==='payroll')&&MYA.active))))return null;const a=((MYA&&MYA.pages)||[]).filter(x=>String(x).indexOf('m13d:')===0).map(x=>String(x).slice(5));return a.length?a:null};
 const m13OkD=d=>{const a=m13Allowed();return!a||a.includes(d)};
 window.m13DeptChips=(pg,dis)=>{let F=[];try{F=pFolders()}catch(e){}return F.map(f=>`<label class="ux-chip"><input type="checkbox" class="uad13" data-d="${esc(f)}"${(pg||[]).includes('m13d:'+f)?' checked':''}${dis?' disabled':''}> ${esc(f)}</label>`).join('')};
+window.lvDeptChips=(pg,dis)=>{let F=[];try{F=pFolders()}catch(e){}return F.map(f=>`<label class="ux-chip"><input type="checkbox" class="uadlv" data-d="${esc(f)}"${(pg||[]).includes('lvd:'+f)?' checked':''}${dis?' disabled':''}> ${esc(f)}</label>`).join('')};
+window.lvDeptSel=id=>[...document.querySelectorAll('#'+id+' .uadlv:checked')].map(c=>'lvd:'+c.dataset.d);
 window.m13DeptSel=id=>[...document.querySelectorAll('#'+id+' .uad13:checked')].map(c=>'m13d:'+c.dataset.d);
 function m13Staff(){const L=m13Staff0();return M13NF||!m13Allowed()?L:L.filter(s=>m13OkD(s.dept))}
 function m13Staff0(){const S=M13S,rm=new Set((S&&S.removed)||[]);return[...(STF||[]).filter(s=>!rm.has(String(s.id))),...((S&&S.added)||[]).map(a=>({id:a.id,name:a.name,dept:a.dept,rate:a.rate,_add:1}))]}
@@ -7782,7 +7788,7 @@ function mXlsx(){const M=m13Model();if(!M.D.length)return toast('Nothing to expo
  const bl=m13XlsxBuild(M),a=document.createElement('a');a.href=URL.createObjectURL(bl);
  a.download='13th-Month-Pay-'+MY+(MD!=='all'?'-'+String(MD).replace(/[^A-Za-z0-9]+/g,'_'):'')+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
  logAct('Exported 13th month pay (Excel)','13th Month Pay',MY);toast('Exported \u2714')}
-const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['att','Attendance'],['lvs','Attendance: Sync Leave button (Leave → Attendance; only the Attendance departments ticked for this user)'],['psm','Payslip Monitoring'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['dash','Dashboard: full access (click the cards)'],['evl','Employee Evaluation: view ALL results'],['evl_e','Employee Evaluation: edit results'],['evl_p','Employee Evaluation: print results'],['act','Activity'],['chkc','COOP Checker (check COOP requests) — also tick Submitted Requests'],['aprc','COOP Approver (final approval of COOP) — also tick Submitted Requests'],['chkv','Vale Checker (check Vale requests) — also tick Submitted Requests'],['aprv','Vale Approver (final approval of Vale) — also tick Submitted Requests'],['chk','Checker: COOP + Vale (all forms)'],['apr','Approver: COOP + Vale (all forms)']];
+const PGS=[['req','Request Form'],['sub','Submitted Requests'],['emp','201 Files'],['pay','Payroll'],['att','Attendance'],['lvs','Attendance: Sync Leave button (Leave → Attendance; only the Attendance departments ticked for this user)'],['psm','Payslip Monitoring'],['lvm','Vacation & Sick Leave: view only'],['lve','Vacation & Sick Leave: add / edit leave'],['addc','Additional Compensation'],['m13','13th Month Pay'],['mg','Monthly Gross'],['tmk','Timemark Check'],['tma','Timemark Audit (Audit / Delete)'],['tmp','Timemark Approval (Days / Approve)'],['mgp','Payroll: MANAGEMENT department (can view)'],['mge','201 Files: MANAGEMENT department (can view)'],['dash','Dashboard: full access (click the cards)'],['evl','Employee Evaluation: view ALL results'],['evl_e','Employee Evaluation: edit results'],['evl_p','Employee Evaluation: print results'],['act','Activity'],['chkc','COOP Checker (check COOP requests) — also tick Submitted Requests'],['aprc','COOP Approver (final approval of COOP) — also tick Submitted Requests'],['chkv','Vale Checker (check Vale requests) — also tick Submitted Requests'],['aprv','Vale Approver (final approval of Vale) — also tick Submitted Requests'],['chk','Checker: COOP + Vale (all forms)'],['apr','Approver: COOP + Vale (all forms)']];
 const ROLES={admin:['Creator','Full access, including Users & Access',['req','sub','emp','pay','att','psm','addc','m13','mg','tmk','tma','tmp','mgp','mge','dash','evl','evl_e','evl_p','act','chkc','aprc','chkv','aprv','chk','apr','lvs']],hr:['HR Head','Requests, 201 Files, Attendance (edit, lock / unlock, sync to Payroll), Payroll (full edit incl. ATM Accounts), Additional Compensation, 13th Month Pay and Monthly Gross, Timemark Check, Payslip Monitoring, Activity',['req','sub','emp','pay','att','psm','addc','m13','mg','tmk','act']],payroll:['Payroll Master','Request Form, Payroll (full edit incl. ATM Accounts), Attendance (edit, lock / unlock, sync to Payroll), 201 Files (edit / delete), Payslip Monitoring, Additional Compensation, 13th Month Pay and Monthly Gross',['req','emp','pay','att','psm','addc','m13','mg']],staff:['Admin','Request Form only',['req']]};
 let MYA=null,ACC=false,UL=null;
 const can0=k=>SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||(k!=='usr'&&(MYA.pages||[]).includes(k))||((MYA.role==='hr'||MYA.role==='payroll')&&(k==='att'||k==='psm'||k==='m13'||k==='addc'||k==='mg'||k==='pay'||k==='emp'||k==='req'))))||(!MYA&&k==='req');const can=k=>k==='pay'?(can0('pay')||!!(MYA&&MYA.active&&(MYA.role==='hr'||MYA.role==='payroll'))):k==='psm'?(can0('psm')||(can0('pay')&&pxCan('slip'))):k==='mg'?(can0('mg')||(can0('pay')&&pxCan('open'))):k==='ben'?can0('emp'):can0(k);
@@ -7806,6 +7812,24 @@ const pxFix=pg=>{/* ticking any Payroll sub-permission or department turns the P
 const roleFix=(role,pg)=>((role==='hr'||role==='payroll')&&!pg.includes('pay'))?pg.concat('pay'):pg;
 window.pxAuto=el=>{if(!el.checked)return;const b=el.closest('[id^="uapx_"],[id^="uapd_"]');if(!b)return;const id=b.id.slice(5),c=document.getElementById(id==='new'?'un_p_pay':'up_'+id+'_pay');if(c&&!c.disabled)c.checked=true};
 const pxNo=()=>toast('Your account does not have access to this part of Payroll.');
+/* ===== Leave monitoring access, set per user by the Creator: 'lvx:pm=none|view|edit' and 'lvx:ad=none|view|edit' in hrd_access.pages. Not set yet = the default of the role. The Creator always has full access. ===== */
+const LVXS=[['pm','Payroll Master monitoring'],['ad','Admin monitoring']],LVXT={none:'no access',view:'can see only',edit:'can see, input and edit'};
+const lvLvl=(role,pg,sd)=>{if(role==='admin')return'edit';pg=(pg||[]).map(String);const k='lvx:'+sd+'=',x=pg.find(v=>v.indexOf(k)===0);
+ if(x){const v=x.slice(k.length);return v==='edit'||v==='view'?v:'none'}
+ if(role==='hr')return sd==='pm'?'view':'edit';if(role==='payroll')return sd==='pm'?'edit':'none';if(sd==='pm')return'none';
+ return pg.includes('att')||pg.includes('lve')?'edit':pg.includes('lvm')?'view':'none'};
+window.lvMine=sd=>SUPER?'edit':(MYA&&MYA.active?lvLvl(MYA.role,MYA.pages,sd):'none');
+const lvAny=()=>window.lvMine('pm')!=='none'||window.lvMine('ad')!=='none';
+const lvxUI=(id,role,pg,dis)=>LVXS.map(([sd,l])=>{const v=lvLvl(role,pg,sd),off=dis||role==='admin'?' disabled':'';
+ return[['v','Can see',v!=='none'],['e','Can input &amp; edit',v==='edit']].map(([k,t,on])=>`<label class="ux-chip"><input type="checkbox" id="lvx_${id}_${sd}_${k}" onchange="lvxTick('${id}','${sd}','${k}')"${on?' checked':''}${off}> ${l}<em>${t}</em></label>`).join('')}).join('');
+const lvxBox=(id,sd)=>[$('lvx_'+id+'_'+sd+'_v'),$('lvx_'+id+'_'+sd+'_e')];
+/* editing needs seeing: ticking "input & edit" ticks "see", unticking "see" unticks "input & edit" */
+window.lvxTick=(id,sd,k)=>{const[v,e]=lvxBox(id,sd);if(k==='e'&&e.checked)v.checked=true;if(k==='v'&&!v.checked)e.checked=false};
+const lvxReset=(id,role)=>LVXS.forEach(([sd])=>{const[v,e]=lvxBox(id,sd);if(!v||!e)return;const x=lvLvl(role,ROLES[role][2],sd);v.checked=x!=='none';e.checked=x==='edit';v.disabled=e.disabled=role==='admin'});
+/* the ticks replace the old leave ticks; 'lvm' / 'lve' are still saved to match, because the database rules know those two */
+const lvxFix=(id,pg)=>{if(LVXS.some(([sd])=>lvxBox(id,sd).some(x=>!x)))return pg;const o=pg.filter(k=>k!=='lvm'&&k!=='lve'&&String(k).indexOf('lvx:')!==0);
+ const v=LVXS.map(([sd])=>{const[s,e]=lvxBox(id,sd),x=e.checked?'edit':s.checked?'view':'none';o.push('lvx:'+sd+'='+x);return x});if(v.includes('edit'))o.push('lve');else if(v.includes('view'))o.push('lvm');return o};
+const lvxSum=(role,pg)=>LVXS.map(([sd])=>(sd==='pm'?'PM ':'Admin ')+({none:'none',view:'view',edit:'edit'})[lvLvl(role,pg,sd)]).join(' · ');
 /* Management department: only users with the special permission can see it (Payroll / 201 Files / Monthly Gross history) */
 const isMgt=d=>/^\s*(top\s+)?management(\W|$)/i.test(String(d||''));
 const eVis=L=>Array.isArray(L)?L.filter(e=>can('mge')||!isMgt(e.dept)):L;
@@ -8260,14 +8284,14 @@ let UF={q:'',r:'all'};
 const uIni=u=>{const n=(u.full_name||'').trim();if(n){const p=n.split(/\s+/);return((p[0][0]||'')+(p.length>1?p[p.length-1][0]:'')).toUpperCase()}return String(u.email||'?').slice(0,2).toUpperCase()};
 const uRK=r=>ROLES[r]?r:'staff';
 const UXO=new Set();
-const UXL={tma:['Timemark Audit','Audit / delete'],tmp:['Timemark Approval','Days / approve'],mgp:['Payroll','MANAGEMENT dept. · view'],mge:['201 Files','MANAGEMENT dept. · view'],dash:['Dashboard','Full access · click the cards'],evl:['Evaluation','View all results'],evl_e:['Evaluation','Edit results'],evl_p:['Evaluation','Print results']};
-const UXG=[['General',['req','sub','dash','act']],['Request checkers &amp; approvers',['chkc','aprc','chkv','aprv','chk','apr']],['HR &amp; records',['emp','att','psm','tmk','tma','tmp']],['Payroll &amp; compensation',['pay','addc','m13','mg']],['Management department',['mgp','mge']],['Employee Evaluation results',['evl','evl_e','evl_p']]];
+const UXL={lvm:['Vacation & Sick Leave','View only'],lve:['Vacation & Sick Leave','Add / edit leave'],tma:['Timemark Audit','Audit / delete'],tmp:['Timemark Approval','Days / approve'],mgp:['Payroll','MANAGEMENT dept. · view'],mge:['201 Files','MANAGEMENT dept. · view'],dash:['Dashboard','Full access · click the cards'],evl:['Evaluation','View all results'],evl_e:['Evaluation','Edit results'],evl_p:['Evaluation','Print results']};
+const UXG=[['General',['req','sub','dash','act']],['Request checkers &amp; approvers',['chkc','aprc','chkv','aprv','chk','apr']],['HR &amp; records',['emp','att','psm','tmk','tma','tmp']],['Vacation &amp; Sick Leave',[]],['Payroll &amp; compensation',['pay','addc','m13','mg']],['Management department',['mgp','mge']],['Employee Evaluation results',['evl','evl_e','evl_p']]];
 window.uTog=(i,ev)=>{if(ev&&ev.target.closest&&ev.target.closest('select,option,.ux-rolebox'))return;const c=document.getElementById('uc_'+i),u=UL&&UL[i];if(!c||!u)return;const o=c.classList.toggle('open');o?UXO.add(u.user_id):UXO.delete(u.user_id);const b=c.querySelector('.ux-chev');if(b)b.setAttribute('aria-expanded',o);uxAllLbl()};
 window.uxAllLbl=()=>{const b=$('uxall');if(b)b.textContent=UL&&UL.length&&UL.every(u=>UXO.has(u.user_id))?'Collapse all':'Expand all'};
 window.uTogAll=()=>{const cs=[...document.querySelectorAll('.urow')].filter(e=>e.style.display!=='none'),open=cs.some(e=>!e.classList.contains('open'));cs.forEach(e=>{e.classList.toggle('open',open);const u=UL[+e.id.slice(3)];if(u)open?UXO.add(u.user_id):UXO.delete(u.user_id);const b=e.querySelector('.ux-chev');if(b)b.setAttribute('aria-expanded',open)});uxAllLbl()};
 function drawU(){uDirty=false;
  if(UL===null)return $('main').innerHTML=`<h1>Users &amp; Access</h1><p class="sub">The access table needs to be created first.</p><div class="panel" style="max-width:none"><h3>Run this in Supabase → SQL Editor</h3><pre style="white-space:pre-wrap;font-size:12px;background:#f3f5f9;padding:12px;border-radius:8px;max-height:360px;overflow:auto" id="usqlbox">${esc(USQLALL)}</pre><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn o" onclick="copySql(USQLALL)">📋 Copy SQL</button><button class="btn" onclick="users()">I've run it — reload</button></div></div>`;
- const rest=PGS.filter(([k])=>!UXG.some(g=>g[1].includes(k))).map(p=>p[0]);
+ const rest=PGS.filter(([k])=>k!=='lvm'&&k!=='lve'&&!UXG.some(g=>g[1].includes(k))).map(p=>p[0]);
  const UXGR=UXG.map(g=>[g[0],g[1].filter(k=>PGS.some(p=>p[0]===k))]).concat(rest.length?[['Other',rest]]:[]);
  const chev='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
  const row=(u,i)=>{const self=u.user_id===ME.sub,ad=u.role==='admin',rk=uRK(u.role),nm=u.full_name||u.email,pg=u.pages||[],lock=self||ad,open=UXO.has(u.user_id),
@@ -8279,15 +8303,16 @@ function drawU(){uDirty=false;
  <div class="ux-top" onclick="uTog(${i},event)"><div class="ux-av"${okImg(u.avatar)?' style="background:center/cover no-repeat url(\''+u.avatar+'\')"':''}>${okImg(u.avatar)?'':esc(uIni(u))}</div>
  <div class="ux-id"><div class="ux-nm"><b>${esc(nm)}</b>${self?'<span class="ux-tag you">You</span>':''}${u.active?'':'<span class="ux-tag offt">Disabled</span>'}</div>${u.full_name?`<div class="ux-em">${esc(u.email)}</div>`:''}
  ${u.signed_up_at?`<div class="ux-meta"><span>${UI.cal} Signed up ${esc(new Date(u.signed_up_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}))}</span>${u.confirmed_at?`<span class="ux-ok">${UI.ok} Email confirmed</span>`:`<span class="ux-wait">${UI.clock} Email not confirmed yet</span>`}</div>`:''}</div>
- <div class="ux-sum"><span><b>${nP}</b> of ${PGS.length} pages</span><span>Attendance: <b>${esc(sc)}</b></span></div>
+ <div class="ux-sum"><span><b>${nP}</b> of ${PGS.length} pages</span><span>Attendance: <b>${esc(sc)}</b></span><span>Leave: <b>${lvxSum(u.role,pg)}</b></span></div>
  <div class="ux-rolebox"><span class="ux-lbl">Role</span><select class="ux-sel" id="ur_${i}" ${self?'disabled':''} onchange="uRole(${i})">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}"${u.role===k?' selected':''}>${v[0]}</option>`).join('')}</select></div>
  <button type="button" class="ux-chev" aria-label="Show or hide access settings" aria-expanded="${open}">${chev}</button></div>
  <div class="ux-body">
  ${ad?`<div class="ux-adm">${UI.lock}<span>Admins always have full access, so these settings are locked.</span></div>`:''}
  <section class="ux-pn">${sh(1,'Page access','Choose which pages appear in this user&rsquo;s menu.')}
-  <div class="ux-gr">${UXGR.map(([t,ks])=>`<div class="ux-g"><span class="ux-gt">${t}</span><div class="ux-chips">${ks.map(k=>chip(k,PGS.find(p=>p[0]===k)[1])).join('')}</div></div>`).join('')}</div></section>
+  <div class="ux-gr">${UXGR.map(([t,ks])=>`<div class="ux-g"><span class="ux-gt">${t}</span><div class="ux-chips">${ks.length?ks.map(k=>chip(k,PGS.find(p=>p[0]===k)[1])).join(''):lvxUI(i,u.role,pg,lock)}</div></div>`).join('')}</div></section>
  <section class="ux-pn">${sh(2,'Department access','Limit which departments this user can open. Leave a list empty to allow every department.')}
   <div class="ux-gr"><div class="ux-g"><span class="ux-gt">Attendance<small>Open &amp; edit</small></span><div class="ux-chips" id="uad_${i}">${attDeptChips(pg,lock)}</div></div>
+  <div class="ux-g"><span class="ux-gt">Vacation &amp; Sick Leave<small>Departments in the leave list</small></span><div class="ux-chips" id="uadlv_${i}">${lvDeptChips(pg,lock)}</div></div>
   <div class="ux-g"><span class="ux-gt">13th Month Pay<small>View only</small></span><div class="ux-chips" id="uad13_${i}">${m13DeptChips(pg,lock)}</div></div></div></section>
  <section class="ux-pn">${sh(3,'Payroll permissions','Ticking any option turns Payroll on; leave all unticked for full Payroll access. Departments follow the Attendance departments above.')}
   <div class="ux-gr"><div class="ux-g"><span class="ux-gt">What they can do</span><div class="ux-chips" id="uapx_${i}">${pxChips(pg,lock)}</div></div></div></section>
@@ -8332,17 +8357,19 @@ function uNew(){if(!isAdm())return toast('Only a Creator can create users.');uNe
  <label>Password <small>(min. 8 characters)</small><input id="un_p" class="fi" type="text" autocomplete="off"></label>
  <label>Role<select id="un_r" class="fi" onchange="uNewRole()">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}"${k==='staff'?' selected':''}>${v[0]} - ${esc(v[1])}</option>`).join('')}</select></label>
  <div style="margin:10px 0 4px;font-weight:600;font-size:13px">Pages this user can view</div>
- <div class="ux-chips" id="un_pg">${PGS.map(([k,l])=>`<label class="ux-chip"><input type="checkbox" id="un_p_${k}"${ROLES.staff[2].includes(k)?' checked':''}> ${l}</label>`).join('')}</div>
+ <div class="ux-chips" id="un_pg">${PGS.filter(([k])=>k!=='lvm'&&k!=='lve').map(([k,l])=>`<label class="ux-chip"><input type="checkbox" id="un_p_${k}"${ROLES.staff[2].includes(k)?' checked':''}> ${l}</label>`).join('')}</div>
+ <div style="margin:10px 0 4px;font-weight:600;font-size:13px">Vacation &amp; Sick Leave</div><div class="ux-chips">${lvxUI('new','staff',ROLES.staff[2],false)}</div>
  <div style="margin:10px 0 4px;font-weight:600;font-size:13px">Attendance departments <small style="font-weight:400">(none ticked = all)</small></div><div class="ux-chips" id="uad_new">${attDeptChips([],false)}</div>
+ <div style="margin:10px 0 4px;font-weight:600;font-size:13px">Vacation &amp; Sick Leave departments <small style="font-weight:400">(none ticked = same as Attendance departments)</small></div><div class="ux-chips" id="uadlv_new">${lvDeptChips([],false)}</div>
  <div style="margin:10px 0 4px;font-weight:600;font-size:13px">13th Month Pay departments <small style="font-weight:400">(none ticked = all)</small></div><div class="ux-chips" id="uad13_new">${m13DeptChips([],false)}</div>
  <div style="margin:10px 0 4px;font-weight:600;font-size:13px">Payroll: what this user can open <small style="font-weight:400">(ticking any turns Payroll on. Departments shown = the Attendance departments ticked above)</small></div><div class="ux-chips" id="uapx_new">${pxChips([],false)}</div>
  <div id="un_err" style="color:#b3392f;font-size:13px;margin:10px 0 0;min-height:18px" role="alert"></div>
  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px"><button class="btn o" type="button" onclick="uNewClose()">Cancel</button><button class="btn" type="button" id="un_s" onclick="uNewSave()">Create user</button></div></div>`;
  document.body.appendChild(o);setTimeout(()=>$('un_n').focus(),50)}
-function uNewRole(){const r=$('un_r').value;PGS.forEach(([k])=>{const c=$('un_p_'+k);c.checked=ROLES[r][2].includes(k);c.disabled=r==='admin'});document.querySelectorAll('#uapx_new .uapx').forEach(c=>{c.checked=false;c.disabled=r==='admin'})}
+function uNewRole(){const r=$('un_r').value;PGS.forEach(([k])=>{const c=$('un_p_'+k);if(!c)return;c.checked=ROLES[r][2].includes(k);c.disabled=r==='admin'});lvxReset('new',r);document.querySelectorAll('#uapx_new .uapx').forEach(c=>{c.checked=false;c.disabled=r==='admin'})}
 async function uNewSave(){
  const er=m=>{$('un_err').textContent=m},n=$('un_n').value.replace(/[\u0000-\u001f<>]/g,'').replace(/\s+/g,' ').trim(),e=$('un_e').value.trim().toLowerCase(),pw=$('un_p').value,role=$('un_r').value,
-  pages=role==='admin'?ROLES.admin[2]:roleFix(role,pxFix(PGS.map(([k])=>k).filter(k=>$('un_p_'+k).checked).concat(attDeptSel('uad_new'),m13DeptSel('uad13_new'),pxSel('uapx_new'))));
+  pages=role==='admin'?ROLES.admin[2]:lvxFix('new',roleFix(role,pxFix(PGS.map(([k])=>k).filter(k=>($('un_p_'+k)||{}).checked).concat(attDeptSel('uad_new'),lvDeptSel('uadlv_new'),m13DeptSel('uad13_new'),pxSel('uapx_new')))));
  er('');if(!isAdm())return er('Only a Creator can create users.');
  if(n.length<2)return er('Enter the full name.');if(!okE(e))return er('Invalid email address.');if(pw.length<8)return er('Password must be at least 8 characters.');
  if((UL||[]).some(u=>String(u.email).toLowerCase()===e))return er('This email already has an account.');
@@ -8363,9 +8390,9 @@ async function uNewSave(){
   else if(!(u.email_confirmed_at||u.confirmed_at))alert('Account created for '+e+'.\n\nEmail confirmation is turned on in Supabase, so the user must click the confirmation link sent to that email before signing in. (To skip this, turn off "Confirm email" in Supabase > Authentication > Providers > Email.)')}
  catch(x){b.disabled=false;b.textContent='Create user';er(nice(x))}}
 function uFind(q){UF.q=q.toLowerCase();uApply()}
-function uRole(i){const r=$('ur_'+i).value,pg=ROLES[r][2];PGS.forEach(([k])=>{const c=$(`up_${i}_${k}`);c.checked=pg.includes(k);c.disabled=r==='admin'});document.querySelectorAll('#uapx_'+i+' .uapx').forEach(c=>{c.checked=false;c.disabled=r==='admin'})}
-async function uSave(i){const u=UL[i],role=$('ur_'+i).value,active=$('ua_'+i).checked,pages=role==='admin'?ROLES.admin[2]:roleFix(role,pxFix(PGS.map(([k])=>k).filter(k=>$(`up_${i}_${k}`).checked).concat(attDeptSel('uad_'+i),m13DeptSel('uad13_'+i),pxSel('uapx_'+i))));
- if(!confirm('Save access changes for '+u.email+'?\nRole: '+ROLES[role][0]+'\nPages: '+(pages.filter(k=>PGS.find(x=>x[0]===k)).map(k=>PGS.find(x=>x[0]===k)[1]).join(', ')||'none')+(pages.some(k=>String(k).indexOf('attd:')===0)?'\nAttendance departments: '+pages.filter(k=>String(k).indexOf('attd:')===0).map(k=>k.slice(5)).join(', '):'')+(pages.some(k=>String(k).indexOf('m13d:')===0)?'\n13th Month departments: '+pages.filter(k=>String(k).indexOf('m13d:')===0).map(k=>k.slice(5)).join(', '):'')+'\nActive: '+(active?'Yes':'No')))return;
+function uRole(i){const r=$('ur_'+i).value,pg=ROLES[r][2];PGS.forEach(([k])=>{const c=$(`up_${i}_${k}`);if(!c)return;c.checked=pg.includes(k);c.disabled=r==='admin'});lvxReset(i,r);document.querySelectorAll('#uapx_'+i+' .uapx').forEach(c=>{c.checked=false;c.disabled=r==='admin'})}
+async function uSave(i){const u=UL[i],role=$('ur_'+i).value,active=$('ua_'+i).checked,pages=role==='admin'?ROLES.admin[2]:lvxFix(i,roleFix(role,pxFix(PGS.map(([k])=>k).filter(k=>($(`up_${i}_${k}`)||{}).checked).concat(attDeptSel('uad_'+i),lvDeptSel('uadlv_'+i),m13DeptSel('uad13_'+i),pxSel('uapx_'+i)))));
+ if(!confirm('Save access changes for '+u.email+'?\nRole: '+ROLES[role][0]+'\nPages: '+(pages.filter(k=>PGS.find(x=>x[0]===k)).map(k=>PGS.find(x=>x[0]===k)[1]).join(', ')||'none')+(pages.some(k=>String(k).indexOf('attd:')===0)?'\nAttendance departments: '+pages.filter(k=>String(k).indexOf('attd:')===0).map(k=>k.slice(5)).join(', '):'')+(pages.some(k=>String(k).indexOf('m13d:')===0)?'\n13th Month departments: '+pages.filter(k=>String(k).indexOf('m13d:')===0).map(k=>k.slice(5)).join(', '):'')+LVXS.map(([sd,l])=>'\nLeave, '+l+': '+LVXT[lvLvl(role,pages,sd)]).join('')+'\nActive: '+(active?'Yes':'No')))return;
  try{await api('/rest/v1/hrd_access?user_id=eq.'+u.user_id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({role,pages,active,updated_at:new Date().toISOString()})});
   Object.assign(u,{role,pages,active});logAct('Changed user access','Users',u.email+' → '+ROLES[role][0]+(active?'':' (disabled)'));toast('Saved ✔');drawU()}
  catch(x){alert('Could not save: '+x.message)}}
@@ -11195,6 +11222,7 @@ table.at td.atc.tNP{background:rgba(107,114,128,.25)}
 .atlkbar{margin:0 0 12px;padding:10px 14px;border-radius:10px;background:#fff4d6;border:1px solid #e8c970;color:#6b4a00;font-size:13.5px}
 .atlk .atv:disabled,.atlk select:disabled,.atlk .fi:disabled{opacity:1;color:inherit;-webkit-text-fill-color:currentColor;cursor:not-allowed;background:transparent}
 .atlk button:disabled{opacity:.35;cursor:not-allowed}
+.atlr{font-size:10.5px;line-height:1.2;color:var(--mu);font-style:italic;text-align:center;max-width:90px;margin:2px auto 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}@media print{.atlr{display:none}}
 .atbox{background:var(--sf);color:var(--ink);border:1px solid var(--ln);border-radius:14px;padding:18px;width:min(460px,100%);max-height:92vh;overflow:auto}
 .atbox label{display:block;font-size:13px;margin:10px 0 0;color:var(--mu)}
 .atbox .fi{width:100%;margin-top:4px}
@@ -11329,10 +11357,10 @@ window.atCreate=async()=>{if(!A.sd||!A.sf||!A.st||A.sf>A.st)return;if(!okD(A.sd)
 /* ---------- the attendance sheet ---------- */
 const dh=dt=>{const d=dt0(dt);return`<div style="font-size:14px">${d.getMonth()+1}/${d.getDate()}</div><div style="font-weight:500;color:var(--mu);font-size:11px">${d.toLocaleDateString('en',{weekday:'short'})}</div>`};
 const TL={VL:'VL',SL:'SL',VLN:'VL no pay',SLN:'SL no pay',ABS:'Absent',OFF:'Off'};
-const prT=c=>c?((c.t?'<b>'+TL[c.t]+'</b>':'')+(c.c?'<span class="atpc">'+esc(c.c)+'</span>':'')):'';
+const prT=c=>c?((c.t?'<b>'+TL[c.t]+'</b>':'')+(c.c?'<span class="atpc">'+esc(c.c)+'</span>':'')+(c.lr?'<span class="atpc">'+esc(c.lr)+'</span>':'')):'';
 const cc=c=>c&&c.t==='VL'?'tVL':c&&c.t==='SL'?'tSL':c&&(c.t==='VLN'||c.t==='SLN'||c.t==='ABS'||c.t==='OFF')?'tNP':c&&(+c.v||0)>0?'p1':'';
 function cellH(sh,i,dt){const e=sh.emps[i],c=(sh.d[e.k]||{})[dt]||{};
- return`<td class="atc ${cc(c)}" id="atc_${i}_${dt}"><div class="ati"><input class="atv" type="number" inputmode="decimal" step="0.5" min="0" value="${c.v===''||c.v==null?'':esc(c.v)}" oninput="atV(${i},'${dt}',this)" onchange="atVc(${i},'${dt}')" onkeydown="atKey(event,${i},'${dt}')" aria-label="Days"><select class="att" onchange="atT(${i},'${dt}',this)" aria-label="VL or SL" title="VL / SL (paid) · VL NP / SL NP = no pay (no credits left)"><option value="">–</option><option value="VL"${c.t==='VL'?' selected':''}>VL</option><option value="SL"${c.t==='SL'?' selected':''}>SL</option><option value="VLN"${c.t==='VLN'?' selected':''}>VL NP</option><option value="SLN"${c.t==='SLN'?' selected':''}>SL NP</option><option value="ABS"${c.t==='ABS'?' selected':''}>Absent</option><option value="OFF"${c.t==='OFF'?' selected':''}>Off</option></select><div class="atpr" id="atp_${i}_${dt}">${prT(c)}</div>${byD(c,i,dt)}${rvW(c,i,dt)}</div><button class="atm${c.c?' has':''}" id="atm_${i}_${dt}" onclick="atCm(${i},'${dt}')" title="${esc(c.c||'Add comment')}">💬</button></td>`}
+ return`<td class="atc ${cc(c)}" id="atc_${i}_${dt}"><div class="ati"><input class="atv" type="number" inputmode="decimal" step="0.5" min="0" value="${c.v===''||c.v==null?'':esc(c.v)}" oninput="atV(${i},'${dt}',this)" onchange="atVc(${i},'${dt}')" onkeydown="atKey(event,${i},'${dt}')" aria-label="Days"><select class="att" onchange="atT(${i},'${dt}',this)" aria-label="VL or SL" title="VL / SL (paid) · VL NP / SL NP = no pay (no credits left)"><option value="">–</option><option value="VL"${c.t==='VL'?' selected':''}>VL</option><option value="SL"${c.t==='SL'?' selected':''}>SL</option><option value="VLN"${c.t==='VLN'?' selected':''}>VL NP</option><option value="SLN"${c.t==='SLN'?' selected':''}>SL NP</option><option value="ABS"${c.t==='ABS'?' selected':''}>Absent</option><option value="OFF"${c.t==='OFF'?' selected':''}>Off</option></select>${c.lr?`<div class="atlr" title="Leave reason: ${esc(c.lr)}">${esc(c.lr)}</div>`:''}<div class="atpr" id="atp_${i}_${dt}">${prT(c)}</div>${byD(c,i,dt)}${rvW(c,i,dt)}</div><button class="atm${c.c?' has':''}" id="atm_${i}_${dt}" onclick="atCm(${i},'${dt}')" title="${esc(c.c||'Add comment')}">💬</button></td>`}
 function offDates(sh,e){const r=sh.d[e.k]||{},o={ABS:[],OFF:[]};Object.keys(r).sort().forEach(dt=>{const c=r[dt];if(!c)return;let k='';if(c.t==='ABS'||c.t==='OFF')k=c.t;else if(!c.t&&c.v!==''&&c.v!=null&&(+c.v||0)===0)k='ABS';if(k)o[k].push(dt0(dt).toLocaleDateString('en-PH',{month:'short',day:'numeric'}))});return[o.ABS.length?'Absent '+o.ABS.join(', '):'',o.OFF.length?'Off '+o.OFF.join(', '):'']}
 function sumH(sh,i){const e=sh.emps[i],t=tot(sh,e),P=[t.vl?'VL '+nf(t.vl):'',t.sl?'SL '+nf(t.sl):'',t.np?'No pay '+nf(t.np):'',...offDates(sh,e)].filter(Boolean);return[`${t.any?nd3(t.days):'-'}${P.length?`<span class="atsm">${P.map(esc).join(' · ')}</span>`:''}`,(t.any||t.adj)?fm(t.amt):'-']}
 function drawSheet(){const sh=S();if(!sh){return drawList()}Object.keys(sh.d||{}).forEach(k=>{Object.keys(sh.d[k]||{}).forEach(dt=>{const c=sh.d[k]&&sh.d[k][dt];if(c&&c.t==='HLD'){c.t='';if(c.v===0||c.v==='0')c.v='';tidy(sh,k,dt)}if(c&&(c.t==='VLN'||c.t==='SLN')&&c.v!==''&&c.v!=null)c.v=''})});A.v='sheet';const D=dayList(sh),w=$('atw'),sl=w?w.scrollLeft:0,st=w?w.scrollTop:0,wx=window.scrollX,wy=window.scrollY;
@@ -11360,15 +11388,15 @@ ${rvPanelH(sh)}
  const w2=$('atw');if(w2){w2.scrollLeft=sl;w2.scrollTop=st}window.scrollTo(wx,wy);atSqApply()}
 
 /* ---------- cell edits ---------- */
-function upCell(i,dt){const sh=S(),e=sh.emps[i],c=(sh.d[e.k]||{})[dt]||{},td=$('atc_'+i+'_'+dt),b=$('atm_'+i+'_'+dt);if(td)td.className='atc '+cc(c);{const p=$('atp_'+i+'_'+dt);if(p)p.innerHTML=prT(c)}{const q=$('atb_'+i+'_'+dt);if(q){q.textContent=byS(c.u);q.title=c.u?byT(c):''}}upNotes();upBy();{const w=$('atr_'+i+'_'+dt);if(w)w.innerHTML=rvIn(c,i,dt)}upRvB();if(b){b.classList.toggle('has',!!c.c);b.title=c.c||'Add comment'}upRow(i)}
+function upCell(i,dt){const sh=S(),e=sh.emps[i],c=(sh.d[e.k]||{})[dt]||{},td=$('atc_'+i+'_'+dt),b=$('atm_'+i+'_'+dt);if(td)td.className='atc '+cc(c);{const l=td&&td.querySelector('.atlr');if(l&&!c.lr)l.remove()}{const p=$('atp_'+i+'_'+dt);if(p)p.innerHTML=prT(c)}{const q=$('atb_'+i+'_'+dt);if(q){q.textContent=byS(c.u);q.title=c.u?byT(c):''}}upNotes();upBy();{const w=$('atr_'+i+'_'+dt);if(w)w.innerHTML=rvIn(c,i,dt)}upRvB();if(b){b.classList.toggle('has',!!c.c);b.title=c.c||'Add comment'}upRow(i)}
 function upNotes(){const sh=S(),el=$('atnotes');if(!sh||!el)return;const L=[];sh.emps.forEach(e=>{const r=sh.d[e.k]||{};Object.keys(r).sort().forEach(dt=>{if(r[dt].c){const d=dt0(dt);L.push(`<div><b>${esc(e.n)}</b> · ${d.getMonth()+1}/${d.getDate()}${r[dt].t?' ('+TL[r[dt].t]+')':''}: ${esc(r[dt].c)}</div>`)}})});
  const R=sh.emps.filter(e=>sh.rm&&sh.rm[e.k]).map(e=>`<div><b>${esc(e.n)}</b>: ${esc(sh.rm[e.k])}</div>`);
  el.innerHTML=(L.length?'<div style="font-weight:700;margin-bottom:2px">Comments</div>'+L.join(''):'')+(R.length&&L.length?'<div style="height:6px"></div>':'')+(R.length?'<div style="font-weight:700;margin-bottom:2px">Remarks</div>'+R.join(''):'')}
 function gsum(sh,idx){let d=0,a=0,j=0;idx.forEach(i=>{const t=tot(sh,sh.emps[i]);d+=t.days;a+=t.amt;j+=t.adj});return[d,r2(a),r2(j)]}
 function upTot(){const sh=S();if(!sh||!A.gs)return;upCls();A.gs.forEach(g=>{const z=gsumG(sh,g.idx,g.g),d=$('atgd_'+g.id),a=$('atga_'+g.id),j=$('atgj_'+g.id);if(d)d.innerHTML='<b>'+(z[0]?nd3(z[0]):'-')+'</b>';if(j)j.innerHTML='<b>'+(z[2]?fm(z[2]):'-')+'</b>';if(a)a.innerHTML='<b>'+(z[1]?fm(z[1]):'-')+'</b>';const b=$('atgb_'+g.id);if(b)b.innerHTML=gnote(sh,g.idx,g.g,g.id)})}
 function upRow(i){const sh=S(),s=sumH(sh,i),d=$('atd_'+i),a=$('ata_'+i);if(d)d.innerHTML='<b>'+s[0]+'</b>';if(a)a.innerHTML='<b>'+s[1]+'</b>';upTot()}
-window.atV=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1),v=el.value;c.v=v===''?'':Math.max(0,+v||0);if((c.t==='VLN'||c.t==='SLN')&&c.v!==''){c.v='';el.value='';toast('VL NP / SL NP (no pay) stays blank. No number needed.')}stampC(c);tidy(sh,e.k,dt);upCell(i,dt);sv()};
-window.atT=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1),pvT=c.t,BL=['VLN','SLN','ABS','OFF'],inp=el.parentNode.querySelector('.atv'),dflt=c.v===''||c.v==null||c.v===0||c.v==='0'||c.v===1||c.v==='1',set=v=>{c.v=v;if(inp)inp.value=v};c.t=el.value;/* VL NP / SL NP / Absent / Off: the day stays BLANK (not 1, not 0); VL / SL default to 1 */if(BL.includes(c.t)){if(dflt)set('')}else if(c.t){if(c.v===''||c.v==null||(BL.includes(pvT)&&dflt))set(1)}else if(BL.includes(pvT)&&dflt)set('');stampC(c);tidy(sh,e.k,dt);upCell(i,dt);sv()};
+window.atV=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1),v=el.value;c.v=v===''?'':Math.max(0,+v||0);delete c.lv;delete c.lr;if((c.t==='VLN'||c.t==='SLN')&&c.v!==''){c.v='';el.value='';toast('VL NP / SL NP (no pay) stays blank. No number needed.')}stampC(c);tidy(sh,e.k,dt);upCell(i,dt);sv()};
+window.atT=(i,dt,el)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1),pvT=c.t,BL=['VLN','SLN','ABS','OFF'],inp=el.parentNode.querySelector('.atv'),dflt=c.v===''||c.v==null||c.v===0||c.v==='0'||c.v===1||c.v==='1',set=v=>{c.v=v;if(inp)inp.value=v};c.t=el.value;delete c.lv;delete c.lr;/* VL NP / SL NP / Absent / Off: the day stays BLANK (not 1, not 0); VL / SL default to 1 */if(BL.includes(c.t)){if(dflt)set('')}else if(c.t){if(c.v===''||c.v==null||(BL.includes(pvT)&&dflt))set(1)}else if(BL.includes(pvT)&&dflt)set('');stampC(c);tidy(sh,e.k,dt);upCell(i,dt);sv()};
 /* ===== HR REVIEW of VL / SL / Absent: HR head ticks OK, or changes it WITH A REASON; the department staff are notified ===== */
 const RVT=['VL','SL','VLN','SLN','ABS','OFF'];
 const rvNeeds=c=>!!c&&(RVT.includes(c.t)||(!c.t&&c.v!==''&&c.v!=null&&(+c.v||0)===0));
@@ -11517,12 +11545,15 @@ window.atCmSave=(i,dt,rm)=>{const sh=S(),e=sh.emps[i],c=getC(sh,e.k,dt,1);c.c=rm
 function atGroups(sh){const G={};sh.emps.forEach((e,i)=>{(G[e.c]=G[e.c]||[]).push(i)});const gk=Object.keys(G),ix=(typeof PGO!=='undefined'&&PGO[sh.dept])||[];gk.sort((a,b)=>{const x=ix.indexOf(a),y=ix.indexOf(b);return(x<0?99:x)-(y<0?99:y)});if(/broiler/i.test(String(sh.dept||''))){const rk=((g)=>{g=String(g==null?'':g);const m=/^\s*B\s*(\d+)/i.exec(g);return m?+m[1]:(/common/i.test(g)?100000:5000)});gk.sort((a,b)=>rk(a)-rk(b)||String(a).localeCompare(String(b),'es',{numeric:true,sensitivity:'base'}))};return{G,gk}}
 const atShort={VL:'VL',SL:'SL',VLN:'VL NP',SLN:'SL NP',ABS:'ABSENT',OFF:'OFF'};
 function atCellX(c){if(!c)return{v:'',st:5};const v=+c.v||0;if(c.t)return{v:atShort[c.t]+(v&&v!==1?' '+nf(v):''),st:c.t==='VL'?13:c.t==='SL'?14:15};if(c.v===''||c.v==null)return{v:'',st:5};return{v:v,st:v>0?12:5}}
+/* Excel: a VL / SL cell also shows the reason of the leave (2nd line, wrapped) */
+const atCellXL=c=>{const x=atCellX(c);if(c&&c.t&&c.lr&&typeof x.v==='string'&&x.v&&x.st>=13&&x.st<=15){const w=String(c.lr).replace(/\s+/g,' ').trim();if(w)return{v:x.v+'\n'+w,st:x.st+10,lr:w}}return x};
 const atBasis=e=>e.pd?'per day':'gross ÷ '+(e.fd>0?e.fd:7);
 const atClTxt=e=>{const sp=spList(e).map(z=>'+ '+z.c+' '+nf(pn(z.d))+'d').join(' ');return(clOf(e)+(sp?' '+sp:'')).trim()};
 const atFile=(sh,ext)=>'attendance_'+String(sh.dept).replace(/[^A-Za-z0-9]+/g,'_')+'_'+sh.from+'_to_'+sh.to+'.'+ext;
 const atDl=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)};
 function atXlsxBuild(sh){const D=dayList(sh),br=isBr(sh),{G,gk}=atGroups(sh),H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',RT='http://schemas.openxmlformats.org/officeDocument/2006/relationships',
- c0=br?5:4,nd=D.length,cTD=c0+nd,cAJ=cTD+1,cTA=cAJ+1,cRM=cTA+1,LAST=cRM,R=[],MG=[];let r=0;
+ c0=br?5:4,nd=D.length,cTD=c0+nd,cAJ=cTD+1,cTA=cAJ+1,cRM=cTA+1,LAST=cRM,R=[],MG=[];let r=0,LRW=0;
+ const lvHf=Q=>{let m=0;Q.forEach(q=>{if(q.lr){LRW=1;m=Math.max(m,1+Math.ceil(q.lr.length/11))}});return m?Math.min(400,m*13+4):0};
  const X=(c,v,st,f)=>{const ref=pColL(c)+r;if(v===''||v==null||(typeof v==='number'&&!isFinite(v)))return f?`<c r="${ref}" s="${st}"><f>${esc(f)}</f></c>`:`<c r="${ref}" s="${st}"/>`;if(typeof v==='number')return f?`<c r="${ref}" s="${st}"><f>${esc(f)}</f><v>${v}</v></c>`:`<c r="${ref}" s="${st}"><v>${v}</v></c>`;return`<c r="${ref}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${esc(v)}</t></is></c>`};
  const ROW=(cs,ht)=>{R.push(`<row r="${r}"${ht?` ht="${ht}" customHeight="1"`:''}>${cs.join('')}</row>`)};
  const mg=(c1,c2)=>{if(c2>c1)MG.push(pColL(c1)+r+':'+pColL(c2)+r)};
@@ -11540,12 +11571,12 @@ function atXlsxBuild(sh){const D=dayList(sh),br=isBr(sh),{G,gk}=atGroups(sh),H='
   ROW([X(1,lbl,gs?16:9),...Array.from({length:c0-2},(_,i)=>X(2+i,'',gs?16:9)),...D.map((_,i)=>X(c0+i,'',gs?16:9)),X(cTD,z[0]||'',gs?18:11,ff(cTD,0)),X(cAJ,z[2]||'',gs?17:10,ff(cAJ,2)),X(cTA,z[1]||'',gs?17:10,ff(cTA,1)),X(cRM,'',gs?16:9)]);mg(1,c0-1)};
  gk.forEach(g=>{gR=[];r++;ROW([X(1,g,8),...Array.from({length:LAST-1},(_,i)=>X(2+i,'',8))]);mg(1,LAST);
   G[g].forEach(i=>{const e=sh.emps[i],t=tot(sh,e),row=sh.d[e.k]||{},rmT=[(sh.rm&&sh.rm[e.k])||'',atRcTxt(e),isBl(sh)?atSpTxt(e):''].filter(Boolean).join(' · '),rmH=rmT.length>42?Math.min(400,Math.ceil(rmT.length/42)*15+6):0;r++;
-   const QX=D.map(dt=>atCellX(row[dt])),dsum=r2(QX.reduce((a,q)=>a+(typeof q.v==='number'?q.v:0),0)),dD=t.any?t.days:'',aA=(t.any||t.adj)?t.amt:'',rate=pn(rLast(e)),fdv=e.fd>0?e.fd:7,
+   const QX=D.map(dt=>atCellXL(row[dt])),lvH=lvHf(QX),dsum=r2(QX.reduce((a,q)=>a+(typeof q.v==='number'?q.v:0),0)),dD=t.any?t.days:'',aA=(t.any||t.adj)?t.amt:'',rate=pn(rLast(e)),fdv=e.fd>0?e.fd:7,
     fD=t.any&&Math.abs(dsum-r2(t.days))<.005?'SUM('+pColL(c0)+r+':'+pColL(c0+nd-1)+r+')':'',
     hasRc=e.rc&&e.rc.length,base=e.pd?r2(rate*t.days):r2(rate/fdv*t.days),
     fA=aA!==''&&!hasRc&&Math.abs(r2(base+t.adj)-r2(t.amt))<.005?(t.any?'ROUND(B'+r+(e.pd?'':'/'+fdv)+'*'+pColL(cTD)+r+',2)':'0')+'+'+pColL(cAJ)+r:'';
    RV[r]={0:r2(t.any?t.days:0),1:r2(aA===''?0:t.amt),2:r2(t.adj||0)};gR.push(r);
-   ROW([X(1,e.n,4),X(2,rate,6),X(3,atBasis(e),5),...(br?[X(4,atClTxt(e),5)]:[]),...QX.map((q,k)=>X(c0+k,q.v,q.st)),X(cTD,dD,7,fD),X(cAJ,t.adj||'',6),X(cTA,aA,6,fA),X(cRM,rmT,22)],rmH)});
+   ROW([X(1,e.n,4),X(2,rate,6),X(3,atBasis(e),5),...(br?[X(4,atClTxt(e),5)]:[]),...QX.map((q,k)=>X(c0+k,q.v,q.st)),X(cTD,dD,7,fD),X(cAJ,t.adj||'',6),X(cTA,aA,6,fA),X(cRM,rmT,22)],Math.max(rmH,lvH))});
   sub('Total · '+g,G[g],0,g)});
  if(gk.length)sub('GRAND TOTAL',sh.emps.map((_,i)=>i),1);
  const CM=[],RMK=[];sh.emps.forEach(e=>{const q=sh.d[e.k]||{};Object.keys(q).sort().forEach(dt=>{if(q[dt]&&q[dt].c){const d=dt0(dt);CM.push(e.n+' · '+(d.getMonth()+1)+'/'+d.getDate()+(q[dt].t?' ('+TL[q[dt].t]+')':'')+': '+q[dt].c)}});if(sh.rm&&sh.rm[e.k])RMK.push(e.n+': '+sh.rm[e.k])});
@@ -11559,8 +11590,8 @@ function atXlsxBuild(sh){const D=dayList(sh),br=isBr(sh),{G,gk}=atGroups(sh),H='
  const fnt=(n,z,b,c)=>`<font>${b?'<b/>':''}<sz val="${z}"/><color rgb="${c}"/><name val="${n}"/></font>`,
   xf=(f,fl,b,h,nf2,w)=>`<xf numFmtId="${nf2||0}" fontId="${f}" fillId="${fl}" borderId="${b}" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${h}" vertical="center"${w?' wrapText="1"':''}/></xf>`,
   fill=c=>`<fill><patternFill patternType="solid"><fgColor rgb="${c}"/><bgColor indexed="64"/></patternFill></fill>`,
-  styles=H+`<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00"/></numFmts><fonts count="6">${[fnt('Arial',10,0,'FF000000'),fnt('Arial',10,1,'FF000000'),fnt('Arial',10,1,'FFFFFFFF'),fnt('Georgia',16,1,'FF12305C'),fnt('Arial',9,0,'FF666666'),fnt('Arial',10,1,'FF12305C')].join('')}</fonts><fills count="8"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>${['FF12305C','FFEAF0F9','FFDCF5E3','FFDBE7FB','FFFDE3D3','FFE5E7EB'].map(fill).join('')}</fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFB8C0CC"/></left><right style="thin"><color rgb="FFB8C0CC"/></right><top style="thin"><color rgb="FFB8C0CC"/></top><bottom style="thin"><color rgb="FFB8C0CC"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="23">${[xf(0,0,0,'general'),xf(3,0,0,'left'),xf(4,0,0,'left'),xf(2,2,1,'center',0,1),xf(0,0,1,'left'),xf(0,0,1,'center'),xf(0,0,1,'right',164),xf(0,0,1,'right'),xf(5,3,1,'left'),xf(1,3,1,'left'),xf(1,3,1,'right',164),xf(1,3,1,'right'),xf(0,4,1,'center'),xf(0,5,1,'center'),xf(0,6,1,'center'),xf(0,7,1,'center'),xf(2,2,1,'left'),xf(2,2,1,'right',164),xf(2,2,1,'right'),xf(0,0,0,'left'),xf(1,0,0,'left'),xf(5,0,0,'left'),xf(0,0,1,'left',0,1)].join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
-  cols=`<cols><col min="1" max="1" width="32" customWidth="1"/><col min="2" max="2" width="14" customWidth="1"/><col min="3" max="3" width="12" customWidth="1"/>${br?'<col min="4" max="4" width="20" customWidth="1"/>':''}<col min="${c0}" max="${c0+nd-1}" width="9" customWidth="1"/><col min="${cTD}" max="${cTD}" width="11" customWidth="1"/><col min="${cAJ}" max="${cAJ}" width="14" customWidth="1"/><col min="${cTA}" max="${cTA}" width="15" customWidth="1"/><col min="${cRM}" max="${cRM}" width="48" customWidth="1"/></cols>`,
+  styles=H+`<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00"/></numFmts><fonts count="6">${[fnt('Arial',10,0,'FF000000'),fnt('Arial',10,1,'FF000000'),fnt('Arial',10,1,'FFFFFFFF'),fnt('Georgia',16,1,'FF12305C'),fnt('Arial',9,0,'FF666666'),fnt('Arial',10,1,'FF12305C')].join('')}</fonts><fills count="8"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>${['FF12305C','FFEAF0F9','FFDCF5E3','FFDBE7FB','FFFDE3D3','FFE5E7EB'].map(fill).join('')}</fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFB8C0CC"/></left><right style="thin"><color rgb="FFB8C0CC"/></right><top style="thin"><color rgb="FFB8C0CC"/></top><bottom style="thin"><color rgb="FFB8C0CC"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="26">${[xf(0,0,0,'general'),xf(3,0,0,'left'),xf(4,0,0,'left'),xf(2,2,1,'center',0,1),xf(0,0,1,'left'),xf(0,0,1,'center'),xf(0,0,1,'right',164),xf(0,0,1,'right'),xf(5,3,1,'left'),xf(1,3,1,'left'),xf(1,3,1,'right',164),xf(1,3,1,'right'),xf(0,4,1,'center'),xf(0,5,1,'center'),xf(0,6,1,'center'),xf(0,7,1,'center'),xf(2,2,1,'left'),xf(2,2,1,'right',164),xf(2,2,1,'right'),xf(0,0,0,'left'),xf(1,0,0,'left'),xf(5,0,0,'left'),xf(0,0,1,'left',0,1),xf(0,5,1,'center',0,1),xf(0,6,1,'center',0,1),xf(0,7,1,'center',0,1)].join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
+  cols=`<cols><col min="1" max="1" width="32" customWidth="1"/><col min="2" max="2" width="14" customWidth="1"/><col min="3" max="3" width="12" customWidth="1"/>${br?'<col min="4" max="4" width="20" customWidth="1"/>':''}<col min="${c0}" max="${c0+nd-1}" width="${LRW?13:9}" customWidth="1"/><col min="${cTD}" max="${cTD}" width="11" customWidth="1"/><col min="${cAJ}" max="${cAJ}" width="14" customWidth="1"/><col min="${cTA}" max="${cTA}" width="15" customWidth="1"/><col min="${cRM}" max="${cRM}" width="48" customWidth="1"/></cols>`,
   sheet=H+`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView showGridLines="0" workbookViewId="0"><pane xSplit="1" ySplit="${HR}" topLeftCell="B${HR+1}" activePane="bottomRight" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="16"/>${cols}<sheetData>${R.join('')}</sheetData>${MG.length?`<mergeCells count="${MG.length}">${MG.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`,
   files=[{name:'[Content_Types].xml',data:H+`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
    {name:'_rels/.rels',data:H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${RT}/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
@@ -11574,7 +11605,7 @@ window.atCsv=()=>{const sh=S();if(!sh)return;if(!sh.emps.length)return toast('No
  const dh=dt=>{const d=dt0(dt);return(d.getMonth()+1)+'/'+d.getDate()+' '+d.toLocaleDateString('en',{weekday:'short'})};
  L.push(['Attendance · '+sh.dept+' · '+lab(sh.from,sh.to)]);L.push([]);
  L.push(['Group','Name','Rate / Gross','Basis',...(br?['Class']:[]),...D.map(dh),'Total days','Adjustment','Total amount','Remarks']);
- gk.forEach(g=>G[g].forEach(i=>{const e=sh.emps[i],t=tot(sh,e),row=sh.d[e.k]||{};L.push([g,e.n,pn(rLast(e)),atBasis(e),...(br?[atClTxt(e)]:[]),...D.map(dt=>{const x=atCellX(row[dt]);return x.v}),t.any?t.days:'',t.adj||'',(t.any||t.adj)?t.amt:'',[(sh.rm&&sh.rm[e.k])||'',atRcTxt(e),isBl(sh)?atSpTxt(e):''].filter(Boolean).join(' · ')])}));
+ gk.forEach(g=>G[g].forEach(i=>{const e=sh.emps[i],t=tot(sh,e),row=sh.d[e.k]||{};L.push([g,e.n,pn(rLast(e)),atBasis(e),...(br?[atClTxt(e)]:[]),...D.map(dt=>{const c_=row[dt],x=atCellX(c_);return x.v+(c_&&c_.t&&c_.lr&&x.v?' - '+String(c_.lr).replace(/\s+/g,' ').trim():'')}),t.any?t.days:'',t.adj||'',(t.any||t.adj)?t.amt:'',[(sh.rm&&sh.rm[e.k])||'',atRcTxt(e),isBl(sh)?atSpTxt(e):''].filter(Boolean).join(' · ')])}));
  {const z=gsum(sh,sh.emps.map((_,i)=>i));L.push(['GRAND TOTAL','','','',...(br?['']:[]),...D.map(()=>''),z[0],z[2]||'',z[1],''])}
  if(isBl(sh)&&sh.emps.some(e=>spList(e).length)){L.push([]);L.push(['Hatian (note only - not included in the totals; shown only in the Broiler payroll summary)']);L.push(['Name','Own class','Hatian to class','Days','Amount']);sh.emps.forEach(e=>spList(e).forEach(z=>{const to=String(spGrp(sh,z.c)).trim();if(to===String(e.c==null?'':e.c).trim())return;L.push([e.n,e.c||'',to,pn(z.d),spAmt(e,z)])}))}
  if(br&&sh.emps.length){const M=clModel(sh);L.push([]);L.push(['Summary per class']);L.push(['Class','Name','Amount']);M.B.forEach(b=>{b.rows.forEach(z=>L.push([b.c||'(no class)',z[0],z[1]]));L.push([b.c||'(no class)','TOTAL',b.t])});L.push(['GRAND TOTAL (all classes)','',M.T])}
@@ -11610,12 +11641,11 @@ window.atLeaveSync=async()=>{
  if(noEd())return;
  if(typeof window.lvAtt!=='function')return toast('The Leave records are not available. Reload the page and try again.');
  const st0=($('atst')||{}).textContent||'';stat('Reading the leave records…');
- let L;try{L=await window.lvAtt(sh.from,sh.to)}catch(e){stat(st0);return alert('Could not read the leave records: '+((e&&e.message)||e))}
+ let L;try{L=await window.lvAtt(sh.from,sh.to,sh.dept)}catch(e){stat(st0);return alert('Could not read the leave records: '+((e&&e.message)||e))}
  stat(st0);if(S()!==sh)return;
+ if(L.nb&&!confirm('\u26A0 '+L.nb+' employee'+(L.nb===1?' has':'s have')+' VL / SL not balanced with the Payroll Master record ('+sh.dept+').\n\nSync Leave uses the ADMIN record.\n\nOK = continue syncing\nCancel = stop and check them first in Vacation / Sick Leave'))return;
  L=L.filter(x=>x.days&&x.days.length);
- if(!L.length)return toast('No VL / SL in the Leave records for '+lab(sh.from,sh.to)+'.');
- const E=sh.emps,dk=new Set(dayList(sh)),byId=new Map(E.map(e=>[String(e.k),e])),memo=lvsMemo(sh),M=[],Q=[],NO=[];
- const dn=nzS(sh.dept);
+ const E=sh.emps,dk=new Set(dayList(sh)),byId=new Map(E.map(e=>[String(e.k),e])),memo=lvsMemo(sh),M=[],Q=[],NO=[],dn=nzS(sh.dept),LT=['VL','SL','VLN','SLN'];
  L.forEach(pp=>{
   let e=byId.get(String(pp.id));
   if(!e&&memo.map[pp.id])e=E.find(x=>String(x.k)===String(memo.map[pp.id]));
@@ -11624,32 +11654,51 @@ window.atLeaveSync=async()=>{
    if(ex.length===1)e=ex[0].x;
    else{const dbt=cand.filter(o=>!memo.ign[pp.id+'|'+o.x.k]);if(dbt.length){Q.push({p:pp,c:dbt.map(o=>o.x)});return}}}
   if(e)M.push({p:pp,e:e});else NO.push(pp)});
- const dec={},nm=d=>dt0(d).toLocaleDateString('en',{month:'short',day:'numeric'}),TX={VL:'VL',SL:'SL',VLN:'VL NP',SLN:'SL NP'},CL={VL:'#2c66ad',SL:'#a9533b',VLN:'#b3362d',SLN:'#b3362d'};
- const planOf=(e,pp)=>{const o=[];pp.days.forEach(z=>{if(!dk.has(z.d))return;const c=((sh.d[e.k]||{})[z.d])||{},nt=z.np?(z.t==='vl'?'VLN':'SLN'):(z.t==='vl'?'VL':'SL');if(c.t===nt)return;o.push({z:z,nt:nt,skip:!!c.t,old:c.t})});return o};
- const chips=(pl)=>pl.map(x=>`<span style="display:inline-block;margin:2px 4px 2px 0;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;color:#fff;background:${x.skip?'#8793a6':CL[x.nt]}"${x.skip?` title="Already has ${esc(TX[x.old]||x.old)} in the attendance, so it is not changed"`:''}>${esc(nm(x.z.d))} · ${TX[x.nt]}${x.z.v&&x.z.v!==1&&!x.z.np?' '+x.z.v:''}${x.skip?' (kept '+esc(TX[x.old]||x.old)+')':''}</span>`).join('');
+ const dec={};let clrU=false;
+ const nm=d=>dt0(d).toLocaleDateString('en',{month:'short',day:'numeric'}),TX={VL:'VL',SL:'SL',VLN:'VL NP',SLN:'SL NP',ABS:'Absent',OFF:'Off'},CL={VL:'#2c66ad',SL:'#a9533b',VLN:'#b3362d',SLN:'#b3362d'};
+ const NT=z=>z.np?(z.t==='vl'?'VLN':'SLN'):(z.t==='vl'?'VL':'SL');
+ /* The Leave records are the truth: a day synced before (lv flag) follows every edit / delete made in Leave. Days typed by hand as Absent / Off are never touched. */
+ const planOf=(e,pp)=>{const o=[];pp.days.forEach(z=>{if(!dk.has(z.d))return;const c=((sh.d[e.k]||{})[z.d])||{},nt=NT(z);
+  if(c.t===nt){if(!c.lv||(c.lr||'')!==(z.r||''))o.push({z:z,nt:nt,adopt:true});return}
+  if(c.t&&!LT.includes(c.t)){o.push({z:z,nt:nt,skip:true,old:c.t});return}
+  o.push({z:z,nt:nt,chg:!!c.t,old:c.t})});return o};
+ const calc=()=>{
+  const rows=M.map(m=>({e:m.e,p:m.p}));Q.forEach(q=>{const r=dec[q.p.id];if(r!==undefined&&r!=='ign')rows.push({e:q.c[r],p:q.p})});
+  const exp={};rows.forEach(r=>{const m=exp[r.e.k]=exp[r.e.k]||{};r.p.days.forEach(z=>{if(dk.has(z.d))m[z.d]=1})});
+  const hold=new Set();Q.forEach(q=>{if(dec[q.p.id]===undefined)q.c.forEach(c=>hold.add(String(c.k)))});
+  const stF=[],stU=[];
+  E.forEach(e=>{if(hold.has(String(e.k)))return;const r=sh.d[e.k]||{};Object.keys(r).sort().forEach(d=>{const c=r[d];if(!c||!dk.has(d)||!LT.includes(c.t)||(exp[e.k]||{})[d])return;stF.push({e:e,d:d,t:c.t})})});
+  return{rows:rows,stF:stF,stU:stU}};
+ const chips=(pl)=>pl.filter(x=>!x.adopt).map(x=>`<span style="display:inline-block;margin:2px 4px 2px 0;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;color:#fff;background:${x.skip?'#8793a6':CL[x.nt]}"${x.skip?` title="Already has ${esc(TX[x.old]||x.old)} in the attendance, so it is not changed"`:''}>${esc(nm(x.z.d))} · ${TX[x.nt]}${x.z.v&&x.z.v!==1&&!x.z.np?' '+x.z.v:''}${x.skip?' (kept '+esc(TX[x.old]||x.old)+')':x.chg?' (was '+esc(TX[x.old]||x.old)+')':''}</span>`).join('');
+ const grp=a=>{const m=new Map();a.forEach(x=>{const k=String(x.e.k);if(!m.has(k))m.set(k,{e:x.e,d:[]});m.get(k).d.push(x)});return[...m.values()]};
+ const stH=a=>grp(a).map(g=>`<div style="padding:6px 0;border-top:1px solid var(--ln)"><b>${esc(g.e.n)}</b><div>${g.d.map(x=>`<span style="display:inline-block;margin:2px 4px 2px 0;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;background:#e9ecf2;color:#5a6577;text-decoration:line-through">${esc(nm(x.d))} · ${TX[x.t]}</span>`).join('')}</div></div>`).join('');
+ if(!L.length&&!calc().stF.length&&!calc().stU.length)return toast('No VL / SL in the Leave records for '+lab(sh.from,sh.to)+'.');
  const o=ovl('atlvs');
  const draw=()=>{
-  const pend=Q.filter(q=>dec[q.p.id]===undefined).length,rows=[];
-  M.forEach(m=>rows.push({e:m.e,p:m.p}));
-  Q.forEach(q=>{const r=dec[q.p.id];if(r!==undefined&&r!=='ign')rows.push({e:q.c[r],p:q.p})});
-  let n=0;const fill=rows.map(r=>{const pl=planOf(r.e,r.p);pl.forEach(x=>{if(!x.skip)n++});return pl.length?`<div style="padding:7px 0;border-top:1px solid var(--ln)"><b>${esc(r.e.n)}</b>${lvsKind(r.p.name,r.e.n)!==1&&String(r.e.k)!==String(r.p.id)?` <small style="color:var(--mu)">(Leave: ${esc(r.p.name)})</small>`:''}<div>${chips(pl)}</div></div>`:''}).join('');
+  const pend=Q.filter(q=>dec[q.p.id]===undefined).length,C=calc();
+  let n=0;const fill=C.rows.map(r=>{const pl=planOf(r.e,r.p);pl.forEach(x=>{if(!x.skip&&!x.adopt)n++});return pl.some(x=>!x.adopt)?`<div style="padding:7px 0;border-top:1px solid var(--ln)"><b>${esc(r.e.n)}</b>${lvsKind(r.p.name,r.e.n)!==1&&String(r.e.k)!==String(r.p.id)?` <small style="color:var(--mu)">(Leave: ${esc(r.p.name)})</small>`:''}<div>${chips(pl)}</div></div>`:''}).join('');
   const qh=Q.map((q,qi)=>{const r=dec[q.p.id];return`<div style="padding:9px 0;border-top:1px solid var(--ln)"><div><b>Leave:</b> ${esc(q.p.name)} <small style="color:var(--mu)">· ${q.p.days.length} day${q.p.days.length>1?'s':''} of VL / SL</small></div>${q.c.map((c,ci)=>`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:5px"><span style="flex:1;min-width:180px"><b>Attendance:</b> ${esc(c.n)}</span><button class="btn ${r===ci?'ok':'o'} sm" data-q="${qi}" data-c="${ci}">${r===ci?'✔ Accepted':'Accept'}</button></div>`).join('')}<div style="margin-top:6px"><button class="btn ${r==='ign'?'no':'o'} sm" data-q="${qi}" data-c="ign">${r==='ign'?'✕ Ignored':'Ignore (different person)'}</button></div></div>`}).join('');
   const nh=NO.length?`<div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:#fbf3e3;color:#7a5b00;font-size:13px"><b>No matching name in this attendance (not filled):</b><br>${NO.map(x=>esc(x.name)+' <small>('+x.days.map(z=>nm(z.d)).join(', ')+')</small>').join('<br>')}<br><small>Add the employee to this attendance (+ Add employee / Sync names from payroll), then press Sync Leave again.</small></div>`:'';
-  o.innerHTML=`<div class="atbox" style="width:min(760px,100%)"><h3 style="margin:0 0 4px">🏖 Sync Leave → Attendance</h3><div class="sub" style="margin:0 0 10px;font-size:13px">${esc(sh.dept)} · ${esc(lab(sh.from,sh.to))}. Approved VL / SL are filled in the days of this cutoff. When the employee has no credits left, the day becomes <b>VL NP / SL NP (no pay)</b>.</div>
+  const rf=C.stF.length?`<div style="font-weight:700;margin:14px 0 2px">Will be removed <span style="font-weight:400;color:var(--mu)">· ${C.stF.length} day${C.stF.length===1?'':'s'} no longer in Leave (deleted or changed there), removed automatically</span></div>${stH(C.stF)}`:'';
+  const ru=C.stU.length?`<div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--sf2,#f8f9fc);border:1px solid var(--ln);font-size:13px"><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer"><input type="checkbox" data-u="1"${clrU?' checked':''} style="margin-top:3px"><span><b>Also clear ${C.stU.length} older VL / SL day${C.stU.length===1?'':'s'} that have no leave record</b><br><small style="color:var(--mu)">Typed by hand or synced before this update. Leave this unticked if you typed them on purpose.</small></span></label>${clrU?stH(C.stU):''}</div>`:'';
+  o.innerHTML=`<div class="atbox" style="width:min(760px,100%)"><h3 style="margin:0 0 4px">🏖 Sync Leave → Attendance</h3><div class="sub" style="margin:0 0 10px;font-size:13px">${esc(sh.dept)} · ${esc(lab(sh.from,sh.to))}. The attendance follows the Leave records: new, edited and deleted leave are all updated. No credits left = <b>VL NP / SL NP (no pay)</b>.</div>
 ${Q.length?`<div style="font-weight:700;margin:6px 0 2px">Check these names${pend?` <span style="color:#b3362d">(${pend} to decide)</span>`:' ✔'}</div><div class="sub" style="margin:0 0 4px;font-size:12.5px">The names in Leave are almost the same as in the attendance (middle name missing / different, or 1–3 letters different). Is it the same person?</div>${qh}`:''}
-<div style="font-weight:700;margin:14px 0 2px">Will be filled <span style="font-weight:400;color:var(--mu)">· ${n} day${n===1?'':'s'}</span></div>${fill||'<div class="sub" style="font-size:13px">Nothing new to fill.</div>'}${nh}
-<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap">${Q.length&&pend?`<button class="btn o sm" data-all="acc">Accept all</button><button class="btn o sm" data-all="ign">Ignore all</button>`:''}<button class="btn o sm" id="atlvs_x">Cancel</button><button class="btn ok sm" id="atlvs_go"${pend?' disabled':''}>Fill the attendance</button></div></div>`;
+<div style="font-weight:700;margin:14px 0 2px">Will be filled / updated <span style="font-weight:400;color:var(--mu)">· ${n} day${n===1?'':'s'}</span></div>${fill||'<div class="sub" style="font-size:13px">Nothing new to fill.</div>'}${rf}${ru}${nh}
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap">${Q.length&&pend?`<button class="btn o sm" data-all="acc">Accept all</button><button class="btn o sm" data-all="ign">Ignore all</button>`:''}<button class="btn o sm" id="atlvs_x">Cancel</button><button class="btn ok sm" id="atlvs_go"${pend?' disabled':''}>Update the attendance</button></div></div>`;
   $('atlvs_x').onclick=()=>o.remove();$('atlvs_go').onclick=go};
  const go=()=>{
-  const todo=M.slice(),mm={},ii={};
-  Q.forEach(q=>{const r=dec[q.p.id];if(r==='ign')q.c.forEach(c=>{ii[q.p.id+'|'+c.k]=1});else if(r!==undefined){const e=q.c[r];mm[q.p.id]=String(e.k);todo.push({p:q.p,e:e})}});
-  let n=0;todo.forEach(t=>planOf(t.e,t.p).forEach(x=>{if(x.skip)return;const c=getC(sh,t.e.k,x.z.d,1);c.t=x.nt;c.v=x.np?'':x.z.v;stampC(c);n++}));
+  const C=calc(),mm={},ii={};
+  Q.forEach(q=>{const r=dec[q.p.id];if(r==='ign')q.c.forEach(c=>{ii[q.p.id+'|'+c.k]=1});else if(r!==undefined){mm[q.p.id]=String(q.c[r].k)}});
+  let n=0,rm=0,ad=0;
+  C.rows.forEach(t=>planOf(t.e,t.p).forEach(x=>{if(x.skip)return;const c=getC(sh,t.e.k,x.z.d,1);if(x.adopt){c.lv=1;if(x.z.r)c.lr=x.z.r;else delete c.lr;ad++;return}c.t=x.nt;c.v=x.z.np?'':x.z.v;c.lv=1;if(x.z.r)c.lr=x.z.r;else delete c.lr;stampC(c);n++}));
+  C.stF.concat(clrU?C.stU:[]).forEach(x=>{const c=getC(sh,x.e.k,x.d,0);if(!c)return;c.t='';c.v='';delete c.lv;delete c.lr;stampC(c);tidy(sh,x.e.k,x.d);rm++});
   const had=Object.keys(mm).length||Object.keys(ii).length;if(had)lvsMemoSet(sh,mm,ii);
-  o.remove();if(n||had){drawSheet();sv()}
-  toast(n?n+' leave day'+(n>1?'s':'')+' filled in the attendance. Check them, then press Save.':'Nothing new to fill.')};
+  o.remove();if(n||rm||ad||had){drawSheet();sv()}
+  toast(n||rm?(n?n+' leave day'+(n>1?'s':'')+' filled / updated':'')+(n&&rm?', ':'')+(rm?rm+' removed':'')+'. Check them, then press Save.':'Nothing to change. The attendance already matches the Leave records.')};
  o.addEventListener('click',ev=>{const b=ev.target.closest&&ev.target.closest('button');if(!b)return;
   if(b.dataset.all){Q.forEach(q=>{if(dec[q.p.id]===undefined)dec[q.p.id]=b.dataset.all==='acc'?0:'ign'});draw();return}
   if(b.dataset.q!==undefined){const q=Q[+b.dataset.q];if(!q)return;dec[q.p.id]=b.dataset.c==='ign'?'ign':+b.dataset.c;draw()}});
+ o.addEventListener('change',ev=>{const t=ev.target;if(t&&t.dataset&&t.dataset.u){clrU=!!t.checked;draw()}});
  draw()};
 /* Leave page -> "Sync to Attendance": list the saved attendance cutoffs of a department, open one and run Sync Leave in it. No extra reads: it uses the copy already in memory / on this device. */
 window.atLvList=async dept=>{if(!allKeys().length){try{await load()}catch(e){}}return allKeys().map(k=>({k:k,dept:ATD[k].dept,from:ATD[k].from,to:ATD[k].to})).filter(x=>okD(x.dept)&&(!dept||x.dept===dept)).sort((a,b)=>String(b.from).localeCompare(String(a.from)))};
@@ -12473,7 +12522,43 @@ tr{break-inside:avoid;page-break-inside:avoid}tr.dh{break-after:avoid;page-break
  setTimeout(()=>{try{w.focus();w.print()}catch(e){done()}},350);
  setTimeout(done,300000);
  try{logAct('Printed payslip monitoring grid','Payslip Monitoring',C.length+' cutoff(s)')}catch(e){}};
+/* 2nd sheet of the Summary export: only the names who have NOT returned the signed payslip AND are due soon / past due (same rule as the Dashboard; a cutoff whose payslips were not even given out yet is left out). Separated per cutoff; only the cutoffs / departments shown in the Summary. */
+function psmPendSheet(C){
+ const ord=pFolders(),hid=PS.gh||[],fd=dt=>dt.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+ const R=psmDueRows().filter(r=>r.left<=DUE_WARN&&C.includes(r.from+'|'+r.to)&&!hid.includes(r.dept));
+ const stx=r=>r.over?(-r.left)+' day'+(r.left===-1?'':'s')+' overdue':r.left===0?'Due today':r.left+' day'+(r.left===1?'':'s')+' left';
+ const LN=':FFD3D9E6',BX={bt:'thin'+LN,bb:'thin'+LN,bl:'thin'+LN,br:'thin'+LN},HD=Object.assign({fill:'FFF5F7FB',col:'FF12305C',b:1,h:'center'},BX);
+ const S=xgSheet('Pending Names'),W=7;S.cols=[24,24,6,44,15,18,30];
+ S.put(1,1,W,'Payslip Monitoring - Signed Payslips NOT yet returned (due / overdue)',{fn:'Georgia',sz:15,b:1,col:'FF12305C'});
+ S.put(2,1,W,'Rayanton Farms & Livestock Corp.  |  '+R.length+' name'+(R.length===1?'':'s')+' pending  |  Exported '+new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})+' by '+me(),{sz:9,col:'FF666666'});
+ let r=4;
+ C.forEach(k=>{const[f,t]=k.split('|'),L=R.filter(x=>x.from===f&&x.to===t).sort((x,y)=>ord.indexOf(x.dept)-ord.indexOf(y.dept)||gNat(x.cls==='(no class)'?'~':x.cls,y.cls==='(no class)'?'~':y.cls)||x.x.n.localeCompare(y.x.n));
+  if(!L.length)return;
+  S.put(r,1,W,lb(f,t)+'   |   '+L.length+' pending',{b:1,sz:12,fill:'FF12305C',col:'FFFFFFFF'});S.hts[r]=24;r++;
+  ['Department','Class','#','Name','Deadline','Status','Remarks'].forEach((h,i)=>S.put(r,i+1,i+1,h,Object.assign({},HD,i===3?{h:'left'}:{})));r++;
+  L.forEach((y,i)=>{const st=Object.assign({fill:y.over?'FFFBECEB':'FFFFF4D6'},BX);
+   S.put(r,1,1,y.dept,Object.assign({b:1},st));S.put(r,2,2,y.cls,st);S.put(r,3,3,i+1,Object.assign({nf:2,h:'center'},st));S.put(r,4,4,y.x.n,st);S.put(r,5,5,fd(y.dl),Object.assign({h:'center'},st));S.put(r,6,6,stx(y),Object.assign({b:1,h:'center',col:y.over?'FFB3261E':'FF8A6A1C'},st));S.put(r,7,7,'',st);r++});
+  r++});
+ if(!R.length)S.put(r,1,W,'No due or overdue names in the cutoffs shown. All signed payslips are returned or not yet due.',{i:1,col:'FF2E7D4F'});
+ S.fit=1;S.orient='landscape';
+ return S}
+/* Export to Excel (Summary): first choose the cutoff(s) for the "Pending Names" sheet (only due / overdue names), then export */
+function psmPendCount(){const hid=PS.gh||[],m={};psmDueRows().filter(r=>r.left<=DUE_WARN&&!hid.includes(r.dept)).forEach(r=>{const k=r.from+'|'+r.to;m[k]=(m[k]||0)+1});return m}
 window.psmGExport=()=>{
+ if(!GM||!GM.depts.length)return toast('Nothing to export.');
+ const cnt=psmPendCount(),CL=cuts(),sh=GM.C;
+ const d=ovl('psgx');
+ d.innerHTML=`<div role="dialog" aria-modal="true" style="background:var(--sf);color:var(--ink);border-radius:16px;max-width:480px;width:100%;max-height:86vh;display:flex;flex-direction:column;padding:22px 24px;box-shadow:0 20px 60px #0004">
+<h3 style="margin:0 0 4px;color:var(--h)">Export to Excel</h3>
+<p class="sub" style="margin:0 0 12px;font-size:13.5px">Sheet 1 is the Summary shown on screen. Choose the cutoff(s) for sheet 2, <b>Pending Names</b>: names who have not returned the signed payslip and are due or overdue.</p>
+<label style="display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--ln);border-radius:10px;font-weight:600;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="pgx_all" onchange="psmGxAll(this.checked)"> Select all</label>
+<div style="overflow:auto;border:1px solid var(--ln);border-radius:10px;padding:2px 10px">${CL.map(k=>{const[f,t]=k.split('|'),n=cnt[k]||0;return`<label style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--ln);cursor:${n?'pointer':'default'};${n?'':'opacity:.5'}"><input type="checkbox" class="pgx_c" value="${esc(k)}"${n&&sh.includes(k)?' checked':''}${n?'':' disabled'} onchange="psmGxSync()"> <span style="flex:1">${esc(lb(f,t))}</span><span class="psm-pill ${n?'i':'c'}">${n?n+' pending':'none due'}</span></label>`}).join('')}</div>
+<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button class="btn o" type="button" onclick="psmGxClose()">Cancel</button><button class="btn" type="button" id="pgx_go" onclick="psmGxGo()">Export</button></div></div>`;psmGxSync()};
+window.psmGxClose=()=>{const o=$('psgx');if(o)o.remove()};
+window.psmGxAll=on=>{document.querySelectorAll('#psgx .pgx_c:not(:disabled)').forEach(c=>c.checked=on);psmGxSync()};
+window.psmGxSync=()=>{const L=[...document.querySelectorAll('#psgx .pgx_c:not(:disabled)')],n=L.filter(c=>c.checked).length,a=$('pgx_all');if(a){a.checked=L.length>0&&n===L.length;a.indeterminate=n>0&&n<L.length}const g=$('pgx_go');if(g)g.textContent=n?'Export ('+n+' cutoff'+(n===1?'':'s')+' in Pending Names)':'Export Summary only'};
+window.psmGxGo=()=>{const k=[...document.querySelectorAll('#psgx .pgx_c:checked')].map(c=>c.value);psmGxClose();psmGExportRun(k)};
+window.psmGExportRun=PK=>{
  if(!GM||!GM.depts.length)return toast('Nothing to export.');
  const C=GM.C,LN=':FFD3D9E6',BX={bt:'thin'+LN,bb:'thin'+LN,bl:'thin'+LN,br:'thin'+LN},HD=Object.assign({fill:'FFF5F7FB',col:'FF12305C',b:1,h:'center',sz:11},BX);
  const S=xgSheet('Summary'),W=C.length+2;
@@ -12496,7 +12581,7 @@ window.psmGExport=()=>{
  r++;S.put(r,1,W,'\u2713 = all signed payslips returned   Rose = none returned yet   Amber = partly returned (returned/total)   Blank = no payroll in that cutoff',{sz:9,col:'FF444444',i:1});
  r+=3;S.put(r,1,W,'Prepared by:  Eg Mesinas',{b:1});r+=4;S.put(r,1,W,'Checked By:  Nicolette Raya',{b:1});
  S.freeze=4;S.fit=1;S.orient='portrait';
- const b=xgBuild([S]),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Payslip-Monitoring-ByClass-'+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+ const b=xgBuild(PK.length?[S,psmPendSheet(PK.slice().sort())]:[S]),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Payslip-Monitoring-ByClass-'+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
  try{logAct('Exported payslip monitoring grid (Excel)','Payslip Monitoring',C.length+' cutoff(s)')}catch(e){}toast('Exported ✔')};
 window.psmGSel=(k,v)=>{PS[k]=v;psmDraw()};
 window.psmGOpen=o=>{PS.go=!!o};
@@ -12601,15 +12686,30 @@ const KEY=y=>'_lv|'+y,Y0=new Date().getFullYear();
    One record: n=name, x=department sheet, sec=section, h=date hired, vl/sl={d:[[date,days]],c:consumed,nt:notes,cr:credits} */
 const LVXY='2026',LVXN=380;let LVX=[],LVXP=null;
 const LV={y:String(Y0),d:'',only:false,defOpen:false,q:'',D:null,bad:false,emp:'',t:'vl'};
-const edit=()=>!!(SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||MYA.role==='hr'||MYA.role==='payroll'||can('att'))));
+/* ===== TWO LEAVE MONITORINGS: Payroll Master and Admin =====
+   pm = the original record "_lv|<year>" (used by Sync to Attendance). ad = "_lv|<year>|admin" (leave dates, credits and ignored items of the Admins only).
+   The employee list, names, departments, classes, statuses and default credits are shared (kept in the pm record). */
+const AKEY=y=>KEY(y)+'|admin',SN={pm:'Payroll Master',ad:'Admin'},OTH={pm:'ad',ad:'pm'},SIDEF=['ent','hx','cr','ig'];
+const act=()=>!!(typeof MYA!=='undefined'&&MYA&&MYA.active);
+const boss=()=>!!(SUPER||(act()&&(MYA.role==='admin'||MYA.role==='hr')));
+/* Who sees and who changes each record is set by the Creator in Users & Access (see lvLvl). */
+const canView=sd=>window.lvMine(sd)!=='none';
+const canEd=sd=>window.lvMine(sd)==='edit';
+/* the side a user works on: the one they can edit; with two, the Payroll Master role starts on pm and everyone else on ad */
+const myside=()=>{const e=['pm','ad'].filter(canEd),first=act()&&MYA.role==='payroll'?'pm':'ad';if(e.length===1)return e[0];if(e.length===2)return first;return canView(first)?first:OTH[first]};
+const seeBoth=()=>canView('pm')&&canView('ad');
+const canDef=()=>canEd('pm')||(boss()&&canEd('ad'));
+const edit=()=>canEd(LV.side||myside());
+/* changes to the Payroll Master record are logged without names or dates (the Activity page is seen by others) */
+const logAct=(a,t,d)=>{const sd=LV.side||myside(),hide=sd==='pm'&&/^(Added|Edited|Deleted|Ended) \w+ leave$|^Changed leave credits$|leave difference$/.test(a);window.logAct(a,t,t!=='Leave'?d:hide?'Payroll Master record (private)':d+' ['+SN[sd]+']')};
 const me=()=>{try{return(MYA&&MYA.full_name)||((ME&&ME.user_metadata)||{}).full_name||(ME&&ME.email)||''}catch(e){return''}};
 const isM=d=>{if(/^\s*general services\s*$/i.test(String(d||'')))return true;try{return isMg(d)||isMgt(d)}catch(e){return/management/i.test(String(d||''))}};
 const XTR=/^\s*extra\b/i;/* EXTRA PAYROLL, EXTRA BREEDER ... have no leave: they are not listed here */
 const num=v=>{const n=parseFloat(String(v==null?'':v).replace(',','.'));return isFinite(n)?n:0};
 const r2=n=>Math.round(n*100)/100;
-const blank=()=>({def:{farm:{vl:8,sl:7},br:{vl:15,sl:7},mg:{vl:10,sl:10}},cr:{},ent:[],hx:[],same:{},dn:{},ln:{},gone:{},sc:{},dm:{},add:{}});
-const norm=o=>{o=o&&typeof o==='object'?o:{};const b=blank(),df=o.def||{};const ob=k=>o[k]&&typeof o[k]==='object'&&!Array.isArray(o[k])?o[k]:{};return{def:{farm:Object.assign({},b.def.farm,df.farm&&+df.farm.vl===15&&+df.farm.sl===15?null:df.farm),br:Object.assign({},b.def.br,df.br),mg:Object.assign({},b.def.mg,df.mg)},cr:o.cr&&typeof o.cr==='object'?o.cr:{},ent:Array.isArray(o.ent)?o.ent:[],hx:Array.isArray(o.hx)?o.hx:[],same:ob('same'),dn:ob('dn'),ln:ob('ln'),gone:ob('gone'),sc:ob('sc'),dm:ob('dm'),add:ob('add')}};
-const allowed=()=>{if(SUPER||!MYA||MYA.role==='admin')return null;const a=(MYA.pages||[]).filter(x=>String(x).indexOf('attd:')===0).map(x=>String(x).slice(5));return a.length?a:null};
+const blank=()=>({ig:{},def:{farm:{vl:8,sl:7},br:{vl:15,sl:7},mg:{vl:10,sl:10},ad:{vl:8,sl:7}},cr:{},ent:[],hx:[],same:{},dn:{},ln:{},gone:{},sc:{},dm:{},add:{},stm:{}});
+const norm=o=>{o=o&&typeof o==='object'?o:{};const b=blank(),df=o.def||{};const ob=k=>o[k]&&typeof o[k]==='object'&&!Array.isArray(o[k])?o[k]:{};return{def:{farm:Object.assign({},b.def.farm,df.farm&&+df.farm.vl===15&&+df.farm.sl===15?null:df.farm),br:Object.assign({},b.def.br,df.br),mg:Object.assign({},b.def.mg,df.mg),ad:Object.assign({},b.def.ad,df.ad)},cr:o.cr&&typeof o.cr==='object'?o.cr:{},ent:Array.isArray(o.ent)?o.ent:[],hx:Array.isArray(o.hx)?o.hx:[],same:ob('same'),dn:ob('dn'),ln:ob('ln'),gone:ob('gone'),sc:ob('sc'),dm:ob('dm'),add:ob('add'),stm:ob('stm'),ig:ob('ig')}};
+const allowed=()=>{if(SUPER||!MYA||MYA.role==='admin')return null;const P=MYA.pages||[],lv=P.filter(x=>String(x).indexOf('lvd:')===0).map(x=>String(x).slice(4));if(lv.length)return lv;const a=P.filter(x=>String(x).indexOf('attd:')===0).map(x=>String(x).slice(5));return a.length?a:null};
 const emp0=id=>{const s=(Array.isArray(STF)?STF:[]).find(s=>String(s.id)===String(id));if(s)return s;const p=((LV.D||{}).pp||{})[String(id)];if(p)return{id:String(id),name:p.n,dept:p.dept,xl:1};const a=((LV.D||{}).add||{})[String(id)];return a?{id:String(id),name:a.n,dept:a.dept,ad:1}:null};
 /* GENERAL SERVICES: Management employees whose section (or Excel sheet) in the leave Excel starts with "General Services / Gen. Services" are shown as their own department, apart from Management */
 const GSR=/^\s*gen(eral|\.)?\s*serv/i;
@@ -12623,7 +12723,9 @@ const gsOf=(s,key,D)=>!!D&&(+LV.y>=2026&&gsName(s.name)?!GSdept(s):isM(s.dept)&&
 /* a General Services row that is not in the list above is not shown (2026 on); rows added or moved there by hand stay */
 const gsHide=(x,mv)=>+LV.y>=2026&&!mv&&!x.ad&&GSdept(x)&&!gsName(x.name);
 const emp=id=>{let s=emp0(id);const n=((LV.D||{}).dn||{})[String(id)];const dm=((LV.D||{}).dm||{})[String(id)];if(s&&dm)s=Object.assign({},s,{dept:dm});else if(s&&gsOf(s,String(id),LV.D))s=Object.assign({},s,{dept:'GENERAL SERVICES'});return s&&n?Object.assign({},s,{name:n}):s};
-const cls=s=>isM(s.dept)?'mg':/^\s*broiler\b/i.test(String(s.dept||''))?'br':'farm';
+/* ADMIN / ADMIN ASSISTANT (position in 201 Files): own default credits (VL 8, SL 7). The 1-year rule still applies and the credits can be changed per employee. */
+const isAdm=s=>{try{const e=e201(s.name),p=e&&String(e.position||'');return !!p&&/\badmin(istrat\w*)?\b/i.test(p)}catch(x){return false}};
+const cls=s=>isAdm(s)?'ad':isM(s.dept)?'mg':/^\s*broiler\b/i.test(String(s.dept||''))?'br':'farm';
 const fd=s=>{const p=String(s||'').split('-');if(p.length<3)return s||'';return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})};
 const fr=e=>e.t==='il'&&!e.to?fd(e.f)+' – ongoing':(e.to&&e.to!==e.f?fd(e.f)+' – '+fd(e.to):fd(e.f));
 const endOf=e=>e.t==='il'&&!e.to?'9999-12-31':(e.to||e.f);
@@ -12633,15 +12735,48 @@ function spanDays(e){const a=String(e.f).split('-'),b=String(e.to||e.f).split('-
 const KN={vl:'Vacation Leave',sl:'Sick Leave',ml:'Maternity Leave',il:'Indefinite Leave'};
 
 async function fetchY(y){const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(KEY(y))+'&select=data,updated_at');const row=Array.isArray(r)&&r[0];return{d:norm(row&&row.data&&row.data.lv),u:row?row.updated_at:null}}
-/* read the latest copy, apply ONE change, write it back only if nobody else saved in between (so two HR users never overwrite each other) */
-async function mut(y,fn){
- for(let i=0;i<4;i++){
-  const c=await fetchY(y);fn(c.d);const now=new Date().toISOString();let ok=false;
-  if(c.u){const q=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(KEY(y))+'&updated_at=eq.'+encodeURIComponent(c.u),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({data:{lv:c.d},updated_at:now})});ok=Array.isArray(q)&&q.length>0}
-  else{const q=await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=ignore-duplicates,return=representation'},body:JSON.stringify({name:KEY(y),data:{lv:c.d},updated_at:now})});ok=Array.isArray(q)&&q.length>0}
-  if(ok){if(String(y)===LV.y)LV.D=ovl(c.d,y);return c.d}
+const rawGet=async name=>{const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(name)+'&select=data,updated_at');const row=Array.isArray(r)&&r[0];return{d:(row&&row.data&&row.data.lv)||null,u:row?row.updated_at:null}};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const sidePick=o=>{o=o||{};const ob=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};return{ent:Array.isArray(o.ent)?o.ent:[],hx:Array.isArray(o.hx)?o.hx:[],cr:ob(o.cr),ig:ob(o.ig)}};
+/* one view of the stored data for a side: the shared fields come from the pm record, the leave fields from that side */
+const compose=(md,sd,ad)=>sd==='pm'?md:Object.assign({},md,sidePick(ad));
+const ASEEN={};
+/* The Admin record starts as a copy of the Payroll Master record (so both start balanced). It is made once per year, BEFORE the first change after this update. */
+async function ensureA(y,m,force){
+ let a=await rawGet(AKEY(y));
+ if(!a.u){m=m||await fetchY(y);const init=sidePick(clone(m.d));init.ig={};
+  if(!m.u&&!force)return{d:init,u:null};
+  let why='';
+  try{const now=new Date().toISOString(),q=await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=ignore-duplicates,return=representation'},body:JSON.stringify({name:AKEY(y),data:{lv:init},updated_at:now}),_noQueue:true,_noUndo:true,_quiet:true});
+   if(Array.isArray(q)&&q.length){ASEEN[y]=1;return{d:init,u:q[0].updated_at||now}}}catch(e){why=String((e&&e.message)||e)}
+  a=await rawGet(AKEY(y));
+  if(!a.u)return{d:init,u:null,why:why||'The database did not accept the new record.'}}
+ ASEEN[y]=1;return a}
+async function writeRow(name,data,prevU){const now=new Date().toISOString();
+ const q=prevU?await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(name)+'&updated_at=eq.'+encodeURIComponent(prevU),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({data:{lv:data},updated_at:now})})
+  :await api('/rest/v1/hrd_attendance?on_conflict=name',{method:'POST',headers:{Prefer:'resolution=ignore-duplicates,return=representation'},body:JSON.stringify({name:name,data:{lv:data},updated_at:now})});
+ return Array.isArray(q)&&q.length>0?{d:data,u:q[0].updated_at||now}:null}
+/* read the latest copy, apply ONE change, write it back only if nobody else saved in between (so two users never overwrite each other). Only the record that really changed is written. */
+async function mut(y,fn,sd){
+ sd=sd||LV.side||myside();
+ if(sd==='pm'&&!ASEEN[y]){try{await ensureA(y,null,true)}catch(e){}}
+ let doneS=false,doneA=false,m=null,a=null;
+ for(let i=0;i<5;i++){
+  m=await fetchY(y);
+  if(sd==='ad'){a=await ensureA(y,m,true);if(!a.u)throw new Error('The Admin leave record could not be created in the database. '+(a.why||''))}
+  const comp=clone(compose(m.d,sd,a&&a.d)),was=clone(comp);fn(comp);
+  const diff=k=>JSON.stringify(comp[k])!==JSON.stringify(was[k]),keys=Object.keys(comp);
+  let ok=true;
+  if(sd==='pm'){if(keys.some(diff)){const w=await writeRow(KEY(y),comp,m.u);if(w)m=w;else ok=false}}
+  else{
+   if(!doneS&&keys.some(k=>SIDEF.indexOf(k)<0&&diff(k))){const md=clone(m.d);keys.forEach(k=>{if(SIDEF.indexOf(k)<0)md[k]=comp[k]});const w=await writeRow(KEY(y),md,m.u);if(w){m=w;doneS=true}else ok=false}
+   if(ok&&!doneA&&SIDEF.some(diff)){const w=await writeRow(AKEY(y),sidePick(comp),a.u);if(w){a=w;doneA=true}else ok=false}}
+  if(ok){
+   if(String(y)===LV.y){const raw={m:m,a:a||(LV.raw&&LV.raw.y===String(y)&&LV.raw.a)||null};if(!raw.a)raw.a=await ensureA(y,m);setY(raw,y)}
+   return comp}
  }
  throw new Error('Someone else is saving the leave records at the same time. Please try again.')}
+function setY(raw,y){raw.y=String(y);LV.raw=raw;LV.A={pm:ovl(raw.m.d,y),ad:ovl(compose(raw.m.d,'ad',raw.a.d),y)};LV.D=LV.A[LV.side||myside()]}
 
 function cred(s,D){const c=(D.cr||{})[String(s.id)]||{},e0=eligOf(s,D),el=(e0.st==='wait'&&(c.vl!=null||c.sl!=null))?Object.assign({},e0,{st:'pro',m:undefined}):e0;return{vl:c.vl!=null?num(c.vl):autoDef(s,D,'vl'),sl:c.sl!=null?num(c.sl):autoDef(s,D,'sl'),cv:c.vl!=null,cs:c.sl!=null,el:el}}
 function used(id,D){const u={vl:0,sl:0},n=[];D.ent.forEach(e=>{if(String(e.e)===String(id)&&KN[e.t]){if(u[e.t]!=null)u[e.t]+=num(e.n);n.push(e)}});const k=(D.cons||{})[String(id)]||{};u.vl+=num(k.vl);u.sl+=num(k.sl);return{vl:r2(u.vl),sl:r2(u.sl),n:n}}
@@ -12663,6 +12798,10 @@ html[data-theme=dark] .lvp{--vl:#4d8bd6;--sl:#c96f54;--np:#e0675d}
 .lvz-head::after{content:"";position:absolute;left:0;bottom:-1px;width:72px;height:2px;background:var(--au)}
 .lvz-back{display:inline-block;background:none;border:0;padding:0;margin:0 0 12px;color:var(--mu);font-size:13.5px;font-weight:600}
 .lvz-back:hover{color:var(--h)}
+.lvz-s[data-i]{cursor:pointer}.lvz-s[data-i]:hover{filter:brightness(.96);transform:translateY(-1px)}
+#lvrp{position:fixed;z-index:9999;width:260px;max-width:calc(100vw - 16px);background:var(--sf,#fff);color:var(--ink,#1a2233);border:1px solid var(--ln2,#d3d9e6);border-radius:12px;padding:12px 14px;box-shadow:0 14px 34px #12305c45;font-size:13px;line-height:1.45}
+#lvrp .lvrp-t{font-weight:700;color:var(--h,#12305c);margin:0 0 2px}#lvrp .lvrp-m{color:var(--mu,#66738a);font-size:12px}
+#lvrp .lvrp-r{margin:8px 0;padding:8px 10px;border-radius:8px;background:var(--soft,#eaf0f9);white-space:pre-wrap;word-break:break-word}
 .lvz-ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .lvz-head>.lvz-ctl{flex:1 1 520px;justify-content:flex-end}
 @media(max-width:640px){.lvz-head>.lvz-ctl{flex-basis:100%;justify-content:flex-start}}
@@ -12706,6 +12845,7 @@ html[data-theme=dark] .lvz-tag.warn{background:#2c2410;color:#f1d48a;border-colo
 .lvz-s.np{background:var(--np);color:#fff}
 .lvz-hd{cursor:grab;color:var(--mu);user-select:none;padding:0 3px;font-size:15px;line-height:1;letter-spacing:-2px}
 .lvz-hd:active{cursor:grabbing}
+.lvz-mb{height:24px;width:28px;border:1px solid var(--ln2);border-radius:6px;background:var(--sf);color:var(--mu);cursor:pointer;padding:0;font-size:13px;line-height:1}.lvz-mb:hover{color:var(--h);border-color:var(--g2)}.lvz-pop{z-index:9998;width:210px;background:var(--sf);border:1px solid var(--ln2);border-radius:12px;padding:10px 12px 4px;box-shadow:0 14px 34px #12305c45}.lvz-pop[hidden]{display:none}.lvz-pop label{display:block;font-size:11.5px;font-weight:700;color:var(--mu);margin:0 0 8px}.lvz-pop select{display:block;width:100%;max-width:none;height:30px;margin-top:3px;font-size:12.5px}
 .lvz-mv{height:24px;max-width:190px;font-size:11.5px;border:1px solid var(--ln2);border-radius:6px;background:var(--sf);color:var(--ink);padding:0 4px}
 .lvz-row.dragging{opacity:.4}
 .lvz-over{outline:2px dashed var(--au);outline-offset:-2px}
@@ -12758,11 +12898,27 @@ html[data-theme=dark] .lv-warn{background:#2c2410;color:#f1d48a;border-color:#5d
 .lv-fm label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:var(--mu)}.lv-fm .fi{margin:0;width:100%;border-radius:10px;font-weight:400;font-size:14px}.lv-fm .w{grid-column:1/-1}
 .lv-fm.editing{border-color:var(--au);box-shadow:0 0 0 3px color-mix(in srgb,var(--au) 22%,transparent)}
 .lv-l{width:100%;border-collapse:collapse;font-size:13px}.lvp .lv-l th,.lvp .lv-l td{padding:9px 10px;border:0;border-bottom:1px solid var(--ln);text-align:left;vertical-align:top}.lv-l th{font-size:12.5px;color:var(--mu);font-weight:700}
-.lv-l .tg{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:700;color:#fff}
+.lv-l .tg{position:static;top:auto;right:auto;height:auto;gap:0;border:0;box-shadow:none;line-height:1.5;display:inline-block;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:700;color:#fff}
 .lv-l .tg.vl{background:var(--vl)}.lv-l .tg.sl{background:var(--sl)}.lv-l .tg.ml{background:#8e4fc0}.lv-l .tg.il{background:#5f6b7d}
 .lv-fa{display:flex;gap:8px}
 .lv-l tr.lv-ed td{background:color-mix(in srgb,var(--au) 14%,transparent)}
 .lv-l td:last-child{white-space:nowrap;text-align:right}
+.lvz-side{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:12px}
+.lvz-seg button.sd.on{background:var(--g);color:#fff}
+.lvz-sdn{font-size:13.5px;color:var(--h)}
+.lvz-bc{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin:0 0 20px;padding:11px 16px;border-radius:12px;font-size:13.5px;line-height:1.5;color:var(--ink)}
+.lvz-bc.bad{border:1px solid #d93a3a88;background:color-mix(in srgb,#d93a3a 10%,var(--sf))}
+.lvz-bc.good{border:1px solid #2e7d4f66;background:color-mix(in srgb,#2e7d4f 9%,var(--sf))}
+.lvz-bcb{display:flex;gap:8px;flex-wrap:wrap}
+.lvz-dp span em.nb{color:var(--np)}
+.lvp .lvz-ct{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+.lvp .lvz-ct th,.lvp .lvz-ct td{border:0;border-top:1px solid var(--ln);padding:8px 10px;text-align:left;vertical-align:middle}
+.lvp .lvz-ct th{font-size:12px;color:var(--mu)}
+.lvz-ct th:nth-child(2),.lvz-ct th:nth-child(3){width:22%}
+.lvz-ct small{display:block;color:var(--mu);font-size:11.5px;font-weight:400}
+.lvp .lvz-ct td.a{text-align:right}.lvz-ct td.a .btn,.lvz-all .btn{margin:2px 0 2px 6px}
+.lvz-all{display:flex;flex-wrap:wrap;justify-content:flex-end;border-top:1px solid var(--ln);padding-top:8px}
+@media(max-width:640px){.lvz-ct thead{display:none}.lvp .lvz-ct tr{display:block;border-top:1px solid var(--ln);padding:8px 0}.lvp .lvz-ct td{display:block;border:0;padding:3px 0}.lvp .lvz-ct td[data-l]:before{content:attr(data-l) ": ";color:var(--mu);font-size:12px}.lvp .lvz-ct td.a{text-align:left}.lvz-ct td.a .btn{margin:4px 6px 0 0}}
 /* ---- elegant layer (Vacation & Sick Leave) ---- */
 .lvz{--lv-sh:0 1px 2px rgba(18,48,92,.05),0 10px 26px -14px rgba(18,48,92,.22);--lv-r:18px}
 html[data-theme=dark] .lvz{--lv-sh:0 1px 2px rgba(0,0,0,.35),0 12px 30px -16px rgba(0,0,0,.7)}
@@ -12860,7 +13016,7 @@ const eligOf=(s,D)=>elig(hireOf(D,String(s.id),s.name),LV.y);
 function autoDef(s,D,k){const df=num(D.def[cls(s)][k]),el=eligOf(s,D);return el.st==='wait'?0:el.st==='pro'?Math.round(df*el.m/12*2)/2:df}
 /* resigned / AWOL / end of contract / terminated (from the Status in 201 Files) */
 const SEPS=['Resigned','AWOL','End of Contract','Terminated'],SEPC={Resigned:['#ead9f5','#6a2f94'],AWOL:['#fcd9d9','#b02a2a'],'End of Contract':['#fde4cc','#9a4a05'],Terminated:['#3a1c1c','#ffffff']};
-const sepOf=s=>{const e=e201(s.name),t=e&&String(e.emp_status||'').trim().toLowerCase();let k=SEPS.find(x=>x.toLowerCase()===t);
+const sepOf=s=>{{const ov=((LV.D||{}).stm||{})[String(s.id)];if(ov&&typeof ov==='object'){if(!ov.k)return null;if(SEPS.includes(ov.k))return{k:ov.k,d:ov.d?String(ov.d).slice(0,10):''}}}const e=e201(s.name),t=e&&String(e.emp_status||'').trim().toLowerCase();let k=SEPS.find(x=>x.toLowerCase()===t);
  /* also: a 201 record that carries resignation details but whose Status was never set, and a leave-Excel section named Resigned / AWOL / End of Contract / Terminated */
  if(!k&&e&&!t&&typeof sepLike==='function'){try{if(sepLike(e))k='Resigned'}catch(x){}}
  if(!k){const sc=String(((LV.D||{}).sec||{})[String(s.id)]||''),m=/^\s*(resign|awol|end of contract|terminat)/i.exec(sc);if(m)k=SEPS.find(x=>x.toLowerCase().indexOf(m[1].toLowerCase())===0)||null}
@@ -12876,7 +13032,10 @@ function loadX(y){if(String(y)!==LVXY||LVX.length)return Promise.resolve();
   /* the order matters: the ids of the Excel dates (used when one is deleted) come from it. An incomplete list would show wrong balances. */
   if(!Array.isArray(r)||r.length<LVXN)throw new Error('The 2026 Excel leave sheets are missing or incomplete ('+(Array.isArray(r)?r.length:0)+' of '+LVXN+'). Run the leave SQL in Supabase, or ask the Admin to check your access.');
   LVX=r.map(x=>x.data);LVX.forEach((z,i)=>{if(z.sec&&SECO[z.sec]==null)SECO[z.sec]=i});BASE=null})().finally(()=>{LVXP=null}))}
-async function readY(y){try{const c=(await Promise.all([fetchY(y),loadX(y)]))[0];LV.D=ovl(c.d,y);LV.bad=false;LV.why=''}catch(e){LV.D=norm(null);LV.bad=true;LV.why=String((e&&e.message)||e)}}
+async function load2(y){const m=await fetchY(y);let a;
+ if(canEd('pm')||canEd('ad'))a=await ensureA(y,m);else{a=await rawGet(AKEY(y));if(!a.u)a={d:sidePick(clone(m.d)),u:null}}
+ return{m:m,a:a}}
+async function readY(y){try{const raw=(await Promise.all([load2(y),loadX(y)]))[0];setY(raw,y);LV.bad=false;LV.why=''}catch(e){LV.D=norm(null);LV.A=null;LV.raw=null;LV.bad=true;LV.why=String((e&&e.message)||e)}}
 function baseData(){const S=Array.isArray(STF)?STF:[];if(BASE&&BASEn===S.length)return BASE;
  const pool=mkPool(S),dm={},rows=LVX.map(r=>({r:r,s:findIn(pool,r.n)}));
  rows.forEach(z=>{if(z.s){const m=dm[z.r.x]||(dm[z.r.x]={});m[z.s.dept]=(m[z.s.dept]||0)+1}});
@@ -12911,7 +13070,7 @@ function linked(D){const M=D.same||{},from=Object.keys(M);if(!from.length)return
   if(!hd[r]&&hd[f])hd[r]=hd[f]});
  o.ent=ent;o.cr=cr;o.cons=cons;o.nt=nt;o.hd=hd;return o}
 function base(D,y){if(String(y)!==LVXY)return D;const B=baseData(),hx=new Set(D.hx||[]),o=Object.assign({},D),cr={};
- Object.keys(B.bc).forEach(k=>{const mgk=isM(B.dept[k]),dv=D.def[mgk?'mg':/^\s*broiler\b/i.test(String(B.dept[k]||''))?'br':'farm'];['vl','sl'].forEach(t=>{const v=B.bc[k][t];if(v!=null&&(mgk||num(v)!==num(dv[t]))){(cr[k]||(cr[k]={}))[t]=v}})});
+ Object.keys(B.bc).forEach(k=>{const st0=(Array.isArray(STF)?STF:[]).find(x=>String(x.id)===k),adm=!!(st0&&isAdm(st0)),mgk=isM(B.dept[k])&&!adm,dv=D.def[adm?'ad':mgk?'mg':/^\s*broiler\b/i.test(String(B.dept[k]||''))?'br':'farm'];['vl','sl'].forEach(t=>{const v=B.bc[k][t];if(v!=null&&(mgk||num(v)!==num(dv[t]))){(cr[k]||(cr[k]={}))[t]=v}})});
  Object.keys(D.cr||{}).forEach(k=>{cr[k]=Object.assign({},cr[k],D.cr[k])});
  o.cr=cr;o.ent=(D.ent||[]).concat(B.ent.filter(e=>!hx.has(e.i)));o.pp=B.pp;o.sec=B.sec;o.nt=B.nt;o.cons=B.cons;o.hd=B.hd;o.xs=B.xs;return o}
 function roster(D){const S=Array.isArray(STF)?STF:[],al=allowed(),R={},M=D.same||{},G=D.gone||{},N=D.dn||{};
@@ -12922,23 +13081,105 @@ function roster(D){const S=Array.isArray(STF)?STF:[],al=allowed(),R={},M=D.same|
 /* a name counts as "in 201 Files" when it, a name linked to it, or the 201 record the user picked is there */
 const okRow=(r,D)=>!!(r.s.ad||(D.ln||{})[r.key]||in201(r.s.name)||in201(r.orig)||Object.keys(D.same||{}).some(f=>rootOf(D.same,f)===r.key&&in201(D.same[f].n)));
 function cellsOf(u,id,D,t){const o=[],k=(D.cons||{})[String(id)]||{};for(let i=0;i<num(k[t]);i++)o.push({x:'CONSUMED',c:'cn',w:1});
- u.n.filter(e=>e.t===t).slice().sort((a,b)=>String(a.f).localeCompare(String(b.f))).forEach(e=>{const sp=spanDays(e);if(sp.length===1&&num(e.n)>0&&num(e.n)<1)o.push({x:md(sp[0])+' \u00BD',c:'f',w:.5,t:fd(sp[0])});else sp.forEach(d=>o.push({x:md(d),c:'f',w:1,t:fd(d)}))});return o}
+ u.n.filter(e=>e.t===t).slice().sort((a,b)=>String(a.f).localeCompare(String(b.f))).forEach(e=>{const sp=spanDays(e);if(sp.length===1&&num(e.n)>0&&num(e.n)<1)o.push({x:md(sp[0])+' \u00BD',c:'f',w:.5,t:fd(sp[0]),e:e,d:sp[0]});else sp.forEach(d=>o.push({x:md(d),c:'f',w:1,t:fd(d),e:e,d:d}))});return o}
 const hdTx=(D,key,name)=>{const v=(D.hd||{})[key]||h201(name)||'';return /^\d{4}-\d\d-\d\d$/.test(v)?fd(v):esc(v)};
 /* leave-credit slots: one box per credit. Filled = a leave date, dashed = still available, red = beyond the credits (NO PAY) */
 function slots(z,t){const cr=z.c[t],bl=r2(cr-z.u[t]);let cum=0,h='';
  z.cl.forEach(c=>{const ex=c.c!=='cn'&&cum>=cr;cum+=c.w;const lab=c.c==='cn'?'Used':c.x,tip=(c.c==='cn'?'Consumed':c.t||'')+(ex?' · NO PAY':'');
-  h+=`<span class="lvz-s ${c.c==='cn'?'cn':ex?'np':t}" title="${esc(tip)}">${esc(lab)}</span>`});
+  h+=`<span class="lvz-s ${c.c==='cn'?'cn':ex?'np':t}" title="${esc(tip+(c.e?' · click to see the reason':''))}"${c.e?` data-i="${esc(c.e.i)}" data-d="${esc(c.d||'')}" role="button" tabindex="0" onclick="lvRsn(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();lvRsn(this)}"`:''}>${esc(lab)}</span>`});
  for(let i=0,n=Math.min(60,Math.max(0,Math.ceil(bl)));i<n;i++)h+='<span class="lvz-s free" title="Available"></span>';
  return h?`<div class="lvz-slots">${h}</div>`:'<span class="lvz-meta">No credits</span>'}
 const isNP=(r,D)=>{const c=cred(r.s,D),u=used(r.s.id,D);if(c.el.st==='wait'&&!u.vl&&!u.sl&&!c.cv&&!c.cs)return{vl:false,sl:false};return{vl:r2(c.vl-u.vl)<=0,sl:r2(c.sl-u.sl)<=0}};
 const byName=(a,b)=>String(a.s.name||'').trim().localeCompare(String(b.s.name||'').trim());
 const yearSel=()=>{const yrs=[];for(let y=Y0-3;y<=Y0+1;y++)yrs.push(String(y));if(!yrs.includes(LV.y))yrs.push(LV.y);yrs.sort();
  return`<select id="lvys" class="lvz-f" aria-label="Year" onchange="lvSel('y',this.value)">${yrs.map(y=>`<option${LV.y===y?' selected':''}>${y}</option>`).join('')}</select>`};
-const warns=()=>edit()?'':'<div class="lv-warn">View only: you can see the leave records but cannot change them.</div>';
+const warns=()=>(LV.raw&&LV.raw.a&&LV.raw.a.why?'<div class="lv-warn">⚠ The Admin leave record could not be created in the database yet. '+esc(LV.raw.a.why)+'</div>':'')+(edit()?'':'<div class="lv-warn">View only: this is the <b>'+SN[LV.side]+'</b> record. Your account can see it but not change it. The Creator sets this in Users &amp; Access.</div>');
+/* ===== Balance check: Payroll Master vs Admin ===== */
+/* days per date of one leave type: a range is spread one day per date, the last date takes what is left */
+function dayMap(L,t){const m={};L.forEach(e=>{if(e.t!==t||!e.f)return;let rem=num(e.n);if(!(rem>0))return;let sp=spanDays(e);if(!sp.length)sp=[e.f];sp.forEach((d,i)=>{const v=r2(i===sp.length-1?rem:Math.min(1,rem));if(v<=0)return;rem=r2(rem-v);(m[d]||(m[d]=[])).push({v:v,e:e})})});return m}
+const byEmp=L=>{const o={};(L||[]).forEach(e=>{const k=String(e.e);(o[k]||(o[k]=[])).push(e)});return o};
+const rmk=L=>[...new Set(L.map(x=>String(x.r||'').trim()).filter(Boolean))].join(' / ');
+const hash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(36)};
+/* A = {pm, ad}. Gives one entry per employee whose two records differ. Compared: VL / SL credits, VL / SL days on every date, and Maternity / Indefinite leave. */
+function diffs(A,y){const sD=LV.D,sY=LV.y,out=[];LV.D=A.pm;LV.y=String(y);
+ try{const R=roster(A.pm),P=byEmp(A.pm.ent),Q=byEmp(A.ad.ent);
+  Object.keys(R).forEach(dp=>R[dp].forEach(r=>{const s=r.s,id=String(s.id),p=P[id]||[],q=Q[id]||[],items=[];
+   const add=o=>{o.sig=id+'|'+o.k+'|'+hash(o.pm+'|'+o.ad);o.ig={pm:(A.pm.ig||{})[o.sig]||null,ad:(A.ad.ig||{})[o.sig]||null};items.push(o)};
+   const c1=cred(s,A.pm),c2=cred(s,A.ad);
+   ['vl','sl'].forEach(t=>{if(c1[t]!==c2[t])add({k:'cr|'+t,type:'cr',t:t,pm:c1[t],ad:c2[t]});
+    const a=dayMap(p,t),b=dayMap(q,t);[...new Set(Object.keys(a).concat(Object.keys(b)))].sort().forEach(d=>{const x=a[d]||[],z=b[d]||[],v=r2(x.reduce((n,o)=>n+o.v,0)),w=r2(z.reduce((n,o)=>n+o.v,0));
+     if(v!==w)add({k:'d|'+t+'|'+d,type:'d',t:t,d:d,pm:v,ad:w,rp:rmk(x.map(o=>o.e)),ra:rmk(z.map(o=>o.e))})})});
+   ['ml','il'].forEach(t=>{const g=L=>{const o={};L.forEach(e=>{if(e.t===t&&e.f)(o[e.f]||(o[e.f]=[])).push(e)});return o},a=g(p),b=g(q),tx=L=>(L||[]).map(e=>(e.to||'ongoing')+(t==='ml'?':'+num(e.n):'')).sort().join(',');
+    [...new Set(Object.keys(a).concat(Object.keys(b)))].sort().forEach(f=>{const v=tx(a[f]),w=tx(b[f]);if(v!==w)add({k:'x|'+t+'|'+f,type:'x',t:t,f:f,pm:v,ad:w,lp:(a[f]||[]).map(fr).join(', '),la:(b[f]||[]).map(fr).join(', '),rp:rmk(a[f]||[]),ra:rmk(b[f]||[])})})});
+   if(items.length)out.push({id:id,key:r.key,name:String(s.name||'').trim(),dept:dp,s:s,items:items})}))}
+ finally{LV.D=sD;LV.y=sY}
+ return out.sort((a,b)=>String(a.dept).localeCompare(String(b.dept))||a.name.localeCompare(b.name))}
+const openOf=(x,sd)=>x.items.filter(i=>!i.ig[sd]);
+const nOpen=(L,sd)=>L.filter(x=>openOf(x,sd).length).length;
+/* employees with an open difference on any side this user can edit */
+const nMine=L=>L.filter(x=>['pm','ad'].filter(canEd).some(s=>openOf(x,s).length)).length;
+const plural=(n,w)=>n+' '+w+(n===1?'':'s');
+function sideBar(){const sd=LV.side,L=LV.df||[],n=nOpen(L,sd),m=L.reduce((a,x)=>a+openOf(x,sd).length,0),ig=L.reduce((a,x)=>a+x.items.length-openOf(x,sd).length,0);
+ const P=seeBoth(),vs=P?'between Payroll Master and Admin':'with the '+SN[OTH[myside()]]+' record';
+ return`<div class="lvz-side"><span class="lvz-meta"><b>Monitoring:</b></span>${P?`<div class="lvz-seg" role="group" aria-label="Monitoring">${['pm','ad'].map(k=>`<button type="button" class="sd${sd===k?' on':''}" aria-pressed="${sd===k}" onclick="lvSel('side','${k}')">${SN[k]}</button>`).join('')}</div>`:`<b class="lvz-sdn">${SN[sd]}</b>`}<span class="lvz-meta">${edit()?'You can edit this record':'View only'}</span></div>
+${LV.cmp?'':`<div class="lvz-bc ${n?'bad':'good'}" role="status"><span>${n?`<b>⚠ ${plural(n,'employee')} not balanced</b> ${vs} (${plural(m,'difference')}, ${esc(LV.y)}).`:`<b>✔ Balanced.</b> No open difference ${vs} for ${esc(LV.y)}.`}${ig?` ${ig} ignored.`:''}</span><span class="lvz-bcb"><button type="button" class="btn o sm" onclick="lvReload()" title="Read the latest records">↻ Refresh</button>${n||ig?`<button type="button" class="btn sm" onclick="lvCmp('')">${n?(edit()?'Check &amp; fix':'View differences'):'View ignored'}</button>`:''}</span></div>`}`}
+const dTx=v=>v?plural(v,'day').replace(/^([\d.]+) days?$/,(s,n)=>n+(+n>1?' days':' day')):'—';
+const itLab=i=>i.type==='cr'?i.t.toUpperCase()+' credits':i.type==='d'?i.t.toUpperCase()+' · '+fd(i.d):KN[i.t]+' from '+fd(i.f);
+const itVal=(i,sd)=>i.type==='cr'?String(i[sd]):i.type==='d'?dTx(i[sd]):((sd==='pm'?i.lp:i.la)||'—');
+const itRm=(i,sd)=>i.type==='cr'?'':(sd==='pm'?i.rp:i.ra)||'';
+function cmpPage(b){const sd=LV.side,P=seeBoth(),mine=myside(),ed=edit(),all=LV.df||[],q=String(LV.cq||'').trim().toUpperCase();
+ const L=all.filter(x=>(!LV.cid||x.id===LV.cid)&&(!q||x.name.toUpperCase().includes(q)));
+ /* only the Creator and HR Head see both records; everyone else sees their own figures */
+ const cols=P?['pm','ad']:[mine];
+ const btns=(x,i)=>{if(!ed)return'';const a=`data-id="${esc(x.id)}" data-s="${esc(i?i.sig:'')}"`;
+  return(i?`<button type="button" class="btn sm" ${a} onclick="lvGoFix(this)" title="Open the record and correct it">Fix</button>`:'')+`<button type="button" class="btn o sm" ${a} onclick="lvIgn(this)">${i?'Ignore':'Ignore all'}</button>`};
+ const val=(i,k)=>`<td data-l="${P?SN[k]:'Your record'}"><b>${esc(itVal(i,k))}</b>${itRm(i,k)?`<small>${esc(itRm(i,k))}</small>`:''}</td>`;
+ const cards=L.map(x=>{const O=openOf(x,sd);if(!O.length)return'';return`<div class="lvz-it"><div class="lvz-ith"><div><b>${esc(x.name)}</b><div class="lvz-meta">${esc(x.dept)} · ${plural(O.length,'difference')}</div></div><button type="button" class="btn o sm" data-id="${esc(x.id)}" onclick="lvOpen(this.dataset.id)">Open record</button></div>
+<table class="lvz-ct"><thead><tr><th>Item</th>${cols.map(k=>`<th>${P?SN[k]:'Your record'}</th>`).join('')}<th></th></tr></thead><tbody>${O.map(i=>`<tr><td data-l="Item">${esc(itLab(i))}</td>${cols.map(k=>val(i,k)).join('')}<td class="a">${btns(x,i)}</td></tr>`).join('')}</tbody></table>${O.length>1&&btns(x)?`<div class="lvz-all">${btns(x)}</div>`:''}</div>`}).join('');
+ const IG=[];L.forEach(x=>x.items.forEach(i=>{if(i.ig[sd])IG.push([x,i])}));
+ const lead=!ed?'View only.'+(P&&canEd(OTH[sd])?' Switch to '+SN[OTH[sd]]+' to correct that record.':''):P?'<b>Fix</b> opens the '+SN[sd]+' record so you can correct it. <b>Ignore</b> stops the notice on the '+SN[sd]+' side.':'These do not match the '+SN[OTH[sd]]+' record, which is not shown to you. Check your record: <b>Fix</b> opens it so you can correct it; <b>Ignore</b> if yours is correct.';
+ b.innerHTML=`${sideBar()}<header class="lvz-head"><div><button type="button" class="lvz-back" onclick="lvCmpX()">← Back to the leave list</button><h1>Balance check</h1><p class="lvz-lead">${esc(LV.y)}. ${lead} An ignored item comes back if a value changes.</p></div><div class="lvz-ctl"><input id="lvcq" class="lvz-f" type="search" placeholder="Search employee name" aria-label="Search employee name" value="${esc(LV.cq||'')}" oninput="lvSel('cq',this.value)">${yearSel()}${LV.cid?'<button type="button" class="btn o" onclick="lvCmp(\'\')">Show all</button>':''}<button type="button" class="btn o" onclick="lvReload()">↻ Refresh</button></div></header>
+${warns()}${cards||`<div class="lv-emp">${q?'No employee matches your search.':'✔ Nothing to fix here.'}</div>`}${IG.length?`<details${LV.igOpen?' open':''} ontoggle="lvSel('igo',this.open)"><summary>Ignored · ${IG.length}</summary>${IG.map(([x,i])=>`<div class="lvz-mt"><div><span>${esc(x.name)} · ${esc(itLab(i))}</span><div class="lvz-meta">${cols.map(k=>(P?SN[k]:'Your record')+': '+esc(itVal(i,k))).join(' · ')}${i.ig[sd].by?' · ignored by '+esc(i.ig[sd].by):''}</div></div>${ed?`<button type="button" class="btn o sm" data-s="${esc(i.sig)}" onclick="lvUnign(this.dataset.s)">Show again</button>`:''}</div>`).join('')}</details>`:''}`}
+/* "Fix": open the record at the item (credits are typed in the list, dates in the employee window) */
+window.lvGoFix=el=>{const x=(LV.df||[]).find(z=>z.id===String(el.dataset.id)),i=x&&x.items.find(z=>z.sig===el.dataset.s);if(!i)return;
+ if(i.type==='cr'){LV.cmp=false;LV.d=x.dept;LV.q=x.name;LV.t=i.t;LV.only=false;LV.sep='';body();window.scrollTo(0,0);toast('Check the '+i.t.toUpperCase()+' credits of '+x.name+'.')}
+ else{lvOpen(x.id);toast('Check '+itLab(i)+'.')}};
+window.lvCmp=id=>{const o=$('lvm');if(o)o.remove();LV.emp='';LV.chk=null;LV.cmp=true;LV.cid=String(id||'');LV.cq='';body();window.scrollTo(0,0)};
+window.lvCmpX=()=>{LV.cmp=false;LV.cid='';body();window.scrollTo(0,0)};
+window.lvReload=async()=>{await readY(LV.y);body();if(!LV.bad)toast('Latest records loaded ✔')};
+const pickItems=(id,sig,sd)=>{const x=(LV.df||[]).find(z=>z.id===id);if(!x)return null;const L=openOf(x,sd).filter(i=>!sig||i.sig===sig);return L.length?{x:x,L:L}:null};
+window.lvIgn=async el=>{const id=String(el.dataset.id),sig=el.dataset.s,sd=LV.side;if(!guard())return;
+ const P=pickItems(id,sig,sd);if(!P)return;
+ if(!confirm('Ignore '+(sig?'this difference':'these '+P.L.length+' differences')+' of '+P.x.name+' on the '+SN[sd]+' side?\n\nNo record is changed. You can show it again under “Ignored”.'))return;
+ const at=new Date().toISOString(),by=me(),ok=await save(d=>{d.ig=d.ig||{};P.L.forEach(i=>{d.ig[i.sig]={by:by,at:at}})},LV.y,'Ignored ✔',sd);
+ if(ok){try{logAct('Ignored leave difference','Leave',P.x.name+' — '+P.L.map(itLab).join('; ').slice(0,300)+' ('+LV.y+')')}catch(e){}}};
+window.lvUnign=async sig=>{if(!guard())return;const sd=LV.side;await save(d=>{if(d.ig)delete d.ig[sig]},LV.y,'Shown again ✔',sd)};
+/* ----- notice in the menu. No timer: it runs after login and when pages are opened (at most once in 5 minutes). It reads only the two "last saved" times; the records are read only when one of them changed. ----- */
+const LVN={t:0,busy:false,shown:''};
+function badge(n){['bLv','bLvP'].forEach(i=>{const e=$(i);if(e){e.textContent=n||'';e.title=n?plural(n,'employee')+' with leave not balanced':''}});if(!n){const p=$('lvnote');if(p)p.remove()}}
+function note(n){let p=$('lvnote');if(p)p.remove();p=document.createElement('div');p.id='lvnote';p.className='no-print';p.setAttribute('role','alert');
+ p.innerHTML=`<span><b>⚠ Leave not balanced</b><br>${plural(n,'employee')}: ${seeBoth()?'the Payroll Master and Admin VL / SL records do not match.':'your VL / SL record does not match the '+SN[OTH[myside()]]+' record.'}</span><span class="b"><button type="button" class="btn sm" onclick="lvNoteGo()">Check</button><button type="button" class="btn o sm" onclick="this.closest('#lvnote').remove()">Later</button></span>`;document.body.appendChild(p)}
+window.lvNoteGo=()=>{const p=$('lvnote');if(p)p.remove();LV.want=true;go('lvc')};
+window.lvNotif=async force=>{
+ if(!(canEd('pm')||canEd('ad'))){badge(0);return}if(LVN.busy)return;if(!force&&Date.now()-LVN.t<3e5)return;LVN.t=Date.now();LVN.busy=true;
+ try{const y=String(Y0),sd=['pm','ad'].filter(canEd).join('+'),f='/rest/v1/hrd_attendance?name=in.'+encodeURIComponent('("'+KEY(y)+'","'+AKEY(y)+'")');
+  const h=await api(f+'&select=name,updated_at',{_quiet:true});if(!Array.isArray(h))return;
+  if(!h.some(r=>r.name===AKEY(y)))return badge(0);
+  const sig=[y,sd,(ME&&ME.sub)||'',((MYA&&MYA.pages)||[]).join()].concat(h.map(r=>r.name+'@'+r.updated_at).sort()).join('~');
+  let n=null;try{const c=JSON.parse(localStorage.getItem('hrd_lvchk')||'null');if(c&&c.sig===sig)n=+c.n||0}catch(e){}
+  if(n===null){const rows=await api(f+'&select=name,data',{_quiet:true});if(!Array.isArray(rows))return;
+   const get=k=>{const r=rows.find(z=>z.name===k);return(r&&r.data&&r.data.lv)||null},md=norm(get(KEY(y))),ad=sidePick(get(AKEY(y))),pm=sidePick(md);
+   if(JSON.stringify([pm.ent,pm.hx,pm.cr])===JSON.stringify([ad.ent,ad.hx,ad.cr]))n=0;
+   else{if(!Array.isArray(STF))await loadS();if(!Array.isArray(STF))return;await loadX(y);n=nMine(diffs({pm:ovl(md,y),ad:ovl(compose(md,'ad',ad),y)},y))}
+   try{localStorage.setItem('hrd_lvchk',JSON.stringify({sig:sig,n:n}))}catch(e){}}
+  badge(n);
+  if(n&&LVN.shown!==sig&&PG!=='lvc'){LVN.shown=sig;note(n)}}
+ catch(e){}finally{LVN.busy=false}};
+
 /* first screen: choose a department */
 function picker(D,R,dl){
- const card=d=>{const L=R[d]||[],n=L.filter(r=>{if(sepOf(r.s))return false;const z=isNP(r,D);return z.vl||z.sl}).length;
-  return`<button type="button" class="lvz-dp" data-d="${esc(d)}" onclick="lvSel('d',this.dataset.d)"><b>${esc(d)}</b><span>${L.length} employee${L.length===1?'':'s'}${n?` · <em>${n} with no pay</em>`:''}</span></button>`};
+ const card=d=>{const L=R[d]||[],n=L.filter(r=>{if(sepOf(r.s))return false;const z=isNP(r,D);return z.vl||z.sl}).length,nb=L.filter(r=>(LV.dfm||{})[r.key]).length;
+  return`<button type="button" class="lvz-dp" data-d="${esc(d)}" onclick="lvSel('d',this.dataset.d)"><b>${esc(d)}</b><span>${L.length} employee${L.length===1?'':'s'}${n?` · <em>${n} with no pay</em>`:''}${nb?` · <em class="nb">⚠ ${nb} not balanced</em>`:''}</span></button>`};
  const have=dl.filter(d=>(R[d]||[]).length),farm=have.filter(d=>!isM(d)),mg=have.filter(d=>isM(d));
  const grp=(t,a)=>a.length?`<section class="lvz-grp"><h2>${t}</h2><div class="lvz-idx">${a.map(card).join('')}</div></section>`:'';
  return`<header class="lvz-head"><div><h1>Vacation &amp; Sick Leave</h1><p class="lvz-lead">Choose a department, or search an employee name.</p></div><div class="lvz-ctl"><input id="lvgq" class="lvz-f" type="search" placeholder="Search employee name" aria-label="Search employee name in all departments" oninput="lvGs(this.value)">${yearSel()}${edit()?'<button type="button" class="btn o" onclick="lvChk()">Check names</button>':''}${have.length>1?`<button type="button" class="btn o" data-d="__all" onclick="lvSel('d',this.dataset.d)">Show all departments</button>`:''}${have.length?'<button type="button" class="btn o" onclick="lvXls(\'all\')" title="Download every department (Vacation and Sick) as Excel">Export Excel (VL + SL)</button>':''}</div></header>
@@ -12960,8 +13201,8 @@ function list(){
   let rows='',ps=null;
   const draw=(r,nw,ns)=>{const s=r.s,key=r.key,z={c:cred(s,D),u:used(s.id,D)};z.cl=cellsOf(z.u,s.id,D,t);
    const sc=ns?'':(D.sec||{})[key]||'';if(!ns&&sc!==ps&&(sc||ps)){ps=sc;rows+=`<div class="lvz-sec" data-sec="${esc(sc)}" data-dp="${esc(dp)}">${esc(sc||'Others')}</div>`}
-   const cr=z.c[t],us=z.u[t],bl=r2(cr-us),id=esc(String(key)),nt=((D.nt||{})[key]||{})[t]||'',cu=t==='vl'?z.c.cv:z.c.cs,hired=hdTx(D,key,s.name),nm=esc(String(s.name||'').trim());const sp=sepOf(s),el=z.c.el,sc2=sp?SEPC[sp.k]:null;
-   rows+=`<div class="lvz-row${bl<=0&&!nw?' np':''}${sp?' sep':''}${nw?' nw':''}"${ns?'':` data-sec="${esc(sc)}" data-dp="${esc(dp)}"`}><div class="lvz-who"><div class="lvz-nmw">${ed&&!ns?`<span class="lvz-hd" draggable="true" data-id="${id}" title="Drag to another class">&#8942;&#8942;</span>`:''}<button type="button" class="lvz-nm${sp?' sp':''}" data-id="${id}" onclick="lvOpen(this.dataset.id)"${sc2?` style="background:${sc2[0]};color:${sc2[1]}"`:''}>${nm}</button>${sp?`<span class="lvz-sep" style="background:${sc2[0]};color:${sc2[1]}" title="Status in 201 Files">${esc(sp.k)}${sp.d?' · '+esc(fd(sp.d)):''}</span>`:''}</div><div class="lvz-meta">${hired?`<span>Hired ${hired}</span>`:''}${ed&&!ns&&dl.length>1?`<select class="lvz-mv lvz-dm" data-id="${id}" title="Move to another department (leave list only)" aria-label="Department" onchange="lvDept(this.dataset.id,this.value)">${dl.map(o=>`<option value="${esc(o)}"${o===dp?' selected':''}>${esc(o)}</option>`).join('')}</select>`:''}${(D.dm||{})[key]?`<span class="lvz-tag" title="Moved here from ${esc((emp0(key)||{}).dept||'')} (leave list only)">Moved</span>`:''}${ed&&!ns&&SO.length?`<select class="lvz-mv" data-id="${id}" title="Class (you can also drag the &#8942;&#8942; handle)" onchange="lvMove(this.dataset.id,this.value)"><option value=""${sc?'':' selected'}>Others (no class)</option>${SO.map(o=>`<option value="${esc(o)}"${o===sc?' selected':''}>${esc(o)}</option>`).join('')}</select>`:''}${el.st==='pro'&&el.m!=null&&!(t==='vl'?z.c.cv:z.c.cs)?`<span class="lvz-tag" title="1 year of service reached on ${esc(fd(el.on))}. Credits = default ÷ 12 × ${el.m} month(s) left in ${esc(LV.y)}. You can type a different number.">Prorated ${el.m}/12</span>`:''}${okRow(r,D)?'':ed?`<button type="button" class="lvz-tag warn" data-id="${id}" title="Check if this is the same person as another name" onclick="lvChk(this.dataset.id)">Not in 201 \u00B7 check</button>`:'<span class="lvz-tag warn" title="Not in 201 Files">Not in 201</span>'}${s.xl?'<span class="lvz-tag" title="Only in the Excel sheet, not in the payroll staff list">Sheet only</span>':''}${s.ad?'<span class="lvz-tag" title="Added here in Leave. Not in 201 Files or Payroll.">Added</span>':''}</div></div>
+   const cr=z.c[t],us=z.u[t],bl=r2(cr-us),id=esc(String(key)),nt=((D.nt||{})[key]||{})[t]||'',cu=t==='vl'?z.c.cv:z.c.cs,hired=hdTx(D,key,s.name),nm=esc(String(s.name||'').trim());const sp=sepOf(s),el=z.c.el,sc2=sp?SEPC[sp.k]:null,nbc=(LV.dfm||{})[key]||0;
+   rows+=`<div class="lvz-row${bl<=0&&!nw?' np':''}${sp?' sep':''}${nw?' nw':''}"${ns?'':` data-sec="${esc(sc)}" data-dp="${esc(dp)}"`}><div class="lvz-who"><div class="lvz-nmw">${ed&&!ns?`<span class="lvz-hd" draggable="true" data-id="${id}" title="Drag to another class">&#8942;&#8942;</span>`:''}<button type="button" class="lvz-nm${sp?' sp':''}" data-id="${id}" onclick="lvOpen(this.dataset.id)"${sc2?` style="background:${sc2[0]};color:${sc2[1]}"`:''}>${nm}</button>${sp?`<span class="lvz-sep" style="background:${sc2[0]};color:${sc2[1]}" title="Status in 201 Files">${esc(sp.k)}${sp.d?' · '+esc(fd(sp.d)):''}</span>`:''}</div><div class="lvz-meta">${nbc?`<button type="button" class="lvz-tag warn" data-id="${id}" onclick="lvCmp(this.dataset.id)" title="${plural(nbc,'difference')}">⚠ Not balanced</button>`:''}${hired?`<span>Hired ${hired}</span>`:''}${ed?`<span class=\"lvz-mn\"><button type=\"button\" class=\"lvz-mb\" title=\"Department, class and status\" aria-label=\"Edit department, class and status\" onclick=\"lvMn(this)\">&#9881;</button><div class=\"lvz-pop\" hidden>`:''}${ed&&!ns&&dl.length>1?`<label>Department<select class="lvz-mv lvz-dm" data-id="${id}" title="Move to another department (leave list only)" aria-label="Department" onchange="lvDept(this.dataset.id,this.value)">${dl.map(o=>`<option value="${esc(o)}"${o===dp?' selected':''}>${esc(o)}</option>`).join('')}</select></label>`:''}${ed&&!ns&&SO.length?`<label>Class<select class="lvz-mv" data-id="${id}" title="Class (you can also drag the &#8942;&#8942; handle)" onchange="lvMove(this.dataset.id,this.value)"><option value=""${sc?'':' selected'}>Others (no class)</option>${SO.map(o=>`<option value="${esc(o)}"${o===sc?' selected':''}>${esc(o)}</option>`).join('')}</select></label>`:''}${ed?`<label>Status<select class=\"lvz-mv lvz-st\" data-id=\"${id}\" title=\"Status of this employee. Choose Resigned, AWOL, End of Contract or Terminated if the person is no longer active (leave list only; 201 Files is not changed).\" aria-label=\"Status\" onchange=\"lvSt(this.dataset.id,this.value)\"><option value=\"\"${sp?'':' selected'}>Active</option>${SEPS.map(o=>`<option value=\"${esc(o)}\"${sp&&sp.k===o?' selected':''}>${esc(o)}</option>`).join('')}</select></label>`:''}${ed?`</div></span>`:''}${(D.dm||{})[key]?`<span class="lvz-tag" title="Moved here from ${esc((emp0(key)||{}).dept||'')} (leave list only)">Moved</span>`:''}${el.st==='pro'&&el.m!=null&&!(t==='vl'?z.c.cv:z.c.cs)?`<span class="lvz-tag" title="1 year of service reached on ${esc(fd(el.on))}. Credits = default ÷ 12 × ${el.m} month(s) left in ${esc(LV.y)}. You can type a different number.">Prorated ${el.m}/12</span>`:''}${okRow(r,D)?'':ed?`<button type="button" class="lvz-tag warn" data-id="${id}" title="Check if this is the same person as another name" onclick="lvChk(this.dataset.id)">Not in 201 \u00B7 check</button>`:'<span class="lvz-tag warn" title="Not in 201 Files">Not in 201</span>'}${s.xl?'<span class="lvz-tag" title="Only in the Excel sheet, not in the payroll staff list">Sheet only</span>':''}${s.ad?'<span class="lvz-tag" title="Added here in Leave. Not in 201 Files or Payroll.">Added</span>':''}</div></div>
 <div class="lvz-days">${slots(z,t)}${nw?`<div class="lvz-rm"><b>1 year of service on ${esc(fd(el.on))}.</b> Leave credits start then${el.m?` (prorated ${el.m}/12 of ${esc(LV.y)})`:''}. You can type credits in the Credits box to give leave now.</div>`:''}${nt?`<div class="lvz-rm">${esc(nt)}</div>`:''}</div>
 <div class="lvz-cr"><span class="lvz-lbl">Credits</span><input class="lv-in${cu?' c':''}" type="number" min="0" step="0.5" value="${cr}" data-id="${id}" data-k="${t}" aria-label="${t.toUpperCase()} credits of ${nm}" onchange="lvCr(this)"${nw?' title="No credits yet (under 1 year of service). Type a number to give credits now."'+dis:dis}></div>
 <div class="lvz-us"><span class="lvz-lbl">Used</span><span class="lvz-num">${us}</span></div>
@@ -12982,23 +13223,27 @@ function ddInit(box){if(!box||box._dd)return;box._dd=1;
 const deptList=R=>{const dl=depts().filter(d=>!XTR.test(String(d||'')));Object.keys(R).forEach(d=>{if(!dl.includes(d))dl.push(d)});return dl};
 function body(){
   const b=$('lvb');if(PG!=='lvc'||!b)return;
+ if(!canView('pm')&&!canView('ad')){b.innerHTML='<div class="lv-emp">You do not have access to the leave monitoring.</div>';return}
+ if(!canView(LV.side)){LV.side=myside();if(LV.A)LV.D=LV.A[LV.side]}
  if(LV.bad){b.innerHTML=`<header class="lvz-head"><div><h1>Vacation &amp; Sick Leave</h1></div><div class="lvz-ctl">${yearSel()}</div></header><div class="lv-warn">⚠ The leave records could not be loaded, so no balances are shown. ${esc(LV.why||'')}<br><button class="btn o sm" style="margin-top:8px" onclick="lvc()">Try again</button></div>`;return}
+ LV.df=LV.A?diffs(LV.A,LV.y):[];LV.dfm={};LV.df.forEach(x=>{const n=openOf(x,LV.side).length;if(n)LV.dfm[x.key]=n});if(LV.A&&LV.y===String(Y0))badge(nMine(LV.df));
+ if(LV.cmp){const a=document.activeElement,k=a&&a.id==='lvcq';cmpPage(b);if(k){const e=$('lvcq');e.focus();e.setSelectionRange(e.value.length,e.value.length)}return}
  const D=LV.D||norm(null),ed=edit(),t=LV.t==='sl'?'sl':'vl',R=roster(D),dl=deptList(R);
  if(LV.d&&LV.d!=='__all'&&!dl.includes(LV.d))LV.d='';
- if(!LV.d){b.innerHTML=picker(D,R,dl);return}
+ if(!LV.d){b.innerHTML=sideBar()+picker(D,R,dl);return}
  /* keep the cursor in the same box after a save redraws the page */
  const a=document.activeElement,keep=a&&b.contains(a)&&a.classList.contains('lv-in')?a.dataset.id:null;
  const show=LV.d==='__all'?dl:[LV.d],all=[].concat(...show.map(d=>R[d]||[])),np=all.filter(r=>!sepOf(r.s)&&isNP(r,D)[t]).length;
  if(!np)LV.only=false;
  const miss=p201()?all.filter(r=>!okRow(r,D)).length:null,hid=Object.keys(D.same||{}).length+Object.keys(D.gone||{}).length+Object.keys(D.dn||{}).length;
- const dinp=(c,k)=>`<input type="number" min="0" step="0.5" value="${D.def[c][k]}" data-c="${c}" data-k="${k}" onchange="lvDef(this)"${ed?'':' disabled'}>`;
- b.innerHTML=`<header class="lvz-head"><div><button type="button" class="lvz-back" onclick="lvSel('d','')">← Departments</button><h1>${LV.d==='__all'?'All departments':esc(LV.d)}</h1><p class="lvz-lead">${all.length} employee${all.length===1?'':'s'}. ${t==='vl'?'Vacation':'Sick'} leave for ${esc(LV.y)}.</p></div>
+ const dinp=(c,k)=>`<input type="number" min="0" step="0.5" value="${D.def[c][k]}" data-c="${c}" data-k="${k}" onchange="lvDef(this)"${canDef()&&!LV.bad?'':' disabled'}>`;
+ b.innerHTML=`${sideBar()}<header class="lvz-head"><div><button type="button" class="lvz-back" onclick="lvSel('d','')">← Departments</button><h1>${LV.d==='__all'?'All departments':esc(LV.d)}</h1><p class="lvz-lead">${all.length} employee${all.length===1?'':'s'}. ${t==='vl'?'Vacation':'Sick'} leave for ${esc(LV.y)}.</p></div>
 <div class="lvz-ctl"><div class="lvz-seg" role="group" aria-label="Leave type">${[['vl','Vacation'],['sl','Sick']].map(([k,n])=>`<button type="button" class="${k}${t===k?' on':''}" aria-pressed="${t===k}" onclick="lvSel('t','${k}')">${n}</button>`).join('')}</div>
 <select id="lvds" class="lvz-f" aria-label="Department" onchange="lvSel('d',this.value)"><option value="__all"${LV.d==='__all'?' selected':''}>All departments</option>${dl.filter(d=>(R[d]||[]).length).map(d=>`<option value="${esc(d)}"${LV.d===d?' selected':''}>${esc(d)}</option>`).join('')}</select>${yearSel()}
-<input id="lvq" class="lvz-f" type="search" placeholder="Search employee name" aria-label="Search employee name" value="${esc(LV.q)}" oninput="lvSel('q',this.value)">${ed&&typeof window.atLvOk==='function'&&window.atLvOk()?'<button type="button" class="btn o" onclick="lvToAtt()" title="Put the VL / SL of a cutoff into the attendance. No credits left = no pay">\u21C4 Sync to Attendance</button>':''}<button type="button" class="btn o" onclick="lvXls()" title="Download this list as Excel, same as on screen">Export Excel</button>${ed?'<button type="button" class="btn" onclick="lvAddEmp()" title="Add an employee to the leave list">+ Add employee</button>':''}</div></header>
+<input id="lvq" class="lvz-f" type="search" placeholder="Search employee name" aria-label="Search employee name" value="${esc(LV.q)}" oninput="lvSel('q',this.value)">${ed&&LV.side==='ad'&&typeof window.atLvOk==='function'&&window.atLvOk()?'<button type="button" class="btn o" onclick="lvToAtt()" title="Put the VL / SL of a cutoff into the attendance. No credits left = no pay">\u21C4 Sync to Attendance</button>':''}<button type="button" class="btn o" onclick="lvXls()" title="Download this list as Excel, same as on screen">Export Excel</button>${ed?'<button type="button" class="btn" onclick="lvAddEmp()" title="Add an employee to the leave list">+ Add employee</button>':''}</div></header>
 ${warns()}${miss===null?'<div class="lv-warn">The 201 Files could not be checked (not loaded for this account).</div>':''}${miss||(ed&&hid)?`<div class="lvz-check"><span>${miss?`<b>${miss} name${miss>1?'s are':' is'} not in 201 Files.</b>${ed?` Check if ${miss>1?'they are':'it is'} the same person as another name, or remove ${miss>1?'them':'it'}.`:''}`:'Some names were linked, renamed or removed.'}</span>${ed?'<button type="button" class="btn o sm" onclick="lvChk()">Check names</button>':''}</div>`:''}<div class="lvz-bar"><div class="lvz-key"><span><i class="lvz-s ${t}"></i>Leave taken</span><span><i class="lvz-s free"></i>Available</span><span><i class="lvz-s np"></i>No pay</span></div>${np?`<button type="button" class="lvz-only${LV.only?' on':''}" aria-pressed="${!!LV.only}" onclick="lvSel('np')">${LV.only?'Show everyone':`With no credits left`}</button>`:''}${SEPS.map(k=>[k,all.filter(r=>{const x=sepOf(r.s);return x&&x.k===k}).length]).filter(x=>x[1]).map(([k,n])=>{const c=SEPC[k];return`<button type="button" class="lvz-only lvz-sc${LV.sep===k?' on':''}" style="${LV.sep===k?`background:${c[0]};color:${c[1]};border-color:${c[0]}`:`color:${c[0]==='#3a1c1c'?c[0]:c[1]};border-color:${c[1]}55`}" aria-pressed="${LV.sep===k}" onclick="lvSel('sep','${k}')" title="${LV.sep===k?'Back to the active employees':'Show the '+k+' employees'}">${esc(k)} · ${n}</button>`}).join('')}</div>
 <div id="lvl"></div>
-<details${LV.defOpen?' open':''} ontoggle="lvSel('def',this.open)"><summary>Default credits per employee, ${esc(LV.y)}</summary><div class="lvz-def"><div>Broiler <label>VL ${dinp('br','vl')}</label><label>SL ${dinp('br','sl')}</label></div><div>Other farm departments <label>VL ${dinp('farm','vl')}</label><label>SL ${dinp('farm','sl')}</label></div><div>Management (follows the uploaded Excel credits; this is only for those without one) <label>VL ${dinp('mg','vl')}</label><label>SL ${dinp('mg','sl')}</label></div></div><small>Employees with less than 1 year of service have no credits yet (they are listed at the bottom with the date their credits start). In the year of the 1st anniversary the default is divided by 12 and multiplied by the months left in that year (the anniversary month counts, rounded to 0.5). A new default applies to everyone without custom credits. To give one employee different credits, type the number in the list (a gold border means custom). Delete the number or press ↺ to go back to the default.</small></details>
+<details${LV.defOpen?' open':''} ontoggle="lvSel('def',this.open)"><summary>Default credits per employee, ${esc(LV.y)}</summary><div class="lvz-def"><div>Broiler <label>VL ${dinp('br','vl')}</label><label>SL ${dinp('br','sl')}</label></div><div>Other farm departments <label>VL ${dinp('farm','vl')}</label><label>SL ${dinp('farm','sl')}</label></div><div>Management (follows the uploaded Excel credits; this is only for those without one) <label>VL ${dinp('mg','vl')}</label><label>SL ${dinp('mg','sl')}</label></div><div>Admin / Admin Assistant (position in 201 Files) <label>VL ${dinp('ad','vl')}</label><label>SL ${dinp('ad','sl')}</label></div></div><small>Employees with less than 1 year of service have no credits yet (they are listed at the bottom with the date their credits start). In the year of the 1st anniversary the default is divided by 12 and multiplied by the months left in that year (the anniversary month counts, rounded to 0.5). A new default applies to everyone without custom credits. To give one employee different credits, type the number in the list (a gold border means custom). Delete the number or press ↺ to go back to the default.</small></details>
 `;
  list();
  if(keep){const el=[...b.querySelectorAll('.lv-in')].find(x=>x.dataset.id===keep);if(el)el.focus({preventScroll:true})}}
@@ -13006,6 +13251,7 @@ ${warns()}${miss===null?'<div class="lv-warn">The 201 Files could not be checked
 
 window.lvc=async function(){
  LV.d='';LV.q='';LV.only=false;LV.sep='';LV.chk=null;LV.emp='';
+ LV.side=myside();LV.cmp=!!LV.want;LV.cid='';LV.cq='';if(LV.want){LV.want=false;LV.y=String(Y0)}
  const m=$('main');m.innerHTML='<h1>Vacation &amp; Sick Leave</h1><p class="sub">Loading…</p>';
  try{if(STF===undefined||STF===null)await loadS()}catch(e){}
  if(PG!=='lvc')return;
@@ -13015,6 +13261,9 @@ window.lvc=async function(){
  m.innerHTML=shell();body()};
 
 window.lvSel=async(k,v)=>{
+ if(k==='side'){LV.side=(v==='pm'||v==='ad')&&canView(v)?v:myside();if(LV.A)LV.D=LV.A[LV.side];LV.only=false;return body()}
+ if(k==='cq'){LV.cq=v;return body()}
+ if(k==='igo'){LV.igOpen=!!v;return}
  if(k==='q'){LV.q=v;return list()}
  if(k==='np'){LV.only=!LV.only;LV.sep='';return body()}
  if(k==='sep'){LV.sep=LV.sep===v?'':v;LV.only=false;return body()}
@@ -13024,12 +13273,22 @@ window.lvSel=async(k,v)=>{
  if(k==='y'){LV.y=v;await readY(v);body()}};
 
 const guard=()=>{if(!edit()||LV.bad){toast('View only: you cannot change leave records.');return false}return true};
-async function save(fn,y,okMsg){try{await mut(y||LV.y,fn);if(okMsg)toast(okMsg);return true}catch(e){alert('Could not save: '+(e.message||e));try{LV.D=ovl((await fetchY(LV.y)).d,LV.y)}catch(x){}return false}finally{body();if($('lvm')){if(LV.emp)modal();else if(LV.chk)chkDraw()}}}
+async function save(fn,y,okMsg,sd){try{await mut(y||LV.y,fn,sd);if(okMsg)toast(okMsg);return true}catch(e){alert('Could not save: '+(e.message||e));await readY(LV.y);return false}finally{body();if($('lvm')){if(LV.emp)modal();else if(LV.chk)chkDraw()}}}
 
-window.lvDef=async el=>{if(!guard()){body();return}const c=el.dataset.c,k=el.dataset.k,v=Math.max(0,num(el.value));await save(d=>{d.def[c][k]=v},LV.y,'Default credits saved ✔')};
+window.lvDef=async el=>{if(!canDef()){toast('Default credits apply to both records. You need edit access to the Payroll Master record, or be the Creator or HR Head.');body();return}if(!guard()){body();return}const c=el.dataset.c,k=el.dataset.k,v=Math.max(0,num(el.value));await save(d=>{d.def[c][k]=v},LV.y,'Default credits saved ✔')};
 window.lvCr=async el=>{if(!guard()){body();return}const id=String(el.dataset.id),k=el.dataset.k,s=emp(id);if(!s)return;const raw=String(el.value).trim(),df=LV.D.def[cls(s)][k];
  await save(d=>{const o=d.cr[id]||(d.cr[id]={}),dv=autoDef(s,Object.assign({},LV.D,{def:d.def}),k);const bq=bcOf(id,k);if(raw===''||(num(raw)===num(dv)&&!(bq!=null&&num(bq)!==num(dv))))delete o[k];else o[k]=Math.max(0,num(raw));if(!Object.keys(o).length)delete d.cr[id]},LV.y,'Credits saved ✔');
  try{logAct('Changed leave credits','Leave',(s.name||'')+' — '+k.toUpperCase()+' '+(raw===''?'default':raw)+' ('+LV.y+')')}catch(e){}};
+/* mark an employee Resigned / AWOL / End of Contract / Terminated (or back to Active) in the leave list. A choice here wins over the Status in 201 Files. */
+window.lvSt=async(id,k)=>{if(!guard()){body();return}id=String(id);const s=emp(id);if(!s)return;k=String(k||'');const cur=sepOf(s);if((cur?cur.k:'')===k){body();return}
+ let d0='';if(k){const t=prompt('Date of '+k+' for '+String(s.name).trim()+' (YYYY-MM-DD). Leave blank if not known:',new Date().toISOString().slice(0,10));if(t===null){body();return}d0=t.trim();if(d0&&!/^\d{4}-\d\d-\d\d$/.test(d0)){toast('Please use the format YYYY-MM-DD.');body();return}}
+ let au=null;{const D0=LV.D,keep=D0.stm;D0.stm={};try{au=sepOf(s)}catch(e){}D0.stm=keep}
+ const ok=await save(d=>{d.stm=d.stm||{};if(k)d.stm[id]={k:k,d:d0};else if(au)d.stm[id]={k:''};else delete d.stm[id]},LV.y,k?'Marked '+k+' ✔':'Marked Active ✔');
+ if(ok){try{logAct('Leave list status','Leave',String(s.name).trim()+' → '+(k||'Active')+(d0?' ('+d0+')':'')+' · '+s.dept+', '+LV.y)}catch(e){}}};
+/* one small button per employee opens the Department / Class / Status choices */
+window.lvMnX=()=>{document.querySelectorAll('.lvz-pop').forEach(x=>{x.hidden=true})};
+window.lvMn=b=>{const p=b.parentNode.querySelector('.lvz-pop');if(!p)return;const was=!p.hidden;lvMnX();if(was)return;p.hidden=false;p.style.position='fixed';const r=b.getBoundingClientRect(),w=p.offsetWidth,h=p.offsetHeight;p.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';p.style.top=(r.bottom+4+h>innerHeight?Math.max(8,r.top-h-4):r.bottom+4)+'px'};
+if(!window._lvMnB){window._lvMnB=1;document.addEventListener('mousedown',e=>{if(!(e.target.closest&&e.target.closest('.lvz-mn')))lvMnX()},true);document.addEventListener('keydown',e=>{if(e.key==='Escape')lvMnX()},true);window.addEventListener('scroll',e=>{if(!(e.target&&e.target.closest&&e.target.closest('.lvz-pop')))lvMnX()},true)}
 window.lvMove=async(id,sec)=>{if(!guard())return;id=String(id);const s=emp(id);if(!s)return;const cur=((LV.D||{}).sec||{})[id]||'';sec=String(sec||'');if(sec===cur)return;
  const ok=await save(d=>{d.sc=d.sc||{};d.sc[id]=sec||'__none'},LV.y,'Moved to '+(sec||'Others')+' ✔');
  if(ok){try{logAct('Moved leave class','Leave',s.name+' → '+(sec||'Others')+' ('+s.dept+', '+LV.y+')')}catch(e){}}};
@@ -13179,7 +13438,7 @@ window.lvXls=function(mode){
   const nb=Math.min(60,Math.max(15,...A.concat(B,C).map(x=>x.sl.length))),last=nb+7,cC=nb+4,cU=nb+5,cL=nb+6,cR=nb+7,TT=t==='vl'?'Vacation':'Sick';
   const S=xgSheet(sn(dp,t));S.cols=[38,14,24].concat(Array(nb).fill(9),[10,9,9,42]);
   S.tab=t==='vl'?NAVY:'FF8A3A25';
-  S.put(1,1,last,'Vacation & Sick Leave · '+dp,{fn:'Georgia',sz:18,b:1,col:'FFF5EBD0',fill:NAVY,h:'left',ind:1});
+  S.put(1,1,last,'Vacation & Sick Leave · '+dp+' · '+SN[LV.side],{fn:'Georgia',sz:18,b:1,col:'FFF5EBD0',fill:NAVY,h:'left',ind:1});
   S.put(2,1,last,TT+' leave · '+LV.y+'   |   Rayanton Farms & Livestock Corp.   |   Exported '+today,{sz:9,col:'FFB9C9E2',fill:NAVY,h:'left',ind:1,bb:'medium:'+GOLD});
   S.put(3,1,3,'Used, Left and NO PAY update by themselves when you edit Credits or a date box.',{sz:8,i:1,col:'FF66738A',fill:LG,h:'left',ind:1,wrap:1});
   const chip=(c1,txt,st)=>S.put(3,c1,c1+2,txt,Object.assign({sz:8,h:'center',b:1,bl:WH,br:WH,bt:WH,bb:WH},st));
@@ -13216,7 +13475,7 @@ window.lvXls=function(mode){
   {const n=A.length+B.length+C.length;S.hts[r0+1]=22;S.put(r0+1,1,last,'End of list · '+n+' employee'+(n===1?'':'s')+'  ·  Rayanton Farms & Livestock Corp.',{sz:9,i:1,col:'FF8793A6',h:'left',ind:1,bt:'medium:'+GOLD})}
   S.freeze=4;S.fit=1;S.orient='landscape';sheets.push(S)}));
  if(!sheets.length)return toast('Nothing to export.');
- const slug=v=>String(v||'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,''),fn='Leave-'+LV.y+'-'+(all?'All-VL-SL':(deps.length===1?slug(deps[0]):'All')+'-'+types[0].toUpperCase())+'.xlsx';
+ const slug=v=>String(v||'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,''),fn='Leave-'+(LV.side==='ad'?'Admin':'PayrollMaster')+'-'+LV.y+'-'+(all?'All-VL-SL':(deps.length===1?slug(deps[0]):'All')+'-'+types[0].toUpperCase())+'.xlsx';
  const b=xgBuild(sheets),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},4000);
  try{logAct('Exported leave list','Leave',fn)}catch(e){}toast('Exported ✔')};
 
@@ -13229,13 +13488,13 @@ window.lvEd=i=>{if(!guard())return;{const x=(LV.D.ent||[]).find(z=>z.i===i);if(x
 window.lvEdX=()=>{LV.ed='';modal()};
 function modal(){
  const o=$('lvm'),s=emp(LV.emp);if(!o||!s)return;const D=LV.D||norm(null),c=cred(s,D),u=used(s.id,D),ed=edit()&&!LV.bad;
- const EE=LV.ed?(D.ent||[]).find(x=>x.i===LV.ed&&String(x.e)===String(s.id)):null,bv=r2(c.vl-u.vl),bs=r2(c.sl-u.sl),L=u.n.slice().sort((a,b)=>String(b.f).localeCompare(String(a.f)));
+ const EE=LV.ed?(D.ent||[]).find(x=>x.i===LV.ed&&String(x.e)===String(s.id)):null,bv=r2(c.vl-u.vl),bs=r2(c.sl-u.sl),L=u.n.slice().sort((a,b)=>String(b.f).localeCompare(String(a.f))),NTX=(D.nt||{})[String(s.id)]||{};
  const BXs=(typeof BX!=='undefined'?BX:'background:var(--sf);color:var(--ink);border-radius:14px;max-width:780px;width:100%;max-height:88vh;overflow:auto;padding:20px');
- o.innerHTML=`<div class="lvp" style="${BXs};max-width:760px">${CSS}<div style="display:flex;gap:10px;align-items:flex-start"><h2 style="flex:1;margin:0;font-size:18px">${esc(s.name)}<small style="display:block;font-weight:400;color:var(--mu);font-size:12px;margin-top:2px">${esc(s.dept)} · ${esc(LV.y)}</small></h2>${edit()&&!LV.bad?'<button class="btn o sm" data-id="'+esc(String(s.id))+'" onclick="lvChk(this.dataset.id)">Same person?</button><button class="btn o sm lvz-del" data-id="'+esc(String(s.id))+'" onclick="lvNmDel(this.dataset.id)">Remove name</button>':''}<button class="btn o sm" onclick="lvClose()">Close</button></div>
-<div class="lv-sum"><div><b>Vacation Leave (VL)</b><span>Credits ${c.vl} · Used ${u.vl} · Balance <span class="lv-b ${balCls(bv)}">${bv}</span></span></div><div><b>Sick Leave (SL)</b><span>Credits ${c.sl} · Used ${u.sl} · Balance <span class="lv-b ${balCls(bs)}">${bs}</span></span></div></div>
+ o.innerHTML=`<div class="lvp" style="${BXs};max-width:760px">${CSS}<div style="display:flex;gap:10px;align-items:flex-start"><h2 style="flex:1;margin:0;font-size:18px">${esc(s.name)}<small style="display:block;font-weight:400;color:var(--mu);font-size:12px;margin-top:2px">${esc(s.dept)} · ${esc(LV.y)} · ${SN[LV.side]} record</small></h2>${edit()&&!LV.bad?'<button class="btn o sm" data-id="'+esc(String(s.id))+'" onclick="lvChk(this.dataset.id)">Same person?</button><button class="btn o sm lvz-del" data-id="'+esc(String(s.id))+'" onclick="lvNmDel(this.dataset.id)">Remove name</button>':''}<button class="btn o sm" onclick="lvClose()">Close</button></div>
+${(()=>{const x=(LV.df||[]).find(z=>z.id===String(s.id)),n=x?openOf(x,LV.side).length:0;return n?`<div class="lvz-bc bad"><span><b>⚠ Not balanced:</b> ${plural(n,'difference')} ${seeBoth()?'between Payroll Master and Admin':'with the '+SN[OTH[myside()]]+' record'}.</span><span class="lvz-bcb"><button type="button" class="btn sm" data-id="${esc(String(s.id))}" onclick="lvCmp(this.dataset.id)">Check &amp; fix</button></span></div>`:''})()}<div class="lv-sum"><div><b>Vacation Leave (VL)</b><span>Credits ${c.vl} · Used ${u.vl} · Balance <span class="lv-b ${balCls(bv)}">${bv}</span></span></div><div><b>Sick Leave (SL)</b><span>Credits ${c.sl} · Used ${u.sl} · Balance <span class="lv-b ${balCls(bs)}">${bs}</span></span></div></div>
 ${ed?`<div class="lv-fm${EE?' editing':''}"><b>${EE?'Edit leave':'Add leave'}</b><label>Type<select id="lvt" class="fi" onchange="lvTy()"><option value="vl"${EE&&EE.t==='vl'?' selected':''}>Vacation Leave (VL)</option><option value="sl"${EE&&EE.t==='sl'?' selected':''}>Sick Leave (SL)</option><option value="ml"${EE&&EE.t==='ml'?' selected':''}>Maternity Leave</option><option value="il"${EE&&EE.t==='il'?' selected':''}>Indefinite Leave</option></select></label><label>Date of leave (from)<input id="lvf" type="date" class="fi" onchange="lvCalc('f')" value="${EE?esc(EE.f):''}"></label><label>Until (leave blank if 1 day)<input id="lvto" type="date" class="fi" onchange="lvCalc('t')" value="${EE&&EE.to&&EE.to!==EE.f?esc(EE.to):''}"${EE&&EE.t==='il'?' disabled':''}></label><label>Days<input id="lvd" type="number" min="0.5" step="0.5" class="fi" value="${EE?(EE.t==='il'?'':esc(String(EE.n))):1}"${EE&&EE.t==='il'?' disabled':''}></label><label class="w">Remarks<input id="lvr" class="fi" placeholder="optional (e.g. fever, family event)" value="${EE?esc(EE.r||''):''}"></label><div class="w lv-fa"><button class="btn ok" onclick="lvAdd()">${EE?'Save changes':'Add leave'}</button>${EE?'<button class="btn o" onclick="lvEdX()">Cancel</button>':''}</div></div>`:''}
 <b style="font-size:13px">Leave dates in ${esc(LV.y)}</b>
-${L.length?`<div style="overflow-x:auto"><table class="lv-l"><thead><tr><th>Type</th><th>Date</th><th>Days</th><th>Remarks</th><th>Added by</th><th></th></tr></thead><tbody>${L.map(e=>`<tr${EE&&EE.i===e.i?' class="lv-ed"':''}><td><span class="tg ${esc(e.t)}">${esc(String(e.t).toUpperCase())}</span></td><td>${esc(fr(e))}</td><td>${e.t==='il'&&!e.to?'—':esc(String(e.n))}</td><td>${esc(e.r||'')}</td><td style="color:var(--mu)">${esc(e.by||'')}</td><td>${ed&&e.t==='il'&&!e.to?`<button class="btn o sm" data-i="${esc(e.i)}" title="Set the last day of this leave" onclick="lvEnd(this.dataset.i)">Set end</button> `:''}${ed?`<button class="btn o sm" data-i="${esc(e.i)}" title="Edit this leave" onclick="lvEd(this.dataset.i)">✏️</button> <button class="btn o sm" data-i="${esc(e.i)}" title="Delete this leave" onclick="lvDel(this.dataset.i)">🗑</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:`<div class="lv-emp">No leave recorded yet for ${esc(LV.y)}.</div>`}</div>`}
+${L.length?`<div style="overflow-x:auto"><table class="lv-l"><thead><tr><th>Type</th><th>Date</th><th>Days</th><th>Remarks</th><th>Added by</th><th></th></tr></thead><tbody>${L.map(e=>`<tr${EE&&EE.i===e.i?' class="lv-ed"':''}><td><span class="tg ${esc(e.t)}">${esc(String(e.t).toUpperCase())}</span></td><td>${esc(fr(e))}</td><td>${e.t==='il'&&!e.to?'—':esc(String(e.n))}</td><td>${e.r?esc(e.r):(e.xl&&NTX[e.t]?`<span style="color:var(--mu);font-style:italic" title="Note from the Excel sheet (for this employee's ${esc(String(e.t).toUpperCase())})">${esc(NTX[e.t])}</span>`:'')}</td><td style="color:var(--mu)">${esc(e.by||'')}</td><td>${ed&&e.t==='il'&&!e.to?`<button class="btn o sm" data-i="${esc(e.i)}" title="Set the last day of this leave" onclick="lvEnd(this.dataset.i)">Set end</button> `:''}${ed?`<button class="btn o sm" data-i="${esc(e.i)}" title="Edit this leave" onclick="lvEd(this.dataset.i)">✏️</button> <button class="btn o sm" data-i="${esc(e.i)}" title="Delete this leave" onclick="lvDel(this.dataset.i)">🗑</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:`<div class="lv-emp">No leave recorded yet for ${esc(LV.y)}.</div>`}</div>`}
 
 window.lvTy=()=>{const t=$('lvt').value,to=$('lvto'),d=$('lvd');to.dataset.m='';if(t==='il'){to.value='';to.disabled=true;d.value='';d.disabled=true}else{to.disabled=false;d.disabled=false;if(!d.value)d.value=1;if(t!=='ml')to.value=''}window.lvCalc('f')};
 window.lvCalc=w=>{const ty=$('lvt')?$('lvt').value:'vl';if(ty==='il')return;if(w==='t')$('lvto').dataset.m='1';
@@ -13273,12 +13532,15 @@ window.lvEnd=async i=>{if(!guard())return;const e=(LV.D.ent||[]).find(x=>x.i===i
 window.lvDel=async i=>{if(!guard())return;const e=(LV.D.ent||[]).find(x=>x.i===i);if(!e)return;if(!confirm('Delete this leave ('+e.t.toUpperCase()+', '+fr(e)+')?'))return;
  if(LV.ed===i)LV.ed='';const ok=await save(d=>dropIds(d,[i].concat(e.dups||[])),LV.y,'Leave deleted ✔');if(ok){try{const s=emp(e.e);logAct('Deleted '+e.t.toUpperCase()+' leave','Leave',((s&&s.name)||'')+' — '+fr(e))}catch(x){}}};
 /* Leave -> Attendance: the VL / SL days of every employee inside one attendance cutoff. Each day is PAID while the employee still has credits and NO PAY (np) when the credits are used up (counted day by day, oldest leave first). Used by "Sync Leave" in Attendance. */
-window.lvAtt=async function(from,to){
+window.lvAtt=async function(from,to,dept){let nb=0;
  const ys=[...new Set([String(from).slice(0,4),String(to).slice(0,4)])],out={};
  for(const y of ys){
-  let D;
-  if(String(y)===String(LV.y)&&LV.D&&!LV.bad)D=LV.D;
-  else{const c=(await Promise.all([fetchY(y),loadX(y)]))[0];D=ovl(c.d,y)}
+  const m=(await Promise.all([fetchY(y),loadX(y)]))[0],a=await ensureA(y,m);
+  if(a.why)throw new Error('The Admin leave record is not available. '+a.why);
+  const D=ovl(compose(m.d,'ad',a.d),y);
+  /* how many employees of this department do not match the Payroll Master (a count only, nothing of that record is shown) */
+  if(dept){const same=v=>String(v||'').trim().toUpperCase()===String(dept).trim().toUpperCase();
+   nb+=diffs({pm:ovl(m.d,y),ad:D},y).filter(x=>(same(x.dept)||same(x.s.dept))&&openOf(x,'ad').some(i=>i.type==='cr'||(i.type==='d'&&i.d>=from&&i.d<=to))).length}
   const sD=LV.D,sY=LV.y;LV.D=D;LV.y=String(y);
   try{
    const G={};
@@ -13291,17 +13553,17 @@ window.lvAtt=async function(from,to){
      const sp=spanDays(e);let rem=num(e.n);if(!(rem>0))rem=sp.length;
      sp.forEach(d=>{const v=Math.min(1,rem);if(v<=0)return;rem=r2(rem-v);
       const np=bal<v-0.001;bal=r2(bal-v);
-      if(d>=from&&d<=to){const o=out[id]||(out[id]={id:id,name:s.name,dept:s.dept,days:[]});o.days.push({d:d,t:t,v:v,np:np})}})})});
+      if(d>=from&&d<=to){const o=out[id]||(out[id]={id:id,name:s.name,dept:s.dept,days:[]});o.days.push({d:d,t:t,v:v,np:np,r:String(e.r||'').trim()})}})})});
   }finally{LV.D=sD;LV.y=sY}
  }
- return Object.values(out)};
+ const res=Object.values(out);res.nb=nb;return res};
 /* "Sync to Attendance" button of the Leave page: choose department + a saved attendance cutoff, then Sync Leave runs inside that attendance. */
 window.lvToAtt=async function(){
  if(typeof window.atLvList!=='function'||typeof window.atLvGo!=='function')return toast('Attendance is not ready. Reload the page and try again.');
  if(typeof window.atLvOk==='function'&&!window.atLvOk())return toast('You do not have permission to sync leave.');
  const DL=depts();if(!DL.length)return toast('No departments yet.');
  const o=ov(),cur=(LV.d&&DL.includes(LV.d))?LV.d:DL[0],BXs=(typeof BX!=='undefined'?BX:'background:var(--sf);color:var(--ink);border-radius:14px;max-width:780px;width:100%;max-height:88vh;overflow:auto;padding:20px');
- o.innerHTML=`<div style="${BXs};max-width:520px"><h3 style="margin:0 0 4px">⇄ Sync to Attendance</h3><p class="sub" style="margin:0 0 12px;font-size:13px">The VL / SL days inside the cutoff are put in the attendance. No credits left = VL NP / SL NP (no pay). Names that are almost the same are asked first.</p>
+ o.innerHTML=`<div style="${BXs};max-width:520px"><h3 style="margin:0 0 4px">⇄ Sync to Attendance</h3><p class="sub" style="margin:0 0 12px;font-size:13px">The VL / SL days inside the cutoff are put in the attendance. No credits left = VL NP / SL NP (no pay). Names that are almost the same are asked first. <b>The Admin leave record is used.</b></p>
 <label style="display:block;font-size:13px;font-weight:600;margin:0 0 4px">Department</label><select id="lvta_d" class="lvz-f" style="width:100%;margin-bottom:12px">${DL.map(d=>`<option value="${esc(d)}"${d===cur?' selected':''}>${esc(d)}</option>`).join('')}</select>
 <label style="display:block;font-size:13px;font-weight:600;margin:0 0 4px">Attendance cutoff</label><select id="lvta_c" class="lvz-f" style="width:100%"></select><div id="lvta_m" class="sub" style="margin:8px 0 0;font-size:12.5px"></div>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px"><button type="button" class="btn o sm" id="lvta_x">Cancel</button><button type="button" class="btn sm" id="lvta_go" disabled>Sync</button></div></div>`;
@@ -13313,6 +13575,22 @@ window.lvToAtt=async function(){
  $('lvta_d').onchange=fill;$('lvta_x').onclick=()=>{o.remove()};
  $('lvta_go').onclick=()=>{const k=$('lvta_c').value;if(!k)return;o.remove();window.atLvGo(k)};
  fill()};
+/* click a leave date (pill) -> small popup with the reason of that leave */
+window.lvRsn=function(el){
+ const old=$('lvrp'),same=old&&old._for===el;if(old)old.remove();if(same)return;
+ const D=LV.D||{},e=(D.ent||[]).find(x=>x.i===el.dataset.i);if(!e)return;
+ const T={vl:'Vacation Leave',sl:'Sick Leave',ml:'Maternity Leave',il:'Indefinite Leave'},r=String(e.r||'').trim(),n=num(e.n);
+ const p=document.createElement('div');p.id='lvrp';p._for=el;p.className='no-print';
+ p.innerHTML=`<div class="lvrp-t">${esc(T[e.t]||e.t)} · ${esc(fd(el.dataset.d||e.f))}</div><div class="lvrp-m">Leave: ${esc(fr(e))}${n?' · '+n+' day'+(n===1?'':'s'):''}</div><div class="lvrp-r">${r?esc(r):'<i>No reason written.</i>'}</div>${e.by?`<div class="lvrp-m">Filed by ${esc(e.by)}${e.at?' · '+esc(fd(String(e.at).slice(0,10))):''}</div>`:''}${edit()?`<div style="margin-top:8px;text-align:right"><button type="button" class="btn o sm" data-id="${esc(String(e.e))}" onclick="const q=document.getElementById('lvrp');if(q)q.remove();lvOpen(this.dataset.id)">Open leave record</button></div>`:''}`;
+ document.body.appendChild(p);
+ const b=el.getBoundingClientRect(),w=p.offsetWidth,h=p.offsetHeight;
+ p.style.left=Math.max(8,Math.min(b.left,innerWidth-w-8))+'px';
+ p.style.top=(b.bottom+8+h>innerHeight?Math.max(8,b.top-h-8):b.bottom+8)+'px'};
+if(!window.__lvrpC){window.__lvrpC=1;
+ const cl=()=>{const p=$('lvrp');if(p)p.remove()};
+ document.addEventListener('mousedown',e=>{const p=$('lvrp');if(p&&!p.contains(e.target)&&!(e.target.closest&&e.target.closest('.lvz-s[data-i]')))cl()},true);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('lvrp'))cl()},true);
+ window.addEventListener('scroll',cl,true)}
 })();
 </script>
 
