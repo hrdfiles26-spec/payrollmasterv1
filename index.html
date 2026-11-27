@@ -2841,7 +2841,7 @@ function lvBal(){const N={};R.forEach(r=>{if(r.form==='leave'||(r.form==='leavec
  const L=Object.values(N).sort((a,b)=>a.localeCompare(b)),ad=isAdm(),cl=x=>x<=0?'color:#b3392f;font-weight:700':'color:#1d6b49;font-weight:700';
  const rows=L.map(n=>{const c=lvCred(n,LVY),u=lvUsed(n,LVY),pd=R.filter(r=>r.form==='leave'&&r.status==='pending'&&lvK(r.requester)===lvK(n)).length;
   return `<tr><td><b>${esc(n)}</b>${pd?` <small style="color:#8a6410">(${pd} pending)</small>`:''}</td><td>${c.v}</td><td>${u.v}</td><td style="${cl(c.v-u.v)}">${c.v-u.v}</td><td>${c.s}</td><td>${u.s}</td><td style="${cl(c.s-u.s)}">${c.s-u.s}</td>${ad?`<td><button class="btn o sm" onclick="lvSet(${esc(JSON.stringify(n)).replace(/'/g,'&#39;')})">Edit credits</button></td>`:''}</tr>`}).join('');
- $('main').innerHTML=`<div class="bar no-print"><button class="btn o" onclick="drawSubs()">← Back</button><h2>Leave Balances</h2><span style="flex:1"></span><button class="btn o sm" onclick="lvYr(-1)">◀</button><b style="margin:0 10px">${LVY}</b><button class="btn o sm" onclick="lvYr(1)">▶</button>${ad?'<button class="btn sm" style="margin-left:10px" onclick="lvAdd()">+ Set credits</button>':''}</div>
+ $('main').innerHTML=`<div class="bar no-print"><button class="btn o" onclick="drawSubs()">← Back</button><h2>Leave Balances</h2><span style="flex:1"></span><button class="btn o sm" onclick="lvYr(-1)">◀</button><b style="margin:0 10px">${LVY}</b><button class="btn o sm" onclick="lvYr(1)">▶</button>${ad?'<button class="btn sm" style="margin-left:10px" onclick="lvAddEmp()">+ Set credits</button>':''}</div>
 <p class="sub">Default credits: ${LVD.v} vacation + ${LVD.s} sick day(s) per year. Only <b>approved</b> leave is deducted.</p>
 <div style="overflow-x:auto"><table class="ps" style="width:100%;border-collapse:collapse;background:var(--sf)"><thead><tr><th rowspan="2" style="text-align:left">Employee</th><th colspan="3">Vacation</th><th colspan="3">Sick</th>${ad?'<th rowspan="2"></th>':''}</tr><tr><th>Credit</th><th>Used</th><th>Remaining</th><th>Credit</th><th>Used</th><th>Remaining</th></tr></thead><tbody>${rows||`<tr><td colspan="8" style="padding:18px;text-align:center">No leave records yet.</td></tr>`}</tbody></table></div>`;scrollTo(0,0)}
 // ----- Checker / Approval sections (COOP and Vale queues) -----
@@ -5609,28 +5609,30 @@ function pCvHtml(M){const {s,g,v,r}=M,rm=pRemTx(r)?`<div class="cv-rm">Remarks: 
 function xgSheet(name){const S={name:name,cells:new Map(),merges:[],hts:{},cols:[],breaks:[],freeze:0,af:'',fit:0,grid:0,paper:9,scale:100,orient:'portrait'};
  S.put=(r,c1,c2,v,st)=>{const k=r+','+c1;let o=S.cells.get(k);if(!o){o={st:{}};S.cells.set(k,o)}if(v!==undefined&&v!==null&&v!=='')o.v=v;Object.assign(o.st,st||{});for(let c=c1+1;c<=c2;c++){const k2=r+','+c;let o2=S.cells.get(k2);if(!o2){o2={st:{}};S.cells.set(k2,o2)}Object.assign(o2.st,st||{})}if(c2>c1)S.merges.push(pColL(c1)+r+':'+pColL(c2)+r)};
  S.st=(r,c,st)=>{const k=r+','+c;let o=S.cells.get(k);if(!o){o={st:{}};S.cells.set(k,o)}Object.assign(o.st,st)};
+ S.fx=(r,c,f,v,st)=>{S.put(r,c,c,v,st);S.cells.get(r+','+c).f=f};
  return S}
 function xgBuild(sheets){
  const fonts=['Calibri|11|0|FF000000|0|0'],bords=['|||'],fills=['none','gray125'],xfs=['0|0|0|0|general|center|0'];
  const idx=(a,k)=>{let i=a.indexOf(k);if(i<0){i=a.length;a.push(k)}return i};
- const xi=o=>{o=o||{};return idx(xfs,[idx(fonts,[o.fn||'Calibri',o.sz||11,o.b?1:0,o.col||'FF000000',o.u?1:0,o.i?1:0].join('|')),idx(bords,[o.bl||'',o.br||'',o.bt||'',o.bb||''].join('|')),o.fill?idx(fills,o.fill):0,o.nf||0,o.h||'general',o.v||'center',o.wrap?1:0].join('|'))};
+ const xi=o=>{o=o||{};return idx(xfs,[idx(fonts,[o.fn||'Calibri',o.sz||11,o.b?1:0,o.col||'FF000000',o.u?1:0,o.i?1:0].join('|')),idx(bords,[o.bl||'',o.br||'',o.bt||'',o.bb||''].join('|')),o.fill?idx(fills,o.fill):0,o.nf||0,o.h||'general',o.v||'center',o.wrap?1:0,o.ind||0].join('|'))};
  const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+ const dxs=[];
  const sx=sheets.map(S=>{const rows=new Map();S.cells.forEach((o,k)=>{const a=k.split(',').map(Number);if(!rows.has(a[0]))rows.set(a[0],[]);rows.get(a[0]).push([a[1],o])});Object.keys(S.hts).forEach(r=>{if(!rows.has(+r))rows.set(+r,[])});
-  const rowsX=[...rows.keys()].sort((a,b)=>a-b).map(r=>{const cs=rows.get(r).sort((a,b)=>a[0]-b[0]).map(([c,o])=>{const ref=pColL(c)+r,st=xi(o.st);return o.v===undefined?`<c r="${ref}" s="${st}"/>`:typeof o.v==='number'?`<c r="${ref}" s="${st}"><v>${isFinite(o.v)?o.v:0}</v></c>`:`<c r="${ref}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${esc(o.v)}</t></is></c>`}).join('');return`<row r="${r}"${S.hts[r]?` ht="${S.hts[r]}" customHeight="1"`:''}>${cs}</row>`}).join('');
+  const rowsX=[...rows.keys()].sort((a,b)=>a-b).map(r=>{const cs=rows.get(r).sort((a,b)=>a[0]-b[0]).map(([c,o])=>{const ref=pColL(c)+r,st=xi(o.st);if(o.f!==undefined){const fx='<f>'+esc(o.f)+'</f>';return typeof o.v==='number'?`<c r="${ref}" s="${st}">${fx}<v>${isFinite(o.v)?o.v:0}</v></c>`:`<c r="${ref}" s="${st}" t="str">${fx}<v>${esc(o.v==null?'':o.v)}</v></c>`}return o.v===undefined?`<c r="${ref}" s="${st}"/>`:typeof o.v==='number'?`<c r="${ref}" s="${st}"><v>${isFinite(o.v)?o.v:0}</v></c>`:`<c r="${ref}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${esc(o.v)}</t></is></c>`}).join('');return`<row r="${r}"${S.hts[r]?` ht="${S.hts[r]}" customHeight="1"`:''}>${cs}</row>`}).join('');
   const cols=S.cols.length?`<cols>${S.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>`:'';
-  return H+`<worksheet xmlns="${NS}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${S.fit?'<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>':''}<sheetViews><sheetView showGridLines="${S.grid?1:0}" workbookViewId="0">${S.freeze?`<pane ySplit="${S.freeze}" topLeftCell="A${S.freeze+1}" activePane="bottomLeft" state="frozen"/>`:''}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>${cols}<sheetData>${rowsX}</sheetData>${S.af?`<autoFilter ref="${S.af}"/>`:''}${S.merges.length?`<mergeCells count="${S.merges.length}">${S.merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}<printOptions horizontalCentered="1"/><pageMargins left="0.2" right="0.2" top="0.25" bottom="0.25" header="0" footer="0"/><pageSetup paperSize="${S.paper}" ${S.fit?'fitToWidth="1" fitToHeight="0"':'scale="'+S.scale+'"'} orientation="${S.orient}"/>${S.breaks.length?`<rowBreaks count="${S.breaks.length}" manualBreakCount="${S.breaks.length}">${S.breaks.map(b=>`<brk id="${b}" max="16383" man="1"/>`).join('')}</rowBreaks>`:''}${S.imgs&&S.imgs.length?'<drawing r:id="rId1"/>':''}</worksheet>`});
+  return H+`<worksheet xmlns="${NS}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${S.fit||S.tab?'<sheetPr>'+(S.tab?'<tabColor rgb="'+S.tab+'"/>':'')+(S.fit?'<pageSetUpPr fitToPage="1"/>':'')+'</sheetPr>':''}<sheetViews><sheetView showGridLines="${S.grid?1:0}" workbookViewId="0">${S.freeze?`<pane ySplit="${S.freeze}" topLeftCell="A${S.freeze+1}" activePane="bottomLeft" state="frozen"/>`:''}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>${cols}<sheetData>${rowsX}</sheetData>${S.af?`<autoFilter ref="${S.af}"/>`:''}${S.merges.length?`<mergeCells count="${S.merges.length}">${S.merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}${(S.cf||[]).map((q,i)=>`<conditionalFormatting sqref="${q.sq}"><cfRule type="expression" dxfId="${idx(dxs,q.col+'|'+q.fill)}" priority="${i+1}"><formula>${esc(q.f)}</formula></cfRule></conditionalFormatting>`).join('')}<printOptions horizontalCentered="1"/><pageMargins left="0.2" right="0.2" top="0.25" bottom="0.25" header="0" footer="0"/><pageSetup paperSize="${S.paper}" ${S.fit?'fitToWidth="1" fitToHeight="0"':'scale="'+S.scale+'"'} orientation="${S.orient}"/>${S.breaks.length?`<rowBreaks count="${S.breaks.length}" manualBreakCount="${S.breaks.length}">${S.breaks.map(b=>`<brk id="${b}" max="16383" man="1"/>`).join('')}</rowBreaks>`:''}${S.imgs&&S.imgs.length?'<drawing r:id="rId1"/>':''}</worksheet>`});
  const fontX=fonts.map(k=>{const a=k.split('|');return`<font>${+a[2]?'<b/>':''}${+a[5]?'<i/>':''}${+a[4]?'<u/>':''}<sz val="${a[1]}"/><color rgb="${a[3]}"/><name val="${a[0]}"/></font>`}).join('');
  const fillX=fills.map((f,i)=>i<2?(i?'<fill><patternFill patternType="gray125"/></fill>':'<fill><patternFill patternType="none"/></fill>'):`<fill><patternFill patternType="solid"><fgColor rgb="${f}"/><bgColor indexed="64"/></patternFill></fill>`).join('');
  const side=(n,t)=>{if(!t)return`<${n}/>`;const q=String(t).split(":");return`<${n} style="${q[0]}"><color rgb="${q[1]||"FF000000"}"/></${n}>`};
  const bordX=bords.map(k=>{const a=k.split('|');return`<border>${side('left',a[0])}${side('right',a[1])}${side('top',a[2])}${side('bottom',a[3])}<diagonal/></border>`}).join('');
  const NF={0:0,1:164,2:1};
- const xfX=xfs.map(k=>{const a=k.split('|');return`<xf numFmtId="${NF[a[3]]||0}" fontId="${a[0]}" fillId="${a[2]}" borderId="${a[1]}" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${a[4]}" vertical="${a[5]}"${+a[6]?' wrapText="1"':''}/></xf>`}).join('');
- const styles=H+`<styleSheet xmlns="${NS}"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00;-#,##0.00;&quot;-&quot;"/></numFmts><fonts count="${fonts.length}">${fontX}</fonts><fills count="${fills.length}">${fillX}</fills><borders count="${bords.length}">${bordX}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfX}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+ const xfX=xfs.map(k=>{const a=k.split('|');return`<xf numFmtId="${NF[a[3]]||0}" fontId="${a[0]}" fillId="${a[2]}" borderId="${a[1]}" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${a[4]}" vertical="${a[5]}"${+a[6]?' wrapText="1"':''}${+a[7]?' indent="'+(+a[7])+'"':''}/></xf>`}).join('');
+ const styles=H+`<styleSheet xmlns="${NS}"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00;-#,##0.00;&quot;-&quot;"/></numFmts><fonts count="${fonts.length}">${fontX}</fonts><fills count="${fills.length}">${fillX}</fills><borders count="${bords.length}">${bordX}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfX}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>${dxs.length?`<dxfs count="${dxs.length}">${dxs.map(k=>{const a=k.split('|');return`<dxf><font><color rgb="${a[0]}"/></font><fill><patternFill patternType="solid"><fgColor rgb="${a[1]}"/><bgColor rgb="${a[1]}"/></patternFill></fill></dxf>`}).join('')}</dxfs>`:''}</styleSheet>`;
  const used={},nm=S=>{let b=String(S.name||'Sheet').replace(/[\[\]:*?\/\\]/g,' ').trim().slice(0,31)||'Sheet',n=b,k=2;while(used[n.toLowerCase()]){n=b.slice(0,28)+' '+k++}used[n.toLowerCase()]=1;return n};
  const names=sheets.map(nm),RT='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
  return pZip([{name:'[Content_Types].xml',data:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpg" ContentType="image/jpeg"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+sheets.map((S,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'+(S.imgs&&S.imgs.length?'<Override PartName="/xl/drawings/drawing'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>':'')).join('')+'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
   {name:'_rels/.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+RT+'/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
-  {name:'xl/workbook.xml',data:H+'<workbook xmlns="'+NS+'" xmlns:r="'+RT+'"><sheets>'+names.map((n,i)=>'<sheet name="'+esc(n)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join('')+'</sheets></workbook>'},
+  {name:'xl/workbook.xml',data:H+'<workbook xmlns="'+NS+'" xmlns:r="'+RT+'"><sheets>'+names.map((n,i)=>'<sheet name="'+esc(n)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join('')+'</sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>'},
   {name:'xl/_rels/workbook.xml.rels',data:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((S,i)=>'<Relationship Id="rId'+(i+1)+'" Type="'+RT+'/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+'<Relationship Id="rId'+(sheets.length+1)+'" Type="'+RT+'/styles" Target="styles.xml"/></Relationships>'},
   {name:'xl/styles.xml',data:styles}].concat(sx.map((x,i)=>({name:'xl/worksheets/sheet'+(i+1)+'.xml',data:x})),xgImgParts(sheets,RT)))}
 /* pictures for xgBuild: S.imgs=[{r,c,m,w,h,dx,dy}] (0-based row/col, m = index in sheets.media, size in px); the same picture file is shared by all sheets */
@@ -12536,15 +12538,25 @@ const LV={y:String(Y0),d:'',only:false,defOpen:false,q:'',D:null,bad:false,emp:'
 const edit=()=>!!(SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||MYA.role==='hr'||MYA.role==='payroll'||can('att'))));
 const me=()=>{try{return(MYA&&MYA.full_name)||((ME&&ME.user_metadata)||{}).full_name||(ME&&ME.email)||''}catch(e){return''}};
 const isM=d=>{if(/^\s*general services\s*$/i.test(String(d||'')))return true;try{return isMg(d)||isMgt(d)}catch(e){return/management/i.test(String(d||''))}};
+const XTR=/^\s*extra\b/i;/* EXTRA PAYROLL, EXTRA BREEDER ... have no leave: they are not listed here */
 const num=v=>{const n=parseFloat(String(v==null?'':v).replace(',','.'));return isFinite(n)?n:0};
 const r2=n=>Math.round(n*100)/100;
-const blank=()=>({def:{farm:{vl:8,sl:7},br:{vl:15,sl:7},mg:{vl:10,sl:10}},cr:{},ent:[],hx:[],same:{},dn:{},ln:{},gone:{},sc:{}});
-const norm=o=>{o=o&&typeof o==='object'?o:{};const b=blank(),df=o.def||{};const ob=k=>o[k]&&typeof o[k]==='object'&&!Array.isArray(o[k])?o[k]:{};return{def:{farm:Object.assign({},b.def.farm,df.farm&&+df.farm.vl===15&&+df.farm.sl===15?null:df.farm),br:Object.assign({},b.def.br,df.br),mg:Object.assign({},b.def.mg,df.mg)},cr:o.cr&&typeof o.cr==='object'?o.cr:{},ent:Array.isArray(o.ent)?o.ent:[],hx:Array.isArray(o.hx)?o.hx:[],same:ob('same'),dn:ob('dn'),ln:ob('ln'),gone:ob('gone'),sc:ob('sc')}};
+const blank=()=>({def:{farm:{vl:8,sl:7},br:{vl:15,sl:7},mg:{vl:10,sl:10}},cr:{},ent:[],hx:[],same:{},dn:{},ln:{},gone:{},sc:{},dm:{},add:{}});
+const norm=o=>{o=o&&typeof o==='object'?o:{};const b=blank(),df=o.def||{};const ob=k=>o[k]&&typeof o[k]==='object'&&!Array.isArray(o[k])?o[k]:{};return{def:{farm:Object.assign({},b.def.farm,df.farm&&+df.farm.vl===15&&+df.farm.sl===15?null:df.farm),br:Object.assign({},b.def.br,df.br),mg:Object.assign({},b.def.mg,df.mg)},cr:o.cr&&typeof o.cr==='object'?o.cr:{},ent:Array.isArray(o.ent)?o.ent:[],hx:Array.isArray(o.hx)?o.hx:[],same:ob('same'),dn:ob('dn'),ln:ob('ln'),gone:ob('gone'),sc:ob('sc'),dm:ob('dm'),add:ob('add')}};
 const allowed=()=>{if(SUPER||!MYA||MYA.role==='admin')return null;const a=(MYA.pages||[]).filter(x=>String(x).indexOf('attd:')===0).map(x=>String(x).slice(5));return a.length?a:null};
-const emp0=id=>{const s=(Array.isArray(STF)?STF:[]).find(s=>String(s.id)===String(id));if(s)return s;const p=((LV.D||{}).pp||{})[String(id)];return p?{id:String(id),name:p.n,dept:p.dept,xl:1}:null};
+const emp0=id=>{const s=(Array.isArray(STF)?STF:[]).find(s=>String(s.id)===String(id));if(s)return s;const p=((LV.D||{}).pp||{})[String(id)];if(p)return{id:String(id),name:p.n,dept:p.dept,xl:1};const a=((LV.D||{}).add||{})[String(id)];return a?{id:String(id),name:a.n,dept:a.dept,ad:1}:null};
 /* GENERAL SERVICES: Management employees whose section (or Excel sheet) in the leave Excel starts with "General Services / Gen. Services" are shown as their own department, apart from Management */
-const GSR=/^\s*gen(eral|\.)?\s*serv/i,gsOf=(s,key,D)=>!!D&&isM(s.dept)&&!/^\s*general services\s*$/i.test(String(s.dept||''))&&(GSR.test(String((D.sec||{})[key]||''))||GSR.test(String((D.xs||{})[key]||'')));
-const emp=id=>{let s=emp0(id);const n=((LV.D||{}).dn||{})[String(id)];if(s&&gsOf(s,String(id),LV.D))s=Object.assign({},s,{dept:'GENERAL SERVICES'});return s&&n?Object.assign({},s,{name:n}):s};
+const GSR=/^\s*gen(eral|\.)?\s*serv/i;
+/* GENERAL SERVICES names, as in GENERAL_SERVICES.xlsx (sheets VL / SL 2026). From 2026 on, these people are listed under GENERAL SERVICES and nobody else is (except names added or moved there by hand). To add or remove a name, edit this list. */
+const GS_RAW=['REYES, CARMEL OREHUELA','SAGARAL, ROY AGUILLON','CASTAÑEDA, ERNIE AMOLOZA','GARCIA, JAYMAR','MONREAL, JOEREY LACSON','PANTE, JESUS GUERINA','RAFOLS, JUSTO MERCIALES','RODRIGUEZ, MARLENE ALEJO','MALLARI, JAY-AR TULLER','MIRABUENO, VICTOR'];
+let GSNc=null;
+const gsName=name=>{const t=tmN(name).split(' ').filter(Boolean);if(t.length<2)return false;if(!GSNc)GSNc=GS_RAW.map(n=>tmN(n).split(' ').filter(Boolean));
+ return GSNc.some(g=>{const a=g.length<=t.length?g:t,b=g.length<=t.length?t:g;return a.length>=2&&a.every(x=>b.includes(x))})};
+const GSdept=s=>/^\s*general services\s*$/i.test(String(s.dept||''));
+const gsOf=(s,key,D)=>!!D&&(+LV.y>=2026&&gsName(s.name)?!GSdept(s):isM(s.dept)&&!GSdept(s)&&(GSR.test(String((D.sec||{})[key]||''))||GSR.test(String((D.xs||{})[key]||''))));
+/* a General Services row that is not in the list above is not shown (2026 on); rows added or moved there by hand stay */
+const gsHide=(x,mv)=>+LV.y>=2026&&!mv&&!x.ad&&GSdept(x)&&!gsName(x.name);
+const emp=id=>{let s=emp0(id);const n=((LV.D||{}).dn||{})[String(id)];const dm=((LV.D||{}).dm||{})[String(id)];if(s&&dm)s=Object.assign({},s,{dept:dm});else if(s&&gsOf(s,String(id),LV.D))s=Object.assign({},s,{dept:'GENERAL SERVICES'});return s&&n?Object.assign({},s,{name:n}):s};
 const cls=s=>isM(s.dept)?'mg':/^\s*broiler\b/i.test(String(s.dept||''))?'br':'farm';
 const fd=s=>{const p=String(s||'').split('-');if(p.length<3)return s||'';return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})};
 const fr=e=>e.t==='il'&&!e.to?fd(e.f)+' – ongoing':(e.to&&e.to!==e.f?fd(e.f)+' – '+fd(e.to):fd(e.f));
@@ -12565,7 +12577,7 @@ async function mut(y,fn){
  }
  throw new Error('Someone else is saving the leave records at the same time. Please try again.')}
 
-function cred(s,D){const c=(D.cr||{})[String(s.id)]||{};return{vl:c.vl!=null?num(c.vl):autoDef(s,D,'vl'),sl:c.sl!=null?num(c.sl):autoDef(s,D,'sl'),cv:c.vl!=null,cs:c.sl!=null,el:eligOf(s,D)}}
+function cred(s,D){const c=(D.cr||{})[String(s.id)]||{},e0=eligOf(s,D),el=(e0.st==='wait'&&(c.vl!=null||c.sl!=null))?Object.assign({},e0,{st:'pro',m:undefined}):e0;return{vl:c.vl!=null?num(c.vl):autoDef(s,D,'vl'),sl:c.sl!=null?num(c.sl):autoDef(s,D,'sl'),cv:c.vl!=null,cs:c.sl!=null,el:el}}
 function used(id,D){const u={vl:0,sl:0},n=[];D.ent.forEach(e=>{if(String(e.e)===String(id)&&KN[e.t]){if(u[e.t]!=null)u[e.t]+=num(e.n);n.push(e)}});const k=(D.cons||{})[String(id)]||{};u.vl+=num(k.vl);u.sl+=num(k.sl);return{vl:r2(u.vl),sl:r2(u.sl),n:n}}
 function depts(){const S=Array.isArray(STF)?STF:[],al=allowed();let L=[...new Set(S.map(s=>s.dept).filter(Boolean))];if(al)L=L.filter(x=>al.includes(x));const o=x=>{let i=-1;try{i=PORD.indexOf(x)}catch(e){}return i<0?999:i};return L.sort((a,b)=>o(a)-o(b)||String(a).localeCompare(String(b)))}
 const balCls=b=>b<0?'neg':b===0?'zero':'ok';
@@ -12608,7 +12620,7 @@ input.lvz-f{width:min(280px,100%)}
 .lvz-only{height:36px;padding:0 15px;border-radius:999px;border:1px solid color-mix(in srgb,var(--np) 45%,var(--ln));background:var(--sf);color:var(--np);font-size:13px;font-weight:700}
 .lvz-only.on{background:var(--np);border-color:var(--np);color:#fff}
 .lvz-list{background:var(--sf);border:1px solid var(--ln);border-radius:16px}
-.lvz-row{display:grid;grid-template-columns:minmax(200px,260px) minmax(0,1fr) 76px 52px 80px 104px;grid-template-areas:"who days cr us bal act";column-gap:14px;align-items:center;padding:13px 18px;border-top:1px solid var(--ln)}
+.lvz-row{display:grid;grid-template-columns:minmax(200px,260px) minmax(0,1fr) 76px 52px 80px 148px;grid-template-areas:"who days cr us bal act";column-gap:14px;align-items:center;padding:13px 18px;border-top:1px solid var(--ln)}
 .lvz-row:hover{background:color-mix(in srgb,var(--soft) 45%,transparent)}
 .lvz-th{position:sticky;top:0;z-index:5;border-top:0;border-radius:15px 15px 0 0;background:var(--soft);padding-top:11px;padding-bottom:11px;font-size:12.5px;font-weight:700;color:var(--ink2)}
 .lvz-th:hover{background:var(--soft)}
@@ -12685,6 +12697,70 @@ html[data-theme=dark] .lv-warn{background:#2c2410;color:#f1d48a;border-color:#5d
 .lv-fa{display:flex;gap:8px}
 .lv-l tr.lv-ed td{background:color-mix(in srgb,var(--au) 14%,transparent)}
 .lv-l td:last-child{white-space:nowrap;text-align:right}
+/* ---- elegant layer (Vacation & Sick Leave) ---- */
+.lvz{--lv-sh:0 1px 2px rgba(18,48,92,.05),0 10px 26px -14px rgba(18,48,92,.22);--lv-r:18px}
+html[data-theme=dark] .lvz{--lv-sh:0 1px 2px rgba(0,0,0,.35),0 12px 30px -16px rgba(0,0,0,.7)}
+.lvz-head{padding:26px 30px 28px;margin-bottom:26px;border:1px solid var(--ln);border-radius:var(--lv-r);background:radial-gradient(120% 150% at 0% 0%,color-mix(in srgb,var(--au) 13%,var(--sf)) 0%,var(--sf) 58%);box-shadow:var(--lv-sh);overflow:hidden}
+.lvz-head::after{left:30px;bottom:0;width:92px;height:3px;border-radius:3px 3px 0 0;background:linear-gradient(90deg,var(--au),color-mix(in srgb,var(--au) 25%,transparent))}
+.lvz h1{letter-spacing:.2px}
+.lvz-lead{font-size:14px;color:var(--mu)}
+.lvz-f{height:42px;border-radius:12px;box-shadow:0 1px 2px rgba(18,48,92,.05);transition:border-color .15s,box-shadow .15s}
+.lvz-f:hover{border-color:color-mix(in srgb,var(--au) 55%,var(--ln2))}
+.lvz-f:focus{border-color:var(--au);box-shadow:0 0 0 3px color-mix(in srgb,var(--au) 22%,transparent);outline:0}
+.lvz-seg{padding:4px;border-radius:14px;box-shadow:inset 0 1px 2px rgba(18,48,92,.06)}
+.lvz-seg button{height:34px;padding:0 18px;border-radius:10px;transition:background .15s,color .15s,box-shadow .15s}
+.lvz-seg button:not(.on):hover{background:color-mix(in srgb,var(--au) 12%,transparent)}
+.lvz-seg button.on{box-shadow:0 2px 8px -2px rgba(18,48,92,.35)}
+.lvz-grp{margin:0 0 38px}
+.lvz-grp h2{display:flex;align-items:center;gap:11px;font-size:20px;letter-spacing:.2px}
+.lvz-grp h2::before{content:"";width:4px;height:20px;border-radius:4px;background:linear-gradient(180deg,var(--au),color-mix(in srgb,var(--au) 35%,transparent))}
+.lvz-idx{gap:16px}
+.lvz-dp{position:relative;overflow:hidden;min-height:124px;padding:22px 24px 20px;border-radius:16px;box-shadow:var(--lv-sh);transition:transform .18s,box-shadow .18s,border-color .18s,background .18s;cursor:pointer}
+.lvz-dp::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,var(--au),color-mix(in srgb,var(--au) 15%,transparent));transform:scaleX(.28);transform-origin:left;transition:transform .25s}
+.lvz-dp::after{content:"\\2192";position:absolute;right:20px;top:18px;font-size:17px;color:var(--au);opacity:.35;transition:opacity .18s,transform .18s}
+.lvz-dp:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(18,48,92,.06),0 18px 34px -16px rgba(18,48,92,.34)}
+.lvz-dp:hover::before{transform:scaleX(1)}.lvz-dp:hover::after{opacity:1;transform:translateX(3px)}
+.lvz-dp b{font-size:18.5px;padding-right:26px}
+.lvz-dp span{font-size:12.5px;letter-spacing:.2px}
+.lvz-bar{padding:12px 16px;margin-bottom:18px;border:1px solid var(--ln);border-radius:14px;background:var(--sf);box-shadow:var(--lv-sh)}
+.lvz-key{gap:8px 10px}
+.lvz-key span{padding:4px 11px 4px 8px;border:1px solid var(--ln);border-radius:999px;background:var(--sf2);font-size:12px}
+.lvz-key i{width:18px;height:12px;border-radius:4px}
+.lvz-only{height:38px;padding:0 17px;box-shadow:0 1px 2px rgba(18,48,92,.06);transition:background .15s,color .15s,transform .15s}
+.lvz-only:hover{transform:translateY(-1px)}
+.lvz-list{border-radius:var(--lv-r);box-shadow:var(--lv-sh)}
+.lvz-th{border-radius:17px 17px 0 0;padding-top:13px;padding-bottom:13px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--h);background:linear-gradient(180deg,color-mix(in srgb,var(--au) 9%,var(--soft)),var(--soft));border-bottom:2px solid var(--au)}
+.lvz-row{padding:15px 22px;border-top:1px solid color-mix(in srgb,var(--ln) 80%,transparent);transition:background .15s,box-shadow .15s}
+.lvz-row:not(.lvz-th):hover{background:color-mix(in srgb,var(--au) 6%,var(--sf));box-shadow:inset 3px 0 0 var(--au)}
+.lvz-nm{font-size:14px;letter-spacing:.1px}
+.lvz-meta{margin-top:4px;font-size:12px}
+.lvz-tag{padding:2px 9px;background:var(--sf2);letter-spacing:.2px}
+.lvz-slots{grid-template-columns:repeat(auto-fill,minmax(60px,60px));gap:6px}
+.lvz-s{height:30px;border-radius:9px;letter-spacing:.1px;transition:transform .12s,box-shadow .12s}
+.lvz-s.vl,.lvz-s.sl{border:1px solid color-mix(in srgb,var(--vl) 26%,transparent)}
+.lvz-s.sl{border-color:color-mix(in srgb,var(--sl) 26%,transparent)}
+.lvz-s.vl:hover,.lvz-s.sl:hover,.lvz-s.cn:hover,.lvz-s.np:hover{transform:translateY(-1px);box-shadow:0 4px 10px -4px rgba(18,48,92,.4)}
+.lvz-s.free{border:1px dashed var(--ln2);background:var(--sf2)}
+.lvz-s.cn{border:1px solid #ecd27a;background:linear-gradient(180deg,#fff6d6,#fdf0c4)}
+.lvz-s.np{background:linear-gradient(180deg,color-mix(in srgb,var(--np) 88%,#fff),var(--np));box-shadow:0 2px 6px -2px color-mix(in srgb,var(--np) 70%,transparent)}
+.lvz-num{font-weight:600;color:var(--ink2)}
+.lvz-list>:last-child{border-radius:0 0 17px 17px}
+.lvz-hits{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.lvz-hit{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:13px 16px;background:var(--sf);border:1px solid var(--ln);border-radius:14px;color:var(--ink);box-shadow:var(--lv-sh);cursor:pointer;transition:transform .15s,border-color .15s}
+.lvz-hit:hover{transform:translateY(-2px);border-color:var(--au)}
+.lvz-hit b{font-size:14px}.lvz-hit span{font-size:12.5px;color:var(--mu)}.lvz-hit em{font-style:normal;font-weight:700;color:var(--np)}
+.lvz-dm{max-width:150px}
+.lv-b{min-width:46px;padding:4px 12px;font-size:13.5px;border:1px solid color-mix(in srgb,currentColor 18%,transparent)}
+.lvz-sec{padding:12px 22px;border-left:4px solid var(--au);background:linear-gradient(90deg,color-mix(in srgb,var(--au) 10%,var(--sf2)),var(--sf2) 70%);font-size:14.5px;letter-spacing:.2px}
+.lvz-act .btn{height:34px;border-radius:10px;transition:transform .12s,box-shadow .12s}
+.lvz-act .btn:hover{transform:translateY(-1px);box-shadow:0 4px 10px -4px rgba(18,48,92,.35)}
+.lvz-check,.lvz details,.lvz-it,.lvz-cmp{border-radius:16px;box-shadow:var(--lv-sh)}
+.lvz details>summary{padding:2px 0;transition:color .15s}.lvz details>summary:hover{color:var(--lk)}
+.lv-sum div{box-shadow:var(--lv-sh);border-radius:16px}
+.lv-fm{border-radius:16px}
+.lvz-title{display:flex;align-items:center;gap:11px}
+.lvz-title::before{content:"";width:4px;height:19px;border-radius:4px;background:linear-gradient(180deg,var(--au),color-mix(in srgb,var(--au) 35%,transparent))}
+@media(prefers-reduced-motion:reduce){.lvz *,.lvz *::before,.lvz *::after{transition:none!important}.lvz-dp:hover,.lvz-only:hover,.lvz-act .btn:hover{transform:none}}
 @media(max-width:1180px){.lvz-th{display:none}.lvz-row{grid-template-columns:minmax(0,1fr) auto auto auto auto;grid-template-areas:"who cr us bal act" "days days days days days";row-gap:11px}.lvz-row:nth-child(2){border-top:0}
 .lvz-lbl{display:block;font-size:11px;color:var(--mu);margin-bottom:2px}.lvz-act{align-self:end}}
 @media(max-width:640px){.lvz-row{grid-template-columns:repeat(3,minmax(0,1fr)) auto;grid-template-areas:"who who who who" "days days days days" "cr us bal act";padding:14px 12px}
@@ -12752,7 +12828,7 @@ function baseData(){const S=Array.isArray(STF)?STF:[];if(BASE&&BASEn===S.length)
 const bcOf=(id,k)=>{try{const B=baseData().bc,o=B[String(id)];if(o&&o[k]!=null)return o[k];const D=LV.D||{};
  for(const f of Object.keys(D.same||{})){if(rootOf(D.same,f)!==String(id))continue;const c=(D.cr||{})[f];if(c&&c[k]!=null)return c[k];if(B[f]&&B[f][k]!=null)return B[f][k]}return null}catch(e){return null}};
 /* class / section moved by the user (drag or the Class box): saved in D.sc, wins over the section in the Excel sheet */
-function ovl(D,y){const o=Object.assign({},linked(base(D,y))),S=D.sc||{},ks=Object.keys(S);if(ks.length){o.sec=Object.assign({},o.sec||{});ks.forEach(k=>{o.sec[k]=S[k]==='__none'?'':S[k]})}return o}
+function ovl(D,y){const o=Object.assign({},linked(base(D,y))),S=D.sc||{},ks=Object.keys(S),AD=D.add||{};{const ak=Object.keys(AD);if(ak.length){o.hd=Object.assign({},o.hd);ak.forEach(k=>{if(AD[k]&&AD[k].h)o.hd[k]=AD[k].h})}}if(ks.length){o.sec=Object.assign({},o.sec||{});ks.forEach(k=>{o.sec[k]=S[k]==='__none'?'':S[k]})}return o}
 /* "Same person": two names saved as one. Nothing is rewritten or erased: the records are only counted together when the page is shown, so it can be undone. */
 function rootOf(M,k){let c=String(k);const seen=new Set();while(M&&M[c]&&M[c].to&&!seen.has(c)){seen.add(c);c=String(M[c].to)}return c}
 function linked(D){const M=D.same||{},from=Object.keys(M);if(!from.length)return D;
@@ -12773,11 +12849,12 @@ function base(D,y){if(String(y)!==LVXY)return D;const B=baseData(),hx=new Set(D.
  Object.keys(D.cr||{}).forEach(k=>{cr[k]=Object.assign({},cr[k],D.cr[k])});
  o.cr=cr;o.ent=(D.ent||[]).concat(B.ent.filter(e=>!hx.has(e.i)));o.pp=B.pp;o.sec=B.sec;o.nt=B.nt;o.cons=B.cons;o.hd=B.hd;o.xs=B.xs;return o}
 function roster(D){const S=Array.isArray(STF)?STF:[],al=allowed(),R={},M=D.same||{},G=D.gone||{},N=D.dn||{};
- const add=(x0,key)=>{if(M[key]||G[key])return;const gs=gsOf(x0,key,D),x=gs?Object.assign({},x0,{dept:'GENERAL SERVICES'}):x0;if(gs&&al&&!al.includes(x0.dept))return;(R[x.dept]||(R[x.dept]=[])).push({s:N[key]?Object.assign({},x,{name:N[key]}):x,key:key,orig:x.name})};
+ const add=(x0,key)=>{if(M[key]||G[key]||XTR.test(String(x0.dept||'')))return;const mv=(D.dm||{})[key],gs=!mv&&gsOf(x0,key,D),x=mv?Object.assign({},x0,{dept:mv}):gs?Object.assign({},x0,{dept:'GENERAL SERVICES'}):x0;if(gs&&al&&!al.includes(x0.dept))return;if(XTR.test(String(x.dept||''))||gsHide(x,mv))return;(R[x.dept]||(R[x.dept]=[])).push({s:N[key]?Object.assign({},x,{name:N[key]}):x,key:key,orig:x.name})};
  S.forEach(x=>add(x,String(x.id)));
- Object.keys(D.pp||{}).forEach(k=>{const p=D.pp[k];if(al&&!al.includes(p.dept))return;add({id:k,name:p.n,dept:p.dept,xl:1},k)});return R}
+ Object.keys(D.pp||{}).forEach(k=>{const p=D.pp[k];if(al&&!al.includes(p.dept))return;add({id:k,name:p.n,dept:p.dept,xl:1},k)});
+ Object.keys(D.add||{}).forEach(k=>{const a=D.add[k];if(!a||(al&&!al.includes(a.dept)))return;add({id:k,name:a.n,dept:a.dept,ad:1},k)});return R}
 /* a name counts as "in 201 Files" when it, a name linked to it, or the 201 record the user picked is there */
-const okRow=(r,D)=>!!((D.ln||{})[r.key]||in201(r.s.name)||in201(r.orig)||Object.keys(D.same||{}).some(f=>rootOf(D.same,f)===r.key&&in201(D.same[f].n)));
+const okRow=(r,D)=>!!(r.s.ad||(D.ln||{})[r.key]||in201(r.s.name)||in201(r.orig)||Object.keys(D.same||{}).some(f=>rootOf(D.same,f)===r.key&&in201(D.same[f].n)));
 function cellsOf(u,id,D,t){const o=[],k=(D.cons||{})[String(id)]||{};for(let i=0;i<num(k[t]);i++)o.push({x:'CONSUMED',c:'cn',w:1});
  u.n.filter(e=>e.t===t).slice().sort((a,b)=>String(a.f).localeCompare(String(b.f))).forEach(e=>{const sp=spanDays(e);if(sp.length===1&&num(e.n)>0&&num(e.n)<1)o.push({x:md(sp[0])+' \u00BD',c:'f',w:.5,t:fd(sp[0])});else sp.forEach(d=>o.push({x:md(d),c:'f',w:1,t:fd(d)}))});return o}
 const hdTx=(D,key,name)=>{const v=(D.hd||{})[key]||h201(name)||'';return /^\d{4}-\d\d-\d\d$/.test(v)?fd(v):esc(v)};
@@ -12798,8 +12875,8 @@ function picker(D,R,dl){
   return`<button type="button" class="lvz-dp" data-d="${esc(d)}" onclick="lvSel('d',this.dataset.d)"><b>${esc(d)}</b><span>${L.length} employee${L.length===1?'':'s'}${n?` · <em>${n} with no pay</em>`:''}</span></button>`};
  const have=dl.filter(d=>(R[d]||[]).length),farm=have.filter(d=>!isM(d)),mg=have.filter(d=>isM(d));
  const grp=(t,a)=>a.length?`<section class="lvz-grp"><h2>${t}</h2><div class="lvz-idx">${a.map(card).join('')}</div></section>`:'';
- return`<header class="lvz-head"><div><h1>Vacation &amp; Sick Leave</h1><p class="lvz-lead">Choose a department to see its leave credits and leave dates.</p></div><div class="lvz-ctl">${yearSel()}${edit()?'<button type="button" class="btn o" onclick="lvChk()">Check names</button>':''}${have.length>1?`<button type="button" class="btn o" data-d="__all" onclick="lvSel('d',this.dataset.d)">Show all departments</button>`:''}${have.length?'<button type="button" class="btn o" onclick="lvXls(\'all\')" title="Download every department (Vacation and Sick) as Excel">Export Excel (VL + SL)</button>':''}</div></header>
-${warns()}${grp('Farm departments',farm)}${grp('Management',mg)}${have.length?'':'<div class="lv-emp">No employees found.</div>'}`}
+ return`<header class="lvz-head"><div><h1>Vacation &amp; Sick Leave</h1><p class="lvz-lead">Choose a department, or search an employee name.</p></div><div class="lvz-ctl"><input id="lvgq" class="lvz-f" type="search" placeholder="Search employee name" aria-label="Search employee name in all departments" oninput="lvGs(this.value)">${yearSel()}${edit()?'<button type="button" class="btn o" onclick="lvChk()">Check names</button>':''}${have.length>1?`<button type="button" class="btn o" data-d="__all" onclick="lvSel('d',this.dataset.d)">Show all departments</button>`:''}${have.length?'<button type="button" class="btn o" onclick="lvXls(\'all\')" title="Download every department (Vacation and Sick) as Excel">Export Excel (VL + SL)</button>':''}</div></header>
+${warns()}<div id="lvgr"></div><div id="lvgg">${grp('Farm departments',farm)}${grp('Management',mg)}</div>${have.length?'':'<div class="lv-emp">No employees found.</div>'}`}
 /* the list of one department (or all); redrawn alone while typing in the search box */
 function list(){
  const box=$('lvl');if(!box)return;
@@ -12818,12 +12895,12 @@ function list(){
   const draw=(r,nw,ns)=>{const s=r.s,key=r.key,z={c:cred(s,D),u:used(s.id,D)};z.cl=cellsOf(z.u,s.id,D,t);
    const sc=ns?'':(D.sec||{})[key]||'';if(!ns&&sc!==ps&&(sc||ps)){ps=sc;rows+=`<div class="lvz-sec" data-sec="${esc(sc)}" data-dp="${esc(dp)}">${esc(sc||'Others')}</div>`}
    const cr=z.c[t],us=z.u[t],bl=r2(cr-us),id=esc(String(key)),nt=((D.nt||{})[key]||{})[t]||'',cu=t==='vl'?z.c.cv:z.c.cs,hired=hdTx(D,key,s.name),nm=esc(String(s.name||'').trim());const sp=sepOf(s),el=z.c.el,sc2=sp?SEPC[sp.k]:null;
-   rows+=`<div class="lvz-row${bl<=0&&!nw?' np':''}${sp?' sep':''}${nw?' nw':''}"${ns?'':` data-sec="${esc(sc)}" data-dp="${esc(dp)}"`}><div class="lvz-who"><div class="lvz-nmw">${ed&&!ns?`<span class="lvz-hd" draggable="true" data-id="${id}" title="Drag to another class">&#8942;&#8942;</span>`:''}<button type="button" class="lvz-nm${sp?' sp':''}" data-id="${id}" onclick="lvOpen(this.dataset.id)"${sc2?` style="background:${sc2[0]};color:${sc2[1]}"`:''}>${nm}</button>${sp?`<span class="lvz-sep" style="background:${sc2[0]};color:${sc2[1]}" title="Status in 201 Files">${esc(sp.k)}${sp.d?' · '+esc(fd(sp.d)):''}</span>`:''}</div><div class="lvz-meta">${hired?`<span>Hired ${hired}</span>`:''}${ed&&!ns&&SO.length?`<select class="lvz-mv" data-id="${id}" title="Class (you can also drag the &#8942;&#8942; handle)" onchange="lvMove(this.dataset.id,this.value)"><option value=""${sc?'':' selected'}>Others (no class)</option>${SO.map(o=>`<option value="${esc(o)}"${o===sc?' selected':''}>${esc(o)}</option>`).join('')}</select>`:''}${el.st==='pro'&&!(t==='vl'?z.c.cv:z.c.cs)?`<span class="lvz-tag" title="1 year of service reached on ${esc(fd(el.on))}. Credits = default ÷ 12 × ${el.m} month(s) left in ${esc(LV.y)}. You can type a different number.">Prorated ${el.m}/12</span>`:''}${okRow(r,D)?'':ed?`<button type="button" class="lvz-tag warn" data-id="${id}" title="Check if this is the same person as another name" onclick="lvChk(this.dataset.id)">Not in 201 \u00B7 check</button>`:'<span class="lvz-tag warn" title="Not in 201 Files">Not in 201</span>'}${s.xl?'<span class="lvz-tag" title="Only in the Excel sheet, not in the payroll staff list">Sheet only</span>':''}</div></div>
-<div class="lvz-days">${slots(z,t)}${nw?`<div class="lvz-rm"><b>1 year of service on ${esc(fd(el.on))}.</b> Leave credits start then${el.m?` (prorated ${el.m}/12 of ${esc(LV.y)})`:''}. After that you decide how many credits to give.</div>`:''}${nt?`<div class="lvz-rm">${esc(nt)}</div>`:''}</div>
-<div class="lvz-cr"><span class="lvz-lbl">Credits</span><input class="lv-in${cu?' c':''}" type="number" min="0" step="0.5" value="${cr}" data-id="${id}" data-k="${t}" aria-label="${t.toUpperCase()} credits of ${nm}" onchange="lvCr(this)"${nw?' disabled title="Leave credits start after 1 year of service"':dis}></div>
+   rows+=`<div class="lvz-row${bl<=0&&!nw?' np':''}${sp?' sep':''}${nw?' nw':''}"${ns?'':` data-sec="${esc(sc)}" data-dp="${esc(dp)}"`}><div class="lvz-who"><div class="lvz-nmw">${ed&&!ns?`<span class="lvz-hd" draggable="true" data-id="${id}" title="Drag to another class">&#8942;&#8942;</span>`:''}<button type="button" class="lvz-nm${sp?' sp':''}" data-id="${id}" onclick="lvOpen(this.dataset.id)"${sc2?` style="background:${sc2[0]};color:${sc2[1]}"`:''}>${nm}</button>${sp?`<span class="lvz-sep" style="background:${sc2[0]};color:${sc2[1]}" title="Status in 201 Files">${esc(sp.k)}${sp.d?' · '+esc(fd(sp.d)):''}</span>`:''}</div><div class="lvz-meta">${hired?`<span>Hired ${hired}</span>`:''}${ed&&!ns&&dl.length>1?`<select class="lvz-mv lvz-dm" data-id="${id}" title="Move to another department (leave list only)" aria-label="Department" onchange="lvDept(this.dataset.id,this.value)">${dl.map(o=>`<option value="${esc(o)}"${o===dp?' selected':''}>${esc(o)}</option>`).join('')}</select>`:''}${(D.dm||{})[key]?`<span class="lvz-tag" title="Moved here from ${esc((emp0(key)||{}).dept||'')} (leave list only)">Moved</span>`:''}${ed&&!ns&&SO.length?`<select class="lvz-mv" data-id="${id}" title="Class (you can also drag the &#8942;&#8942; handle)" onchange="lvMove(this.dataset.id,this.value)"><option value=""${sc?'':' selected'}>Others (no class)</option>${SO.map(o=>`<option value="${esc(o)}"${o===sc?' selected':''}>${esc(o)}</option>`).join('')}</select>`:''}${el.st==='pro'&&el.m!=null&&!(t==='vl'?z.c.cv:z.c.cs)?`<span class="lvz-tag" title="1 year of service reached on ${esc(fd(el.on))}. Credits = default ÷ 12 × ${el.m} month(s) left in ${esc(LV.y)}. You can type a different number.">Prorated ${el.m}/12</span>`:''}${okRow(r,D)?'':ed?`<button type="button" class="lvz-tag warn" data-id="${id}" title="Check if this is the same person as another name" onclick="lvChk(this.dataset.id)">Not in 201 \u00B7 check</button>`:'<span class="lvz-tag warn" title="Not in 201 Files">Not in 201</span>'}${s.xl?'<span class="lvz-tag" title="Only in the Excel sheet, not in the payroll staff list">Sheet only</span>':''}${s.ad?'<span class="lvz-tag" title="Added here in Leave. Not in 201 Files or Payroll.">Added</span>':''}</div></div>
+<div class="lvz-days">${slots(z,t)}${nw?`<div class="lvz-rm"><b>1 year of service on ${esc(fd(el.on))}.</b> Leave credits start then${el.m?` (prorated ${el.m}/12 of ${esc(LV.y)})`:''}. You can type credits in the Credits box to give leave now.</div>`:''}${nt?`<div class="lvz-rm">${esc(nt)}</div>`:''}</div>
+<div class="lvz-cr"><span class="lvz-lbl">Credits</span><input class="lv-in${cu?' c':''}" type="number" min="0" step="0.5" value="${cr}" data-id="${id}" data-k="${t}" aria-label="${t.toUpperCase()} credits of ${nm}" onchange="lvCr(this)"${nw?' title="No credits yet (under 1 year of service). Type a number to give credits now."'+dis:dis}></div>
 <div class="lvz-us"><span class="lvz-lbl">Used</span><span class="lvz-num">${us}</span></div>
 <div class="lvz-bal"><span class="lvz-lbl">Left</span>${nw&&!us?'<span class="lv-b">&mdash;</span>':`<span class="lv-b ${balCls(bl)}"${bl<=0?' title="NO PAY"':''}>${bl}</span>`}</div>
-<div class="lvz-act">${ed&&(z.c.cv||z.c.cs)?`<button type="button" class="btn o sm" data-id="${id}" title="Back to the default credits" aria-label="Back to the default credits" onclick="lvRst(this.dataset.id)">↺</button>`:''}<button type="button" class="btn o sm" data-id="${id}" onclick="lvOpen(this.dataset.id)">${ed?'Add leave':'View'}</button></div></div>`};
+<div class="lvz-act">${ed&&(z.c.cv||z.c.cs)?`<button type="button" class="btn o sm" data-id="${id}" title="Back to the default credits" aria-label="Back to the default credits" onclick="lvRst(this.dataset.id)">↺</button>`:''}<button type="button" class="btn o sm" data-id="${id}" onclick="lvOpen(this.dataset.id)">${ed?'Add leave':'View'}</button>${ed?`<button type="button" class="btn o sm lvz-del" data-id="${id}" title="Remove this name from the leave list" aria-label="Remove name" onclick="lvNmDel(this.dataset.id)">\u{1F5D1}</button>`:''}</div></div>`};
   L.forEach(r=>draw(r,0));
   if(NW.length){NW.sort((a,b)=>String(cred(a.s,D).el.on).localeCompare(String(cred(b.s,D).el.on))||byName(a,b));rows+=`<div class="lvz-sec">Newly hired · leave credits start after 1 year of service</div>`;NW.forEach(r=>draw(r,1,1))}
   if(SP.length)SEPS.forEach(k=>{const g=SP.filter(r=>sepOf(r.s).k===k).sort(byName);if(!g.length)return;rows+=`<div class="lvz-sec">${esc(k)} · ${g.length}</div>`;g.forEach(r=>draw(r,0,1))});
@@ -12836,7 +12913,7 @@ function ddInit(box){if(!box||box._dd)return;box._dd=1;
  const tg=e=>{const t=e.target.closest&&e.target.closest('[data-sec]');return t&&LV.drag&&t.dataset.dp===LV.drag.dp?t:null};
  box.addEventListener('dragover',e=>{const t=tg(e);box.querySelectorAll('.lvz-over').forEach(x=>{if(x!==t)x.classList.remove('lvz-over')});if(t){e.preventDefault();t.classList.add('lvz-over')}});
  box.addEventListener('drop',e=>{const t=tg(e);if(!t)return;e.preventDefault();const id=LV.drag.id;LV.drag=null;window.lvMove(id,t.dataset.sec)})}
-const deptList=R=>{const dl=depts().slice();Object.keys(R).forEach(d=>{if(!dl.includes(d))dl.push(d)});return dl};
+const deptList=R=>{const dl=depts().filter(d=>!XTR.test(String(d||'')));Object.keys(R).forEach(d=>{if(!dl.includes(d))dl.push(d)});return dl};
 function body(){
   const b=$('lvb');if(PG!=='lvc'||!b)return;
  if(LV.bad){b.innerHTML=`<header class="lvz-head"><div><h1>Vacation &amp; Sick Leave</h1></div><div class="lvz-ctl">${yearSel()}</div></header><div class="lv-warn">⚠ The leave records could not be loaded, so no balances are shown. ${esc(LV.why||'')}<br><button class="btn o sm" style="margin-top:8px" onclick="lvc()">Try again</button></div>`;return}
@@ -12852,8 +12929,8 @@ function body(){
  b.innerHTML=`<header class="lvz-head"><div><button type="button" class="lvz-back" onclick="lvSel('d','')">← Departments</button><h1>${LV.d==='__all'?'All departments':esc(LV.d)}</h1><p class="lvz-lead">${all.length} employee${all.length===1?'':'s'}. ${t==='vl'?'Vacation':'Sick'} leave for ${esc(LV.y)}.</p></div>
 <div class="lvz-ctl"><div class="lvz-seg" role="group" aria-label="Leave type">${[['vl','Vacation'],['sl','Sick']].map(([k,n])=>`<button type="button" class="${k}${t===k?' on':''}" aria-pressed="${t===k}" onclick="lvSel('t','${k}')">${n}</button>`).join('')}</div>
 <select id="lvds" class="lvz-f" aria-label="Department" onchange="lvSel('d',this.value)"><option value="__all"${LV.d==='__all'?' selected':''}>All departments</option>${dl.filter(d=>(R[d]||[]).length).map(d=>`<option value="${esc(d)}"${LV.d===d?' selected':''}>${esc(d)}</option>`).join('')}</select>${yearSel()}
-<input id="lvq" class="lvz-f" type="search" placeholder="Search employee name" aria-label="Search employee name" value="${esc(LV.q)}" oninput="lvSel('q',this.value)"><button type="button" class="btn o" onclick="lvXls()" title="Download this list as Excel, same as on screen">Export Excel</button></div></header>
-${warns()}${miss===null?'<div class="lv-warn">The 201 Files could not be checked (not loaded for this account).</div>':''}${miss||(ed&&hid)?`<div class="lvz-check"><span>${miss?`<b>${miss} name${miss>1?'s are':' is'} not in 201 Files.</b>${ed?` Check if ${miss>1?'they are':'it is'} the same person as another name, or remove ${miss>1?'them':'it'}.`:''}`:'Some names were linked, renamed or removed.'}</span>${ed?'<button type="button" class="btn o sm" onclick="lvChk()">Check names</button>':''}</div>`:''}<div class="lvz-bar"><div class="lvz-key"><span><i class="lvz-s ${t}"></i>Leave taken</span><span><i class="lvz-s free"></i>Available</span><span><i class="lvz-s np"></i>No pay</span></div>${np?`<button type="button" class="lvz-only${LV.only?' on':''}" aria-pressed="${!!LV.only}" onclick="lvSel('np')">${LV.only?'Show everyone':`${np} with no credits left`}</button>`:''}${SEPS.map(k=>[k,all.filter(r=>{const x=sepOf(r.s);return x&&x.k===k}).length]).filter(x=>x[1]).map(([k,n])=>{const c=SEPC[k];return`<button type="button" class="lvz-only lvz-sc${LV.sep===k?' on':''}" style="${LV.sep===k?`background:${c[0]};color:${c[1]};border-color:${c[0]}`:`color:${c[0]==='#3a1c1c'?c[0]:c[1]};border-color:${c[1]}55`}" aria-pressed="${LV.sep===k}" onclick="lvSel('sep','${k}')" title="${LV.sep===k?'Back to the active employees':'Show the '+k+' employees'}">${esc(k)} · ${n}</button>`}).join('')}</div>
+<input id="lvq" class="lvz-f" type="search" placeholder="Search employee name" aria-label="Search employee name" value="${esc(LV.q)}" oninput="lvSel('q',this.value)"><button type="button" class="btn o" onclick="lvXls()" title="Download this list as Excel, same as on screen">Export Excel</button>${ed?'<button type="button" class="btn" onclick="lvAddEmp()" title="Add an employee to the leave list">+ Add employee</button>':''}</div></header>
+${warns()}${miss===null?'<div class="lv-warn">The 201 Files could not be checked (not loaded for this account).</div>':''}${miss||(ed&&hid)?`<div class="lvz-check"><span>${miss?`<b>${miss} name${miss>1?'s are':' is'} not in 201 Files.</b>${ed?` Check if ${miss>1?'they are':'it is'} the same person as another name, or remove ${miss>1?'them':'it'}.`:''}`:'Some names were linked, renamed or removed.'}</span>${ed?'<button type="button" class="btn o sm" onclick="lvChk()">Check names</button>':''}</div>`:''}<div class="lvz-bar"><div class="lvz-key"><span><i class="lvz-s ${t}"></i>Leave taken</span><span><i class="lvz-s free"></i>Available</span><span><i class="lvz-s np"></i>No pay</span></div>${np?`<button type="button" class="lvz-only${LV.only?' on':''}" aria-pressed="${!!LV.only}" onclick="lvSel('np')">${LV.only?'Show everyone':`With no credits left`}</button>`:''}${SEPS.map(k=>[k,all.filter(r=>{const x=sepOf(r.s);return x&&x.k===k}).length]).filter(x=>x[1]).map(([k,n])=>{const c=SEPC[k];return`<button type="button" class="lvz-only lvz-sc${LV.sep===k?' on':''}" style="${LV.sep===k?`background:${c[0]};color:${c[1]};border-color:${c[0]}`:`color:${c[0]==='#3a1c1c'?c[0]:c[1]};border-color:${c[1]}55`}" aria-pressed="${LV.sep===k}" onclick="lvSel('sep','${k}')" title="${LV.sep===k?'Back to the active employees':'Show the '+k+' employees'}">${esc(k)} · ${n}</button>`}).join('')}</div>
 <div id="lvl"></div>
 <details${LV.defOpen?' open':''} ontoggle="lvSel('def',this.open)"><summary>Default credits per employee, ${esc(LV.y)}</summary><div class="lvz-def"><div>Broiler <label>VL ${dinp('br','vl')}</label><label>SL ${dinp('br','sl')}</label></div><div>Other farm departments <label>VL ${dinp('farm','vl')}</label><label>SL ${dinp('farm','sl')}</label></div><div>Management (follows the uploaded Excel credits; this is only for those without one) <label>VL ${dinp('mg','vl')}</label><label>SL ${dinp('mg','sl')}</label></div></div><small>Employees with less than 1 year of service have no credits yet (they are listed at the bottom with the date their credits start). In the year of the 1st anniversary the default is divided by 12 and multiplied by the months left in that year (the anniversary month counts, rounded to 0.5). A new default applies to everyone without custom credits. To give one employee different credits, type the number in the list (a gold border means custom). Delete the number or press ↺ to go back to the default.</small></details>
 `;
@@ -12890,6 +12967,48 @@ window.lvCr=async el=>{if(!guard()){body();return}const id=String(el.dataset.id)
 window.lvMove=async(id,sec)=>{if(!guard())return;id=String(id);const s=emp(id);if(!s)return;const cur=((LV.D||{}).sec||{})[id]||'';sec=String(sec||'');if(sec===cur)return;
  const ok=await save(d=>{d.sc=d.sc||{};d.sc[id]=sec||'__none'},LV.y,'Moved to '+(sec||'Others')+' ✔');
  if(ok){try{logAct('Moved leave class','Leave',s.name+' → '+(sec||'Others')+' ('+s.dept+', '+LV.y+')')}catch(e){}}};
+window.lvGs=v=>{const g=$('lvgg'),r=$('lvgr');if(!g||!r)return;const q=String(v||'').trim().toUpperCase();if(!q){r.innerHTML='';g.style.display='';return}
+ const D=LV.D||norm(null),R=roster(D);let n=0,h='';
+ Object.keys(R).forEach(dp=>R[dp].forEach(x=>{if(n>=60||!String(x.s.name||'').toUpperCase().includes(q))return;n++;const z=isNP(x,D),sp=sepOf(x.s),nm=String(x.s.name||'').trim();h+=`<button type="button" class="lvz-hit" data-d="${esc(dp)}" data-n="${esc(nm)}" onclick="lvGo(this.dataset.d,this.dataset.n)"><b>${esc(nm)}</b><span>${esc(dp)}${sp?' \u00B7 '+esc(sp.k):''}${z.vl||z.sl?' \u00B7 <em>no credits left</em>':''}</span></button>`}));
+ g.style.display='none';r.innerHTML=h?`<section class="lvz-grp"><h2>Search results \u00B7 ${n}</h2><div class="lvz-hits">${h}</div></section>`:'<div class="lv-emp">No employee matches your search.</div>'};
+window.lvGo=(d,n)=>{LV.d=d;LV.q=n;LV.only=false;LV.sep='';body();window.scrollTo(0,0)};
+window.lvAddEmp=()=>{if(!guard())return;const D=LV.D||norm(null),R=roster(D),dl=deptList(R),cur=LV.d&&LV.d!=='__all'?LV.d:'';const o=ov();
+ o.innerHTML=`<div class="lvp" style="background:var(--sf);color:var(--ink);border-radius:14px;max-width:480px;width:100%;max-height:88vh;overflow:auto;padding:20px">${CSS}<div style="display:flex;gap:10px;align-items:flex-start"><h2 style="flex:1;margin:0;font-size:18px">Add employee<small style="display:block;font-weight:400;color:var(--mu);font-size:12px;margin-top:2px">Leave list ${esc(LV.y)} only. Not added to 201 Files or Payroll.</small></h2><button class="btn o sm" onclick="lvClose()">Close</button></div>
+<div class="lv-fm"><label class="w">Search employee (201 Files)<input id="lva_n" class="fi" type="search" placeholder="Type a name to search 201 Files…" autocomplete="off" oninput="lvaFind(this.value)" onfocus="lvaFind(this.value)"></label><div id="lva_r" class="w" style="margin:-4px 0 4px"></div><label class="w">Department<select id="lva_d" class="fi">${dl.map(d=>`<option value="${esc(d)}"${d===cur?' selected':''}>${esc(d)}</option>`).join('')}</select></label><label>Date hired<input id="lva_h" type="date" class="fi"></label><label>VL credits<input id="lva_v" type="number" min="0" step="0.5" class="fi" placeholder="default"></label><label>SL credits<input id="lva_s" type="number" min="0" step="0.5" class="fi" placeholder="default"></label><div class="lv-fa w"><button class="btn" onclick="lvAddSave()">Add employee</button></div></div></div>`;
+ const f=$('lva_n');if(f)f.focus()};
+/* Add employee: search the 201 Files list and pick a name (fills the name, department and date hired). A name that is not in 201 Files can still be typed. */
+/* is this person already in the leave list (any department)? names are compared word by word, so MARLENE RODRIGUEZ = RODRIGUEZ, MARLENE ALEJO */
+const lvaSame=(a,b)=>{const x=tmN(a).split(' ').filter(Boolean),y=tmN(b).split(' ').filter(Boolean);if(!x.length||!y.length)return false;if(x.length<2||y.length<2)return x.join(' ')===y.join(' ');const sm=x.length<=y.length?x:y,lg=x.length<=y.length?y:x;return sm.every(w=>lg.includes(w))};
+window.lvaWhere=name=>{const D=LV.D||norm(null),R=roster(D),o=[];Object.keys(R).forEach(d=>R[d].forEach(r=>{if(lvaSame(name,r.s.name)||lvaSame(name,r.orig)){let n=0;try{n=used(r.s.id,D).n.length}catch(e){}o.push({d:d,key:r.key,name:String(r.s.name||'').trim(),n:n})}}));return o};
+window.lvaFind=v=>{const r=$('lva_r');if(!r)return;const q=tmN(v).split(' ').filter(Boolean);LV.aq=[];if(!q.length){r.innerHTML='';return}
+ const L=(typeof E!=='undefined'&&Array.isArray(E)&&E.length)?E:(typeof EALL!=='undefined'&&Array.isArray(EALL)?EALL:[]),R=roster(LV.D||norm(null)),have=new Set();
+ Object.keys(R).forEach(d=>R[d].forEach(x=>{have.add(tmN(x.s.name));have.add(tmN(x.orig))}));
+ const m=L.filter(e=>{const t=tmN(e.name);return q.every(w=>t.includes(w))}).sort((a,b)=>{const A=tmN(a.name).indexOf(q[0])===0?0:1,B=tmN(b.name).indexOf(q[0])===0?0:1;return A-B||String(a.name).localeCompare(String(b.name))}).slice(0,8);
+ LV.aq=m;
+ r.innerHTML=m.length?'<div style="border:1px solid var(--ln);border-radius:10px;overflow:hidden;background:var(--sf)">'+m.map((e,i)=>{const w0=lvaWhere(e.name)[0];return`<button type="button" onclick="lvaPick(${i})" style="display:block;width:100%;text-align:left;padding:8px 12px;border:0;border-bottom:1px solid var(--ln);background:transparent;color:var(--ink);cursor:pointer"><b style="font-size:13.5px">${esc(String(e.name||'').trim())}</b><span style="display:block;font-size:12px;color:var(--mu)">${esc([e.position,e.dept,e.emp_status].filter(Boolean).join(' · '))}${w0?' · <em style="color:#b0792a;font-style:normal">already in '+esc(w0.d)+'</em>':''}</span></button>`}).join('')+'</div>':'<div class="lvz-meta" style="font-size:12.5px">Not found in 201 Files. You can still add the name you typed.</div>'};
+window.lvaPick=i=>{const e=(LV.aq||[])[i];if(!e)return;const n=$('lva_n'),h=$('lva_h'),d=$('lva_d'),r=$('lva_r');
+ if(n)n.value=String(e.name||'').trim().replace(/\s+/g,' ');
+ if(h&&/^\d{4}-\d\d-\d\d/.test(String(e.hired||'')))h.value=String(e.hired).slice(0,10);
+ if(d){const U=String(e.dept||'').toUpperCase().trim(),o=[...d.options].map(x=>x.value);let t=null;
+  if(+LV.y>=2026&&gsName(e.name))t=o.find(x=>/^\s*general services\s*$/i.test(x));
+  if(!t)t=o.find(x=>x.toUpperCase()===U)||o.find(x=>U&&(U.indexOf(x.toUpperCase())===0||x.toUpperCase().indexOf(U)===0));
+  if(t)d.value=t}
+ const W=lvaWhere(e.name),o=W.find(x=>!d||x.d!==d.value),sm=W.find(x=>d&&x.d===d.value);
+ if(r)r.innerHTML='<div class="lvz-meta" style="font-size:12.5px">\u2714 From 201 Files'+(e.dept?' \u00B7 '+esc(e.dept):'')+'. Check the department, then press Add employee.</div>'+(sm?'<div class="lv-warn" style="margin-top:6px">\u26A0 Already in '+esc(sm.d)+'.</div>':o?'<div class="lv-warn" style="margin-top:6px">\u26A0 Already in the <b>'+esc(o.d)+'</b> leave list'+(o.n?' with '+o.n+' leave record'+(o.n>1?'s':''):'')+'. When you press Add employee you can choose to move him to '+esc(d?d.value:'this department')+' (his leave records move with him).</div>':'')};
+window.lvAddSave=async()=>{if(!guard())return;const g=i=>($(i)||{}).value||'',n=g('lva_n').trim().replace(/\s+/g,' '),dp=g('lva_d'),h=g('lva_h'),v=g('lva_v').trim(),sl=g('lva_s').trim();
+ if(!n)return toast('Type the employee name.');if(!dp)return toast('Choose a department.');
+ {const W=lvaWhere(n),sm=W.find(w=>w.d===dp),ot=W.find(w=>w.d!==dp);
+  if(sm)return toast(sm.name+' is already in '+dp+'.');
+  if(ot){if(!confirm('\u26A0 '+ot.name+' is already in the '+ot.d+' leave list'+(ot.n?' with '+ot.n+' leave record'+(ot.n>1?'s':''):'')+'.\n\nOK = MOVE him to '+dp+' (his leave records move with him).\nCancel = keep him in '+ot.d+' (nothing is added).'))return;
+   await window.lvDept(ot.key,dp,1);if(LV.d!=='__all')LV.d=dp;LV.q='';lvClose();return}}
+ const id='lva'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+ const ok=await save(d=>{d.add=d.add||{};d.add[id]={n:n,dept:dp,h:/^\d{4}-\d\d-\d\d$/.test(h)?h:'',by:me(),at:new Date().toISOString()};if(v!==''||sl!==''){const c=d.cr[id]=d.cr[id]||{};if(v!=='')c.vl=Math.max(0,num(v));if(sl!=='')c.sl=Math.max(0,num(sl))}},LV.y,'Employee added \u2714');
+ if(ok){try{logAct('Added employee to the leave list','Leave',n+' ('+dp+', '+LV.y+')')}catch(e){}if(LV.d!=='__all')LV.d=dp;LV.q='';lvClose()}};
+window.lvDept=async(id,dept,sk)=>{if(!guard()){body();return}id=String(id);const s=emp(id);if(!s)return;const o=emp0(id)||s,orig=o.dept;dept=String(dept||'');if(!dept||dept===s.dept){body();return}
+ if(!sk&&!confirm('Move '+String(s.name).trim()+' from '+s.dept+' to '+dept+'?\n\nOnly this leave list changes. 201 Files, Payroll and Attendance are not affected. The leave dates move with the employee.')){body();return}
+ const back=dept===orig&&!gsOf(o,id,LV.D);
+ const ok=await save(d=>{d.dm=d.dm||{};d.sc=d.sc||{};if(back){delete d.dm[id];delete d.sc[id]}else{d.dm[id]=dept;d.sc[id]='__none'}},LV.y,'Moved to '+dept+' \u2714');
+ if(ok){try{logAct('Moved employee to another department','Leave',String(s.name).trim()+' \u2192 '+dept+' (from '+s.dept+', '+LV.y+')')}catch(e){}}};
 window.lvRst=async id=>{if(!guard())return;const s=emp(id);if(!s)return;if(!confirm('Put the VL and SL credits of '+s.name+' back to the default?'))return;await save(d=>{delete d.cr[String(id)]},LV.y,'Back to the default credits ✔')};
 
 function dropIds(d,ids){d.ent=d.ent.filter(x=>!ids.includes(x.i));ids.filter(i=>String(i).indexOf('xl')===0).forEach(i=>{if(!(d.hx||(d.hx=[])).includes(i))d.hx.push(i)})}
@@ -12980,7 +13099,9 @@ window.lvXls=function(mode){
  if(LV.bad)return toast('The leave records are not loaded yet.');
  if(typeof xgSheet!=='function'||typeof xgBuild!=='function')return toast('Excel export is not available.');
  const D=LV.D||norm(null),R=roster(D),all=mode==='all',dl=deptList(R),deps=(all||!LV.d||LV.d==='__all')?dl:[LV.d],types=all?['vl','sl']:[LV.t==='sl'?'sl':'vl'],q=all?'':LV.q.trim().toUpperCase(),only=all?false:LV.only;
- const BD='thin:FFBFC5CF',B4={bl:BD,br:BD,bt:BD,bb:BD},HD=Object.assign({fill:'FF12305C',col:'FFFFFFFF',b:1,h:'center',wrap:1},B4),ax=h=>'FF'+h.slice(1).toUpperCase();
+ const NAVY='FF12305C',GOLD='FFB8923A',BD='thin:FFDCE2EC',B4={bl:BD,br:BD,bt:BD,bb:BD},WH='thin:FFFFFFFF',DS='dashed:FFB9C5DA',ZB='FFF6F8FC',LG='FFF8F9FC',
+  HD={fill:NAVY,col:'FFFFFFFF',b:1,sz:10,h:'center',wrap:1,bl:'thin:FF2D4F86',br:'thin:FF2D4F86',bt:'thin:'+NAVY,bb:'medium:'+GOLD},
+  SEC={fn:'Georgia',b:1,sz:11,h:'left',ind:1,bt:'thin:FFD9C48F',bb:'thin:FFD9C48F'},ax=h=>'FF'+h.slice(1).toUpperCase();
  const FILL={vl:['FFDCE8F7','FF1F4E8C'],sl:['FFF6E0D9','FF8A3A25'],np:['FFB3362D','FFFFFFFF'],cn:['FFFDF0C4','FF6F5200']};
  const sheets=[],names={},today=new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
  const sn=(d,t)=>{const b=(String(d).replace(/[\[\]:*?\/\\]/g,'-').trim().slice(0,27)||'Sheet')+' '+t.toUpperCase();let n=b,i=2;while(names[n.toLowerCase()]){n=b.slice(0,28)+' '+i++}names[n.toLowerCase()]=1;return n};
@@ -12990,28 +13111,43 @@ window.lvXls=function(mode){
   const sv=all?'':LV.sep,L2=sv?[]:L.filter(r=>!sepOf(r.s)),C=L.filter(r=>{const x=sepOf(r.s);return x&&sv&&x.k===sv}).sort((a,b)=>SEPS.indexOf(sepOf(a.s).k)-SEPS.indexOf(sepOf(b.s).k)||byName(a,b)).map(dat),A=L2.filter(r=>cred(r.s,D).el.st!=='wait').sort((a,b)=>secIx((D.sec||{})[a.key])-secIx((D.sec||{})[b.key])||byName(a,b)).map(dat),
    B=L2.filter(r=>cred(r.s,D).el.st==='wait').sort((a,b)=>String(cred(a.s,D).el.on).localeCompare(String(cred(b.s,D).el.on))||byName(a,b)).map(dat);
   const nb=Math.min(60,Math.max(15,...A.concat(B,C).map(x=>x.sl.length))),last=nb+7,cC=nb+4,cU=nb+5,cL=nb+6,cR=nb+7,TT=t==='vl'?'Vacation':'Sick';
-  const S=xgSheet(sn(dp,t));S.cols=[36,13,26].concat(Array(nb).fill(8.5),[9,8,8,40]);
-  S.put(1,1,last,'Vacation & Sick Leave · '+dp,{fn:'Georgia',sz:14,b:1,col:'FF12305C'});
-  S.put(2,1,last,TT+' leave · '+LV.y+'  |  Rayanton Farms & Livestock Corp.  |  Exported '+today,{sz:9,col:'FF666666'});
-  S.put(3,1,last,'Colored box = leave date · empty box = credit still available · red = beyond the credits (NO PAY) · yellow = consumed',{sz:9,col:'FF666666'});
+  const S=xgSheet(sn(dp,t));S.cols=[38,14,24].concat(Array(nb).fill(9),[10,9,9,42]);
+  S.tab=t==='vl'?NAVY:'FF8A3A25';
+  S.put(1,1,last,'Vacation & Sick Leave · '+dp,{fn:'Georgia',sz:18,b:1,col:'FFF5EBD0',fill:NAVY,h:'left',ind:1});
+  S.put(2,1,last,TT+' leave · '+LV.y+'   |   Rayanton Farms & Livestock Corp.   |   Exported '+today,{sz:9,col:'FFB9C9E2',fill:NAVY,h:'left',ind:1,bb:'medium:'+GOLD});
+  S.put(3,1,3,'Used, Left and NO PAY update by themselves when you edit Credits or a date box.',{sz:8,i:1,col:'FF66738A',fill:LG,h:'left',ind:1,wrap:1});
+  const chip=(c1,txt,st)=>S.put(3,c1,c1+2,txt,Object.assign({sz:8,h:'center',b:1,bl:WH,br:WH,bt:WH,bb:WH},st));
+  chip(4,'Leave date',{fill:FILL[t][0],col:FILL[t][1]});
+  chip(7,'Credit still available',{fill:'FFFFFFFF',col:'FF66738A',b:0,bl:DS,br:DS,bt:DS,bb:DS});
+  chip(10,'Beyond credits · NO PAY',{fill:FILL.np[0],col:FILL.np[1]});
+  chip(13,'Consumed',{fill:FILL.cn[0],col:FILL.cn[1]});
+  S.put(3,16,last,'',{fill:LG});
+  S.hts[1]=38;S.hts[2]=18;S.hts[3]=26;S.hts[4]=30;
   ['Employee','Date hired','Status'].forEach((h,i)=>S.put(4,i+1,i+1,h,HD));
   S.put(4,4,3+nb,TT+' leave dates',HD);
   ['Credits','Used','Left','Remarks'].forEach((h,i)=>S.put(4,cC+i,cC+i,h,HD));
   let r0=5,ps=null;
-  const put=(x,nw)=>{const s=x.r.s,key=x.r.key,z=x.z,sp=sepOf(s),el=z.c.el,cr=z.c[t],us=z.u[t],bl=r2(cr-us),sf=sp?SEPC[sp.k]:null,hd=hireOf(D,key,s.name),nt=((D.nt||{})[key]||{})[t]||'',sfx=sf?{fill:ax(sf[0]),col:ax(sf[1])}:{};
-   S.put(r0,1,1,String(s.name||'').trim(),Object.assign({b:1},B4,sfx));
-   S.put(r0,2,2,hd?fd(hd):'',Object.assign({h:'center'},B4));
-   S.put(r0,3,3,sp?sp.k+(sp.d?' · '+fd(sp.d):''):'',Object.assign({b:1,h:'center'},B4,sfx));
-   if(nw&&!x.sl.length)S.put(r0,4,3+nb,'1 year of service on '+fd(el.on)+' · leave credits start then'+(el.m?' (prorated '+el.m+'/12 of '+LV.y+')':''),Object.assign({i:1,col:'FF8A6410',fill:'FFFDF3D7'},B4));
-   else x.sl.forEach((b,k)=>{const f=FILL[b.k];S.put(r0,4+k,4+k,b.x,Object.assign({h:'center',sz:9},B4,f?{fill:f[0],col:f[1]}:{}))});
+  const put=(x,nw)=>{S.hts[r0]=21;const zf=r0%2===0?{fill:ZB}:{};const s=x.r.s,key=x.r.key,z=x.z,sp=sepOf(s),el=z.c.el,cr=z.c[t],us=z.u[t],bl=r2(cr-us),sf=sp?SEPC[sp.k]:null,hd=hireOf(D,key,s.name),nt=((D.nt||{})[key]||{})[t]||'',sfx=sf?{fill:ax(sf[0]),col:ax(sf[1])}:{};
+   S.put(r0,1,1,String(s.name||'').trim(),Object.assign({b:1,sz:10,h:'left',ind:1,col:'FF1A2233'},B4,zf,sfx));
+   S.put(r0,2,2,hd?fd(hd):'',Object.assign({h:'center',sz:10,col:'FF4A5568'},B4,zf));
+   S.put(r0,3,3,sp?sp.k+(sp.d?' · '+fd(sp.d):''):'',Object.assign({b:1,h:'center',sz:10},B4,zf,sfx));
+   if(nw&&!x.sl.length)S.put(r0,4,3+nb,'1 year of service on '+fd(el.on)+' · leave credits start then'+(el.m?' (prorated '+el.m+'/12 of '+LV.y+')':''),Object.assign({i:1,col:'FF8A6410',fill:'FFFDF3D7',h:'left',ind:1},B4));
+   else x.sl.forEach((b,k)=>{const f=FILL[b.k];S.put(r0,4+k,4+k,b.x,f?{h:'center',sz:9,b:b.k==='np'?1:0,fill:f[0],col:f[1],bl:WH,br:WH,bt:WH,bb:WH}:{h:'center',sz:9,fill:'FFFFFFFF',bl:DS,br:DS,bt:DS,bb:DS})});
    const dash=nw&&!us;
-   S.put(r0,cC,cC,dash?'-':cr,Object.assign({h:'center'},B4));
-   S.put(r0,cU,cU,us,Object.assign({h:'center'},B4));
-   S.put(r0,cL,cL,dash?'-':bl,Object.assign({h:'center',b:1},B4,dash?{}:bl<=0?{col:'FFB3362D',fill:'FFFBE3E1'}:{col:'FF1D6B49'}));
-   S.put(r0,cR,cR,[nt,bl<=0&&!nw?'NO PAY':''].filter(Boolean).join(' · '),Object.assign({sz:9,wrap:1},B4));r0++};
-  A.forEach(x=>{const sc=(D.sec||{})[x.r.key]||'';if(sc!==ps&&(sc||ps)){ps=sc;S.put(r0,1,last,sc||'Others',{fn:'Georgia',b:1,fill:'FFF1F3F7',col:'FF12305C'});r0++}put(x,0)});
-  if(B.length){S.put(r0,1,last,'Newly hired · leave credits start after 1 year of service',{fn:'Georgia',b:1,fill:'FFFDF3D7',col:'FF8A6410'});r0++;B.forEach(x=>put(x,1))}
-  SEPS.forEach(k=>{const g=C.filter(x=>sepOf(x.r.s).k===k);if(!g.length)return;S.put(r0,1,last,k+' · '+g.length,{fn:'Georgia',b:1,fill:'FFF1F3F7',col:'FF12305C'});r0++;g.forEach(x=>put(x,0))});
+   S.put(r0,cC,cC,dash?'-':cr,Object.assign({h:'center',b:1,sz:10,col:NAVY},B4,zf));
+   /* Used / Left / NO PAY are real Excel formulas: they follow the date boxes and the Credits cell */
+   const cnt=x.sl.reduce((a,b)=>a+(b.x===''?0:/\u00BD/.test(b.x)?.5:1),0),fU=!(nw&&!x.sl.length)&&Math.abs(cnt-us)<.001,rg=pColL(4)+r0+':'+pColL(3+nb)+r0,aC=pColL(cC)+r0,aU=pColL(cU)+r0,aL=pColL(cL)+r0;
+   if(fU)S.fx(r0,cU,'SUMPRODUCT(('+rg+'<>"")*(1-0.5*ISNUMBER(SEARCH("\u00BD",'+rg+'))))',us,Object.assign({h:'center',sz:10,col:'FF4A5568'},B4,zf));else S.put(r0,cU,cU,us,Object.assign({h:'center',sz:10,col:'FF4A5568'},B4,zf));
+   if(dash)S.put(r0,cL,cL,'-',Object.assign({h:'center',b:1,sz:10},B4,zf));else S.fx(r0,cL,'ROUND('+aC+'-'+aU+',2)',bl,Object.assign({h:'center',b:1,sz:10,col:'FF1D6B49'},B4,zf));
+   const rm=[nt,bl<=0&&!nw?'NO PAY':''].filter(Boolean).join(' \u00B7 ');
+   if(!nw&&!dash&&nt.length<200&&!/[\r\n]/.test(nt))S.fx(r0,cR,nt?'"'+nt.replace(/"/g,'""')+'"&IF('+aL+'<=0," \u00B7 NO PAY","")':'IF('+aL+'<=0,"NO PAY","")',rm,Object.assign({sz:9,wrap:1,h:'left',ind:1,col:'FF4A5568'},B4,zf));
+   else S.put(r0,cR,cR,rm,Object.assign({sz:9,wrap:1,h:'left',ind:1,col:'FF4A5568'},B4,zf));r0++};
+  A.forEach(x=>{const sc=(D.sec||{})[x.r.key]||'';if(sc!==ps&&(sc||ps)){ps=sc;S.hts[r0]=24;S.put(r0,1,last,sc||'Others',Object.assign({fill:'FFEAF0F9',col:NAVY},SEC));r0++}put(x,0)});
+  if(B.length){S.hts[r0]=24;S.put(r0,1,last,'Newly hired · leave credits start after 1 year of service',Object.assign({fill:'FFFDF3D7',col:'FF8A6410'},SEC));r0++;B.forEach(x=>put(x,1))}
+  SEPS.forEach(k=>{const g=C.filter(x=>sepOf(x.r.s).k===k);if(!g.length)return;S.hts[r0]=24;S.put(r0,1,last,k+' · '+g.length,Object.assign({fill:'FFEAF0F9',col:NAVY},SEC));r0++;g.forEach(x=>put(x,0))});
+  const cf1='AND(ISNUMBER($'+pColL(cL)+'5),$'+pColL(cL)+'5<=0)';
+  S.cf=[{sq:pColL(cL)+'5:'+pColL(cL)+Math.max(5,r0-1),f:cf1,col:'FFB3362D',fill:'FFFBE3E1'},{sq:pColL(cR)+'5:'+pColL(cR)+Math.max(5,r0-1),f:cf1,col:'FFB3362D',fill:'FFFBE3E1'}];
+  {const n=A.length+B.length+C.length;S.hts[r0+1]=22;S.put(r0+1,1,last,'End of list · '+n+' employee'+(n===1?'':'s')+'  ·  Rayanton Farms & Livestock Corp.',{sz:9,i:1,col:'FF8793A6',h:'left',ind:1,bt:'medium:'+GOLD})}
   S.freeze=4;S.fit=1;S.orient='landscape';sheets.push(S)}));
  if(!sheets.length)return toast('Nothing to export.');
  const slug=v=>String(v||'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,''),fn='Leave-'+LV.y+'-'+(all?'All-VL-SL':(deps.length===1?slug(deps[0]):'All')+'-'+types[0].toUpperCase())+'.xlsx';
