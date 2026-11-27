@@ -12252,17 +12252,17 @@ window.psm=async function(){
  if(!F.includes(PS.d)){PS.d='';PS.r=''}
  const R=runs(PS.d);if(!R.some(p=>String(p.id)===String(PS.r)))PS.r='';
  await psmView(PS.r&&PS.v==='list'?'list':(wasList&&['sum','grid','due'].includes(PS.v)?PS.v:'due'))};
-/* only the Payroll user (payroll master) can mark / unmark payslips as returned; Creator, HR head, Admin and every other user are view only */
-window.psmEd=()=>!!(MYA&&MYA.active&&(MYA.role==='hr'||MYA.role==='payroll'));
+/* the Creator, HR Head and Payroll Master can mark / unmark payslips as returned; every other user is view only */
+window.psmEd=()=>!!((typeof adm==='function'&&adm())||(MYA&&MYA.active&&(MYA.role==='hr'||MYA.role==='payroll')));
 /* Remarks (Summary grid): Creator / Admin, HR head and the Payroll user can edit or delete */
 const psmRmx=()=>!!(SUPER||(MYA&&MYA.active&&(MYA.role==='admin'||MYA.role==='hr'||MYA.role==='payroll')));
 async function psmLoad(){PS.ret={};PS.bad=false;if(PS.r){try{PS.ret=await getRet(PS.r)}catch(e){PS.bad=true}}if(PG==='psm')psmDraw()}
 window.psmSel=async(k,v)=>{PS[k]=v;if(k==='d'||k==='r')PS.sg='';if(k==='d'){PS.cl='';PS.r=v&&runs(v)[0]?String(runs(v)[0].id):'';await psmLoad()}else if(k==='r'){PS.cl='';await psmLoad()}else psmDraw()};
 window.psmTog=async(id,on)=>{await psmSet([id],on)};
-window.psmAll=async on=>{if(!psmEd())return toast('View only: only the HR Head and Payroll Master can mark or unmark payslips.');const p=cur();if(!p)return;const L=psmShown(p).map(x=>x.id);if(!L.length)return;if(!confirm((on?'Mark ':'Clear ')+L.length+' name(s) as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(L,on)};
+window.psmAll=async on=>{if(!psmEd())return toast('View only: only the Creator, HR Head and Payroll Master can mark or unmark payslips.');const p=cur();if(!p)return;const L=psmShown(p).map(x=>x.id);if(!L.length)return;if(!confirm((on?'Mark ':'Clear ')+L.length+' name(s) as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(L,on)};
 let PSQ=Promise.resolve();
 const psmTO=(pr,ms)=>Promise.race([pr,new Promise((_,rj)=>setTimeout(()=>rj(new Error('The server took too long to respond. Check your internet and try again.')),ms))]);
-async function psmSet(ids,on){if(!psmEd())return toast('View only: only the HR Head and Payroll Master can mark or unmark payslips.');const p=cur();if(!p)return;
+async function psmSet(ids,on){if(!psmEd())return toast('View only: only the Creator, HR Head and Payroll Master can mark or unmark payslips.');const p=cur();if(!p)return;
  /* v626: the tick shows immediately; saving is queued so fast clicks are never lost and one slow request can never freeze the checkboxes */
  const pid=p.id,at=new Date().toISOString(),by=me();
  ids.forEach(id=>{if(on){if(!PS.ret[id])PS.ret[id]={at:at,by:by}}else delete PS.ret[id]});psmDraw();
@@ -12275,7 +12275,7 @@ async function psmSet(ids,on){if(!psmEd())return toast('View only: only the HR H
  });return PSQ}
 function psmCl(x){if(x&&x.g!=null)return gCls(x.g)||'(no class)';const s=(STF||[]).find(y=>String(y.id)===String(x.id));return gCls(s?pGrp(s):'')||'(no class)'}
 let PCL=[];
-window.psmCAll=async k=>{if(!psmEd())return toast('View only: only the HR Head and Payroll Master can mark or unmark payslips.');const ids=PCL[k]||[];if(!ids.length)return;const on=!ids.every(id=>PS.ret[id]);if(!confirm((on?'Mark ':'Clear ')+ids.length+' name(s) of this class as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(ids,on)};
+window.psmCAll=async k=>{if(!psmEd())return toast('View only: only the Creator, HR Head and Payroll Master can mark or unmark payslips.');const ids=PCL[k]||[];if(!ids.length)return;const on=!ids.every(id=>PS.ret[id]);if(!confirm((on?'Mark ':'Clear ')+ids.length+' name(s) of this class as '+(on?'returned':'NOT returned')+'?'))return;await psmSet(ids,on)};
 /* scope opened from the Dashboard: '2' = classes with 14 days (B2/B4/B7/B14), '1' = classes with 7 days, '' = all classes */
 function psmGrp(x){const s0=(STF||[]).find(y=>String(y.id)===String(x.id));return psm2w(s0,x)?'2':'1'}
 function psmShown(p){const q=(PS.q||'').trim().toUpperCase();return people(p).filter(x=>(!q||x.n.toUpperCase().includes(q))&&(!PS.sg||psmGrp(x)===PS.sg)&&(!PS.cl||psmCl(x)===PS.cl)&&(PS.f==='all'||(PS.f==='no'?!PS.ret[x.id]:!!PS.ret[x.id])))}
@@ -12407,7 +12407,7 @@ function psmDraw(){
  const clsAll=[...tm.keys()].sort(nat);
  const rows=[...gm.keys()].sort((a,b)=>(a==='(no class)')-(b==='(no class)')||nat(a,b)).map(c=>{const o=tm.get(c),ids=gm.get(c).map(x=>x.id),k=PCL.push(ids)-1,cp=o.t>0&&o.d===o.t;
   return(c==='(no class)'?'':`<tr class="psm-ch"><td colspan="5"><span class="psm-cn">${esc(c)}</span><span class="psm-pill ${cp?'c':'i'}">${o.d}/${o.t}${cp?' ✓':''}</span>${ed?`<button class="psm-open" onclick="psmCAll(${k})">${ids.every(id=>PS.ret[id])?'Clear class':'Mark class returned'}</button>`:''}</td></tr>`)+gm.get(c).map((x,i)=>rowOf(x,i)).join('')}).join('');
- $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring · Checklist</h1><p class="sub">Choose a department and a cutoff, then tick each name once the <b>signed payslip</b> has been returned.${ed?'':' <b style="color:#8a5a00">View only</b> · only the Payroll user can mark or unmark.'}</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('list')}</div></div>
+ $('main').innerHTML=`<div class="psm"><div class="psm-hd"><div><h1>Payslip Monitoring · Checklist</h1><p class="sub">Choose a department and a cutoff, then tick each name once the <b>signed payslip</b> has been returned.${ed?'':' <b style="color:#8a5a00">View only</b> · only the Creator, HR Head and Payroll Master can mark or unmark.'}</p><div class="psm-rule"></div></div><div class="psm-act">${psmNav('list')}</div></div>
 ${PS.bad?'<div class="psm-card psm-warn">Could not load the saved ticks (check the connection). Do not tick anything until this is fixed — reopen this page.</div>':''}
 <div class="psm-card"><div class="psm-fl"><div><label>Department</label><select class="fi" onchange="psmSel('d',this.value)">${op('','— Select department —',!PS.d)}${F.map(f=>op(f,f,f===PS.d)).join('')}</select></div><div><label>Cutoff</label><select class="fi" ${PS.d?'':'disabled'} onchange="psmSel('r',this.value)">${op('','— Select cutoff —',!PS.r)}${R.map(x=>op(x.id,lb(x.data.from,x.data.to),String(x.id)===String(PS.r))).join('')}</select></div></div></div>
 ${p?`<div class="psm-card"><div class="psm-pg"><div><div class="psm-big">${done}<small> / ${tot}</small></div><div class="psm-cap">Signed payslips returned</div></div><div class="psm-bw"><div class="psm-bar"><i class="${comp?'c':''}" style="width:${pct}%"></i></div><div class="psm-bl"><span>${pct}% complete</span><span>${tot-done} pending</span></div></div><span class="psm-pill lg ${comp?'c':'i'}">${comp?'C':'INC'}</span></div></div>
