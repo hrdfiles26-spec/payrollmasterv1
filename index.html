@@ -4929,7 +4929,8 @@ async function pSeed(){const p=pSeedPlan();if(!p.neu.length&&!p.mv.length)return
  try{for(const [s,d] of p.mv){await api('/rest/v1/hrd_pay_staff?id=eq.'+s.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({dept:d})});pMvLog(s,s.dept,pGrp(s),d,'');(window._xq=window._xq||[]).push({s,fd:s.dept,fg:pGrp(s)||'',td:d,tg:''});s.dept=d}
   for(let i=0;i<p.neu.length;i+=150){const j=await api('/rest/v1/hrd_pay_staff',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(p.neu.slice(i,i+150))});STF.push(...j)}
   try{if(p.mv.length){pdSave();const q=window._xq||[];window._xq=[];await pXferBatch(q,true)}}catch(e){}logAct('Loaded payroll roster','Payroll',p.neu.length+' added, '+p.mv.length+' moved');drawP();toast('Loaded ✔')}catch(x){alert(x.message);loadS().then(drawP)}}
-async function loadS(){try{STF=sVis(await api('/rest/v1/hrd_pay_staff?select=*&order=name'));STF=STF.filter(s=>!['Common','Rest House'].includes(s.dept));STF=STF.filter(s=>!(isMg(s.dept)&&PMEX.has(pNm(s.name))));STF.forEach(s=>{const n=pCanon(s.dept);if(n!==s.dept){s.dept=n;api('/rest/v1/hrd_pay_staff?id=eq.'+s.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({dept:n})}).catch(()=>{})}})}catch(e){STF=null}}
+var STFOUT=[];/* staff this account may NOT see (other departments): only used by Leave Monitoring to recognise their names, so they do not show up as 'Sheet only' in another department */
+async function loadS(){try{const RAW=await api('/rest/v1/hrd_pay_staff?select=*&order=name');STFOUT=Array.isArray(RAW)?RAW.filter(x=>!((can('mgp')||!isMgt(x.dept))&&pxDeptOk(x.dept))):[];STF=sVis(RAW);STF=STF.filter(s=>!['Common','Rest House'].includes(s.dept));STF=STF.filter(s=>!(isMg(s.dept)&&PMEX.has(pNm(s.name))));STF.forEach(s=>{const n=pCanon(s.dept);if(n!==s.dept){s.dept=n;api('/rest/v1/hrd_pay_staff?id=eq.'+s.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({dept:n})}).catch(()=>{})}})}catch(e){STF=null}}
 async function pays(){PTMC={};pv='main';PQS='';
  if(window.__payWarm&&Array.isArray(STF)&&PH){pApplyDS();if(!PP.init)PP=pNew(PF);if(!pUns())PV='hist';drawP();pdLoad().catch(()=>{});loadH(true).then(()=>{if(PG==='pay'&&PV==='hist'&&!pUns()&&!typing())drawP()}).catch(()=>{});return}
  await pdLoad();if(PG!=='pay')return;pApplyDS();await loadS();if(PG!=='pay')return;pApplyDS();await loadH(1);if(PG!=='pay')return;if(!PP.init)PP=pNew(PF);if(!pUns())PV='hist';window.__payWarm=1;drawP()}
@@ -12803,8 +12804,8 @@ function loadX(y){if(String(y)!==LVXY||LVX.length)return Promise.resolve();
   if(!Array.isArray(r)||r.length<LVXN)throw new Error('The 2026 Excel leave sheets are missing or incomplete ('+(Array.isArray(r)?r.length:0)+' of '+LVXN+'). Run the leave SQL in Supabase, or ask the Admin to check your access.');
   LVX=r.map(x=>x.data);LVX.forEach((z,i)=>{if(z.sec&&SECO[z.sec]==null)SECO[z.sec]=i});BASE=null})().finally(()=>{LVXP=null}))}
 async function readY(y){try{const c=(await Promise.all([fetchY(y),loadX(y)]))[0];LV.D=ovl(c.d,y);LV.A=null;if(LV.m==='pm'){try{LV.A=ovl((await fetchY(y,'adm')).d,y)}catch(e){LV.A=null}}LV.bad=false;LV.why=''}catch(e){LV.D=norm(null);LV.bad=true;LV.why=String((e&&e.message)||e)}}
-function baseData(){const S=Array.isArray(STF)?STF:[];if(BASE&&BASEn===S.length)return BASE;
- const pool=mkPool(S),dm={},rows=LVX.map(r=>({r:r,s:findIn(pool,r.n)}));
+function baseData(){const S=Array.isArray(STF)?STF:[],SO=Array.isArray(STFOUT)?STFOUT:[];if(BASE&&BASEn===S.length+SO.length)return BASE;
+ const pool=mkPool(S.concat(SO)),dm={},rows=LVX.map(r=>({r:r,s:findIn(pool,r.n)}));
  rows.forEach(z=>{if(z.s){const m=dm[z.r.x]||(dm[z.r.x]={});m[z.s.dept]=(m[z.s.dept]||0)+1}});
  const dOf=x=>{const m=dm[x];return m?Object.keys(m).sort((a,b)=>m[b]-m[a])[0]:x};
  const B={ent:[],bc:{},dept:{},pp:{},sec:{},nt:{},cons:{},hd:{},xs:{}},seen=new Set();let cnt=0;
@@ -12816,7 +12817,7 @@ function baseData(){const S=Array.isArray(STF)?STF:[];if(BASE&&BASEn===S.length)
    if(T.c){const o=B.cons[key]||(B.cons[key]={});o[t]=(o[t]||0)+T.c}
    if(T.nt&&T.nt.length){const o=B.nt[key]||(B.nt[key]={});o[t]=[...new Set([o[t],...T.nt].filter(Boolean))].join(' / ')}
    if(T.cr!=null){const o=B.bc[key]||(B.bc[key]={});o[t]=Math.max(0,num(T.cr))}})});
- BASE=B;BASEn=S.length;return B}
+ BASE=B;BASEn=S.length+SO.length;return B}
 const bcOf=(id,k)=>{try{const B=baseData().bc,o=B[String(id)];if(o&&o[k]!=null)return o[k];const D=LV.D||{};
  for(const f of Object.keys(D.same||{})){if(rootOf(D.same,f)!==String(id))continue;const c=(D.cr||{})[f];if(c&&c[k]!=null)return c[k];if(B[f]&&B[f][k]!=null)return B[f][k]}return null}catch(e){return null}};
 /* class / section moved by the user (drag or the Class box): saved in D.sc, wins over the section in the Excel sheet */
@@ -12841,7 +12842,7 @@ function base(D,y){if(String(y)!==LVXY)return D;const B=baseData(),hx=new Set(D.
  Object.keys(D.cr||{}).forEach(k=>{cr[k]=Object.assign({},cr[k],D.cr[k])});
  o.cr=cr;o.ent=(D.ent||[]).concat(B.ent.filter(e=>!hx.has(e.i)));o.pp=B.pp;o.sec=B.sec;o.nt=B.nt;o.cons=B.cons;o.hd=B.hd;o.xs=B.xs;return o}
 function roster(D){const S=Array.isArray(STF)?STF:[],al=allowed(),R={},M=D.same||{},G=D.gone||{},N=D.dn||{};
- const add=(x0,key)=>{if(M[key]||G[key])return;const gs=gsOf(x0,key,D),x=gs?Object.assign({},x0,{dept:'GENERAL SERVICES'}):x0;if(gs&&al&&!al.includes(x0.dept))return;(R[x.dept]||(R[x.dept]=[])).push({s:N[key]?Object.assign({},x,{name:N[key]}):x,key:key,orig:x.name})};
+ const add=(x0,key)=>{if(M[key]||G[key])return;const gs=gsOf(x0,key,D),x=gs?Object.assign({},x0,{dept:'GENERAL SERVICES'}):x0;if(al&&!al.includes(x0.dept))return;(R[x.dept]||(R[x.dept]=[])).push({s:N[key]?Object.assign({},x,{name:N[key]}):x,key:key,orig:x.name})};
  S.forEach(x=>add(x,String(x.id)));
  Object.keys(D.pp||{}).forEach(k=>{const p=D.pp[k];if(al&&!al.includes(p.dept))return;add({id:k,name:p.n,dept:p.dept,xl:1},k)});return R}
 /* a name counts as "in 201 Files" when it, a name linked to it, or the 201 record the user picked is there */
