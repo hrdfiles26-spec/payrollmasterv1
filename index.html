@@ -12144,9 +12144,13 @@ function psmPaid(p){const d=p&&p.data;if(!d||!d.rows||!d.rates)return null;let c
  if(!okc)return null;PAYC.set(d,ids);return ids}
 /* CLASS / DEPARTMENT OF A PERSON *AT THAT CUTOFF* (from the Transfers log): a transfer only counts from the cutoff it happened in. Older cutoffs keep the old department / class. */
 function psmAt(id,p,s){const to=String((p&&p.data&&p.data.to)||''),fo=(()=>{try{return pFo(p.data)}catch(e){return''}})();
+ /* the class saved inside that cutoff always wins (later moves never change it) */
+ try{const gg=p&&p.data&&p.data.grp;if(gg&&Object.prototype.hasOwnProperty.call(gg,String(id)))return{dp:fo||(s?s.dept:''),g:gg[String(id)]||''}}catch(e){}
  try{const L=((PDS&&PDS._mv&&PDS._mv.L)||[]).filter(e=>e&&String(e.id)===String(id)).slice().sort((a,b)=>String(a.d).localeCompare(String(b.d)));
   for(const e of L){const t=new Date(e.d);if(isNaN(t))continue;const md=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
    if(to&&(e.cf?String((p&&p.data&&p.data.from)||'')<String(e.cf):to<md)&&(!fo||!e.fd||e.fd===fo))return{dp:e.fd||(s?s.dept:''),g:e.fg||''}}}catch(e){}
+ /* older cutoff saved before classes were stored: if the person is no longer in this department, the CURRENT class is not his class in this cutoff -> use the class he had when he left it (Transfers log), else no class */
+ try{if(s&&fo&&s.dept!==fo){const L2=((PDS&&PDS._mv&&PDS._mv.L)||[]).filter(e=>e&&String(e.id)===String(id)&&e.fd===fo).slice().sort((a,b)=>String(a.d).localeCompare(String(b.d)));return{dp:fo,g:L2.length?(L2[0].fg||''):''}}}catch(e){}
  return{dp:s?s.dept:'',g:s?pGrp(s):''}}
 const people=p=>{const PD=psmPaid(p),ids=Object.keys((p.data&&p.data.rates)||{}).filter(id=>!PD||PD.has(String(id)));return ids.filter(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id));if(!s)return!!(PS.nm&&PS.nm[String(id)]);const a=psmAt(id,p,s);return pxGrpOk(a.dp,a.g)}).map(id=>{const s=(STF||[]).find(x=>String(x.id)===String(id)),inf=(PAYI.get(p.data)||{})[String(id)];return{id:String(id),n:s?s.name:String(PS.nm[String(id)]||'')+(PS.nmx&&PS.nmx[String(id)]?'':' (removed)'),g:s?psmAt(id,p,s).g:''}}).sort((a,b)=>a.n.localeCompare(b.n))};
 async function getRet(id){const r=await api('/rest/v1/hrd_attendance?name=eq.'+encodeURIComponent(key(id))+'&select=data');return(Array.isArray(r)&&r[0]&&r[0].data&&r[0].data.ret)||{}}
@@ -12354,7 +12358,7 @@ ${PS.sbad?'<div class="psm-card psm-warn">Could not load the saved ticks (check 
 <div class="psm-card"><div class="psm-fl"><div><label>Cutoff</label><select class="fi" onchange="psmSc(this.value)">${C.map(k=>{const[f,t]=k.split('|');return op(k,lb(f,t),k===PS.sc)}).join('')}</select></div><div class="psm-st"><div class="psm-sc c"><b>${nc}</b><span>Complete</span></div><div class="psm-sc i"><b>${ni}</b><span>Incomplete</span></div></div></div></div>
 ${R.length?`<div class="psm-gd">${R.map(x=>{const pc=x.tot?Math.round(x.done/x.tot*100):0;return`<div class="psm-dc dbo ${x.c?'c':''}" title="Double-click to open" ondblclick="if(!event.target.closest('button,a,input,select'))psmOpen('${esc(x.d).replace(/'/g,"\\'")}','${esc(String(x.p.id))}')"><div class="psm-dh"><b>${esc(x.d)}</b><span class="psm-pill ${x.c?'c':'i'}">${x.c?'C':'INC'}</span></div><div class="psm-dn">${x.done}<small> / ${x.tot} returned</small></div><div class="psm-bar"><i class="${x.c?'c':''}" style="width:${pc}%"></i></div><div class="psm-bl"><span>${x.tot-x.done} pending</span></div></div>`}).join('')}</div>`:'<div class="psm-card psm-em">No saved payroll for this cutoff.</div>'}</div>`}
 /* class name = what follows the department prefix ("Breeder : John Myr" -> "John Myr", "EXTRA BROILER : B4:192" -> "B4:192"); a code like "B2:191" keeps its class (B2) and is no longer cut down to "191" */
-const gCls=c=>String(c||'').replace(/^.*\s:\s*/,'').trim();
+const gCls=c=>{c=String(c||'').replace(/^.*\s:\s*/,'').trim();const m=/^(B\s*\d+)\s*:/i.exec(c);return m?m[1].replace(/\s+/g,'').toUpperCase():c};
 const gDt=t=>{const a=String(t).split('-');return a.length===3?(+a[1])+'/'+(+a[2])+'/'+a[0]:String(t)};
 let GK=[],GDL=[],GM=null;
 function psmGridDraw(){
