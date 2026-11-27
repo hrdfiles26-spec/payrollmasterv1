@@ -12381,6 +12381,8 @@ const psmCss=`
 .psg th:first-child{left:0;z-index:5;background:var(--sf2)}
 .psg td.cl{position:sticky;left:0;z-index:2;background:var(--sf);box-shadow:1px 0 0 var(--ln2)}
 .psg tr.dh td{position:sticky;left:0;z-index:2}
+/* Summary: the cutoff (date) header row sticks to the top of the screen while the PAGE scrolls (overflow:clip keeps the page, not the box, as the scroller); small screens keep the old scroll box */
+.psg-w{overflow:clip;max-height:none}.psg th{box-shadow:0 1px 0 var(--ln2)}@media(max-width:800px){.psg-w{overflow:auto;max-height:calc(100vh - 90px)}}
 @media print{.psg-w{max-height:none!important;overflow:visible!important}.psg th,.psg td.cl,.psg tr.dh td{position:static!important}}
 [data-theme=dark] .psg td.ok{background:#173326;color:#6fd39a}[data-theme=dark] .psg td.bad{background:#3a1f21;color:#ff9d92}[data-theme=dark] .psg td.bad.part{background:#3a3016;color:#e3bd62}
 .psg-lg{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--mu);margin:12px 2px 0}
